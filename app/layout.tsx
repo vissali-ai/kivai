@@ -59,6 +59,10 @@ export const metadata: Metadata = {
 
   publisher: "Kivai",
 
+  alternates: {
+    canonical: "/",
+  },
+
   robots: {
     index: true,
     follow: true,
@@ -102,6 +106,8 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
+
+  category: "Technology",
 };
 
 export default function RootLayout({
@@ -121,14 +127,14 @@ export default function RootLayout({
         jetbrainsMono.variable
       )}
     >
-<body className="min-h-full flex flex-col">
-  <StructuredData />
-  {children}
+      <body className="min-h-full flex flex-col">
+        <StructuredData />
+        {children}
 
-  <GoogleAnalytics
-    gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
-  />
-</body>
+        <GoogleAnalytics
+          gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
+        />
+      </body>
     </html>
   );
 }

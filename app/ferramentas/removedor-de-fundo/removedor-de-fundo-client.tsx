@@ -196,9 +196,10 @@ async function iniciarProcessamentoBen2() {
 
    const API_URL =
   process.env.NEXT_PUBLIC_API_URL;
-
+console.log("API_URL =", API_URL);
 const resposta = await fetch(
   `${API_URL}/remove-background`,
+  
       {
         method: "POST",
         body: formData,

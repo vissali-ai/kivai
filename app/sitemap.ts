@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
+import { tools } from "@/lib/tools";
+
+const baseUrl = "https://kivai.com.br";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://kivai.com.br";
-
-  return [
+  const pages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -12,45 +13,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
 
     {
-      url: `${baseUrl}/ferramentas`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-
-    {
-      url: `${baseUrl}/ferramentas/imagens`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-
-    {
-      url: `${baseUrl}/ferramentas/calculadoras`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-
-    {
       url: `${baseUrl}/servicos/gestao-de-trafego`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.8,
-    },
-
-    {
-      url: `${baseUrl}/servicos/criacao-de-landing-pages`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-
-    {
-      url: `${baseUrl}/servicos/divulgacao-artistas`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
+      priority: 0.9,
     },
   ];
+
+  const toolPages: MetadataRoute.Sitemap = tools
+    .filter((tool) => tool.index !== false)
+    .map((tool) => ({
+      url: `${baseUrl}/ferramentas/${tool.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: tool.featured ? 0.9 : 0.8,
+    }));
+
+  return [...pages, ...toolPages];
 }
