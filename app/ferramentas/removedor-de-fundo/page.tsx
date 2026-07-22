@@ -3,9 +3,31 @@
 import RemovedorDeFundoClient from "./removedor-de-fundo-client";
 
 export const metadata: Metadata = {
-  title: "Removedor de Fundo Online | Nexion Tools",
+  title: "Removedor de Fundo Online Grátis | Kivai",
+
   description:
-    "Remova o fundo de imagens online de forma rápida e prática. Prepare fotos de produtos, anúncios e projetos com o Nexion Tools.",
+    "Remova o fundo de imagens automaticamente e online. Ferramenta gratuita para criar imagens com fundo transparente em segundos.",
+
+  alternates: {
+    canonical: "https://kivai.com.br/ferramentas/removedor-de-fundo",
+  },
+
+  openGraph: {
+    title: "Removedor de Fundo Online Grátis | Kivai",
+    description:
+      "Remova o fundo de imagens automaticamente e online. Ferramenta gratuita para criar imagens com fundo transparente em segundos.",
+    url: "https://kivai.com.br/ferramentas/removedor-de-fundo",
+    siteName: "Kivai",
+    locale: "pt_BR",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Removedor de Fundo Online Grátis | Kivai",
+    description:
+      "Remova o fundo de imagens automaticamente e online. Ferramenta gratuita para criar imagens com fundo transparente em segundos.",
+  },
 };
 
 export default function RemovedorDeFundoPage() {
