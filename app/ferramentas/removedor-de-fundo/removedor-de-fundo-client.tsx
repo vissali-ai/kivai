@@ -194,8 +194,11 @@ async function iniciarProcessamentoBen2() {
     const formData = new FormData();
     formData.append("file", arquivo);
 
-    const resposta = await fetch(
-      "http://127.0.0.1:8000/remove-background",
+   const API_URL =
+  process.env.NEXT_PUBLIC_API_URL;
+
+const resposta = await fetch(
+  `${API_URL}/remove-background`,
       {
         method: "POST",
         body: formData,
