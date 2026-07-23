@@ -1,10 +1,11 @@
 ﻿import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
+
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import StructuredData from "@/components/seo/structured-data";
-import { AdsenseScript } from "@/components/ads";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -128,17 +129,23 @@ export default function RootLayout({
         jetbrainsMono.variable
       )}
     >
-     <body className="min-h-full flex flex-col">
-  <StructuredData />
+      <body className="min-h-full flex flex-col">
+        <StructuredData />
 
-  <AdsenseScript />
+        <Script
+          id="google-adsense"
+          async
+          strategy="beforeInteractive"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
+          crossOrigin="anonymous"
+        />
 
-  {children}
+        {children}
 
-  <GoogleAnalytics
-    gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
-  />
-</body>
+        <GoogleAnalytics
+          gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
+        />
+      </body>
     </html>
   );
 }
