@@ -11,7 +11,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 
-import { AdSlot } from "@/components/ads/ad-slot";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { Button } from "@/components/ui/button";
 import {
   Card,

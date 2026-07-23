@@ -15,18 +15,50 @@ export type ToolCategory =
 
 export interface Tool {
   slug: string;
+
+  // Nome exibido na interface
   name: string;
+
+  // Descrição padrão da ferramenta
   description: string;
+
+  // Categoria
   category: ToolCategory;
+
+  // Destaque na Home/Hubs
   featured?: boolean;
+
+  // Permitir indexação
   index?: boolean;
+
+  // SEO (opcionais)
+  seoTitle?: string;
+  seoDescription?: string;
+  keywords?: string[];
 }
 
 export const tools: Tool[] = [
   {
     slug: "removedor-de-fundo",
     name: "Removedor de Fundo",
-    description: "Remova o fundo de imagens automaticamente.",
+
+    description:
+      "Remova o fundo de imagens automaticamente.",
+
+    seoTitle:
+      "Removedor de Fundo Online Grátis",
+
+    seoDescription:
+      "Remova o fundo de imagens automaticamente em segundos. Ferramenta online gratuita, rápida e sem necessidade de instalar programas.",
+
+    keywords: [
+      "removedor de fundo",
+      "remover fundo de imagem",
+      "apagar fundo de foto",
+      "background remover",
+      "remover fundo online",
+    ],
+
     category: "imagens",
     featured: true,
     index: true,

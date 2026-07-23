@@ -1,4 +1,4 @@
-import { AdSlot } from "@/components/ads/ad-slot";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { Hero } from "@/components/marketing/hero";
 import { Navbar } from "@/components/marketing/navbar";
 import { FeaturedToolsSection } from "@/components/marketing/featured-tools-section";

@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import StructuredData from "@/components/seo/structured-data";
+import { AdsenseScript } from "@/components/ads";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -127,14 +128,17 @@ export default function RootLayout({
         jetbrainsMono.variable
       )}
     >
-      <body className="min-h-full flex flex-col">
-        <StructuredData />
-        {children}
+     <body className="min-h-full flex flex-col">
+  <StructuredData />
 
-        <GoogleAnalytics
-          gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
-        />
-      </body>
+  <AdsenseScript />
+
+  {children}
+
+  <GoogleAnalytics
+    gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
+  />
+</body>
     </html>
   );
 }

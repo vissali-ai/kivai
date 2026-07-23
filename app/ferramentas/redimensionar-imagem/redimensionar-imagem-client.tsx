@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { AdSlot } from "@/components/ads/ad-slot";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 import {
   Card,
