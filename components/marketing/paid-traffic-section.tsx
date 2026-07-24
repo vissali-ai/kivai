@@ -37,10 +37,10 @@ const serviceBenefits = [
 
 export function PaidTrafficSection() {
   return (
-    <section
-      id="gestao-de-trafego"
-      className="relative overflow-hidden border-t border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-32"
-    >
+   <section
+  id="servicos"
+  className="relative overflow-hidden border-t border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-32"
+>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"

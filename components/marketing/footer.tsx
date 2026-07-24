@@ -5,22 +5,22 @@ import { ArrowUpRight } from "lucide-react";
 const productLinks = [
   { label: "Ferramentas", href: "/#ferramentas" },
   { label: "Como funciona", href: "/#como-funciona" },
-  { label: "Premium (em breve)", href: "/em-breve" },
-  { label: "Serviços", href: "/#servicos" },
+  { label: "Serviços", href: "/servicos" },
+  { label: "Premium", href: "/premium" },
 ];
 
 const ecosystemLinks = [
   { label: "Removedor de fundo", href: "/ferramentas/removedor-de-fundo" },
   { label: "Conversor de imagens", href: "/ferramentas/conversor-de-imagens" },
-  { label: "Ferramentas PDF", href: "/ferramentas/pdfs" },
+  { label: "PDF para Imagens", href: "/ferramentas/pdf-para-imagens" },
   { label: "Gerador de QR Code", href: "/ferramentas/gerador-de-qr-code" },
 ];
 
 const companyLinks = [
-  { label: "Entrar (em breve)", href: "/em-breve" },
-  { label: "Dashboard (em breve)", href: "/em-breve" },
+  { label: "Entrar", href: "/em-breve" },
+  { label: "Criar conta", href: "/em-breve" },
   { label: "Termos de uso", href: "/termos" },
-  { label: "Privacidade", href: "/privacidade" },
+  { label: "Política de Privacidade", href: "/privacidade" },
 ];
 
 export function Footer() {
@@ -41,27 +41,27 @@ export function Footer() {
               className="inline-flex items-center gap-3"
               aria-label="Kivai, página inicial"
             >
-            <Image
-  src="/logo.png"
-  alt="Kivai"
-  width={28}
-  height={28}
-  className="h-8 w-auto"
-/>
+              <Image
+                src="/logo.png"
+                alt="Kivai"
+                width={28}
+                height={28}
+                className="h-8 w-auto"
+              />
 
-<span className="text-lg font-semibold tracking-tight text-foreground">
-  Kivai
-</span>
+              <span className="text-lg font-semibold tracking-tight text-foreground">
+                Kivai
+              </span>
             </Link>
 
             <p className="mt-5 max-w-md text-sm leading-7 text-muted-foreground">
-             Kivai é um ecossistema inteligente que transforma tarefas digitais
-em experiências simples, rápidas e produtivas.
+              Kivai é um ecossistema inteligente que transforma tarefas digitais
+              em experiências simples, rápidas e produtivas.
             </p>
 
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.025] px-3 py-1.5 text-xs font-medium text-muted-foreground">
               <span className="size-1.5 rounded-full bg-emerald-400" />
-              Ferramentas inteligentes para resultados reais.
+              Ferramentas inteligentes para resultados reais
             </div>
           </div>
 
@@ -130,12 +130,12 @@ em experiências simples, rápidas e produtivas.
 
         <div className="flex flex-col gap-4 pt-7 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {new Date().getFullYear()} Kivai. Todos os direitos
-            reservados.
+            © {new Date().getFullYear()} Kivai. Todos os direitos reservados.
           </p>
 
           <p>
-            Criado para transformar tarefas em resultados.
+            Transformando tarefas digitais em experiências simples, rápidas e
+            produtivas.
           </p>
         </div>
       </div>

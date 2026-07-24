@@ -3,8 +3,6 @@ import { Hero } from "@/components/marketing/hero";
 import { Navbar } from "@/components/marketing/navbar";
 import { FeaturedToolsSection } from "@/components/marketing/featured-tools-section";
 import { ToolsSection } from "@/components/marketing/tools-section";
-import { BenefitsSection } from "@/components/marketing/benefits-section";
-import { PricingPreviewSection } from "@/components/marketing/pricing-preview-section";
 import { Footer } from "@/components/marketing/footer";
 
 export default function Home() {
@@ -26,8 +24,6 @@ export default function Home() {
         </div>
       </section>
 
-      <BenefitsSection />
-      <PricingPreviewSection />
       <Footer />
     </main>
   );

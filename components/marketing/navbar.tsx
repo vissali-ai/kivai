@@ -2,10 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Menu,
-} from "lucide-react";
+import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,9 +16,14 @@ import {
 } from "@/components/ui/sheet";
 
 const navItems = [
-  { label: "Ferramentas", href: "#ferramentas" },
-  { label: "Recursos", href: "#recursos" },
-  { label: "Preços", href: "#precos" },
+  {
+    label: "Serviços",
+    href: "/servicos",
+  },
+  {
+    label: "Premium",
+    href: "/premium",
+  },
 ];
 
 export function Navbar() {
@@ -64,13 +66,12 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           <Button variant="ghost" asChild>
-            <Link href="/login">Em breve</Link>
+            <Link href="/login">Login</Link>
           </Button>
 
-          <Button asChild className="group rounded-xl">
+          <Button asChild className="rounded-xl">
             <Link href="/em-breve">
-              Em breve
-              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+              Registrar-se
             </Link>
           </Button>
         </div>
@@ -138,15 +139,14 @@ export function Navbar() {
                       asChild
                       className="h-11 rounded-xl border-white/10"
                     >
-                      <Link href="/login">Em breve</Link>
+                      <Link href="/login">Login</Link>
                     </Button>
                   </SheetClose>
 
                   <SheetClose asChild>
-                    <Button asChild className="group h-11 rounded-xl">
+                    <Button asChild className="h-11 rounded-xl">
                       <Link href="/em-breve">
-                        Em breve
-                        <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                        Registrar-se
                       </Link>
                     </Button>
                   </SheetClose>
