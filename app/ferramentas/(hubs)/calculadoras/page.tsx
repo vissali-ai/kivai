@@ -107,7 +107,7 @@ export default function CalculadorasPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+      <section className="relative overflow-hidden bg-background pt-24 pb-12 sm:pt-24 sm:pb-14 lg:pt-24 lg:pb-16">
 
         <div className="mb-8">
           <Link

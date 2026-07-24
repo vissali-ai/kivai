@@ -78,7 +78,7 @@ export default function ImagensPage() {
       : tools.filter((tool) => tool.category === filter);
 
   return (
-    <section className="relative overflow-hidden bg-background py-12 sm:py-14 lg:py-16">
+    <section className="relative overflow-hidden bg-background pt-24 pb-12 sm:pt-24 sm:pb-14 lg:pt-24 lg:pb-16">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Link
