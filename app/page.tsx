@@ -1,6 +1,5 @@
 import { AdSlot } from "@/components/ads/AdSlot";
 import { Hero } from "@/components/marketing/hero";
-import { Navbar } from "@/components/marketing/navbar";
 import { FeaturedToolsSection } from "@/components/marketing/featured-tools-section";
 import { ToolsSection } from "@/components/marketing/tools-section";
 import { Footer } from "@/components/marketing/footer";
@@ -8,12 +7,11 @@ import { Footer } from "@/components/marketing/footer";
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
-      <Navbar />
       <Hero />
 
-<FeaturedToolsSection />
+      <FeaturedToolsSection />
 
-<ToolsSection />
+      <ToolsSection />
 
       <section
         aria-label="Área de publicidade"
