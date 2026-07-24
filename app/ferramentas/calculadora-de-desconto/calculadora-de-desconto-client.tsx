@@ -104,7 +104,7 @@ export default function CalculadoraDeDescontoClient() {
 
   return (
     <section className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+      <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-12 sm:px-6 sm:pt-24 lg:px-8 lg:pt-24 lg:pb-16">
         <div className="mb-8">
           <Link
             href="/ferramentas/calculadoras"
@@ -147,8 +147,7 @@ export default function CalculadoraDeDescontoClient() {
                 <div className="border border-border bg-muted/20 p-5">
 
                   <div className="space-y-4">
-
-                    <div>
+                                        <div>
                       <label className="text-sm font-medium">
                         Preço original
                       </label>
@@ -298,8 +297,7 @@ export default function CalculadoraDeDescontoClient() {
                   </div>
 
                 )}
-
-              </div>
+                              </div>
 
             </div>
           </CardContent>
