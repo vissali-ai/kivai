@@ -151,7 +151,7 @@ export default function CalculadorasPage() {
           </div>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+       <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
 
           {filteredCalculators.map((calculator) => {
             const Icon = calculator.icon;
@@ -199,7 +199,7 @@ export default function CalculadorasPage() {
                 <Link
                   key={calculator.title}
                   href={calculator.href}
-                  className="group relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-4 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055]"
+                 className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4"
                 >
                   {content}
                 </Link>
@@ -209,7 +209,7 @@ export default function CalculadorasPage() {
             return (
               <article
                 key={calculator.title}
-                className="relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-4 opacity-75"
+               className="relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 opacity-75 sm:aspect-square sm:p-4"
               >
                 {content}
               </article>

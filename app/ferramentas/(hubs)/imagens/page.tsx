@@ -115,7 +115,7 @@ export default function ImagensPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
 
@@ -123,7 +123,7 @@ export default function ImagensPage() {
               <Link
                 key={tool.title}
                 href={tool.href}
-                className="group relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-4 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055]"
+               className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4"
               >
                 <div className="flex h-full flex-col">
                   <div className="flex items-start justify-between">
