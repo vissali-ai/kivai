@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { getToolBySlug, getToolHref } from "@/lib/tools";
 
 const productLinks = [
   { label: "Ferramentas", href: "/#ferramentas" },
@@ -10,11 +11,15 @@ const productLinks = [
 ];
 
 const ecosystemLinks = [
-  { label: "Removedor de fundo", href: "/ferramentas/removedor-de-fundo" },
-  { label: "Conversor de imagens", href: "/ferramentas/conversor-de-imagens" },
-  { label: "PDF para Imagens", href: "/ferramentas/pdf-para-imagens" },
-  { label: "Gerador de QR Code", href: "/ferramentas/gerador-de-qr-code" },
-];
+  "removedor-de-fundo",
+  "conversor-de-imagens",
+  "pdf-para-imagens",
+  "gerador-de-qr-code",
+].flatMap((slug) => {
+  const tool = getToolBySlug(slug);
+
+  return tool ? [{ label: tool.name, href: getToolHref(tool.slug) }] : [];
+});
 
 const companyLinks = [
   { label: "Entrar", href: "/em-breve" },
