@@ -1,4 +1,16 @@
-let recursosPromise: Promise<any> | null = null;
+import type {
+  AutoModel,
+  AutoProcessor,
+  RawImage,
+} from "@huggingface/transformers";
+
+type RmbgResources = {
+  model: Awaited<ReturnType<typeof AutoModel.from_pretrained>>;
+  processor: Awaited<ReturnType<typeof AutoProcessor.from_pretrained>>;
+  RawImage: typeof RawImage;
+};
+
+let recursosPromise: Promise<RmbgResources> | null = null;
 
 async function carregarRecursosRmbg() {
   if (!recursosPromise) {

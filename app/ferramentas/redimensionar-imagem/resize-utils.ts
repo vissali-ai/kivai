@@ -3,6 +3,7 @@ export type FormatoSaida = "png" | "jpeg" | "webp";
 type OpcoesResize = {
   largura: number;
   altura: number;
+  manterProporcao?: boolean;
   formato: FormatoSaida;
   qualidade?: number;
   corDeFundo?: string;
@@ -26,8 +27,17 @@ export async function redimensionarImagem(
     throw new Error("Seu navegador não suporta Canvas.");
   }
 
-  canvas.width = opcoes.largura;
-  canvas.height = opcoes.altura;
+  const dimensoes = opcoes.manterProporcao
+    ? calcularDimensoesProporcionais(
+        imagem.naturalWidth,
+        imagem.naturalHeight,
+        opcoes.largura,
+        opcoes.altura
+      )
+    : { largura: opcoes.largura, altura: opcoes.altura };
+
+  canvas.width = dimensoes.largura;
+  canvas.height = dimensoes.altura;
 
   if (opcoes.formato === "jpeg") {
     ctx.fillStyle = opcoes.corDeFundo ?? "#ffffff";
@@ -99,4 +109,25 @@ async function carregarImagem(
 
     imagem.src = url;
   });
+}
+
+function calcularDimensoesProporcionais(
+  larguraOriginal: number,
+  alturaOriginal: number,
+  larguraMaxima: number,
+  alturaMaxima: number
+) {
+  if (larguraMaxima < 1 || alturaMaxima < 1) {
+    throw new Error("Informe uma largura e altura maiores que zero.");
+  }
+
+  const escala = Math.min(
+    larguraMaxima / larguraOriginal,
+    alturaMaxima / alturaOriginal
+  );
+
+  return {
+    largura: Math.max(1, Math.round(larguraOriginal * escala)),
+    altura: Math.max(1, Math.round(alturaOriginal * escala)),
+  };
 }

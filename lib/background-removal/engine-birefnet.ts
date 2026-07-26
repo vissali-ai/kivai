@@ -6,8 +6,11 @@ import {
 
 const MODEL_ID = "studioludens/birefnet-lite-512";
 
-let modelPromise: Promise<any> | null = null;
-let processorPromise: Promise<any> | null = null;
+type BackgroundModel = Awaited<ReturnType<typeof AutoModel.from_pretrained>>;
+type BackgroundProcessor = Awaited<ReturnType<typeof AutoProcessor.from_pretrained>>;
+
+let modelPromise: Promise<BackgroundModel> | null = null;
+let processorPromise: Promise<BackgroundProcessor> | null = null;
 
 async function carregarMotor() {
   if (!modelPromise) {

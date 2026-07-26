@@ -13,7 +13,7 @@ export function FeaturedToolsSection() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          {tools.filter((tool) => tool.featured && tool.available).map((tool) => {
+          {tools.filter((tool) => tool.featured).map((tool) => {
             const Icon = tool.icon;
 
             return (
@@ -31,7 +31,7 @@ export function FeaturedToolsSection() {
                     </span>
 
                     <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">
-                    {tool.badge}
+                    {tool.available ? tool.badge : "Em breve"}
                     </span>
                   </div>
 
@@ -44,8 +44,8 @@ export function FeaturedToolsSection() {
                   </p>
 
                   <div className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium text-foreground transition duration-300 group-hover:text-primary">
-                    Explorar
-                    <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                    {tool.available ? "Explorar" : "Em breve"}
+                    {tool.available && <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />}
                   </div>
                 </div>
               </Link>

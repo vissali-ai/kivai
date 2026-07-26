@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { removerFundoBiRefNet } from "@/lib/background-removal/engine-birefnet";
 import {
   ChangeEvent,
   DragEvent,
@@ -21,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { removerFundo } from "@/lib/background-removal/engine";
+import { removerFundoBiRefNet } from "@/lib/background-removal/engine-birefnet";
 
 const FORMATOS_ACEITOS = ["image/png", "image/jpeg", "image/webp"];
 const TAMANHO_MAXIMO_GRATIS = 5 * 1024 * 1024;
@@ -152,34 +151,6 @@ function fazerOutraImagem() {
 }
  async function iniciarProcessamento() {
     
-  if (!arquivo || !previewUrl) {
-    setErro("Selecione uma imagem antes de continuar.");
-    return;
-  }
-
-  setProcessando(true);
-  setErro("");
-
-  try {
-    limparResultado();
-
-    const resultadoBlob = await removerFundo(previewUrl);
-
-    const novaResultadoUrl = URL.createObjectURL(resultadoBlob);
-
-    setResultadoUrl(novaResultadoUrl);
-  } catch (error) {
-    console.error(error);
-
-    setErro(
-      "Não foi possível remover o fundo desta imagem. Tente novamente."
-    );
-  } finally {
-    setProcessando(false);
-  }
-}
-
-async function iniciarProcessamentoBen2() {
   if (!arquivo) {
     setErro("Selecione uma imagem antes de continuar.");
     return;
@@ -191,67 +162,17 @@ async function iniciarProcessamentoBen2() {
   try {
     limparResultado();
 
-    const formData = new FormData();
-    formData.append("file", arquivo);
+    const resultadoBlob = await removerFundoBiRefNet(arquivo);
 
-   const API_URL =
-  process.env.NEXT_PUBLIC_API_URL;
-console.log("API_URL =", API_URL);
-const resposta = await fetch(
-  `${API_URL}/remove-background`,
-  
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (!resposta.ok) {
-      let mensagem =
-        "Não foi possível remover o fundo desta imagem.";
-
-      try {
-        const dadosErro = await resposta.json();
-
-        if (dadosErro?.detail) {
-          mensagem = dadosErro.detail;
-        }
-      } catch {
-        // Mantém a mensagem padrão
-      }
-
-      throw new Error(mensagem);
-    }
-
-    const resultadoBlob = await resposta.blob();
-
-    if (resultadoBlob.type !== "image/png") {
-      throw new Error(
-        "O servidor retornou um formato inesperado."
-      );
-    }
-
-    const novaResultadoUrl =
-      URL.createObjectURL(resultadoBlob);
+    const novaResultadoUrl = URL.createObjectURL(resultadoBlob);
 
     setResultadoUrl(novaResultadoUrl);
   } catch (error) {
-    console.error(
-      "Erro ao processar remoção de fundo:",
-      error
-    );
+    console.error(error);
 
-    if (error instanceof TypeError) {
-      setErro(
-        "Não foi possível conectar ao serviço de processamento. Verifique se o backend está ativo."
-      );
-    } else if (error instanceof Error) {
-      setErro(error.message);
-    } else {
-      setErro(
-        "Não foi possível remover o fundo desta imagem. Tente novamente."
-      );
-    }
+    setErro(
+      "Não foi possível remover o fundo desta imagem. Tente novamente."
+    );
   } finally {
     setProcessando(false);
   }
@@ -422,7 +343,7 @@ const resposta = await fetch(
   {!resultadoUrl && (
     <Button
       type="button"
-      onClick={iniciarProcessamentoBen2}
+      onClick={iniciarProcessamento}
       disabled={processando}
     >
       {processando ? (

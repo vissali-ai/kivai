@@ -360,6 +360,7 @@ export default function RedimensionarImagemClient() {
           {
             largura,
             altura,
+            manterProporcao,
             formato: formatoSaida,
             qualidade:
               qualidade / 100,
@@ -376,6 +377,9 @@ export default function RedimensionarImagemClient() {
       setResultadoBlob(
         resultado.blob
       );
+
+      setLargura(resultado.largura);
+      setAltura(resultado.altura);
 
       setResultadoUrl(
         novaUrl

@@ -1,6 +1,8 @@
 import type { RawImage } from "@huggingface/transformers";
 
-let segmenterPromise: Promise<any> | null = null;
+type Segmenter = (imagemUrl: string) => Promise<unknown>;
+
+let segmenterPromise: Promise<Segmenter> | null = null;
 
 async function carregarSegmentador() {
   if (!segmenterPromise) {
@@ -12,7 +14,7 @@ async function carregarSegmentador() {
           {
             dtype: "fp32",
           }
-        );
+        ) as unknown as Segmenter;
       }
     );
   }

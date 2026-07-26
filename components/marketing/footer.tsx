@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { getToolBySlug, getToolHref } from "@/lib/tools";
+import { getToolHref, tools } from "@/lib/tools";
 
 const productLinks = [
   { label: "Ferramentas", href: "/#ferramentas" },
@@ -10,16 +10,9 @@ const productLinks = [
   { label: "Premium", href: "/premium" },
 ];
 
-const ecosystemLinks = [
-  "removedor-de-fundo",
-  "conversor-de-imagens",
-  "pdf-para-imagens",
-  "gerador-de-qr-code",
-].flatMap((slug) => {
-  const tool = getToolBySlug(slug);
-
-  return tool ? [{ label: tool.name, href: getToolHref(tool.slug) }] : [];
-});
+const ecosystemLinks = tools
+  .filter((tool) => tool.category === "imagens" && (tool.featured || !tool.available))
+  .map((tool) => ({ label: tool.name, href: getToolHref(tool.slug) }));
 
 const companyLinks = [
   { label: "Entrar", href: "/em-breve" },
