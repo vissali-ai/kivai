@@ -685,14 +685,14 @@ const svg = await QRCode.toString(conteudoQr, {
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-12 sm:px-6 sm:pt-24 lg:px-8 lg:pt-24 lg:pb-16">
         <div className="mb-8">
           <Link
-            href="/"
+            href="/ferramentas/imagens"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft
               className="size-4"
               aria-hidden="true"
             />
-            Voltar para o início
+            Voltar para ferramentas
           </Link>
         </div>
 

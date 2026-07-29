@@ -4,7 +4,9 @@ export function loadImage(file: Blob) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const image = new Image();
-    image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
+    // A imagem é usada tanto pelo Canvas quanto pela prévia. A URL precisa
+    // permanecer ativa enquanto o componente a estiver exibindo.
+    image.onload = () => resolve(image);
     image.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Não foi possível abrir a imagem.")); };
     image.src = url;
   });

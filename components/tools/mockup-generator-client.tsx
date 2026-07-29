@@ -13,7 +13,7 @@ const W = 1600; const H = 1000;
 export function MockupGeneratorClient() {
   const input = useRef<HTMLInputElement>(null); const canvas = useRef<HTMLCanvasElement>(null);
   const [source, setSource] = useState<HTMLImageElement | null>(null); const [template, setTemplate] = useState(mockupTemplates[0]); const [scale, setScale] = useState(1); const [x, setX] = useState(0); const [y, setY] = useState(0); const [error, setError] = useState("");
-  const load = (event: ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (!file) return; if (!accepted.includes(file.type)) { setError("Use PNG, JPG ou WebP."); return; } const url = URL.createObjectURL(file); const image = new Image(); image.onload = () => { URL.revokeObjectURL(url); setSource(image); setError(""); }; image.src = url; };
+  const load = (event: ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (!file) return; if (!accepted.includes(file.type)) { setError("Use PNG, JPG ou WebP."); return; } const url = URL.createObjectURL(file); const image = new Image(); image.onload = () => { setSource(image); setError(""); }; image.src = url; };
   useEffect(() => { if (canvas.current) draw(canvas.current, template, source, scale, x, y); }, [template, source, scale, x, y]);
   const download = () => { const link = document.createElement("a"); link.href = canvas.current?.toDataURL("image/png") ?? ""; link.download = `${template.id}-mockup.png`; document.body.appendChild(link); link.click(); link.remove(); };
 

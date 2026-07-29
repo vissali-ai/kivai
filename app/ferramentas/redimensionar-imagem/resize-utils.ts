@@ -27,30 +27,35 @@ export async function redimensionarImagem(
     throw new Error("Seu navegador não suporta Canvas.");
   }
 
-  const dimensoes = opcoes.manterProporcao
-    ? calcularDimensoesProporcionais(
-        imagem.naturalWidth,
-        imagem.naturalHeight,
-        opcoes.largura,
-        opcoes.altura
-      )
-    : { largura: opcoes.largura, altura: opcoes.altura };
+  if (opcoes.largura < 1 || opcoes.altura < 1) {
+    throw new Error("Informe uma largura e altura maiores que zero.");
+  }
 
-  canvas.width = dimensoes.largura;
-  canvas.height = dimensoes.altura;
+  canvas.width = opcoes.largura;
+  canvas.height = opcoes.altura;
 
   if (opcoes.formato === "jpeg") {
     ctx.fillStyle = opcoes.corDeFundo ?? "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  ctx.drawImage(
-    imagem,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
+  if (opcoes.manterProporcao) {
+    const escala = Math.min(
+      canvas.width / imagem.naturalWidth,
+      canvas.height / imagem.naturalHeight
+    );
+    const larguraDesenhada = imagem.naturalWidth * escala;
+    const alturaDesenhada = imagem.naturalHeight * escala;
+    ctx.drawImage(
+      imagem,
+      (canvas.width - larguraDesenhada) / 2,
+      (canvas.height - alturaDesenhada) / 2,
+      larguraDesenhada,
+      alturaDesenhada
+    );
+  } else {
+    ctx.drawImage(imagem, 0, 0, canvas.width, canvas.height);
+  }
 
   const mimeType =
     opcoes.formato === "png"
@@ -109,25 +114,4 @@ async function carregarImagem(
 
     imagem.src = url;
   });
-}
-
-function calcularDimensoesProporcionais(
-  larguraOriginal: number,
-  alturaOriginal: number,
-  larguraMaxima: number,
-  alturaMaxima: number
-) {
-  if (larguraMaxima < 1 || alturaMaxima < 1) {
-    throw new Error("Informe uma largura e altura maiores que zero.");
-  }
-
-  const escala = Math.min(
-    larguraMaxima / larguraOriginal,
-    alturaMaxima / alturaOriginal
-  );
-
-  return {
-    largura: Math.max(1, Math.round(larguraOriginal * escala)),
-    altura: Math.max(1, Math.round(alturaOriginal * escala)),
-  };
 }
