@@ -7,6 +7,7 @@ import {
   ImagePlus,
   FileText,
   ImageIcon,
+  Video,
   Maximize2,
   Minimize2,
   Percent,
@@ -79,6 +80,14 @@ export const toolCategories: ToolCategoryDefinition[] = [
     href: "/ferramentas/texto",
     icon: Type,
   },
+  {
+    slug: "video",
+    name: "Vídeos",
+    description:
+      "Converta, edite e otimize vídeos diretamente no navegador com ferramentas rápidas, gratuitas e fáceis de usar.",
+    href: "/ferramentas/videos",
+    icon: Video,
+  },
 ];
 
 export interface Tool {
@@ -98,6 +107,21 @@ export interface Tool {
 }
 
 export const tools: Tool[] = [
+  {
+    slug: "capturar-frame-video",
+    name: "Capturar frame",
+    description: "Salve qualquer frame do vídeo como imagem.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: ImageIcon,
+    available: true,
+    index: true,
+    seoTitle: "Capturar Frame de Vídeo Online Grátis | Kivai",
+    seoDescription:
+      "Capture frames de vídeos diretamente no navegador e baixe a imagem em PNG ou JPG sem enviar arquivos para servidores.",
+    keywords: ["capturar frame de vídeo", "extrair imagem do vídeo", "frame para png"],
+  },
   {
     slug: "removedor-de-fundo",
     name: "Removedor de Fundo",
