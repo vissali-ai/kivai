@@ -1,10 +1,7 @@
 import UnirPdfsClient from "./unir-pdfs-client";
+import { getToolMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Unir PDFs Online Grátis | Nexion Tools",
-  description:
-    "Una vários arquivos PDF em um único documento de forma rápida, gratuita e segura. Tudo acontece no seu navegador.",
-};
+export const metadata = getToolMetadata("unir-pdfs");
 
 export default function Page() {
   return <UnirPdfsClient />;

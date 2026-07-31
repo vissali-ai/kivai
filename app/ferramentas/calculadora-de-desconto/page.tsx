@@ -1,12 +1,7 @@
-import type { Metadata } from "next";
-
 import CalculadoraDeDescontoClient from "./calculadora-de-desconto-client";
+import { getToolMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Calculadora de Desconto Grátis | Nexion Tools",
-  description:
-    "Calcule descontos percentuais, descubra o valor economizado e veja o preço final de produtos e serviços.",
-};
+export const metadata = getToolMetadata("calculadora-de-desconto");
 
 export default function CalculadoraDeDescontoPage() {
   return <CalculadoraDeDescontoClient />;

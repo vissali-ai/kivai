@@ -1,12 +1,7 @@
-import type { Metadata } from "next";
-
 import CalculadoraDeRoiClient from "./calculadora-de-roi-client";
+import { getToolMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Calculadora de ROI Grátis | Nexion Tools",
-  description:
-    "Calcule o retorno sobre investimento, descubra o ganho ou perda financeira e analise a rentabilidade do seu investimento.",
-};
+export const metadata = getToolMetadata("calculadora-de-roi");
 
 export default function CalculadoraDeRoiPage() {
   return <CalculadoraDeRoiClient />;

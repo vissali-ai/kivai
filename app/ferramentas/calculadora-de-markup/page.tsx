@@ -1,12 +1,7 @@
-import type { Metadata } from "next";
-
 import CalculadoraDeMarkupClient from "./calculadora-de-markup-client";
+import { getToolMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Calculadora de Markup Grátis | Nexion Tools",
-  description:
-    "Calcule o preço de venda com base no custo e no markup, descubra o lucro bruto e analise a margem resultante.",
-};
+export const metadata = getToolMetadata("calculadora-de-markup");
 
 export default function CalculadoraDeMarkupPage() {
   return <CalculadoraDeMarkupClient />;

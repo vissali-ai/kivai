@@ -1,10 +1,7 @@
 import CompactarPdfClient from "./compactar-pdf-client";
+import { getToolMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Compactar PDF Online Grátis | Nexion Tools",
-  description:
-    "Reduza o tamanho de arquivos PDF gratuitamente e diretamente no navegador.",
-};
+export const metadata = getToolMetadata("compactar-pdf");
 
 export default function Page() {
   return <CompactarPdfClient />;

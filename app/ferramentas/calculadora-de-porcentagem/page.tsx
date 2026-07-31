@@ -1,13 +1,15 @@
-import type { Metadata } from "next";
-
 import CalculadoraDePorcentagemClient from "./calculadora-de-porcentagem-client";
+import { getToolMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Calculadora de Porcentagem Grátis | Nexion Tools",
-  description:
-    "Calcule porcentagens, aumentos, descontos, variações percentuais e descubra quanto um valor representa em relação ao outro.",
-};
+export const metadata = getToolMetadata("calculadora-de-porcentagem");
 
-export default function CalculadoraDePorcentagemPage() {
-  return <CalculadoraDePorcentagemClient />;
-}
+const faq = [
+  ["O que é porcentagem?", "É uma forma de representar uma parte de 100."],
+  ["Como calcular 10% de um valor?", "Divida o valor por 10. Por exemplo, 10% de 200 é 20."],
+  ["Posso usar números com vírgula?", "Sim. A calculadora aceita vírgula ou ponto como separador decimal."],
+  ["Como descobrir o valor antes de um desconto?", "Divida o valor final por 1 menos o desconto dividido por 100."],
+  ["Qual a diferença entre porcentagem e ponto percentual?", "Porcentagem compara uma parte com o total; ponto percentual mede a diferença direta entre percentuais."],
+];
+const schema = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) };
+
+export default function CalculadoraDePorcentagemPage() { return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /><CalculadoraDePorcentagemClient /><section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 lg:px-8"><div className="space-y-8"><article><h2 className="text-2xl font-semibold">Como calcular porcentagem?</h2><p className="mt-3 leading-7 text-muted-foreground">Porcentagem representa uma parte de 100. Para encontrar uma porcentagem de um valor, divida o percentual por 100 e multiplique pelo valor.</p></article><article><h2 className="text-2xl font-semibold">Como calcular a porcentagem de um valor?</h2><p className="mt-3 leading-7 text-muted-foreground">Use a fórmula porcentagem ÷ 100 × valor. Por exemplo, 20 ÷ 100 × 350 resulta em 70.</p></article><article><h2 className="text-2xl font-semibold">Aumento, redução e valor original</h2><p className="mt-3 leading-7 text-muted-foreground">Compare o valor inicial e final para medir uma variação. Para recuperar um valor original, desfaça o fator do aumento ou desconto, em vez de apenas subtrair o percentual.</p></article><article><h2 className="text-2xl font-semibold">Perguntas frequentes</h2><div className="mt-4 space-y-3">{faq.map(([question, answer]) => <details key={question} className="rounded-lg border border-border p-4"><summary className="cursor-pointer font-medium">{question}</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">{answer}</p></details>)}</div></article><nav aria-label="Ferramentas relacionadas"><h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2><div className="mt-4 flex flex-wrap gap-3"><a href="/ferramentas/calculadora-de-desconto" className="text-primary hover:underline">Calculadora de Desconto</a><a href="/ferramentas/calculadora-de-roi" className="text-primary hover:underline">Calculadora de ROI</a><a href="/ferramentas/calculadora-de-roas" className="text-primary hover:underline">Calculadora de ROAS</a><a href="/ferramentas/calculadora-de-margem" className="text-primary hover:underline">Calculadora de Margem</a><a href="/ferramentas/calculadora-de-markup" className="text-primary hover:underline">Calculadora de Markup</a></div></nav></div></section></>; }

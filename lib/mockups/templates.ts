@@ -1,10 +1,10 @@
-export type MockupTemplate = { id: string; name: string; frame: "device" | "shirt" | "card" | "outdoor" | "frame" | "browser" | "post"; screen: { x: number; y: number; width: number; height: number } };
+export type MockupTemplate = { id: string; name: string; frame: "device" | "shirt" | "card" | "outdoor" | "frame" | "browser" | "post"; screen: { x: number; y: number; width: number; height: number }; asset?: string };
 
 // A ferramenta lê apenas esta definição de assets. Para incluir um novo mockup,
 // adicione um novo template com sua área de arte; a interface não precisa mudar.
 export const mockupTemplates: MockupTemplate[] = [
-  { id: "notebook", name: "Notebook", frame: "device", screen: { x: 260, y: 160, width: 1080, height: 610 } },
-  { id: "desktop", name: "Desktop", frame: "device", screen: { x: 220, y: 120, width: 1160, height: 650 } },
+  { id: "notebook", name: "Notebook", frame: "device", screen: { x: 421, y: 225, width: 761, height: 445 }, asset: "/mockups/laptop-studio-source.png" },
+  { id: "desktop", name: "Desktop", frame: "device", screen: { x: 294, y: 142, width: 1011, height: 546 }, asset: "/mockups/desktop-studio-source.png" },
   { id: "smartphone", name: "Smartphone", frame: "device", screen: { x: 570, y: 100, width: 460, height: 800 } },
   { id: "tablet", name: "Tablet", frame: "device", screen: { x: 350, y: 150, width: 900, height: 650 } },
   { id: "camiseta", name: "Camiseta", frame: "shirt", screen: { x: 570, y: 310, width: 460, height: 420 } },

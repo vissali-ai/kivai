@@ -1,10 +1,7 @@
 import GirarPdfClient from "./girar-pdf-client";
+import { getToolMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Girar PDF Online Grátis | Nexion Tools",
-  description:
-    "Gire páginas de arquivos PDF em 90°, 180° ou 270° diretamente no navegador.",
-};
+export const metadata = getToolMetadata("girar-pdf");
 
 export default function Page() {
   return <GirarPdfClient />;

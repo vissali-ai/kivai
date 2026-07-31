@@ -1,9 +1,11 @@
 export type FormatoSaida = "png" | "jpeg" | "webp";
+export type PosicaoCorte = "superior-esquerda" | "superior" | "superior-direita" | "esquerda" | "centro" | "direita" | "inferior-esquerda" | "inferior" | "inferior-direita";
 
 type OpcoesResize = {
   largura: number;
   altura: number;
   manterProporcao?: boolean;
+  posicaoCorte?: PosicaoCorte;
   formato: FormatoSaida;
   qualidade?: number;
   corDeFundo?: string;
@@ -40,16 +42,21 @@ export async function redimensionarImagem(
   }
 
   if (opcoes.manterProporcao) {
-    const escala = Math.min(
+    // Preenche exatamente o tamanho solicitado sem deformar a imagem.
+    // A parte excedente é recortada pelo próprio canvas, como em object-fit: cover.
+    const escala = Math.max(
       canvas.width / imagem.naturalWidth,
       canvas.height / imagem.naturalHeight
     );
     const larguraDesenhada = imagem.naturalWidth * escala;
     const alturaDesenhada = imagem.naturalHeight * escala;
+    const posicao = opcoes.posicaoCorte ?? "centro";
+    const eixoX = posicao.includes("esquerda") ? 0 : posicao.includes("direita") ? canvas.width - larguraDesenhada : (canvas.width - larguraDesenhada) / 2;
+    const eixoY = posicao.startsWith("superior") ? 0 : posicao.startsWith("inferior") ? canvas.height - alturaDesenhada : (canvas.height - alturaDesenhada) / 2;
     ctx.drawImage(
       imagem,
-      (canvas.width - larguraDesenhada) / 2,
-      (canvas.height - alturaDesenhada) / 2,
+      eixoX,
+      eixoY,
       larguraDesenhada,
       alturaDesenhada
     );

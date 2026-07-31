@@ -27,6 +27,7 @@ import {
 
 import {
   FormatoSaida,
+  PosicaoCorte,
   redimensionarImagem,
 } from "./resize-utils";
 
@@ -138,6 +139,9 @@ export default function RedimensionarImagemClient() {
 
   const [manterProporcao, setManterProporcao] =
     useState(true);
+
+  const [posicaoCorte, setPosicaoCorte] =
+    useState<PosicaoCorte>("centro");
 
   const [formatoSaida, setFormatoSaida] =
     useState<FormatoSaida>("webp");
@@ -361,6 +365,7 @@ export default function RedimensionarImagemClient() {
             largura,
             altura,
             manterProporcao,
+            posicaoCorte,
             formato: formatoSaida,
             qualidade:
               qualidade / 100,
@@ -653,9 +658,34 @@ export default function RedimensionarImagemClient() {
           htmlFor="proporcao"
           className="text-sm"
         >
-          Manter proporção
+          Preencher sem distorcer
         </label>
       </div>
+
+      {manterProporcao && (
+        <div className="mt-5">
+          <label htmlFor="posicao-corte" className="text-sm font-medium">
+            Área que deve ser preservada
+          </label>
+          <select
+            id="posicao-corte"
+            value={posicaoCorte}
+            onChange={(event) => setPosicaoCorte(event.target.value as PosicaoCorte)}
+            className="mt-2 h-10 w-full border border-input bg-background px-3 text-sm"
+          >
+            <option value="superior-esquerda">Superior esquerda</option>
+            <option value="superior">Superior central</option>
+            <option value="superior-direita">Superior direita</option>
+            <option value="esquerda">Centro esquerdo</option>
+            <option value="centro">Centro</option>
+            <option value="direita">Centro direito</option>
+            <option value="inferior-esquerda">Inferior esquerda</option>
+            <option value="inferior">Inferior central</option>
+            <option value="inferior-direita">Inferior direita</option>
+          </select>
+          <p className="mt-2 text-xs text-muted-foreground">Escolha o ponto da imagem que ficará visível quando o formato exigir corte.</p>
+        </div>
+      )}
 
       {formatoSaida !== "png" && (
         <div className="mt-5">
