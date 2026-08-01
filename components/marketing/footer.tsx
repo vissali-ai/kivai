@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { getToolHref, tools } from "@/lib/tools";
+import { CookieSettingsButton } from "@/components/privacy/cookie-settings-button";
 
 const productLinks = [
   { label: "Ferramentas", href: "/#ferramentas" },
@@ -121,6 +122,7 @@ export function Footer() {
                     </Link>
                   </li>
                 ))}
+                <li><CookieSettingsButton /></li>
               </ul>
             </div>
           </div>

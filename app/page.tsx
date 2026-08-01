@@ -2,7 +2,6 @@ import { AdSlot } from "@/components/ads/AdSlot";
 import { Hero } from "@/components/marketing/hero";
 import { FeaturedToolsSection } from "@/components/marketing/featured-tools-section";
 import { ToolsSection } from "@/components/marketing/tools-section";
-import { Footer } from "@/components/marketing/footer";
 
 export default function Home() {
   return (
@@ -22,7 +21,6 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }

@@ -1,4 +1,3 @@
-﻿import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
@@ -8,6 +7,8 @@ import { cn } from "@/lib/utils";
 import StructuredData from "@/components/seo/structured-data";
 import { Navbar } from "@/components/marketing/navbar";
 import { ToolPageEnhancements } from "@/components/tools/tool-page-enhancements";
+import { Footer } from "@/components/marketing/footer";
+import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provider";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -134,21 +135,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <StructuredData />
 
-        <Script
-          id="google-adsense"
-          async
-          strategy="beforeInteractive"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
-          crossOrigin="anonymous"
-        />
-
-        <Navbar />
-
-        <ToolPageEnhancements>{children}</ToolPageEnhancements>
-
-        <GoogleAnalytics
-          gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
-        />
+        <Script id="google-consent-default" strategy="beforeInteractive">{`window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});`}</Script>
+        <CookieConsentProvider>
+          <Navbar />
+          <ToolPageEnhancements>{children}</ToolPageEnhancements>
+          <Footer />
+        </CookieConsentProvider>
       </body>
     </html>
   );

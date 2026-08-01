@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { CookieSettingsButton } from "@/components/privacy/cookie-settings-button";
 
 export const metadata = {
   title: "Política de Privacidade | Kivai",
@@ -141,6 +142,16 @@ export default function PrivacyPage() {
           </section>
 
         </div>
+
+        <section className="mt-10">
+          <h2 className="text-2xl font-semibold">11. Preferências de cookies</h2>
+          <div className="mt-4 space-y-4 leading-8 text-muted-foreground">
+            <p>Cookies são pequenos arquivos armazenados no navegador. O Kivai utiliza cookies necessários para segurança e funcionamento, cookies de análise para compreender o uso da plataforma e cookies de publicidade para medição de campanhas e anúncios quando houver autorização.</p>
+            <p>O Google Analytics só é utilizado após o aceite da categoria de análise. Google AdSense e Google Ads poderão ser utilizados após o aceite da categoria de publicidade. Esses fornecedores podem processar informações conforme as próprias políticas aplicáveis.</p>
+            <p>Você pode aceitar, recusar ou alterar suas preferências a qualquer momento. A recusa não impede o uso dos recursos essenciais do Kivai.</p>
+            <CookieSettingsButton />
+          </div>
+        </section>
 
         <div className="mt-12 border-t border-white/10 pt-8">
           <Link
