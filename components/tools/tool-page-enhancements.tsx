@@ -14,7 +14,9 @@ export function ToolPageEnhancements({ children }: { children: React.ReactNode }
   const slug = getSlug(pathname);
   const tool = slug ? getToolBySlug(slug) : undefined;
 
-  if (!tool) return <>{children}</>;
+  // As ferramentas de vídeo possuem conteúdo editorial específico no próprio
+  // componente. As demais recebem este padrão centralizado.
+  if (!tool || tool.category === "video") return <>{children}</>;
 
   const category = toolCategories.find((item) => item.slug === tool.category);
   const relatedTools = getToolsByCategory(tool.category)
@@ -24,15 +26,18 @@ export function ToolPageEnhancements({ children }: { children: React.ReactNode }
   const howToUse = hasFileWorkflow
     ? ["Envie ou arraste o arquivo na área indicada.", "Ajuste as opções da ferramenta conforme a necessidade.", "Execute o processamento e revise o resultado.", "Baixe o arquivo concluído ou inicie uma nova edição."]
     : ["Preencha os campos solicitados pela ferramenta.", "Revise os valores e selecione as opções desejadas.", "Execute o cálculo ou a análise.", "Use o resultado para orientar sua próxima decisão."];
-  const schema = { "@context": "https://schema.org", "@type": "SoftwareApplication", name: tool.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", isAccessibleForFree: true, url: `https://kivai.com.br/ferramentas/${tool.slug}`, description: tool.description };
-
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       {children}
 
       <section className="border-t border-border bg-muted/10 py-12 sm:py-16">
-        <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+          <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
+            <h2 className="text-xl font-semibold">Para que serve {tool.name}?</h2>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">{tool.description} Use a ferramenta gratuitamente no navegador para concluir a tarefa sem instalar programas. {hasFileWorkflow ? "Quando aplicável, seus arquivos são processados localmente no dispositivo." : "Os dados informados servem apenas para gerar o resultado exibido na tela."}</p>
+          </article>
+        </div>
+        <div className="mx-auto mt-6 grid w-full max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
           <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
             <h2 className="text-xl font-semibold">Como utilizar {tool.name}</h2>
             <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm leading-6 text-muted-foreground">

@@ -4,9 +4,10 @@
 
 import { ChangeEvent, DragEvent, useRef, useState } from "react";
 import Link from "next/link";
-import { Download, ImageIcon, RotateCcw, Upload, Video } from "lucide-react";
+import { Download, ImageIcon, RotateCcw, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { VideoToolSeoContent } from "@/components/tools/video-tool-seo-content";
 
 type OutputFormat = "image/png" | "image/jpeg" | "image/webp";
 type OutputSize = "original" | "1280x720" | "1920x1080" | "1080x1080" | "1080x1350" | "1080x1920";
@@ -159,16 +160,15 @@ export function VideoFrameCaptureClient() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-24 sm:px-6 lg:pb-16 lg:px-8">
-        <Link href="/ferramentas/videos" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">← Voltar para Vídeos</Link>
+        <div className="mb-8"><Link href="/ferramentas/videos" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">← Voltar para ferramentas de vídeos</Link></div>
 
-        <div className="mb-10 mt-8 max-w-3xl">
+        <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramenta de vídeo</p>
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Gerador de Thumbnail para Vídeo</h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Escolha o momento exato de um vídeo e crie uma thumbnail em PNG, JPG ou WebP. O processamento acontece no seu navegador.</p>
-          <p className="mt-4 text-sm text-muted-foreground">Seu vídeo é processado diretamente no navegador e não é enviado para servidores externos.</p>
         </div>
 
-        <Card>
+        <div className="mx-auto max-w-4xl"><Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Área de processamento</CardTitle>
             <CardDescription>Envie ou arraste um vídeo e gere a thumbnail localmente no navegador.</CardDescription>
@@ -182,13 +182,13 @@ export function VideoFrameCaptureClient() {
                 onDragOver={(event) => event.preventDefault()}
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
-                className={`flex min-h-72 flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-colors ${isDragging ? "border-primary bg-primary/10" : "border-border bg-muted/20"}`}
+                className={`flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-colors ${isDragging ? "border-primary bg-primary/10" : "border-border bg-muted/20"}`}
               >
-                <Video className="mb-4 size-10 text-primary" aria-hidden="true" />
-                <p className="font-medium">Arraste seu vídeo aqui</p>
-                <p className="mt-1 text-sm text-muted-foreground">ou selecione um arquivo do seu dispositivo</p>
-                <Button className="mt-5" onClick={() => inputRef.current?.click()}>
-                  <Upload aria-hidden="true" /> Selecionar vídeo
+                <div className="flex size-14 items-center justify-center border border-border bg-background"><Upload className="size-5" aria-hidden="true" /></div>
+                <p className="mt-6 text-xl font-semibold">Envie seu vídeo</p>
+                <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">Arraste e solte o arquivo nesta área ou selecione um vídeo diretamente do seu dispositivo.</p>
+                <Button className="mt-6" onClick={() => inputRef.current?.click()}>
+                  Selecionar vídeo
                 </Button>
               </div>
             ) : (
@@ -267,9 +267,11 @@ export function VideoFrameCaptureClient() {
               </section>
             )}
           </CardContent>
-        </Card>
+        </Card></div>
+        <section className="mx-auto mt-8 grid max-w-4xl overflow-hidden rounded-xl border border-border sm:grid-cols-3"><article className="border-b border-border p-5 sm:border-b-0 sm:border-r"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Formatos</p><p className="mt-3 font-semibold">MP4 e WebM</p></article><article className="border-b border-border p-5 sm:border-b-0 sm:border-r"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Limite</p><p className="mt-3 font-semibold">Até 200 MB por vídeo</p></article><article className="p-5"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Saída</p><p className="mt-3 font-semibold">PNG, JPG e WebP</p></article></section>
+        <VideoToolSeoContent variant="thumbnail" />
 
-        <section className="mt-10 grid gap-6 lg:grid-cols-2">
+        <section className="mx-auto mt-10 grid max-w-4xl gap-6 lg:grid-cols-2">
           <article className="rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">Como utilizar</h2><ol className="mt-4 list-decimal space-y-2 pl-5 text-sm leading-6 text-muted-foreground"><li>Envie ou arraste um vídeo.</li><li>Use o controle de reprodução ou a barra de tempo para escolher o momento.</li><li>Selecione PNG ou JPG e capture o frame.</li><li>Baixe a imagem pronta.</li></ol></article>
           <article className="rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">Benefícios</h2><ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-muted-foreground"><li>Processamento local para preservar sua privacidade.</li><li>Captura na resolução original exibida pelo vídeo.</li><li>Exportação em PNG sem perdas ou JPG compacto.</li><li>Funciona em desktop e dispositivos móveis compatíveis.</li></ul></article>
         </section>

@@ -7,6 +7,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import StructuredData from "@/components/seo/structured-data";
 import { Navbar } from "@/components/marketing/navbar";
+import { ToolPageEnhancements } from "@/components/tools/tool-page-enhancements";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -143,7 +144,7 @@ export default function RootLayout({
 
         <Navbar />
 
-        {children}
+        <ToolPageEnhancements>{children}</ToolPageEnhancements>
 
         <GoogleAnalytics
           gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
