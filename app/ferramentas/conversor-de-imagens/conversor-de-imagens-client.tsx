@@ -13,6 +13,8 @@ import { LoaderCircle, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { ToolErrorMessage } from "@/components/tools/tool-error-message";
+import { ToolProcessingStatus } from "@/components/tools/tool-processing-status";
 import {
   Card,
   CardContent,
@@ -25,6 +27,7 @@ import {
   converterImagem,
   type FormatoSaida,
 } from "@/lib/image-converter/engine";
+import { validateFile } from "@/lib/tool-files";
 
 const FORMATOS_ACEITOS = ["image/png", "image/jpeg", "image/webp"];
 const TAMANHO_MAXIMO_GRATIS = 5 * 1024 * 1024;
@@ -67,15 +70,7 @@ const [dimensoesResultado, setDimensoesResultado] = useState<{
 }, [previewUrl, resultadoUrl]);
 
   function validarArquivo(file: File) {
-    if (!FORMATOS_ACEITOS.includes(file.type)) {
-      return "Formato inválido. Use PNG, JPG ou WebP.";
-    }
-
-    if (file.size > TAMANHO_MAXIMO_GRATIS) {
-      return "Esta imagem ultrapassa o limite gratuito de 5 MB.";
-    }
-
-    return "";
+    return validateFile({ file, acceptedMimeTypes: FORMATOS_ACEITOS, acceptedExtensions: ["png", "jpg", "jpeg", "webp"], maxSizeBytes: TAMANHO_MAXIMO_GRATIS }) ?? "";
   }
 
   function limparResultado() {
@@ -252,6 +247,20 @@ function baixarResultado() {
             />
 
             <div
+              role="button"
+              tabIndex={processando ? -1 : 0}
+              aria-label="Selecionar imagem"
+              aria-disabled={processando}
+              aria-busy={processando}
+              onKeyDown={(event) => {
+                if (!processando && (event.key === "Enter" || event.key === " ")) {
+                  event.preventDefault();
+                  inputRef.current?.click();
+                }
+              }}
+              onClick={(event) => {
+                if (!processando && !previewUrl && event.target === event.currentTarget) inputRef.current?.click();
+              }}
               onDragEnter={(event) => {
                 event.preventDefault();
                 setArrastando(true);
@@ -266,7 +275,7 @@ function baixarResultado() {
               }}
               onDrop={soltarArquivo}
               className={[
-                "flex min-h-80 flex-col items-center justify-center border border-dashed p-6 text-center transition-colors sm:p-10",
+                "flex min-h-80 flex-col items-center justify-center border border-dashed p-6 text-center outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 sm:p-10",
                 arrastando
                   ? "border-primary bg-primary/5"
                   : "border-border bg-muted/20 hover:bg-muted/40",
@@ -419,6 +428,7 @@ function baixarResultado() {
                 </div>
               )}
             </div>
+            <ToolProcessingStatus status={processando ? "processing" : resultadoUrl ? "success" : arquivo ? "ready" : erro ? "error" : "idle"} message="Convertendo imagem..." className="mt-4" />
 {resultadoUrl && resultadoBlob && extensaoResultado && arquivo && (
   <div className="mt-6 border border-border bg-background p-4 sm:p-6">
     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -519,23 +529,17 @@ function baixarResultado() {
         variant="outline"
         size="lg"
         onClick={() => {
-          limparResultado();
+          removerArquivo();
           setFormatoSaida("webp");
+          inputRef.current?.focus();
         }}
       >
-        Nova conversão
+        Processar outra imagem
       </Button>
     </div>
   </div>
 )}
-            {erro && (
-              <div
-                role="alert"
-                className="mt-4 border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
-              >
-                {erro}
-              </div>
-            )}
+            <ToolErrorMessage message={erro} className="mt-4" />
                   </CardContent>
         </Card>
 
