@@ -32,6 +32,7 @@ export type ToolCategory =
   | "pdf"
   | "calculadoras"
   | "texto"
+  | "social"
   | "video"
   | "audio"
   | "documentos"
@@ -83,6 +84,7 @@ export const toolCategories: ToolCategoryDefinition[] = [
     href: "/ferramentas/texto",
     icon: Type,
   },
+  { slug: "social", name: "Social Media", description: "Ferramentas para criar, revisar e otimizar conteúdos para redes sociais.", href: "/ferramentas/social-media", icon: Type },
   {
     slug: "video",
     name: "Vídeos",
@@ -109,7 +111,51 @@ export interface Tool {
   keywords?: string[];
 }
 
+const socialMediaToolDefinitions: Tool[] = [
+  ["baixar-thumbnail-youtube", "Baixar Thumbnail do YouTube", "YouTube", "Obtenha a thumbnail pública de um vídeo do YouTube.", ImageIcon],
+  ["extrair-thumbnail-shorts", "Extrair Thumbnail de Shorts", "YouTube", "Encontre a thumbnail pública de um YouTube Short.", ImageIcon],
+  ["simulador-de-bio-instagram", "Simulador de Bio Instagram", "Instagram", "Visualize uma bio de Instagram antes de publicar.", Type],
+  ["gerador-de-link-na-bio-instagram", "Gerador de Link na Bio Instagram", "Instagram", "Crie links clicáveis para a bio e campanhas do Instagram.", QrCode],
+  ["gerador-de-hashtags-instagram", "Gerador de Hashtags Instagram", "Instagram", "Monte uma lista de hashtags por categoria e objetivo.", Tags],
+  ["gerador-de-hashtags-tiktok", "Gerador de Hashtags TikTok", "TikTok", "Gere hashtags TikTok com templates de conteúdo.", Tags],
+  ["gerador-de-titulos-tiktok", "Gerador de Títulos TikTok", "TikTok", "Crie títulos curtos para vídeos TikTok com templates.", WandSparkles],
+  ["contador-de-caracteres-facebook", "Contador de Caracteres Facebook", "Facebook", "Conte caracteres, palavras e linhas para posts do Facebook.", Type],
+  ["gerador-de-descricao-facebook", "Gerador de Descrição Facebook", "Facebook", "Crie descrições para Facebook usando templates prontos.", WandSparkles],
+  ["gerador-de-headline-linkedin", "Gerador de Headline LinkedIn", "LinkedIn", "Monte headlines profissionais para o LinkedIn.", WandSparkles],
+  ["gerador-de-resumo-profissional-linkedin", "Gerador de Resumo Profissional LinkedIn", "LinkedIn", "Estruture um resumo profissional para seu perfil LinkedIn.", FileText],
+  ["gerador-de-titulo-pinterest", "Gerador de Título Pinterest", "Pinterest", "Gere títulos claros e pesquisáveis para Pins.", WandSparkles],
+  ["gerador-de-descricao-pinterest", "Gerador de Descrição Pinterest", "Pinterest", "Crie descrições para Pins a partir de templates.", WandSparkles],
+  ["gerador-de-alt-text-pinterest", "Gerador de Alt Text Pinterest", "Pinterest", "Escreva textos alternativos descritivos para Pins.", Type],
+  ["contador-de-caracteres-twitter", "Contador de Caracteres Twitter (X)", "Twitter (X)", "Acompanhe o limite de caracteres do seu post no X.", Type],
+  ["gerador-de-mensagens-whatsapp", "Gerador de Mensagens WhatsApp", "WhatsApp", "Crie mensagens de WhatsApp com modelos prontos.", Type],
+  ["gerador-de-convites-whatsapp", "Gerador de Convites WhatsApp", "WhatsApp", "Gere convites de WhatsApp para eventos e grupos.", Type],
+  ["gerador-de-cta-whatsapp", "Gerador de CTA WhatsApp", "WhatsApp", "Crie chamadas para ação direcionadas ao WhatsApp.", Type],
+  ["gerador-de-prompts", "Gerador de Prompts", "Conteúdo", "Monte prompts estruturados a partir de objetivo e contexto.", WandSparkles],
+  ["gerador-de-emojis", "Gerador de Emojis", "Conteúdo", "Encontre combinações de emojis por tema e intenção.", WandSparkles],
+  ["gerador-de-cta", "Gerador de CTA", "Conteúdo", "Crie chamadas para ação com templates por objetivo.", WandSparkles],
+  ["gerador-de-titulos", "Gerador de Títulos", "Conteúdo", "Gere ideias de títulos usando modelos estáticos.", WandSparkles],
+  ["gerador-de-descricoes", "Gerador de Descrições", "Conteúdo", "Crie descrições objetivas com templates de conteúdo.", WandSparkles],
+  ["gerador-de-resumos", "Gerador de Resumos", "Conteúdo", "Estruture resumos curtos a partir de um texto no navegador.", FileText],
+  ["gerador-de-palavras-chave", "Gerador de Palavras-chave", "Conteúdo", "Crie listas de palavras-chave por tema e intenção.", Tags],
+  ["banco-de-datas-comemorativas", "Banco de Datas Comemorativas", "Conteúdo", "Consulte datas comemorativas para planejar seu conteúdo.", FileText],
+  ["conversor-de-texto", "Conversor de Texto", "Texto", "Transforme, limpe e formate textos em poucos cliques.", Type],
+  ["contador-de-tempo-de-leitura", "Contador de Tempo de Leitura", "Texto", "Estime o tempo de leitura de qualquer texto.", Type],
+  ["contador-de-tempo-de-fala", "Contador de Tempo de Fala", "Texto", "Estime quanto tempo leva para falar um texto.", Type],
+  ["calculadora-de-engajamento", "Calculadora de Engajamento", "Calculadoras", "Calcule a taxa de engajamento das suas publicações.", BarChart3],
+  ["calculadora-de-cpm", "Calculadora de CPM", "Calculadoras", "Calcule o custo por mil impressões de uma campanha.", Calculator],
+  ["calculadora-de-roi-influenciadores", "Calculadora de ROI para Influenciadores", "Calculadoras", "Estime o retorno sobre investimento em influenciadores.", Calculator],
+  ["calculadora-de-alcance-estimado", "Calculadora de Alcance Estimado", "Calculadoras", "Estime o alcance a partir de seguidores e taxa de alcance.", BarChart3],
+].map(([slug, name, hubFilter, description, icon]) => ({
+  slug: String(slug), name: String(name), hubFilter: String(hubFilter), description: String(description), icon: icon as LucideIcon,
+  category: "social" as const, badge: String(hubFilter), available: true, index: true,
+  seoTitle: `${name} Online Grátis | Kivai`, seoDescription: String(description),
+  keywords: [String(name).toLowerCase(), "ferramentas social media", "kivai"],
+}));
+
 export const tools: Tool[] = [
+  { slug: "quebra-de-linha-instagram", name: "Quebra de Linha para Instagram", description: "Prepare legendas com quebras de linha prontas para copiar.", category: "social", hubFilter: "Instagram", badge: "Instagram", icon: Type, available: true, index: true, seoTitle: "Quebra de Linha para Instagram Online Grátis | Kivai", seoDescription: "Crie quebras de linha para legendas do Instagram e copie o texto pronto.", keywords: ["quebra de linha instagram", "legenda instagram", "formatar legenda"] },
+  { slug: "contador-de-caracteres-instagram", name: "Contador de Caracteres Instagram", description: "Conte caracteres e acompanhe o limite da sua legenda.", category: "social", hubFilter: "Instagram", badge: "Instagram", icon: Type, available: true, index: true, seoTitle: "Contador de Caracteres Instagram Online Grátis | Kivai", seoDescription: "Conte caracteres de legendas do Instagram diretamente no navegador.", keywords: ["contador caracteres instagram", "limite legenda instagram"] },
+  { slug: "contador-de-hashtags-instagram", name: "Contador de Hashtags Instagram", description: "Conte hashtags, palavras e caracteres da sua legenda.", category: "social", hubFilter: "Instagram", badge: "Instagram", icon: Tags, available: true, index: true, seoTitle: "Contador de Hashtags Instagram Online Grátis | Kivai", seoDescription: "Conte hashtags de uma legenda do Instagram e revise seu texto antes de publicar.", keywords: ["contador hashtags instagram", "hashtags instagram"] },
   {
     slug: "remover-audio-video",
     name: "Remover áudio",
@@ -604,6 +650,7 @@ export const tools: Tool[] = [
     available: true,
     index: true,
   },
+  ...socialMediaToolDefinitions,
 ];
 
 export function getToolHref(slug: string) {
