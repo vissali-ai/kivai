@@ -162,3 +162,18 @@
     color: var(--foreground);
   }
 }
+
+.docx-preview-shell .docx-wrapper {
+  background: transparent;
+  padding: 0;
+}
+
+.docx-preview-shell .docx-wrapper > section {
+  margin: 0 auto 1rem;
+  transform-origin: top center;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
+}
+
+.docx-preview-shell .docx-wrapper > section:last-child {
+  margin-bottom: 0;
+}
