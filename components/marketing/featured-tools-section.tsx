@@ -2,6 +2,17 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getToolHref, tools } from "@/lib/tools";
 
+const mostUsedTools = [
+  "removedor-de-fundo",
+  "calculadora-de-porcentagem",
+  "compressor-de-imagens",
+  "gerador-de-qr-code",
+  "pdf-para-imagens",
+].flatMap((slug) => {
+  const tool = tools.find((item) => item.slug === slug);
+  return tool ? [tool] : [];
+});
+
 export function FeaturedToolsSection() {
   return (
     <section className="border-t border-white/5 bg-background py-12 sm:py-14">
@@ -13,7 +24,7 @@ export function FeaturedToolsSection() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          {tools.filter((tool) => tool.featured).map((tool) => {
+          {mostUsedTools.map((tool) => {
             const Icon = tool.icon;
 
             return (

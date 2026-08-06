@@ -16,7 +16,7 @@ export function ToolPageEnhancements({ children }: { children: React.ReactNode }
 
   // As ferramentas de vídeo possuem conteúdo editorial específico no próprio
   // componente. As demais recebem este padrão centralizado.
-  if (!tool || tool.category === "video" || ["pdf-para-word", "word-para-pdf", "pdf-para-powerpoint"].includes(tool.slug)) return <>{children}</>;
+  if (!tool || tool.category === "video" || ["pdf-para-word", "word-para-pdf", "pdf-para-powerpoint", "redimensionar-pdf", "montar-pdf-para-impressao"].includes(tool.slug)) return <>{children}</>;
 
   const category = toolCategories.find((item) => item.slug === tool.category);
   const relatedTools = getToolsByCategory(tool.category)
