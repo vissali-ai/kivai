@@ -6,13 +6,19 @@ import type { AdsConfig } from "./types";
  * Toda leitura de variáveis de ambiente deve acontecer aqui.
  */
 
-export const adsConfig: AdsConfig = {
-  provider:
-    (process.env.NEXT_PUBLIC_AD_PROVIDER as AdsConfig["provider"]) ??
-    "adsense",
+const rawAdsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT?.trim();
+const validAdsenseClient = /^ca-pub-\d{16}$/.test(rawAdsenseClient ?? "")
+  ? (rawAdsenseClient as `ca-pub-${string}`)
+  : null;
 
-  enabled:
-    process.env.NEXT_PUBLIC_ADS_ENABLED !== "false",
+export const adsConfig: AdsConfig = {
+  provider: "adsense",
+
+  // Anúncios são opt-in também na configuração de implantação. A ausência da
+  // variável nunca deve ativar publicidade acidentalmente.
+  enabled: process.env.NEXT_PUBLIC_ADS_ENABLED === "true",
+
+  clientId: validAdsenseClient,
 
   autoAds:
     process.env.NEXT_PUBLIC_ADSENSE_AUTO_ADS === "true",

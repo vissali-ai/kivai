@@ -18,6 +18,13 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
+import { getPageMetadata } from "@/lib/seo";
+
+export const metadata = getPageMetadata({
+  title: "Criação de Landing Pages",
+  description: "Criação de landing pages responsivas e personalizadas para negócios, campanhas, eventos e projetos.",
+  pathname: "/servicos/criacao-de-landing-pages",
+});
 
 const whatsappUrl =
   "https://wa.me/5531996205058?text=Fiquei%20interessado%28a%29%20em%20saber%20mais%20sobre%20a%20cria%C3%A7%C3%A3o%20de%20Landing%20Pages.";

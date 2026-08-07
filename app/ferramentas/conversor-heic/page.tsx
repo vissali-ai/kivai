@@ -1,12 +1,8 @@
-import type { Metadata } from "next";
+import { getToolMetadata } from "@/lib/seo";
 
 import ConversorHeicClient from "./conversor-heic-client";
 
-export const metadata: Metadata = {
-  title: "Conversor HEIC para JPG | Kivai",
-  description:
-    "Converta imagens HEIC do iPhone para JPG gratuitamente e diretamente no navegador.",
-};
+export const metadata = getToolMetadata("conversor-heic");
 
 export default function ConversorHeicPage() {
   return (

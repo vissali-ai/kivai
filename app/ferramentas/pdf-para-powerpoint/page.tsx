@@ -22,8 +22,8 @@ const faq = [
 ] as const;
 
 const schema = [
-  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "PDF para PowerPoint", applicationCategory: "UtilitiesApplication", operatingSystem: "Qualquer sistema com navegador moderno", url: "https://kivai.com.br/ferramentas/pdf-para-powerpoint", description: "Conversor online de páginas PDF para apresentações PowerPoint PPTX.", offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" } },
-  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://kivai.com.br" }, { "@type": "ListItem", position: 2, name: "PDF", item: "https://kivai.com.br/ferramentas/pdfs" }, { "@type": "ListItem", position: 3, name: "PDF para PowerPoint", item: "https://kivai.com.br/ferramentas/pdf-para-powerpoint" }] },
+  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "PDF para PowerPoint", applicationCategory: "UtilitiesApplication", operatingSystem: "Qualquer sistema com navegador moderno", url: "https://www.kivai.com.br/ferramentas/pdf-para-powerpoint", description: "Conversor online de páginas PDF para apresentações PowerPoint PPTX.", offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" } },
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://www.kivai.com.br" }, { "@type": "ListItem", position: 2, name: "PDF", item: "https://www.kivai.com.br/ferramentas/pdfs" }, { "@type": "ListItem", position: 3, name: "PDF para PowerPoint", item: "https://www.kivai.com.br/ferramentas/pdf-para-powerpoint" }] },
   { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) },
 ];
 

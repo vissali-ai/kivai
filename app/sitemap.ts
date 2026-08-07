@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
-import { tools } from "@/lib/tools";
+import { isToolIndexable, tools } from "@/lib/tools";
 
-const baseUrl = "https://kivai.com.br";
+const baseUrl = "https://www.kivai.com.br";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages: MetadataRoute.Sitemap = [
@@ -11,6 +11,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 1,
     },
+    {
+      url: `${baseUrl}/ferramentas`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    ...[
+      "imagens",
+      "pdfs",
+      "calculadoras",
+      "texto",
+      "social-media",
+      "videos",
+    ].map((slug) => ({
+      url: `${baseUrl}/ferramentas/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
 
     // Páginas principais
     {
@@ -19,13 +38,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
-    {
-      url: `${baseUrl}/premium`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-
     // Serviços
     {
       url: `${baseUrl}/servicos/gestao-de-trafego`,
@@ -48,6 +60,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // Institucional
     {
+      url: `${baseUrl}/sobre`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/metodologia`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/termos`,
       lastModified: new Date(),
       changeFrequency: "yearly",
@@ -59,10 +83,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.4,
     },
+    {
+      url: `${baseUrl}/contato`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
   ];
 
   const toolPages: MetadataRoute.Sitemap = tools
-    .filter((tool) => tool.index !== false)
+    .filter((tool) => isToolIndexable(tool.slug))
     .map((tool) => ({
       url: `${baseUrl}/ferramentas/${tool.slug}`,
       lastModified: new Date(),

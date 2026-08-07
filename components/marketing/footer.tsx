@@ -1,23 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { getToolHref, tools } from "@/lib/tools";
+import { toolCategories } from "@/lib/tools";
 import { CookieSettingsButton } from "@/components/privacy/cookie-settings-button";
 
 const productLinks = [
-  { label: "Ferramentas", href: "/#ferramentas" },
-  { label: "Como funciona", href: "/#como-funciona" },
+  { label: "Ferramentas", href: "/ferramentas" },
   { label: "Serviços", href: "/servicos" },
-  { label: "Premium", href: "/premium" },
 ];
 
-const ecosystemLinks = tools
-  .filter((tool) => tool.category === "imagens" && (tool.featured || !tool.available))
-  .map((tool) => ({ label: tool.name, href: getToolHref(tool.slug) }));
+const ecosystemLinks = toolCategories.map((category) => ({
+  label: category.name,
+  href: category.href,
+}));
 
 const companyLinks = [
-  { label: "Entrar", href: "/em-breve" },
-  { label: "Criar conta", href: "/em-breve" },
+  { label: "Sobre o Kivai", href: "/sobre" },
+  { label: "Metodologia", href: "/metodologia" },
+  { label: "Entre em contato", href: "/contato" },
   { label: "Termos de uso", href: "/termos" },
   { label: "Política de Privacidade", href: "/privacidade" },
 ];
@@ -107,7 +107,7 @@ export function Footer() {
 
             <div>
               <h3 className="text-sm font-semibold text-foreground">
-                Conta e legal
+                Institucional e legal
               </h3>
 
               <ul className="mt-5 space-y-3">

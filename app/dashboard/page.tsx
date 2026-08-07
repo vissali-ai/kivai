@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+import { noIndexRobots } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  robots: noIndexRobots,
+  alternates: { canonical: "/dashboard" },
+};
+
 export default function Dashboard() {
   return (
     <main>

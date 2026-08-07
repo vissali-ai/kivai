@@ -8,7 +8,7 @@ import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/marketing/navbar";
 import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provider";
 import StructuredData from "@/components/seo/structured-data";
-import { ToolPageEnhancements } from "@/components/tools/tool-page-enhancements";
+import { adsConfig } from "@/lib/ads/config";
 import { cn } from "@/lib/utils";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -27,7 +27,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kivai.com.br"),
+  metadataBase: new URL("https://www.kivai.com.br"),
 
   title: {
     default: "Kivai | Ferramentas inteligentes para resultados reais",
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url: "https://kivai.com.br",
+    url: "https://www.kivai.com.br",
     siteName: "Kivai",
     title: "Kivai | Ferramentas inteligentes para resultados reais",
     description:
@@ -113,6 +113,12 @@ export const metadata: Metadata = {
   },
 
   category: "Technology",
+
+  // Verifica a propriedade no AdSense sem carregar scripts, criar cookies ou
+  // exibir anúncios. O carregamento publicitário continua sujeito ao consentimento.
+  ...(adsConfig.clientId
+    ? { other: { "google-adsense-account": adsConfig.clientId } }
+    : {}),
 };
 
 export default function RootLayout({
@@ -120,8 +126,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
-
   return (
     <html
       lang="pt-BR"
@@ -155,22 +159,10 @@ export default function RootLayout({
           });
         `}</Script>
 
-        {adsenseClient && (
-          <Script
-            id="google-adsense"
-            strategy="beforeInteractive"
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
-            crossOrigin="anonymous"
-          />
-        )}
-
         <CookieConsentProvider>
           <Navbar />
 
-          <ToolPageEnhancements>
-            {children}
-          </ToolPageEnhancements>
+          {children}
 
           <Footer />
         </CookieConsentProvider>

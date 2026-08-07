@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Clock, ArrowLeft } from "lucide-react";
+
+import { noIndexRobots } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Novidades em breve",
+  description: "Recursos que estão sendo preparados para o Kivai.",
+  robots: noIndexRobots,
+  alternates: { canonical: "/em-breve" },
+};
 
 export default function EmBrevePage() {
   return (
@@ -18,8 +28,8 @@ export default function EmBrevePage() {
         </h1>
 
         <p className="mt-4 text-lg text-muted-foreground">
-          Estamos preparando uma nova experiência com contas de usuário,
-          dashboard, favoritos, histórico e recursos Premium.
+          Estamos preparando novas melhorias para tornar as ferramentas ainda
+          mais simples e úteis.
         </p>
 
         <p className="mt-2 text-muted-foreground">

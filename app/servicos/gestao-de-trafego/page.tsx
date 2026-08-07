@@ -12,6 +12,13 @@ import {
   Target,
   Zap,
 } from "lucide-react";
+import { getPageMetadata } from "@/lib/seo";
+
+export const metadata = getPageMetadata({
+  title: "Gestão de Tráfego Pago",
+  description: "Serviço de gestão de tráfego pago com planejamento, configuração e acompanhamento de campanhas.",
+  pathname: "/servicos/gestao-de-trafego",
+});
 
 const whatsappUrl =
   "https://wa.me/5531996205058?text=fiquei%20interessado%28a%29%20em%20saber%20mais%20sobre%20os%20servi%C3%A7os%20de%20tr%C3%A1fego%20pago.";

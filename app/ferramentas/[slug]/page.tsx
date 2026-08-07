@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
 import { SocialMediaToolClient } from "@/components/tools/social-media-tool-client";
-import { getToolBySlug, tools } from "@/lib/tools";
+import { getToolBySlug } from "@/lib/tools";
 import { getToolMetadata } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
-  return tools.filter((tool) => tool.category === "social").map((tool) => ({ slug: tool.slug }));
+  // As ferramentas atuais possuem páginas literais. A rota dinâmica fica
+  // reservada para futuras ferramentas sem gerar cópias das rotas existentes.
+  return [];
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -27,7 +29,7 @@ export default async function SocialMediaToolPage({ params }: Props) {
     "@graph": [
       { "@type": "SoftwareApplication", name: tool.name, applicationCategory: "BusinessApplication", operatingSystem: "Web", description: tool.description, offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" } },
       { "@type": "FAQPage", mainEntity: faq.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) },
-      { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Ferramentas", item: "https://kivai.com.br/ferramentas" }, { "@type": "ListItem", position: 2, name: "Social Media", item: "https://kivai.com.br/ferramentas/social-media" }, { "@type": "ListItem", position: 3, name: tool.name }] },
+      { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Ferramentas", item: "https://www.kivai.com.br/ferramentas" }, { "@type": "ListItem", position: 2, name: "Social Media", item: "https://www.kivai.com.br/ferramentas/social-media" }, { "@type": "ListItem", position: 3, name: tool.name }] },
     ],
   };
   return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /><SocialMediaToolClient slug={slug} /></>;

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { FC, ReactNode } from "react";
 
 export interface AdSlotProps {
   variant?: "banner";
@@ -6,14 +6,10 @@ export interface AdSlotProps {
   className?: string;
 }
 
-export function AdSlot({
-  variant = "banner",
-}: AdSlotProps) {
-  // Implementação provisória.
-  // Na próxima etapa este componente passará a utilizar
-  // o engine.ts e o AdsenseProvider.
-
+export const AdSlot: FC<AdSlotProps> = () => {
+  // Reserva de API para placements futuros. Até a aprovação do site, não
+  // produz contêiner vazio, rótulo publicitário ou unidade de anúncio.
   return null;
-}
+};
 
 export default AdSlot;

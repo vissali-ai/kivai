@@ -17,12 +17,16 @@ import {
 
 const navItems = [
   {
+    label: "Ferramentas",
+    href: "/ferramentas",
+  },
+  {
     label: "Serviços",
     href: "/servicos",
   },
   {
-    label: "Premium",
-    href: "/premium",
+    label: "Sobre",
+    href: "/sobre",
   },
 ];
 
@@ -63,18 +67,6 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-
-        <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost" asChild>
-            <Link href="/login">Login</Link>
-          </Button>
-
-          <Button asChild className="rounded-xl">
-            <Link href="/em-breve">
-              Registrar-se
-            </Link>
-          </Button>
-        </div>
 
         <div className="md:hidden">
           <Sheet>
@@ -130,27 +122,6 @@ export function Navbar() {
                   ))}
                 </nav>
 
-                <div className="my-5 h-px bg-white/8" />
-
-                <div className="flex flex-col gap-3">
-                  <SheetClose asChild>
-                    <Button
-                      variant="outline"
-                      asChild
-                      className="h-11 rounded-xl border-white/10"
-                    >
-                      <Link href="/login">Login</Link>
-                    </Button>
-                  </SheetClose>
-
-                  <SheetClose asChild>
-                    <Button asChild className="h-11 rounded-xl">
-                      <Link href="/em-breve">
-                        Registrar-se
-                      </Link>
-                    </Button>
-                  </SheetClose>
-                </div>
               </div>
             </SheetContent>
           </Sheet>

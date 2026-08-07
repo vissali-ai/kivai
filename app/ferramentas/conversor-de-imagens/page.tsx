@@ -1,12 +1,8 @@
-﻿import type { Metadata } from "next";
+import { getToolMetadata } from "@/lib/seo";
 
 import ConversorDeImagensClient from "./conversor-de-imagens-client";
 
-export const metadata: Metadata = {
-  title: "Conversor de Imagens PNG, JPG e WebP | Nexion Tools",
-  description:
-    "Converta imagens online entre PNG, JPG e WebP com controle de qualidade e processamento prático no Nexion Tools.",
-};
+export const metadata = getToolMetadata("conversor-de-imagens");
 
 export default function ConversorDeImagensPage() {
   return (

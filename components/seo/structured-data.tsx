@@ -4,17 +4,17 @@ export default function StructuredData() {
     "@type": "WebSite",
     name: "Kivai",
     alternateName: "Kivai Ferramentas",
-    url: "https://kivai.com.br",
+    url: "https://www.kivai.com.br",
     description:
       "Ecossistema de ferramentas online gratuitas para produtividade, marketing, imagens, PDFs e cálculos.",
     inLanguage: "pt-BR",
     publisher: {
       "@type": "Organization",
       name: "Kivai",
-      url: "https://kivai.com.br",
+      url: "https://www.kivai.com.br",
       logo: {
         "@type": "ImageObject",
-        url: "https://kivai.com.br/logo.png",
+        url: "https://www.kivai.com.br/logo.png",
       },
     },
   };

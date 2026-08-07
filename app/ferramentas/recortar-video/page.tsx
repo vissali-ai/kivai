@@ -10,7 +10,7 @@ const schema = {
   applicationCategory: "MultimediaApplication",
   operatingSystem: "Web",
   isAccessibleForFree: true,
-  url: "https://kivai.com.br/ferramentas/recortar-video",
+  url: "https://www.kivai.com.br/ferramentas/recortar-video",
   description: "Recorte a área visível de vídeos diretamente no navegador e exporte em WebM.",
 };
 

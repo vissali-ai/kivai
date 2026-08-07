@@ -9,8 +9,8 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
 
-    sitemap: "https://kivai.com.br/sitemap.xml",
+    sitemap: "https://www.kivai.com.br/sitemap.xml",
 
-    host: "https://kivai.com.br",
+    host: "https://www.kivai.com.br",
   };
 }

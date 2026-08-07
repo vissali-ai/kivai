@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run verify:adsense && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "verify:adsense": "node scripts/verify-adsense.mjs"
   },
   "dependencies": {
     "@aiden0z/pptx-renderer": "^1.2.4",

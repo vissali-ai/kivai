@@ -7,6 +7,13 @@ import {
   Megaphone,
   Sparkles,
 } from "lucide-react";
+import { getPageMetadata } from "@/lib/seo";
+
+export const metadata = getPageMetadata({
+  title: "Serviços Digitais",
+  description: "Conheça os serviços de tráfego pago, divulgação artística e criação de landing pages do Kivai.",
+  pathname: "/servicos",
+});
 
 const services = [
   {

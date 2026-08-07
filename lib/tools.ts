@@ -81,6 +81,22 @@ export const toolCategories: ToolCategoryDefinition[] = [
     href: "/ferramentas/texto",
     icon: Type,
   },
+  {
+    slug: "social",
+    name: "Social Media",
+    description:
+      "Revise legendas, hashtags e formatação para publicar conteúdos em redes sociais.",
+    href: "/ferramentas/social-media",
+    icon: Tags,
+  },
+  {
+    slug: "video",
+    name: "Vídeos",
+    description:
+      "Edite, ajuste e converta vídeos diretamente em navegadores compatíveis.",
+    href: "/ferramentas/videos",
+    icon: FileImage,
+  },
 ];
 
 export interface Tool {
@@ -93,10 +109,27 @@ export interface Tool {
   icon: LucideIcon;
   featured?: boolean;
   available: boolean;
-  index?: boolean;
   seoTitle?: string;
   seoDescription?: string;
   keywords?: string[];
+}
+
+export const INDEXABLE_TOOL_SLUGS = [
+  "editar-pdf",
+  "excel-para-pdf",
+  "montar-pdf-para-impressao",
+  "pdf-para-excel",
+  "pdf-para-powerpoint",
+  "pdf-para-word",
+  "powerpoint-para-pdf",
+  "redimensionar-pdf",
+  "word-para-pdf",
+] as const;
+
+const indexableToolSlugs = new Set<string>(INDEXABLE_TOOL_SLUGS);
+
+export function isToolIndexable(slug: string) {
+  return indexableToolSlugs.has(slug);
 }
 
 export const tools: Tool[] = [
@@ -110,7 +143,6 @@ export const tools: Tool[] = [
     icon: ImageIcon,
     featured: true,
     available: true,
-    index: true,
     seoTitle: "Removedor de Fundo Online Grátis",
     seoDescription:
       "Remova o fundo de imagens automaticamente em segundos. Ferramenta online gratuita, rápida e sem necessidade de instalar programas.",
@@ -133,7 +165,6 @@ export const tools: Tool[] = [
     icon: WandSparkles,
     featured: true,
     available: true,
-    index: true,
   },
   {
     slug: "conversor-de-imagens",
@@ -146,7 +177,6 @@ export const tools: Tool[] = [
     icon: FileImage,
     featured: true,
     available: true,
-    index: true,
   },
   {
     slug: "conversor-heic",
@@ -157,7 +187,6 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: FileImage,
     available: true,
-    index: true,
   },
   {
     slug: "redimensionar-imagem",
@@ -169,7 +198,6 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: Maximize2,
     available: true,
-    index: true,
   },
   {
     slug: "gerador-de-qr-code",
@@ -182,7 +210,6 @@ export const tools: Tool[] = [
     icon: QrCode,
     featured: true,
     available: true,
-    index: true,
   },
   {
     slug: "gerador-de-favicon",
@@ -195,7 +222,6 @@ export const tools: Tool[] = [
     icon: ImagePlus,
     featured: true,
     available: true,
-    index: true,
     seoTitle: "Gerador de Favicon Online Grátis | Kivai",
     seoDescription: "Crie favicon.ico e ícones PNG para seu site diretamente no navegador.",
     keywords: ["gerador de favicon", "favicon ico", "criar favicon"],
@@ -211,7 +237,6 @@ export const tools: Tool[] = [
     icon: ImageIcon,
     featured: true,
     available: true,
-    index: true,
     seoTitle: "Imagem para Favicon Online Grátis | Kivai",
     seoDescription: "Converta PNG, JPG e WebP em um pacote de favicons para navegador, Apple e Android.",
     keywords: ["imagem para favicon", "converter imagem favicon", "favicon png"],
@@ -227,10 +252,59 @@ export const tools: Tool[] = [
     icon: Box,
     featured: true,
     available: true,
-    index: true,
     seoTitle: "Gerador de Mockups Online Grátis | Kivai",
     seoDescription: "Crie mockups de produtos, dispositivos e redes sociais diretamente no navegador.",
     keywords: ["gerador de mockups", "mockup online", "criar mockup"],
+  },
+  {
+    slug: "adicionar-marca-dagua",
+    name: "Adicionar Marca-d'água",
+    description: "Adicione texto ou imagem como marca-d'água em fotos diretamente no navegador.",
+    category: "imagens",
+    hubFilter: "Editar",
+    badge: "Imagem",
+    icon: ImagePlus,
+    available: true,
+  },
+  {
+    slug: "conversor-svg-png",
+    name: "Conversor SVG para PNG",
+    description: "Converta arquivos SVG em imagens PNG com dimensões personalizadas.",
+    category: "imagens",
+    hubFilter: "Converter",
+    badge: "Imagem",
+    icon: FileImage,
+    available: true,
+  },
+  {
+    slug: "espelhar-e-girar-imagem",
+    name: "Espelhar e Girar Imagem",
+    description: "Gire e espelhe imagens horizontal ou verticalmente no navegador.",
+    category: "imagens",
+    hubFilter: "Editar",
+    badge: "Imagem",
+    icon: RotateCw,
+    available: true,
+  },
+  {
+    slug: "gerador-de-placeholder",
+    name: "Gerador de Placeholder",
+    description: "Crie imagens de placeholder com tamanho, cores e texto personalizados.",
+    category: "imagens",
+    hubFilter: "Editar",
+    badge: "Imagem",
+    icon: ImageIcon,
+    available: true,
+  },
+  {
+    slug: "recortar-imagem",
+    name: "Recortar Imagem",
+    description: "Recorte áreas de imagens e exporte o resultado diretamente no navegador.",
+    category: "imagens",
+    hubFilter: "Editar",
+    badge: "Imagem",
+    icon: Scissors,
+    available: true,
   },
   {
     slug: "pdf-para-imagens",
@@ -243,7 +317,6 @@ export const tools: Tool[] = [
     icon: FileText,
     featured: true,
     available: true,
-    index: true,
   },
   {
     slug: "pdf-para-word",
@@ -255,7 +328,6 @@ export const tools: Tool[] = [
     icon: FileText,
     featured: true,
     available: true,
-    index: true,
     seoTitle: "PDF para Word: Converter PDF em DOCX Online Grátis | Kivai",
     seoDescription: "Converta PDF para Word (DOCX) online e grátis. Transforme textos, títulos, listas e tabelas em documentos editáveis, sem instalar programas.",
     keywords: ["pdf para word", "converter pdf em word", "pdf para docx", "transformar pdf em word", "conversor pdf word online"],
@@ -269,7 +341,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: FileSpreadsheet,
     available: true,
-    index: true,
     seoTitle: "PDF para Excel: Converter PDF em XLSX Online Grátis | Kivai",
     seoDescription: "Converta PDF para Excel (XLSX) online e grátis. Extraia tabelas e dados de PDFs digitais, revise o conteúdo e baixe uma planilha editável.",
     keywords: ["pdf para excel", "converter pdf em excel", "pdf para xlsx", "extrair tabela de pdf", "conversor pdf excel online"],
@@ -283,7 +354,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: FileSpreadsheet,
     available: true,
-    index: true,
     seoTitle: "Excel para PDF: converta XLSX em PDF online | Kivai",
     seoDescription: "Converta planilhas Excel em PDF online. Transforme arquivos XLSX em documentos PDF organizados e prontos para compartilhar ou imprimir.",
     keywords: ["excel para pdf", "converter excel em pdf", "xlsx para pdf", "planilha para pdf", "transformar excel em pdf"],
@@ -297,7 +367,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: FilePenLine,
     available: true,
-    index: true,
     seoTitle: "Editar PDF Online: adicione textos e imagens | Kivai",
     seoDescription: "Edite PDF online adicionando textos, imagens, formas, desenhos, destaques e assinaturas visuais de maneira simples com o Kivai.",
     keywords: ["editar pdf", "editor de pdf", "escrever em pdf", "adicionar texto no pdf", "editar pdf online", "desenhar em pdf", "adicionar imagem no pdf"],
@@ -311,7 +380,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: Scaling,
     available: true,
-    index: true,
     seoTitle: "Redimensionar PDF para A4, A3, A5 e outros | Kivai",
     seoDescription: "Redimensione páginas de PDF para A6, A5, A4, A3, A2 ou A1. Ajuste orientação, margens e proporção de maneira simples com o Kivai.",
     keywords: ["redimensionar pdf", "mudar tamanho do pdf", "pdf para a4", "pdf para a3", "pdf para a5", "alterar tamanho de página pdf", "converter pdf para a4"],
@@ -325,7 +393,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: LayoutGrid,
     available: true,
-    index: true,
     seoTitle: "Montar PDF para Impressão Online | Kivai",
     seoDescription: "Monte um PDF para impressão escolhendo tamanho da folha, tamanho do conteúdo, posição, margens e quantidade por página. Ideal para etiquetas, documentos, cartões e materiais gráficos.",
     keywords: ["montar pdf para impressão", "pdf para imprimir", "várias páginas por folha", "imprimir etiquetas pdf", "organizar pdf para impressão"],
@@ -340,7 +407,6 @@ export const tools: Tool[] = [
     icon: FileText,
     featured: true,
     available: true,
-    index: true,
     seoTitle: "Word para PDF: Converter DOCX em PDF Online Grátis | Kivai",
     seoDescription: "Converta Word para PDF online e grátis. Transforme arquivos DOCX em PDF preservando textos, imagens, tabelas e formatação, sem instalar programas.",
     keywords: ["word para pdf", "converter word em pdf", "docx para pdf", "transformar word em pdf", "conversor word pdf online"],
@@ -355,7 +421,6 @@ export const tools: Tool[] = [
     icon: FileText,
     featured: true,
     available: true,
-    index: true,
     seoTitle: "PDF para PowerPoint: Converter PDF em PPTX Online Grátis | Kivai",
     seoDescription: "Converta PDF para PowerPoint (PPTX) online e grátis. Escolha, organize e transforme páginas do PDF em slides com alta fidelidade visual.",
     keywords: ["pdf para powerpoint", "converter pdf em powerpoint", "pdf para pptx", "transformar pdf em slides", "conversor pdf powerpoint online"],
@@ -369,7 +434,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: FileText,
     available: true,
-    index: true,
     seoTitle: "PowerPoint para PDF: converta PPTX em PDF online | Kivai",
     seoDescription: "Converta apresentações PowerPoint em PDF online. Transforme arquivos PPTX em PDF de forma rápida, fácil e gratuita com o Kivai.",
     keywords: ["powerpoint para pdf", "pptx para pdf", "converter powerpoint em pdf", "converter pptx em pdf", "powerpoint para pdf online"],
@@ -383,7 +447,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: FileImage,
     available: true,
-    index: true,
   },
   {
     slug: "unir-pdfs",
@@ -394,7 +457,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: Combine,
     available: true,
-    index: true,
   },
   {
     slug: "dividir-pdf",
@@ -405,7 +467,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: Scissors,
     available: true,
-    index: true,
   },
   {
     slug: "girar-pdf",
@@ -416,7 +477,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: RotateCw,
     available: true,
-    index: true,
   },
   {
     slug: "compactar-pdf",
@@ -428,7 +488,6 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: Minimize2,
     available: true,
-    index: true,
   },
   {
     slug: "calculadora-de-roas",
@@ -440,7 +499,6 @@ export const tools: Tool[] = [
     badge: "Marketing",
     icon: BarChart3,
     available: true,
-    index: true,
   },
   {
     slug: "calculadora-de-roi",
@@ -452,7 +510,6 @@ export const tools: Tool[] = [
     badge: "Negócios",
     icon: TrendingUp,
     available: true,
-    index: true,
   },
   {
     slug: "calculadora-de-markup",
@@ -464,7 +521,6 @@ export const tools: Tool[] = [
     badge: "Precificação",
     icon: Tags,
     available: true,
-    index: true,
   },
   {
     slug: "calculadora-de-margem",
@@ -475,7 +531,6 @@ export const tools: Tool[] = [
     badge: "Vendas",
     icon: Percent,
     available: true,
-    index: true,
   },
   {
     slug: "calculadora-de-desconto",
@@ -486,7 +541,6 @@ export const tools: Tool[] = [
     badge: "Vendas",
     icon: Percent,
     available: true,
-    index: true,
   },
   {
     slug: "calculadora-de-porcentagem",
@@ -497,7 +551,6 @@ export const tools: Tool[] = [
     badge: "Matemática",
     icon: Calculator,
     available: true,
-    index: true,
   },
   {
     slug: "contador-de-palavras",
@@ -509,7 +562,136 @@ export const tools: Tool[] = [
     badge: "Texto",
     icon: Type,
     available: true,
-    index: true,
+  },
+  {
+    slug: "contador-de-caracteres-instagram",
+    name: "Contador de Caracteres para Instagram",
+    description: "Conte caracteres e confira limites de textos para publicações no Instagram.",
+    category: "social",
+    hubFilter: "Analisar",
+    badge: "Social Media",
+    icon: Type,
+    available: true,
+  },
+  {
+    slug: "contador-de-hashtags-instagram",
+    name: "Contador de Hashtags para Instagram",
+    description: "Conte hashtags e organize legendas para publicações no Instagram.",
+    category: "social",
+    hubFilter: "Analisar",
+    badge: "Social Media",
+    icon: Tags,
+    available: true,
+  },
+  {
+    slug: "quebra-de-linha-instagram",
+    name: "Quebra de Linha para Instagram",
+    description: "Formate legendas com quebras de linha antes de publicar no Instagram.",
+    category: "social",
+    hubFilter: "Formatar",
+    badge: "Social Media",
+    icon: Type,
+    available: true,
+  },
+  {
+    slug: "ajustar-velocidade-video",
+    name: "Ajustar Velocidade do Vídeo",
+    description: "Acelere ou desacelere vídeos diretamente no navegador.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: TrendingUp,
+    available: true,
+  },
+  {
+    slug: "alterar-volume-video",
+    name: "Alterar Volume do Vídeo",
+    description: "Aumente ou reduza o volume de vídeos e exporte uma nova versão.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: BarChart3,
+    available: true,
+  },
+  {
+    slug: "capturar-frame-video",
+    name: "Capturar Frame do Vídeo",
+    description: "Capture um quadro do vídeo e salve como imagem PNG, JPG ou WebP.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: FileImage,
+    available: true,
+  },
+  {
+    slug: "dividir-video",
+    name: "Dividir Vídeo",
+    description: "Escolha um ponto de corte e gere duas partes do seu vídeo.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: Scissors,
+    available: true,
+  },
+  {
+    slug: "espelhar-video",
+    name: "Espelhar Vídeo",
+    description: "Espelhe vídeos horizontal ou verticalmente no navegador.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: RotateCw,
+    available: true,
+  },
+  {
+    slug: "girar-video",
+    name: "Girar Vídeo",
+    description: "Corrija a orientação de vídeos com rotações de 90, 180 ou 270 graus.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: RotateCw,
+    available: true,
+  },
+  {
+    slug: "recortar-video",
+    name: "Recortar Vídeo",
+    description: "Recorte a área visível do vídeo e exporte o resultado no navegador.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: Scissors,
+    available: true,
+  },
+  {
+    slug: "redimensionar-video",
+    name: "Redimensionar Vídeo",
+    description: "Altere as dimensões do vídeo sem enviar o arquivo para servidores.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: Scaling,
+    available: true,
+  },
+  {
+    slug: "remover-audio-video",
+    name: "Remover Áudio do Vídeo",
+    description: "Remova a faixa de áudio de vídeos diretamente no navegador.",
+    category: "video",
+    hubFilter: "Edição",
+    badge: "Vídeo",
+    icon: Minimize2,
+    available: true,
+  },
+  {
+    slug: "video-para-audio",
+    name: "Vídeo para Áudio",
+    description: "Extraia a faixa de áudio de um vídeo diretamente no navegador.",
+    category: "video",
+    hubFilter: "Converter",
+    badge: "Vídeo",
+    icon: FileText,
+    available: true,
   },
 ];
 

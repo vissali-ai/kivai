@@ -10,7 +10,7 @@ const schema = {
   applicationCategory: "MultimediaApplication",
   operatingSystem: "Web",
   isAccessibleForFree: true,
-  url: "https://kivai.com.br/ferramentas/capturar-frame-video",
+  url: "https://www.kivai.com.br/ferramentas/capturar-frame-video",
   description: "Crie thumbnails a partir de frames de vídeos diretamente no navegador e baixe a imagem em PNG, JPG ou WebP.",
 };
 

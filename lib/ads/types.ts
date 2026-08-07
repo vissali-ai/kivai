@@ -56,6 +56,8 @@ export interface AdsConfig {
 
   enabled: boolean;
 
+  clientId: `ca-pub-${string}` | null;
+
   autoAds: boolean;
 
   testMode: boolean;

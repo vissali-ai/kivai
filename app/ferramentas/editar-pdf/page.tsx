@@ -30,8 +30,8 @@ const faq = [
 ] as const;
 
 const schema = [
-  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Editar PDF", applicationCategory: "UtilitiesApplication", operatingSystem: "Qualquer sistema com navegador moderno", url: "https://kivai.com.br/ferramentas/editar-pdf", description: "Editor visual online para adicionar textos, imagens, formas, desenhos e marcações a documentos PDF.", offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" } },
-  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://kivai.com.br" }, { "@type": "ListItem", position: 2, name: "PDF", item: "https://kivai.com.br/ferramentas/pdfs" }, { "@type": "ListItem", position: 3, name: "Editar PDF", item: "https://kivai.com.br/ferramentas/editar-pdf" }] },
+  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Editar PDF", applicationCategory: "UtilitiesApplication", operatingSystem: "Qualquer sistema com navegador moderno", url: "https://www.kivai.com.br/ferramentas/editar-pdf", description: "Editor visual online para adicionar textos, imagens, formas, desenhos e marcações a documentos PDF.", offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" } },
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://www.kivai.com.br" }, { "@type": "ListItem", position: 2, name: "PDF", item: "https://www.kivai.com.br/ferramentas/pdfs" }, { "@type": "ListItem", position: 3, name: "Editar PDF", item: "https://www.kivai.com.br/ferramentas/editar-pdf" }] },
   { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) },
 ];
 

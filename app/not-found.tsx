@@ -28,7 +28,7 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/#ferramentas"
+            href="/ferramentas"
             className="inline-flex items-center justify-center rounded-lg border px-5 py-3 font-medium transition hover:bg-muted"
           >
             <Search className="mr-2 h-4 w-4" />

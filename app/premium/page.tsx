@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -8,6 +9,15 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
+
+import { noIndexRobots } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Premium em breve",
+  description: "Conheça a experiência Premium que está sendo preparada para o Kivai.",
+  robots: noIndexRobots,
+  alternates: { canonical: "/premium" },
+};
 
 const freeFeatures = [
   "Acesso às ferramentas gratuitas",

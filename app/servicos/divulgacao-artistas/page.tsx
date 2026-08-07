@@ -13,6 +13,13 @@ import {
   Video,
   Zap,
 } from "lucide-react";
+import { getPageMetadata } from "@/lib/seo";
+
+export const metadata = getPageMetadata({
+  title: "Divulgação para Artistas e Bandas",
+  description: "Serviço de divulgação digital para lançamentos, shows e projetos de artistas e bandas.",
+  pathname: "/servicos/divulgacao-artistas",
+});
 
 const channels = [
   {
