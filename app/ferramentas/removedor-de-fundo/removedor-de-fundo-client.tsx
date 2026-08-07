@@ -54,7 +54,7 @@ export default function RemovedorDeFundoClient() {
     }
 
    if (file.size > TAMANHO_MAXIMO_GRATIS) {
-  return "Esta imagem ultrapassa o limite gratuito de 5 MB. Imagens maiores estarão disponíveis no plano Pro.";
+  return "Esta imagem ultrapassa o limite atual de 5 MB.";
 }
 
     return "";
@@ -185,7 +185,7 @@ function fazerOutraImagem() {
 
     const link = document.createElement("a");
     link.href = resultadoUrl;
-    link.download = "nexion-sem-fundo.png";
+    link.download = "kivai-sem-fundo.png";
 
     document.body.appendChild(link);
     link.click();
@@ -226,7 +226,7 @@ function fazerOutraImagem() {
             <CardTitle>Área de processamento</CardTitle>
 
             <CardDescription>
-             Formatos aceitos: PNG, JPG e WebP. Plano grátis: até 5 MB por imagem.
+             Formatos aceitos: PNG, JPG e WebP. Limite atual: até 5 MB por imagem.
             </CardDescription>
           </CardHeader>
 
@@ -425,7 +425,7 @@ function fazerOutraImagem() {
               Limite
             </p>
           <p className="mt-2 text-sm font-medium">
-  Plano grátis: até 5 MB por imagem
+  Limite atual: até 5 MB por imagem
 </p>
           </div>
 

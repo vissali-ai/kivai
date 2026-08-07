@@ -1,4 +1,5 @@
 import { getToolMetadata } from "@/lib/seo";
+import { ImageToolEditorial } from "@/components/tools/image-tool-editorial";
 
 import ConversorHeicClient from "./conversor-heic-client";
 
@@ -8,6 +9,7 @@ export default function ConversorHeicPage() {
   return (
     <main>
       <ConversorHeicClient />
+      <ImageToolEditorial slug="conversor-heic" />
     </main>
   );
 }

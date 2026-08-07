@@ -346,7 +346,7 @@ const dataUrl = await QRCode.toDataURL(conteudoQr, {
     const link = document.createElement("a");
 
     link.href = qrDataUrl;
-    link.download = `nexion-tools-qrcode-${tipo}.png`;
+    link.download = `kivai-qrcode-${tipo}.png`;
 
     document.body.appendChild(link);
     link.click();
@@ -381,7 +381,7 @@ const svg = await QRCode.toString(conteudoQr, {
       const link = document.createElement("a");
 
       link.href = urlBlob;
-      link.download = `nexion-tools-qrcode-${tipo}.svg`;
+      link.download = `kivai-qrcode-${tipo}.svg`;
 
       document.body.appendChild(link);
       link.click();

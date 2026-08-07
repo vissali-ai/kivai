@@ -233,7 +233,7 @@ function baixarResultado() {
             <CardTitle>Área de conversão</CardTitle>
 
             <CardDescription>
-              Formatos aceitos: PNG, JPG e WebP. Plano grátis: até 5 MB por imagem.
+              Formatos aceitos: PNG, JPG e WebP. Limite atual: até 5 MB por imagem.
             </CardDescription>
           </CardHeader>
 

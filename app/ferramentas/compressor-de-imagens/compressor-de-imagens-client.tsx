@@ -287,7 +287,7 @@ export default function CompressorDeImagensClient() {
             <CardTitle>Área de compressão</CardTitle>
 
             <CardDescription>
-              Formatos aceitos: PNG, JPG e WebP. Plano grátis:
+              Formatos aceitos: PNG, JPG e WebP. Limite atual:
               até 5 MB por imagem.
             </CardDescription>
           </CardHeader>

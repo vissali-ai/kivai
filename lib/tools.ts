@@ -115,14 +115,28 @@ export interface Tool {
 }
 
 export const INDEXABLE_TOOL_SLUGS = [
+  "adicionar-marca-dagua",
+  "compressor-de-imagens",
+  "conversor-de-imagens",
+  "conversor-heic",
+  "conversor-svg-png",
   "editar-pdf",
+  "espelhar-e-girar-imagem",
   "excel-para-pdf",
+  "gerador-de-favicon",
+  "gerador-de-mockups",
+  "gerador-de-placeholder",
+  "gerador-de-qr-code",
+  "imagem-para-favicon",
   "montar-pdf-para-impressao",
   "pdf-para-excel",
   "pdf-para-powerpoint",
   "pdf-para-word",
   "powerpoint-para-pdf",
+  "recortar-imagem",
+  "redimensionar-imagem",
   "redimensionar-pdf",
+  "removedor-de-fundo",
   "word-para-pdf",
 ] as const;
 
@@ -165,6 +179,9 @@ export const tools: Tool[] = [
     icon: WandSparkles,
     featured: true,
     available: true,
+    seoTitle: "Compressor de Imagens Online: reduzir PNG, JPG e WebP | Kivai",
+    seoDescription: "Comprima imagens PNG, JPG e WebP online, compare a redução e baixe uma cópia otimizada com processamento local no navegador.",
+    keywords: ["compressor de imagens", "comprimir imagem", "reduzir tamanho de imagem", "otimizar jpg", "comprimir png"],
   },
   {
     slug: "conversor-de-imagens",
@@ -177,6 +194,9 @@ export const tools: Tool[] = [
     icon: FileImage,
     featured: true,
     available: true,
+    seoTitle: "Conversor de Imagens PNG, JPG e WebP Online | Kivai",
+    seoDescription: "Converta imagens entre PNG, JPG e WebP, ajuste a qualidade e preserve o original com processamento feito no navegador.",
+    keywords: ["conversor de imagens", "converter png para jpg", "converter jpg para png", "converter webp", "mudar formato de imagem"],
   },
   {
     slug: "conversor-heic",
@@ -187,6 +207,9 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: FileImage,
     available: true,
+    seoTitle: "Conversor HEIC para JPG Online | Kivai",
+    seoDescription: "Converta fotos HEIC e HEIF para JPG diretamente no navegador, sem instalar programas e sem alterar o arquivo original.",
+    keywords: ["heic para jpg", "converter heic", "conversor heif", "foto iphone para jpg", "abrir heic"],
   },
   {
     slug: "redimensionar-imagem",
@@ -198,6 +221,9 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: Maximize2,
     available: true,
+    seoTitle: "Redimensionar Imagem Online em PNG, JPG e WebP | Kivai",
+    seoDescription: "Altere largura e altura de imagens, preserve a proporção e exporte em PNG, JPG ou WebP diretamente no navegador.",
+    keywords: ["redimensionar imagem", "mudar tamanho da imagem", "alterar dimensões da foto", "reduzir pixels", "resize imagem"],
   },
   {
     slug: "gerador-de-qr-code",
@@ -210,6 +236,9 @@ export const tools: Tool[] = [
     icon: QrCode,
     featured: true,
     available: true,
+    seoTitle: "Gerador de QR Code para Link, Wi-Fi e WhatsApp | Kivai",
+    seoDescription: "Crie QR Codes para URL, texto, WhatsApp, e-mail, telefone e Wi-Fi, personalize as cores e baixe em PNG ou SVG.",
+    keywords: ["gerador de qr code", "criar qr code", "qr code wifi", "qr code whatsapp", "qr code para link"],
   },
   {
     slug: "gerador-de-favicon",
@@ -265,6 +294,9 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: ImagePlus,
     available: true,
+    seoTitle: "Adicionar Marca d'Água em Imagem Online | Kivai",
+    seoDescription: "Adicione texto ou logotipo como marca d'água, controle posição, tamanho e opacidade e baixe uma nova imagem em PNG.",
+    keywords: ["adicionar marca d'água", "marca d'água em foto", "colocar logo na imagem", "proteger imagem", "watermark online"],
   },
   {
     slug: "conversor-svg-png",
@@ -275,6 +307,9 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: FileImage,
     available: true,
+    seoTitle: "Conversor SVG para PNG e Imagem para SVG | Kivai",
+    seoDescription: "Renderize SVG em PNG com largura personalizada ou incorpore PNG, JPG e WebP em um arquivo SVG, diretamente no navegador.",
+    keywords: ["svg para png", "converter svg", "png para svg", "conversor svg png", "renderizar svg"],
   },
   {
     slug: "espelhar-e-girar-imagem",
@@ -285,6 +320,9 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: RotateCw,
     available: true,
+    seoTitle: "Espelhar e Girar Imagem Online | Kivai",
+    seoDescription: "Gire imagens em 90, 180 ou 270 graus e faça espelhamento horizontal ou vertical com processamento local.",
+    keywords: ["espelhar imagem", "girar imagem", "inverter foto", "rotacionar imagem", "flip imagem"],
   },
   {
     slug: "gerador-de-placeholder",
@@ -295,6 +333,9 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: ImageIcon,
     available: true,
+    seoTitle: "Gerador de Placeholder LQIP e Data URL | Kivai",
+    seoDescription: "Crie um placeholder LQIP leve em JPEG, ajuste largura e qualidade e copie o Data URL para usar em sites e aplicações.",
+    keywords: ["gerador lqip", "placeholder de imagem", "data url imagem", "blur placeholder", "imagem de baixa qualidade"],
   },
   {
     slug: "recortar-imagem",
@@ -305,6 +346,9 @@ export const tools: Tool[] = [
     badge: "Imagem",
     icon: Scissors,
     available: true,
+    seoTitle: "Recortar Imagem Online por Coordenadas | Kivai",
+    seoDescription: "Recorte uma área retangular de imagens PNG, JPG e WebP informando posição, largura e altura, com processamento local.",
+    keywords: ["recortar imagem", "cortar foto", "crop imagem", "recorte por pixels", "cortar png"],
   },
   {
     slug: "pdf-para-imagens",
