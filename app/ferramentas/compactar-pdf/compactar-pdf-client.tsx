@@ -235,7 +235,7 @@ export default function CompactarPdfClient() {
                         </p>
 
                         <p className="text-sm text-muted-foreground">
-                          Maior qualidade e menor redução de tamanho.
+                          Preserva texto, vetores e links; a redução pode ser pequena.
                         </p>
                       </div>
 
@@ -258,7 +258,7 @@ export default function CompactarPdfClient() {
                         </p>
 
                         <p className="text-sm text-muted-foreground">
-                          Equilíbrio entre qualidade e tamanho.
+                          Rasteriza as páginas com resolução equilibrada.
                         </p>
                       </div>
 
@@ -281,13 +281,21 @@ export default function CompactarPdfClient() {
                         </p>
 
                         <p className="text-sm text-muted-foreground">
-                          Prioriza a redução do tamanho do arquivo.
+                          Rasteriza em menor resolução e prioriza a redução.
                         </p>
                       </div>
 
                     </label>
 
                   </div>
+
+                  {quality !== "low" && (
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      A compressão média ou alta transforma cada página em imagem.
+                      Textos deixam de ser selecionáveis e links, formulários e
+                      assinaturas digitais não são preservados.
+                    </p>
+                  )}
 
                 </div>
 

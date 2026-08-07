@@ -61,22 +61,39 @@ export default function ImagensParaPdfClient() {
         image.src = dataUrl;
       });
 
-      const largura = pdf.internal.pageSize.getWidth();
-      const altura = (img.height * largura) / img.width;
-
       if (i > 0) pdf.addPage();
 
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const scale = Math.min(pageWidth / img.width, pageHeight / img.height);
+      const width = img.width * scale;
+      const height = img.height * scale;
+      const x = (pageWidth - width) / 2;
+      const y = (pageHeight - height) / 2;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const context = canvas.getContext("2d");
+
+      if (!context) continue;
+
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(img, 0, 0);
+      const jpegData = canvas.toDataURL("image/jpeg", 0.92);
+
       pdf.addImage(
-        dataUrl,
+        jpegData,
         "JPEG",
-        0,
-        0,
-        largura,
-        altura
+        x,
+        y,
+        width,
+        height
       );
     }
 
-    pdf.save("nexion-tools.pdf");
+    pdf.save("kivai-imagens.pdf");
 
     setLoading(false);
   }
