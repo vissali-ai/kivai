@@ -1,860 +1,271 @@
 "use client";
 
+import JSZip from "jszip";
 import Link from "next/link";
-import {
-  ChangeEvent,
-  DragEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Download, ImageIcon, LoaderCircle, Plus, Trash2, Upload } from "lucide-react";
 
-import {
-  LoaderCircle,
-  Upload,
-} from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { calcularDimensoes, type DimensoesImagem, type FormatoSaida, obterDimensoesImagem, redimensionarImagem } from "./resize-utils";
 
-import {
-  FormatoSaida,
-  PosicaoCorte,
-  redimensionarImagem,
-} from "./resize-utils";
+const TAMANHO_MAXIMO = 20 * 1024 * 1024;
+const FORMATOS_ACEITOS = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"];
+const ACCEPT = ".png,.jpg,.jpeg,.webp,.gif,.svg,image/png,image/jpeg,image/webp,image/gif,image/svg+xml";
 
-const FORMATOS_ACEITOS = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-];
+type ItemImagem = {
+  id: string;
+  arquivo: File;
+  previewUrl: string;
+  original: DimensoesImagem;
+};
 
-const TAMANHO_MAXIMO_GRATIS = 20 * 1024 * 1024;
+type Resultado = {
+  id: string;
+  arquivo: File;
+  blob: Blob;
+  url: string;
+  largura: number;
+  altura: number;
+  nome: string;
+};
 
-const PRESETS = [
-  {
-    nome: "Personalizado",
-    largura: 0,
-    altura: 0,
-  },
-  {
-    nome: "Instagram Feed",
-    largura: 1080,
-    altura: 1080,
-  },
-  {
-    nome: "Instagram Story",
-    largura: 1080,
-    altura: 1920,
-  },
-  {
-    nome: "Instagram Reels",
-    largura: 1080,
-    altura: 1920,
-  },
-  {
-    nome: "Facebook Post",
-    largura: 1200,
-    altura: 630,
-  },
-  {
-    nome: "YouTube Thumbnail",
-    largura: 1280,
-    altura: 720,
-  },
-  {
-    nome: "LinkedIn",
-    largura: 1200,
-    altura: 627,
-  },
-  {
-    nome: "TikTok",
-    largura: 1080,
-    altura: 1920,
-  },
-  {
-    nome: "Shopee",
-    largura: 1000,
-    altura: 1000,
-  },
-  {
-    nome: "Mercado Livre",
-    largura: 1200,
-    altura: 1200,
-  },
-  {
-    nome: "Amazon",
-    largura: 1600,
-    altura: 1600,
-  },
-];
+function formatarTamanho(bytes: number) {
+  return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(2)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function nomeSemExtensao(nome: string) {
+  return nome.replace(/\.[^/.]+$/, "");
+}
 
 export default function RedimensionarImagemClient() {
-  const inputRef =
-    useRef<HTMLInputElement>(null);
+  const inputId = useId();
+  const addInputId = useId();
+  const [itens, setItens] = useState<ItemImagem[]>([]);
+  const [resultados, setResultados] = useState<Resultado[]>([]);
+  const [modo, setModo] = useState<"pixels" | "porcentagem">("pixels");
+  const [largura, setLargura] = useState(1080);
+  const [altura, setAltura] = useState(1080);
+  const [porcentagem, setPorcentagem] = useState(50);
+  const [manterProporcao, setManterProporcao] = useState(true);
+  const [naoAmpliar, setNaoAmpliar] = useState(true);
+  const [formato, setFormato] = useState<FormatoSaida>("jpeg");
+  const [qualidade, setQualidade] = useState(90);
+  const [arrastando, setArrastando] = useState(false);
+  const [processando, setProcessando] = useState(false);
+  const [erro, setErro] = useState("");
+  const itensRef = useRef<ItemImagem[]>([]);
+  const resultadosRef = useRef<Resultado[]>([]);
 
-  const [arquivo, setArquivo] =
-    useState<File | null>(null);
+  useEffect(() => { itensRef.current = itens; }, [itens]);
+  useEffect(() => { resultadosRef.current = resultados; }, [resultados]);
+  useEffect(() => () => {
+    itensRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    resultadosRef.current.forEach((item) => URL.revokeObjectURL(item.url));
+  }, []);
 
-  const [previewUrl, setPreviewUrl] =
-    useState<string | null>(null);
-
-  const [resultadoUrl, setResultadoUrl] =
-    useState<string | null>(null);
-
-  const [resultadoBlob, setResultadoBlob] =
-    useState<Blob | null>(null);
-
-  const [arrastando, setArrastando] =
-    useState(false);
-
-  const [erro, setErro] =
-    useState("");
-
-  const [processando, setProcessando] =
-    useState(false);
-
-  const [preset, setPreset] =
-    useState("Personalizado");
-
-  const [largura, setLargura] =
-    useState(0);
-
-  const [altura, setAltura] =
-    useState(0);
-
-  const [larguraOriginal, setLarguraOriginal] =
-    useState(0);
-
-  const [alturaOriginal, setAlturaOriginal] =
-    useState(0);
-
-  const [manterProporcao, setManterProporcao] =
-    useState(true);
-
-  const [posicaoCorte, setPosicaoCorte] =
-    useState<PosicaoCorte>("centro");
-
-  const [formatoSaida, setFormatoSaida] =
-    useState<FormatoSaida>("webp");
-
-  const [qualidade, setQualidade] =
-    useState(90);
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-
-      if (resultadoUrl) {
-        URL.revokeObjectURL(resultadoUrl);
-      }
-    };
-  }, [previewUrl, resultadoUrl]);
-
-  function limparResultado() {
-    if (resultadoUrl) {
-      URL.revokeObjectURL(resultadoUrl);
+  const dimensoesPrevistas = useMemo(() => itens.map((item) => {
+    try {
+      return calcularDimensoes(item.original, {
+        largura: modo === "pixels" ? largura : undefined,
+        altura: modo === "pixels" ? altura : undefined,
+        porcentagem: modo === "porcentagem" ? porcentagem : undefined,
+        manterProporcao,
+        naoAmpliar,
+      });
+    } catch {
+      return null;
     }
+  }), [altura, itens, largura, manterProporcao, modo, naoAmpliar, porcentagem]);
 
-    setResultadoBlob(null);
-    setResultadoUrl(null);
+  function limparResultados() {
+    resultados.forEach((item) => URL.revokeObjectURL(item.url));
+    setResultados([]);
   }
 
-  function validarArquivo(file: File) {
-    if (!FORMATOS_ACEITOS.includes(file.type)) {
-      return "Selecione uma imagem JPG, PNG ou WebP.";
-    }
+  async function adicionarArquivos(arquivos: File[]) {
+    setErro("");
+    limparResultados();
+    const novos: ItemImagem[] = [];
 
-    if (file.size > TAMANHO_MAXIMO_GRATIS) {
-      return "O limite gratuito é de 20 MB.";
-    }
-
-    return "";
-  }
-
-  function carregarDimensoes(
-    file: File
-  ): Promise<{
-    largura: number;
-    altura: number;
-  }> {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-
-      const imagem = new Image();
-
-      imagem.onload = () => {
-        resolve({
-          largura: imagem.naturalWidth,
-          altura: imagem.naturalHeight,
+    for (const arquivo of arquivos) {
+      const tipoAceito = FORMATOS_ACEITOS.includes(arquivo.type) || /\.(png|jpe?g|webp|gif|svg)$/i.test(arquivo.name);
+      if (!tipoAceito) {
+        setErro("Use imagens JPG, PNG, WebP, GIF ou SVG.");
+        continue;
+      }
+      if (arquivo.size > TAMANHO_MAXIMO) {
+        setErro(`“${arquivo.name}” ultrapassa o limite de 20 MB.`);
+        continue;
+      }
+      try {
+        novos.push({
+          id: `${arquivo.name}-${arquivo.size}-${arquivo.lastModified}-${crypto.randomUUID()}`,
+          arquivo,
+          previewUrl: URL.createObjectURL(arquivo),
+          original: await obterDimensoesImagem(arquivo),
         });
+      } catch {
+        setErro(`Não foi possível abrir “${arquivo.name}”.`);
+      }
+    }
 
-        URL.revokeObjectURL(url);
-      };
+    setItens((atuais) => [...atuais, ...novos]);
+  }
 
-      imagem.onerror = () => {
-        URL.revokeObjectURL(url);
-
-        reject();
-      };
-
-      imagem.src = url;
+  function removerItem(id: string) {
+    limparResultados();
+    setItens((atuais) => {
+      const removido = atuais.find((item) => item.id === id);
+      if (removido) URL.revokeObjectURL(removido.previewUrl);
+      return atuais.filter((item) => item.id !== id);
     });
   }
 
-  async function carregarArquivo(
-    file: File
-  ) {
-        const mensagemErro = validarArquivo(file);
-
-    if (mensagemErro) {
-      setErro(mensagemErro);
-      return;
-    }
-
-    limparResultado();
-
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
-    const novaUrl = URL.createObjectURL(file);
-
-    const dimensoes = await carregarDimensoes(file);
-
-    setArquivo(file);
-    setPreviewUrl(novaUrl);
-
-    setLarguraOriginal(dimensoes.largura);
-    setAlturaOriginal(dimensoes.altura);
-
-    setLargura(dimensoes.largura);
-    setAltura(dimensoes.altura);
-
-    setPreset("Personalizado");
-
+  function limparTudo() {
+    itens.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    limparResultados();
+    setItens([]);
     setErro("");
   }
 
-  function selecionarArquivo(
-    event: ChangeEvent<HTMLInputElement>
-  ) {
-    const file = event.target.files?.[0];
-
-    if (file) {
-      carregarArquivo(file);
-    }
-  }
-
-  function soltarArquivo(
-    event: DragEvent<HTMLDivElement>
-  ) {
-    event.preventDefault();
-
-    setArrastando(false);
-
-    const file = event.dataTransfer.files?.[0];
-
-    if (file) {
-      carregarArquivo(file);
-    }
-  }
-
-  function removerArquivo() {
-    limparResultado();
-
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
-    setArquivo(null);
-    setPreviewUrl(null);
-
-    setErro("");
-
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
-  }
-
-  function aplicarPreset(nome: string) {
-    setPreset(nome);
-
-    const presetSelecionado = PRESETS.find(
-      (item) => item.nome === nome
-    );
-
-    if (!presetSelecionado) return;
-
-    if (nome === "Personalizado") {
-      setLargura(larguraOriginal);
-      setAltura(alturaOriginal);
-      return;
-    }
-
-    setLargura(presetSelecionado.largura);
-    setAltura(presetSelecionado.altura);
-
-    limparResultado();
-  }
-
-  function alterarLargura(valor: number) {
-    setLargura(valor);
-
-    if (
-      manterProporcao &&
-      larguraOriginal > 0 &&
-      alturaOriginal > 0
-    ) {
-      setAltura(
-        Math.round(
-          (valor * alturaOriginal) /
-            larguraOriginal
-        )
-      );
-    }
-
-    limparResultado();
-  }
-
-  function alterarAltura(valor: number) {
-    setAltura(valor);
-
-    if (
-      manterProporcao &&
-      larguraOriginal > 0 &&
-      alturaOriginal > 0
-    ) {
-      setLargura(
-        Math.round(
-          (valor * larguraOriginal) /
-            alturaOriginal
-        )
-      );
-    }
-
-    limparResultado();
-  }
-
-  async function redimensionarArquivo() {
-    if (!arquivo) {
-      setErro("Selecione uma imagem.");
-      return;
-    }
-
+  async function processar() {
+    if (!itens.length) return;
     setProcessando(true);
     setErro("");
+    limparResultados();
+    const concluidos: Resultado[] = [];
 
     try {
-      limparResultado();
-
-      const resultado =
-        await redimensionarImagem(
-          arquivo,
-          {
-            largura,
-            altura,
-            manterProporcao,
-            posicaoCorte,
-            formato: formatoSaida,
-            qualidade:
-              qualidade / 100,
-            corDeFundo:
-              "#ffffff",
-          }
-        );
-
-      const novaUrl =
-        URL.createObjectURL(
-          resultado.blob
-        );
-
-      setResultadoBlob(
-        resultado.blob
-      );
-
-      setLargura(resultado.largura);
-      setAltura(resultado.altura);
-
-      setResultadoUrl(
-        novaUrl
-      );
+      for (const item of itens) {
+        const resultado = await redimensionarImagem(item.arquivo, {
+          largura: modo === "pixels" ? largura : undefined,
+          altura: modo === "pixels" ? altura : undefined,
+          porcentagem: modo === "porcentagem" ? porcentagem : undefined,
+          manterProporcao,
+          naoAmpliar,
+          formato,
+          qualidade: qualidade / 100,
+          corDeFundo: "#ffffff",
+        });
+        const nome = `${nomeSemExtensao(item.arquivo.name)}-${resultado.largura}x${resultado.altura}.${resultado.extensao}`;
+        concluidos.push({ id: item.id, arquivo: item.arquivo, blob: resultado.blob, url: URL.createObjectURL(resultado.blob), largura: resultado.largura, altura: resultado.altura, nome });
+      }
+      setResultados(concluidos);
     } catch (error) {
-      const mensagem =
-        error instanceof Error
-          ? error.message
-          : "Erro ao redimensionar.";
-
-      setErro(mensagem);
+      concluidos.forEach((item) => URL.revokeObjectURL(item.url));
+      setErro(error instanceof Error ? error.message : "Não foi possível redimensionar as imagens.");
     } finally {
       setProcessando(false);
     }
   }
 
-  function baixarResultado() {
-    if (
-      !resultadoBlob ||
-      !resultadoUrl ||
-      !arquivo
-    ) {
-      return;
-    }
-
-    const nomeOriginal =
-      arquivo.name.replace(
-        /\.[^/.]+$/,
-        ""
-      );
-
-    const extensao =
-      formatoSaida === "jpeg"
-        ? "jpg"
-        : formatoSaida;
-
-    const link =
-      document.createElement("a");
-
-    link.href =
-      resultadoUrl;
-
-    link.download =
-      `${nomeOriginal}-${largura}x${altura}.${extensao}`;
-
-    document.body.appendChild(link);
-
+  function baixar(resultado: Resultado) {
+    const link = document.createElement("a");
+    link.href = resultado.url;
+    link.download = resultado.nome;
     link.click();
+  }
 
-    link.remove();
+  async function baixarTudo() {
+    if (resultados.length === 1) return baixar(resultados[0]);
+    const zip = new JSZip();
+    resultados.forEach((resultado) => zip.file(resultado.nome, resultado.blob));
+    const blob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "imagens-redimensionadas.zip";
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   return (
     <section className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-12 sm:px-6 sm:pt-24 lg:px-8 lg:pt-24 lg:pb-16">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-24 sm:px-6 lg:px-8 lg:pb-16">
+        <Link href="/ferramentas/imagens" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">← Voltar para ferramentas de imagens</Link>
 
-        <div className="mb-8">
+        <header className="mx-auto mb-8 max-w-3xl text-center sm:mb-10">
+          <p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramenta de imagem</p>
+          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Redimensionar imagens</h1>
+          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Redimensione JPG, PNG, WebP, GIF ou SVG por pixels ou porcentagem. Processe várias imagens de uma vez no seu dispositivo.</p>
+        </header>
 
-          <Link
-            href="/ferramentas/imagens"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        {!itens.length ? (
+          <div
+            onDragEnter={(event) => { event.preventDefault(); setArrastando(true); }}
+            onDragOver={(event) => event.preventDefault()}
+            onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setArrastando(false); }}
+            onDrop={(event) => { event.preventDefault(); setArrastando(false); void adicionarArquivos(Array.from(event.dataTransfer.files)); }}
+            className={cn("mx-auto flex min-h-80 max-w-4xl flex-col items-center justify-center border border-dashed px-5 py-12 text-center transition-colors", arrastando ? "border-primary bg-primary/10" : "border-border bg-card")}
           >
-            <span aria-hidden="true">
-              ←
-            </span>
-
-            Voltar para ferramentas de imagens
-          </Link>
-
-          <div className="mb-10 max-w-3xl">
-
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">
-              Ferramenta de imagem
-            </p>
-
-            <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-              Redimensionar Imagem
-            </h1>
-
-            <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-              Ajuste largura e altura de imagens
-              mantendo a qualidade diretamente
-              no navegador.
-            </p>
-
+            <span className="flex size-16 items-center justify-center rounded-full bg-primary/15 text-primary"><Upload className="size-7" /></span>
+            <h2 className="mt-5 font-heading text-xl font-semibold">Selecione suas imagens</h2>
+            <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Escolha uma ou várias imagens da galeria, do app Arquivos ou do computador.</p>
+            <input id={inputId} type="file" accept={ACCEPT} multiple className="sr-only" onChange={(event) => { void adicionarArquivos(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
+            <label htmlFor={inputId} className={cn(buttonVariants({ size: "lg" }), "mt-6 min-h-12 cursor-pointer px-6 text-sm")}>Selecionar imagens</label>
+            <p className="mt-4 hidden text-xs text-muted-foreground sm:block">ou arraste e solte as imagens aqui</p>
+            <p className="mt-2 text-xs text-muted-foreground">Até 20 MB por arquivo</p>
           </div>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <Card>
+              <CardHeader className="flex-row items-center justify-between gap-3">
+                <div><CardTitle>{itens.length} {itens.length === 1 ? "imagem selecionada" : "imagens selecionadas"}</CardTitle><CardDescription>Confira as dimensões previstas antes de processar.</CardDescription></div>
+                <div className="flex gap-2">
+                  <input id={addInputId} type="file" accept={ACCEPT} multiple className="sr-only" onChange={(event) => { void adicionarArquivos(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
+                  <label htmlFor={addInputId} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "min-h-11 cursor-pointer sm:min-h-7")}><Plus />Adicionar</label>
+                  <Button type="button" variant="outline" size="sm" className="min-h-11 sm:min-h-7" onClick={limparTudo}><Trash2 />Limpar</Button>
+                </div>
+              </CardHeader>
+              <CardContent className="grid gap-3 sm:grid-cols-2">
+                {itens.map((item, indice) => (
+                  <article key={item.id} className="grid grid-cols-[88px_minmax(0,1fr)_auto] items-center gap-3 border border-border bg-background p-3">
+                    <img src={item.previewUrl} alt="" className="size-[88px] bg-muted/20 object-contain" />
+                    <div className="min-w-0"><p className="truncate text-sm font-medium">{item.arquivo.name}</p><p className="mt-1 text-xs text-muted-foreground">{item.original.largura} × {item.original.altura}px · {formatarTamanho(item.arquivo.size)}</p>{dimensoesPrevistas[indice] && <p className="mt-1 text-xs font-medium text-primary">Resultado: {dimensoesPrevistas[indice]?.largura} × {dimensoesPrevistas[indice]?.altura}px</p>}</div>
+                    <Button type="button" variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label={`Remover ${item.arquivo.name}`} onClick={() => removerItem(item.id)}><Trash2 /></Button>
+                  </article>
+                ))}
+              </CardContent>
+            </Card>
 
-        </div>
+            <Card className="h-fit lg:sticky lg:top-24">
+              <CardHeader><CardTitle>Opções de redimensionamento</CardTitle><CardDescription>As mesmas opções são aplicadas a todas as imagens.</CardDescription></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 border border-border p-1">
+                  <Button type="button" variant={modo === "pixels" ? "default" : "ghost"} className="min-h-11" onClick={() => { setModo("pixels"); limparResultados(); }}>Por pixels</Button>
+                  <Button type="button" variant={modo === "porcentagem" ? "default" : "ghost"} className="min-h-11" onClick={() => { setModo("porcentagem"); limparResultados(); }}>Por porcentagem</Button>
+                </div>
 
-        <Card className="mx-auto max-w-5xl">
+                {modo === "pixels" ? <div className="mt-5 grid grid-cols-2 gap-3">
+                  <label className="text-xs font-medium">Largura (px)<input inputMode="numeric" type="number" min={1} value={largura} onChange={(event) => { setLargura(Number(event.target.value)); limparResultados(); }} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base" /></label>
+                  <label className="text-xs font-medium">Altura (px)<input inputMode="numeric" type="number" min={1} value={altura} onChange={(event) => { setAltura(Number(event.target.value)); limparResultados(); }} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base" /></label>
+                </div> : <div className="mt-5 grid grid-cols-3 gap-2">{[25, 50, 75].map((valor) => <Button key={valor} type="button" variant={porcentagem === valor ? "default" : "outline"} className="min-h-11" onClick={() => { setPorcentagem(valor); limparResultados(); }}>{valor}% menor</Button>)}</div>}
 
-          <CardHeader>
+                {modo === "pixels" && <label className="mt-5 flex min-h-11 cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={manterProporcao} onChange={(event) => { setManterProporcao(event.target.checked); limparResultados(); }} className="size-5 accent-[var(--primary)]" />Manter proporção</label>}
+                <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={naoAmpliar} onChange={(event) => { setNaoAmpliar(event.target.checked); limparResultados(); }} className="size-5 accent-[var(--primary)]" />Não ampliar imagens menores</label>
 
-            <CardTitle>
-              Área de edição
-            </CardTitle>
+                <label className="mt-4 block text-xs font-medium">Formato de saída<select value={formato} onChange={(event) => { setFormato(event.target.value as FormatoSaida); limparResultados(); }} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base"><option value="jpeg">JPG</option><option value="png">PNG</option><option value="webp">WebP</option></select></label>
+                {formato !== "png" && <label className="mt-4 block text-xs font-medium">Qualidade: {qualidade}%<input type="range" min={10} max={100} step={5} value={qualidade} onChange={(event) => { setQualidade(Number(event.target.value)); limparResultados(); }} className="mt-3 h-6 w-full" /></label>}
 
-            <CardDescription>
-              JPG, PNG e WebP até 20 MB.
-            </CardDescription>
-
-          </CardHeader>
-
-          <CardContent>
-
-          <input
-  ref={inputRef}
-  type="file"
-  accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
-  className="hidden"
-  onChange={selecionarArquivo}
-/>
-
-<div
-  onDragEnter={(event) => {
-    event.preventDefault();
-    setArrastando(true);
-  }}
-  onDragOver={(event) => {
-    event.preventDefault();
-    setArrastando(true);
-  }}
-  onDragLeave={(event) => {
-    event.preventDefault();
-    setArrastando(false);
-  }}
-  onDrop={soltarArquivo}
-  className={[
-    "flex min-h-80 flex-col items-center justify-center border border-dashed p-6 text-center transition-colors sm:p-10",
-    arrastando
-      ? "border-primary bg-primary/5"
-      : "border-border bg-muted/20 hover:bg-muted/40",
-  ].join(" ")}
->
-  {!previewUrl ? (
-    <div className="flex max-w-md flex-col items-center">
-      <div className="flex size-14 items-center justify-center border border-border bg-background">
-        <Upload className="size-5" />
-      </div>
-
-      <h2 className="mt-5 font-heading text-lg font-medium">
-        Envie sua imagem
-      </h2>
-
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Arraste e solte a imagem ou selecione um arquivo do seu computador.
-      </p>
-
-      <Button
-        type="button"
-        size="lg"
-        className="mt-6"
-        onClick={() => inputRef.current?.click()}
-      >
-        Selecionar imagem
-      </Button>
-    </div>
-  ) : (
-    <div className="w-full">
-      <p className="mb-2 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        Imagem selecionada
-      </p>
-
-      <div className="flex min-h-64 items-center justify-center border border-border bg-background p-4">
-        <img
-          src={previewUrl}
-          alt="Imagem selecionada"
-          className="max-h-96 w-full object-contain"
-        />
-      </div>
-
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <div>
-          <label className="text-sm font-medium">
-            Preset
-          </label>
-
-          <select
-            value={preset}
-            onChange={(event) =>
-              aplicarPreset(event.target.value)
-            }
-            className="mt-2 h-10 w-full border border-input bg-background px-3 text-sm"
-          >
-            {PRESETS.map((item) => (
-              <option
-                key={item.nome}
-                value={item.nome}
-              >
-                {item.nome}
-                {item.largura > 0
-                  ? ` (${item.largura} × ${item.altura})`
-                  : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">
-            Formato
-          </label>
-
-          <select
-            value={formatoSaida}
-            onChange={(event) =>
-              setFormatoSaida(
-                event.target.value as FormatoSaida
-              )
-            }
-            className="mt-2 h-10 w-full border border-input bg-background px-3 text-sm"
-          >
-            <option value="png">PNG</option>
-            <option value="jpeg">JPG</option>
-            <option value="webp">WebP</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        <div>
-          <label className="text-sm font-medium">
-            Largura (px)
-          </label>
-
-          <input
-            type="number"
-            min={1}
-            value={largura}
-            onChange={(event) =>
-              alterarLargura(
-                Number(event.target.value)
-              )
-            }
-            className="mt-2 h-10 w-full border border-input bg-background px-3"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">
-            Altura (px)
-          </label>
-
-          <input
-            type="number"
-            min={1}
-            value={altura}
-            onChange={(event) =>
-              alterarAltura(
-                Number(event.target.value)
-              )
-            }
-            className="mt-2 h-10 w-full border border-input bg-background px-3"
-          />
-        </div>
-      </div>
-
-      <div className="mt-5 flex items-center gap-3">
-        <input
-          id="proporcao"
-          type="checkbox"
-          checked={manterProporcao}
-          onChange={(event) =>
-            setManterProporcao(
-              event.target.checked
-            )
-          }
-        />
-
-        <label
-          htmlFor="proporcao"
-          className="text-sm"
-        >
-          Preencher sem distorcer
-        </label>
-      </div>
-
-      {manterProporcao && (
-        <div className="mt-5">
-          <label htmlFor="posicao-corte" className="text-sm font-medium">
-            Área que deve ser preservada
-          </label>
-          <select
-            id="posicao-corte"
-            value={posicaoCorte}
-            onChange={(event) => setPosicaoCorte(event.target.value as PosicaoCorte)}
-            className="mt-2 h-10 w-full border border-input bg-background px-3 text-sm"
-          >
-            <option value="superior-esquerda">Superior esquerda</option>
-            <option value="superior">Superior central</option>
-            <option value="superior-direita">Superior direita</option>
-            <option value="esquerda">Centro esquerdo</option>
-            <option value="centro">Centro</option>
-            <option value="direita">Centro direito</option>
-            <option value="inferior-esquerda">Inferior esquerda</option>
-            <option value="inferior">Inferior central</option>
-            <option value="inferior-direita">Inferior direita</option>
-          </select>
-          <p className="mt-2 text-xs text-muted-foreground">Escolha o ponto da imagem que ficará visível quando o formato exigir corte.</p>
-        </div>
-      )}
-
-      {formatoSaida !== "png" && (
-        <div className="mt-5">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">
-              Qualidade
-            </label>
-
-            <span className="text-sm text-primary">
-              {qualidade}%
-            </span>
+                <Button type="button" size="lg" className="mt-6 min-h-12 w-full text-sm" disabled={processando} onClick={processar}>{processando ? <><LoaderCircle className="animate-spin" />Redimensionando...</> : <><ImageIcon />Redimensionar imagens</>}</Button>
+              </CardContent>
+            </Card>
           </div>
+        )}
 
-          <input
-            type="range"
-            min="10"
-            max="100"
-            step="5"
-            value={qualidade}
-            onChange={(event) =>
-              setQualidade(
-                Number(event.target.value)
-              )
-            }
-            className="mt-3 w-full"
-          />
-        </div>
-      )}
+        {erro && <p role="alert" className="mx-auto mt-4 max-w-4xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{erro}</p>}
 
-      <div className="mt-6">
-        <Button
-          type="button"
-          size="lg"
-          onClick={redimensionarArquivo}
-          disabled={processando}
-          className="w-full sm:w-auto sm:min-w-56"
-        >
-          {processando ? (
-            <>
-              <LoaderCircle className="mr-2 size-4 animate-spin" />
-              Redimensionando...
-            </>
-          ) : (
-            "Redimensionar imagem"
-          )}
-        </Button>
+        {!!resultados.length && <section aria-labelledby="resultados-titulo" className="mt-8 border border-border bg-card p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-medium uppercase tracking-wider text-primary">Concluído</p><h2 id="resultados-titulo" className="mt-1 font-heading text-xl font-semibold">{resultados.length} {resultados.length === 1 ? "imagem pronta" : "imagens prontas"}</h2></div><Button type="button" size="lg" className="min-h-12" onClick={() => void baixarTudo()}><Download />{resultados.length === 1 ? "Baixar imagem" : "Baixar tudo em ZIP"}</Button></div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{resultados.map((resultado) => <article key={resultado.id} className="border border-border bg-background p-3"><img src={resultado.url} alt={`Resultado de ${resultado.arquivo.name}`} className="aspect-video w-full bg-muted/20 object-contain" /><p className="mt-3 truncate text-sm font-medium">{resultado.nome}</p><p className="mt-1 text-xs text-muted-foreground">{resultado.largura} × {resultado.altura}px · {formatarTamanho(resultado.blob.size)}</p><Button type="button" variant="outline" className="mt-3 min-h-11 w-full" onClick={() => baixar(resultado)}><Download />Baixar</Button></article>)}</div>
+        </section>}
 
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-3 w-full sm:ml-3 sm:mt-0 sm:w-auto"
-          onClick={removerArquivo}
-        >
-          Remover imagem
-        </Button>
+        <div className="mx-auto mt-8 max-w-5xl"><AdSlot variant="banner" /></div>
       </div>
-    </div>
-  )}
-</div>
-{resultadoUrl && resultadoBlob && arquivo && (
-  <div className="mt-6 border border-border bg-background p-4 sm:p-6">
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-      <div className="text-left">
-        <p className="text-xs font-medium uppercase tracking-wider text-primary">
-          Redimensionamento concluído
-        </p>
-
-        <h3 className="mt-2 font-heading text-lg font-medium">
-          Imagem pronta para download
-        </h3>
-      </div>
-
-      <span className="w-fit border border-border bg-muted/30 px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        {formatoSaida === "jpeg"
-          ? "JPG"
-          : formatoSaida.toUpperCase()}
-      </span>
-    </div>
-
-    <div className="mt-5 flex min-h-64 items-center justify-center border border-border bg-muted/20 p-4">
-      <img
-        src={resultadoUrl}
-        alt="Imagem redimensionada"
-        className="max-h-96 w-full object-contain"
-      />
-    </div>
-
-    <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div className="border border-border bg-muted/20 p-4 text-left">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Original
-        </p>
-
-        <p className="mt-2 text-sm font-medium">
-          {larguraOriginal} × {alturaOriginal}px
-        </p>
-      </div>
-
-      <div className="border border-border bg-muted/20 p-4 text-left">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Novo tamanho
-        </p>
-
-        <p className="mt-2 text-sm font-medium">
-          {largura} × {altura}px
-        </p>
-      </div>
-
-      <div className="border border-border bg-muted/20 p-4 text-left">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Arquivo original
-        </p>
-
-        <p className="mt-2 text-sm font-medium">
-          {(arquivo.size / 1024 / 1024).toFixed(2)} MB
-        </p>
-      </div>
-
-      <div className="border border-border bg-muted/20 p-4 text-left">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Arquivo final
-        </p>
-
-        <p className="mt-2 text-sm font-medium">
-          {(resultadoBlob.size / 1024 / 1024).toFixed(2)} MB
-        </p>
-      </div>
-    </div>
-
-    <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-      <Button
-        type="button"
-        size="lg"
-        onClick={baixarResultado}
-        className="sm:min-w-48"
-      >
-        Baixar imagem
-      </Button>
-
-      <Button
-        type="button"
-        variant="outline"
-        size="lg"
-        onClick={() => {
-          limparResultado();
-        }}
-      >
-        Nova edição
-      </Button>
-    </div>
-  </div>
-)}
-
-{erro && (
-  <div
-    role="alert"
-    className="mt-4 border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
-  >
-    {erro}
-  </div>
-)}
-
-        </CardContent>
-      </Card>
-
-      <div className="mx-auto mt-8 max-w-5xl">
-        <AdSlot variant="banner" />
-      </div>
-    </div>
-  </section>
-);
+    </section>
+  );
 }
