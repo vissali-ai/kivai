@@ -1,6 +1,6 @@
 import type { RawImage } from "@huggingface/transformers";
 
-type Segmenter = (imagemUrl: string) => Promise<unknown>;
+type Segmenter = (imagem: Blob) => Promise<RawImage>;
 
 let segmenterPromise: Promise<Segmenter> | null = null;
 
@@ -12,7 +12,9 @@ async function carregarSegmentador() {
           "background-removal",
           "Xenova/modnet",
           {
-            dtype: "fp32",
+            // O modelo quantizado tem cerca de 6,6 MB. O modelo fp32 usado
+            // antes consumia memória demais e travava navegadores móveis.
+            dtype: "q8",
           }
         ) as unknown as Segmenter;
       }
@@ -22,24 +24,9 @@ async function carregarSegmentador() {
   return segmenterPromise;
 }
 
-export async function removerFundo(
-  imagemUrl: string
-): Promise<Blob> {
+export async function removerFundo(arquivo: File): Promise<Blob> {
   const segmenter = await carregarSegmentador();
+  const imagemResultado = await segmenter(arquivo);
 
-  const resultado = await segmenter(imagemUrl);
-
-  console.log("Resultado bruto do segmentador:", resultado);
-
-  const imagemResultado = Array.isArray(resultado)
-    ? resultado[0]
-    : resultado;
-
-  if (!imagemResultado) {
-    throw new Error("O modelo não retornou uma imagem processada.");
-  }
-
-  const rawImage = imagemResultado as RawImage;
-
-  return rawImage.toBlob();
+  return imagemResultado.toBlob();
 }

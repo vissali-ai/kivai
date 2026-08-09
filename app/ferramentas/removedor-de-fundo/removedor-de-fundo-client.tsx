@@ -1,4 +1,6 @@
 "use client";
+
+import { openFilePicker } from "@/lib/browser/file-picker";
 import Link from "next/link";
 import {
   ChangeEvent,
@@ -20,7 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { removerFundoBiRefNet } from "@/lib/background-removal/engine-birefnet";
+import { removerFundo } from "@/lib/background-removal/engine";
 
 const FORMATOS_ACEITOS = ["image/png", "image/jpeg", "image/webp"];
 const TAMANHO_MAXIMO_GRATIS = 5 * 1024 * 1024;
@@ -162,7 +164,7 @@ function fazerOutraImagem() {
   try {
     limparResultado();
 
-    const resultadoBlob = await removerFundoBiRefNet(arquivo);
+    const resultadoBlob = await removerFundo(arquivo);
 
     const novaResultadoUrl = URL.createObjectURL(resultadoBlob);
 
@@ -271,7 +273,7 @@ function fazerOutraImagem() {
                     type="button"
                     size="lg"
                     className="mt-6"
-                    onClick={() => inputRef.current?.click()}
+                    onClick={() => openFilePicker(inputRef.current)}
                   >
                     Selecionar imagem
                   </Button>

@@ -1,5 +1,7 @@
 "use client";
 
+import { openFilePicker } from "@/lib/browser/file-picker";
+
 import Link from "next/link";
 import { useRef, useState } from "react";
 
@@ -150,7 +152,7 @@ export default function GirarPdfClient() {
 
             <div
               onClick={() =>
-                inputRef.current?.click()
+                openFilePicker(inputRef.current)
               }
               className="cursor-pointer rounded-lg border border-dashed border-primary/40 bg-muted/20 p-10 text-center transition hover:bg-muted/30"
             >

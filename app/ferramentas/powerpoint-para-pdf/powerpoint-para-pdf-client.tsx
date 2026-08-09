@@ -1,5 +1,7 @@
 "use client";
 
+import { openFilePicker } from "@/lib/browser/file-picker";
+
 import Image from "next/image";
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import {
@@ -210,7 +212,7 @@ export default function PowerPointParaPdfClient() {
           <p className="mt-5 font-heading text-lg font-medium">Arraste seu arquivo PowerPoint aqui</p>
           <p className="mt-2 text-sm text-muted-foreground">ou clique para selecionar</p>
           <p className="mt-2 text-xs text-muted-foreground">PPTX · Tamanho máximo: {POWERPOINT_TO_PDF_MAX_FILE_SIZE_LABEL}</p>
-          <Button type="button" className="mt-5" onClick={() => fileInputRef.current?.click()}><FileSliders className="size-4" />Selecionar PowerPoint</Button>
+          <Button type="button" className="mt-5" onClick={() => openFilePicker(fileInputRef.current)}><FileSliders className="size-4" />Selecionar PowerPoint</Button>
         </div>
         <ToolErrorMessage message={error} />
       </>}
@@ -221,7 +223,7 @@ export default function PowerPointParaPdfClient() {
         <section aria-label="PowerPoint selecionado" className="flex min-w-0 flex-col gap-4 rounded-lg border border-border p-4 sm:flex-row sm:items-center">
           <FileSliders className="size-6 shrink-0 text-primary" />
           <div className="min-w-0 flex-1"><p className="truncate font-medium">{file.name}</p><p className="mt-1 text-sm text-muted-foreground">PPTX · {formatFileSize(file.size)} · {slides.length} {slides.length === 1 ? "slide" : "slides"}</p></div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={clear} disabled={status === "processing"}><Trash2 className="size-4" />Remover</Button><input ref={replaceRef} type="file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" className="sr-only" onChange={(event) => { void selectFile(Array.from(event.target.files ?? [])); event.target.value = ""; }} /><Button variant="outline" size="sm" onClick={() => replaceRef.current?.click()} disabled={status === "processing"}><RefreshCw className="size-4" />Substituir</Button></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={clear} disabled={status === "processing"}><Trash2 className="size-4" />Remover</Button><input ref={replaceRef} type="file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" className="sr-only" onChange={(event) => { void selectFile(Array.from(event.target.files ?? [])); event.target.value = ""; }} /><Button variant="outline" size="sm" onClick={() => openFilePicker(replaceRef.current)} disabled={status === "processing"}><RefreshCw className="size-4" />Substituir</Button></div>
         </section>
 
         <section aria-labelledby="slides-powerpoint"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 id="slides-powerpoint" className="font-heading text-lg font-medium">Slides e ordem do PDF</h2><p className="mt-1 text-sm text-muted-foreground">{selectedSlides.length} de {includedSlides.length} selecionados</p></div><div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => setSlides((current) => current.map((slide) => slide.included ? { ...slide, selected: true } : slide))}>Selecionar todos</Button><Button variant="outline" size="sm" onClick={() => setSlides((current) => current.map((slide) => ({ ...slide, selected: false })))}>Desmarcar todos</Button><Button variant="outline" size="sm" onClick={restore}><RotateCcw className="size-4" />Restaurar ordem</Button></div></div>

@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { openFilePicker } from "@/lib/browser/file-picker";
+
 import Link from "next/link";
 import {
   ChangeEvent,
@@ -345,7 +347,7 @@ export default function CompressorDeImagensClient() {
                     type="button"
                     size="lg"
                     className="mt-6"
-                    onClick={() => inputRef.current?.click()}
+                    onClick={() => openFilePicker(inputRef.current)}
                   >
                     Selecionar imagem
                   </Button>

@@ -1,5 +1,7 @@
 "use client";
 
+import { openFilePicker } from "@/lib/browser/file-picker";
+
 /* eslint-disable @next/next/no-img-element */
 
 import { ChangeEvent, DragEvent, useRef, useState } from "react";
@@ -187,7 +189,7 @@ export function VideoFrameCaptureClient() {
                 <div className="flex size-14 items-center justify-center border border-border bg-background"><Upload className="size-5" aria-hidden="true" /></div>
                 <p className="mt-6 text-xl font-semibold">Envie seu vídeo</p>
                 <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">Arraste e solte o arquivo nesta área ou selecione um vídeo diretamente do seu dispositivo.</p>
-                <Button className="mt-6" onClick={() => inputRef.current?.click()}>
+                <Button className="mt-6" onClick={() => openFilePicker(inputRef.current)}>
                   Selecionar vídeo
                 </Button>
               </div>

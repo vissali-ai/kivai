@@ -21,8 +21,11 @@ export function downloadBlob(blob: Blob, name: string) {
   const link = document.createElement("a");
   link.href = url;
   link.download = name;
+  link.rel = "noopener";
   document.body.appendChild(link);
   link.click();
   link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // O Safari móvel pode iniciar o salvamento alguns segundos depois do toque.
+  // Revogar cedo demais produz um download vazio ou simplesmente não faz nada.
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }

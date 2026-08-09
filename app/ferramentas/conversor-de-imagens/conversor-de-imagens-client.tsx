@@ -1,5 +1,7 @@
 "use client";
 
+import { openFilePicker } from "@/lib/browser/file-picker";
+
 import Link from "next/link";
 import {
   ChangeEvent,
@@ -255,11 +257,11 @@ function baixarResultado() {
               onKeyDown={(event) => {
                 if (!processando && (event.key === "Enter" || event.key === " ")) {
                   event.preventDefault();
-                  inputRef.current?.click();
+                  openFilePicker(inputRef.current);
                 }
               }}
               onClick={(event) => {
-                if (!processando && !previewUrl && event.target === event.currentTarget) inputRef.current?.click();
+                if (!processando && !previewUrl && event.target === event.currentTarget) openFilePicker(inputRef.current);
               }}
               onDragEnter={(event) => {
                 event.preventDefault();
@@ -300,7 +302,7 @@ function baixarResultado() {
                     type="button"
                     size="lg"
                     className="mt-6"
-                    onClick={() => inputRef.current?.click()}
+                    onClick={() => openFilePicker(inputRef.current)}
                   >
                     Selecionar imagem
                   </Button>

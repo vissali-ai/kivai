@@ -21,6 +21,7 @@ import {
 
 import { AdSlot } from "@/components/ads/AdSlot";
 import { Button } from "@/components/ui/button";
+import { downloadBlob } from "@/lib/image-tools/canvas";
 import {
   Card,
   CardContent,
@@ -337,20 +338,20 @@ const dataUrl = await QRCode.toDataURL(conteudoQr, {
     }
   }
 
-  function baixarPng() {
+  async function baixarPng() {
     if (!qrDataUrl) {
       setErro("Preencha os dados antes de baixar o QR Code.");
       return;
     }
 
-    const link = document.createElement("a");
-
-    link.href = qrDataUrl;
-    link.download = `kivai-qrcode-${tipo}.png`;
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    try {
+      const resposta = await fetch(qrDataUrl);
+      const blob = await resposta.blob();
+      downloadBlob(blob, `kivai-qrcode-${tipo}.png`);
+      setErro("");
+    } catch {
+      setErro("Não foi possível baixar o QR Code em PNG.");
+    }
   }
 
   async function baixarSvg() {
@@ -377,17 +378,7 @@ const svg = await QRCode.toString(conteudoQr, {
         type: "image/svg+xml;charset=utf-8",
       });
 
-      const urlBlob = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = urlBlob;
-      link.download = `kivai-qrcode-${tipo}.svg`;
-
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      URL.revokeObjectURL(urlBlob);
+      downloadBlob(blob, `kivai-qrcode-${tipo}.svg`);
       setErro("");
     } catch {
       setErro("Não foi possível gerar o arquivo SVG.");
