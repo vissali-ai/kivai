@@ -167,7 +167,7 @@ export default function CompactarPdfClient() {
 
               <input
                 ref={inputRef}
-                hidden
+                className="sr-only"
                 type="file"
                 accept="application/pdf"
                 onChange={(e) => {

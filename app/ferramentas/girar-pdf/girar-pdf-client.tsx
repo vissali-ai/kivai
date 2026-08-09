@@ -167,7 +167,7 @@ export default function GirarPdfClient() {
 
               <input
                 ref={inputRef}
-                hidden
+                className="sr-only"
                 type="file"
                 accept="application/pdf"
                 onChange={(e) => {

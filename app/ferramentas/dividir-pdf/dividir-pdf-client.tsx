@@ -160,7 +160,7 @@ export default function DividirPdfClient() {
 
               <input
                 ref={inputRef}
-                hidden
+                className="sr-only"
                 type="file"
                 accept="application/pdf"
                 onChange={(e) => {

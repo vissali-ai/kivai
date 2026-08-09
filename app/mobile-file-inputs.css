@@ -1,0 +1,36 @@
+/*
+ * Safari/iOS pode ignorar input.click() quando o seletor de arquivos usa
+ * display: none. Várias ferramentas antigas ainda acionam o campo por ref;
+ * mantê-lo visualmente oculto, mas presente no layout de acessibilidade,
+ * preserva o gesto do usuário e abre Fotos/Arquivos de forma consistente.
+ */
+input[type="file"].hidden,
+input[type="file"][hidden] {
+  position: absolute !important;
+  display: block !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+}
+
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  button,
+  a[role="button"],
+  label[role="button"],
+  label[for] {
+    touch-action: manipulation;
+  }
+}

@@ -392,7 +392,7 @@ function fazerOutraImagem() {
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 onChange={selecionarArquivo}
-                hidden
+                className="sr-only"
               />
             </div>
 

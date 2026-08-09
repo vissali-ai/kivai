@@ -219,7 +219,7 @@ export default function UnirPdfsClient() {
               <input
                 ref={inputRef}
                 type="file"
-                hidden
+                className="sr-only"
                 multiple
                 accept="application/pdf"
                 onChange={(e) => {
