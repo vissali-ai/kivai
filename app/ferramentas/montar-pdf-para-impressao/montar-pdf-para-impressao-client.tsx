@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Download, LayoutGrid, Plus, RefreshCw, RotateCcw, Trash2, Upload } from "lucide-react";
-import { ToolActionBar } from "@/components/tools/tool-action-bar";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { Crop, Download, FilePlus2, GripVertical, LayoutTemplate, MousePointer2, RefreshCw, RotateCcw, Trash2, Upload } from "lucide-react";
 import { ToolErrorMessage } from "@/components/tools/tool-error-message";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { ToolProcessingStatus, type ToolStatus } from "@/components/tools/tool-processing-status";
@@ -12,44 +11,291 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatFileSize } from "@/lib/tool-files";
 import { disposeResizeInspection, inspectResizePdf, type ResizePdfInspection, type ResizePageInfo } from "../redimensionar-pdf/resize-pdf-engine";
-import { SHEET_SIZES, type ContentSize, type Orientation, type Position, type PreviewMode, type PrintSettings, type SheetSize } from "./config";
-import { buildPrintPdf, createLayout } from "./print-layout-engine";
+import { SHEET_SIZES, type PrintSettings, type SheetSize } from "./config";
+import { buildVisualPrintPdf, createVisualLayout, type VisualCrop, type VisualPlacement } from "./print-layout-engine";
+import { VisualCropEditor } from "./visual-crop-editor";
 
 type DocumentItem = { id: string; file: File; inspection: ResizePdfInspection };
-const initial: PrintSettings = { sheet: "A4", customSheet: { width: 210, height: 297 }, content: "original", scale: 100, orientation: "portrait", position: "center", customPosition: { x: 0, y: 0 }, margins: { top: 10, right: 10, bottom: 10, left: 10 }, count: 1, repeat: false, order: "horizontal", gapX: 5, gapY: 5 };
-const positions: [Position, string][] = [["top-left", "Superior esquerdo"], ["top-center", "Superior centro"], ["top-right", "Superior direito"], ["center-left", "Centro esquerdo"], ["center", "Centro"], ["center-right", "Centro direito"], ["bottom-left", "Inferior esquerdo"], ["bottom-center", "Inferior centro"], ["bottom-right", "Inferior direito"], ["custom", "Personalizada"]];
-const defaultPositions: Position[] = ["top-left", "top-right", "bottom-left", "bottom-right", "top-center", "center-left", "center", "center-right", "bottom-center"];
-function errorText(reason: unknown) { const code = reason instanceof Error ? reason.message : ""; if (code === "invalid-pdf") return "Selecione arquivos no formato PDF."; if (code === "protected-pdf") return "Um dos PDFs possui proteção e não pôde ser processado."; if (code === "too-many-pages") return "A seleção ultrapassa o limite total de 100 páginas."; if (code === "too-large") return "Os arquivos ultrapassam o limite total de 25 MB."; if (code === "invalid-margins") return "As margens deixam uma área insuficiente para o conteúdo."; if (code === "invalid-spacing") return "O espaçamento é grande demais para esta folha."; if (code === "invalid-sheet") return "Informe um tamanho de folha válido."; return "Não foi possível montar o PDF para impressão. Revise os arquivos e as configurações."; }
-function outputName(name: string) { return `${name.replace(/\.pdf$/i, "").replace(/[<>:\"/\\|?*\u0000-\u001f]/g, "-").trim() || "documentos"}-impressao.pdf`; }
+type ResizeMode = "move" | "nw" | "ne" | "sw" | "se";
+type CropEdgeMode = "crop-left" | "crop-right" | "crop-top" | "crop-bottom";
+type DragState = { index: number; mode: ResizeMode | CropEdgeMode; startX: number; startY: number; origin: VisualPlacement; crop?: VisualCrop };
 
-export default function MontarPdfParaImpressaoClient() {
-  const inputRef = useRef<HTMLInputElement>(null); const itemsRef = useRef<DocumentItem[]>([]); const combinedBytesRef = useRef<Uint8Array | null>(null); const resultUrlRef = useRef<string | null>(null); const idCounterRef = useRef(1);
-  const [items, setItems] = useState<DocumentItem[]>([]); const [pages, setPages] = useState<ResizePageInfo[]>([]); const [pagePositions, setPagePositions] = useState<Position[]>([]); const [settings, setSettings] = useState(initial); const [activePage, setActivePage] = useState(0); const [preview, setPreview] = useState<PreviewMode>("after"); const [status, setStatus] = useState<ToolStatus>("idle"); const [stage, setStage] = useState("Lendo os PDFs"); const [error, setError] = useState<string | null>(null); const [result, setResult] = useState<{ name: string; blob: Blob; sheets: number } | null>(null); const [resultUrl, setResultUrl] = useState<string | null>(null); const [marginPreset, setMarginPreset] = useState("10");
-  useEffect(() => { itemsRef.current = items; }, [items]); useEffect(() => { resultUrlRef.current = resultUrl; }, [resultUrl]); useEffect(() => () => { itemsRef.current.forEach((item) => disposeResizeInspection(item.inspection)); if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current); }, []);
-  let layout = null; try { if (pages.length) layout = createLayout(pages, settings, 0, pages.length > 1 ? pagePositions : undefined); } catch { layout = null; }
-  const patch = (value: Partial<PrintSettings>) => { setSettings((current) => ({ ...current, ...value })); setResult(null); };
-  async function rebuild(next: DocumentItem[]) { const { PDFDocument } = await import("pdf-lib"); const merged = await PDFDocument.create(); const flatPages: ResizePageInfo[] = []; for (const item of next) { const source = await PDFDocument.load(item.inspection.bytes.slice(), { ignoreEncryption: false }); const copied = await merged.copyPages(source, source.getPageIndices()); copied.forEach((page) => merged.addPage(page)); item.inspection.pages.forEach((page) => flatPages.push({ ...page, pageNumber: flatPages.length + 1, selected: true })); } combinedBytesRef.current = next.length ? await merged.save({ useObjectStreams: true }) : null; setPages(flatPages); setPagePositions((current) => flatPages.map((_, index) => current[index] ?? defaultPositions[index % defaultPositions.length])); setActivePage((current) => Math.min(current, Math.max(0, flatPages.length - 1))); }
-  async function addFiles(selected: File[]) { if (!selected.length || status === "processing") return; setError(null); const totalSize = items.reduce((sum, item) => sum + item.file.size, 0) + selected.reduce((sum, file) => sum + file.size, 0); if (totalSize > 25 * 1024 * 1024) { setError(errorText(new Error("too-large"))); setStatus("error"); return; } setStatus("processing"); setStage("Lendo os PDFs"); const added: DocumentItem[] = []; try { for (let index = 0; index < selected.length; index++) { const file = selected[index]; if (!file.size || file.name.split(".").pop()?.toLowerCase() !== "pdf") throw new Error("invalid-pdf"); setStage(`Analisando arquivo ${index + 1} de ${selected.length}`); const inspection = await inspectResizePdf(file, setStage); added.push({ id: `${idCounterRef.current++}-${index}-${file.name}`, file, inspection }); } const next = [...items, ...added]; if (next.reduce((sum, item) => sum + item.inspection.pages.length, 0) > 100) throw new Error("too-many-pages"); await rebuild(next); setItems(next); setStatus("ready"); } catch (reason) { added.forEach((item) => disposeResizeInspection(item.inspection)); setError(errorText(reason)); setStatus("error"); } }
-  async function updateItems(next: DocumentItem[], removed?: DocumentItem) { setStatus("processing"); setStage("Reorganizando os arquivos"); await rebuild(next); setItems(next); if (removed) disposeResizeInspection(removed.inspection); setStatus(next.length ? "ready" : "idle"); }
-  function clear() { items.forEach((item) => disposeResizeInspection(item.inspection)); if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current); combinedBytesRef.current = null; setItems([]); setPages([]); setPagePositions([]); setResult(null); setResultUrl(null); setError(null); setStatus("idle"); }
-  async function generate() { if (!combinedBytesRef.current || status === "processing") return; setError(null); try { createLayout(pages, settings, 0, pages.length > 1 ? pagePositions : undefined); setStatus("processing"); setStage("Organizando as páginas"); const blob = await buildPrintPdf(combinedBytesRef.current, pages, settings, pages.length > 1 ? pagePositions : undefined, setStage); const { PDFDocument } = await import("pdf-lib"); const sheets = (await PDFDocument.load(await blob.arrayBuffer())).getPageCount(); if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current); const url = URL.createObjectURL(blob); setResult({ name: outputName(items[0]?.file.name ?? "documentos.pdf"), blob, sheets }); setResultUrl(url); setStatus("success"); } catch (reason) { setError(errorText(reason)); setStatus("error"); } }
-  const sheetLabel = settings.sheet === "Personalizado" ? `${settings.customSheet.width} × ${settings.customSheet.height} mm` : settings.sheet;
-  const pageLabels = items.flatMap((item) => item.inspection.pages.map((_, index) => `${item.file.name}${item.inspection.pages.length > 1 ? ` · página ${index + 1}` : ""}`));
-  return <ToolPageShell title="Montar PDF para Impressão" description="Adicione vários PDFs e organize suas páginas em novas folhas de impressão, com quantidade, tamanho e posição personalizados." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Use somente documentos que você tem autorização para processar."><Card className="mx-auto max-w-6xl"><CardHeader><CardTitle>Montar PDF para Impressão</CardTitle><CardDescription>Combine vários arquivos e crie um layout pronto para imprimir.</CardDescription></CardHeader><CardContent className="space-y-6">
-    <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(event) => { void addFiles(event.target.files?.[0] ? [event.target.files[0]] : []); event.target.value = ""; }} />
-    {!items.length && status !== "processing" && <><button type="button" onClick={() => inputRef.current?.click()} className="flex min-h-64 w-full flex-col items-center justify-center border border-dashed bg-muted/20 p-8 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Upload className="size-8" /><span className="mt-4 font-heading text-lg font-medium">Arraste seu PDF aqui ou clique para selecionar</span><span className="mt-2 text-sm text-muted-foreground">Adicione o primeiro arquivo para começar · até 25 MB e 100 páginas no total</span><span className="mt-5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Selecionar PDF</span></button><ToolErrorMessage message={error} /></>}
-    <ToolProcessingStatus status={status} message={stage} />
-    {!!items.length && status !== "success" && <><section className="rounded-lg border p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-heading text-lg font-medium">Arquivos da montagem</h2><p className="text-sm text-muted-foreground">{items.length} {items.length === 1 ? "arquivo" : "arquivos"} · {pages.length} páginas · {formatFileSize(items.reduce((sum, item) => sum + item.file.size, 0))}</p></div></div><div className="mt-4 space-y-3">{items.map((item, index) => <div key={item.id} className="flex flex-col gap-3 rounded-md border bg-muted/10 p-3 sm:flex-row sm:items-center"><div className="relative h-20 w-16 shrink-0 overflow-hidden border bg-white"><Image src={item.inspection.pages[0].thumbnailUrl} alt={`Primeira página de ${item.file.name}`} fill unoptimized className="object-contain" /></div><div className="min-w-0 flex-1"><p className="truncate font-medium">{item.file.name}</p><p className="text-xs text-muted-foreground">{item.inspection.pages.length} {item.inspection.pages.length === 1 ? "página" : "páginas"} · {formatFileSize(item.file.size)}</p></div><div className="flex gap-2"><Button aria-label={`Mover ${item.file.name} para cima`} variant="outline" size="icon-sm" disabled={index === 0} onClick={() => { const next = [...items]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; void updateItems(next); }}><ArrowUp className="size-4" /></Button><Button aria-label={`Mover ${item.file.name} para baixo`} variant="outline" size="icon-sm" disabled={index === items.length - 1} onClick={() => { const next = [...items]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; void updateItems(next); }}><ArrowDown className="size-4" /></Button><Button aria-label={`Remover ${item.file.name}`} variant="outline" size="icon-sm" onClick={() => void updateItems(items.filter((entry) => entry.id !== item.id), item)}><Trash2 className="size-4" /></Button></div></div>)}</div></section></>}
-    {!!items.length && status !== "success" && <>
-      <section className="grid gap-5 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-3"><Select label="Tamanho da folha" value={settings.sheet} onChange={(value) => patch({ sheet: value as SheetSize })} options={[...Object.keys(SHEET_SIZES), "Personalizado"]} />{settings.sheet === "Personalizado" && <Pair label="Folha personalizada (mm)" a={settings.customSheet.width} b={settings.customSheet.height} onChange={(width, height) => patch({ customSheet: { width, height } })} />}<Select label="Tamanho do conteúdo" value={settings.content} onChange={(value) => patch({ content: value as ContentSize })} options={["Original", "A6", "A5", "A4", "A3", "A2", "A1", "Escala personalizada"]} values={["original", "A6", "A5", "A4", "A3", "A2", "A1", "scale"]} />{settings.content === "scale" && <NumberField label="Escala personalizada (%)" value={settings.scale} min={10} max={300} onChange={(scale) => patch({ scale })} />}<Select label="Orientação" value={settings.orientation} onChange={(value) => patch({ orientation: value as Orientation })} options={["Manter original", "Retrato", "Paisagem"]} values={["original", "portrait", "landscape"]} />{pages.length === 1 && <><Select label="Posição" value={settings.position} onChange={(value) => patch({ position: value as Position })} options={positions.map(([, label]) => label)} values={positions.map(([value]) => value)} />{settings.position === "custom" && <Pair label="Posição X / Y (mm)" a={settings.customPosition.x} b={settings.customPosition.y} onChange={(x, y) => patch({ customPosition: { x, y } })} />}</>}<Select label="Margens" value={marginPreset} onChange={(value) => { setMarginPreset(value); if (value !== "custom") { const size = Number(value); patch({ margins: { top: size, right: size, bottom: size, left: size } }); } }} options={["Sem margem", "Pequena (5 mm)", "Normal (10 mm)", "Grande (20 mm)", "Personalizada"]} values={["0", "5", "10", "20", "custom"]} />{marginPreset === "custom" && <FourMargins value={settings.margins} onChange={(margins) => patch({ margins })} />}</section>
-      <section><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="font-heading text-lg font-medium">Pré-visualização e ajustes</h2><p className="text-sm text-muted-foreground">Folha: {sheetLabel} · Conteúdo: {settings.content === "scale" ? `${settings.scale}%` : settings.content} · Documentos: {pages.length} · Área ocupada: {layout?.occupiedPercent.toFixed(1) ?? 0}% · Livre: {(100 - (layout?.occupiedPercent ?? 0)).toFixed(1)}%</p></div><div className="flex flex-col gap-3 sm:flex-row sm:items-end"><Button variant="outline" onClick={() => inputRef.current?.click()}><Plus className="size-4" />Adicionar outro PDF</Button><Select label="Visualização" value={preview} onChange={(value) => setPreview(value as PreviewMode)} options={["Antes", "Depois", "Comparar lado a lado"]} values={["before", "after", "compare"]} /></div></div>{pages.length > 1 && <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{pageLabels.map((label, index) => <Select key={`${label}-${index}`} label={`Onde colocar ${label}`} value={pagePositions[index] ?? "center"} onChange={(value) => setPagePositions((current) => current.map((position, pageIndex) => pageIndex === index ? value as Position : position))} options={positions.filter(([value]) => value !== "custom").map(([, text]) => text)} values={positions.filter(([value]) => value !== "custom").map(([value]) => value)} />)}</div>}<div className="mt-4 flex gap-2 overflow-x-auto pb-2">{pages.map((page, index) => <button type="button" key={`${page.pageNumber}-${index}`} onClick={() => setActivePage(index)} className={`shrink-0 rounded border p-2 ${activePage === index ? "border-primary" : "border-border"}`}><span className="relative block h-24 w-20 bg-white"><Image src={page.thumbnailUrl} alt={`Página ${page.pageNumber}`} fill unoptimized className="object-contain" /></span><span className="mt-1 block text-xs">Página {page.pageNumber}</span></button>)}</div>{layout && <div className={`mt-4 grid gap-5 ${preview === "compare" ? "sm:grid-cols-2" : "max-w-xl"}`}>{preview !== "after" && <OriginalPreview page={pages[activePage]} />}{preview !== "before" && <LayoutPreview pages={pages} layout={layout} />}</div>}</section><ToolErrorMessage message={error} /><ToolActionBar><Button size="lg" onClick={() => void generate()} disabled={status === "processing"}><LayoutGrid className="size-4" />Gerar PDF para impressão</Button></ToolActionBar></>}
-    {result && status === "success" && <ToolResultCard title="PDF pronto para impressão" description={`${result.name} · ${result.sheets} ${result.sheets === 1 ? "folha" : "folhas"} · ${formatFileSize(result.blob.size)}`} actions={<><Button asChild><a href={resultUrl ?? undefined} download={result.name}><Download className="size-4" />Baixar PDF para impressão</a></Button><Button variant="outline" onClick={() => { setResult(null); setStatus("ready"); }}><RefreshCw className="size-4" />Alterar configurações</Button><Button variant="outline" onClick={clear}><RotateCcw className="size-4" />Montar outro PDF</Button></>} />}
-  </CardContent></Card></ToolPageShell>;
+const initial: PrintSettings = { sheet: "A4", customSheet: { width: 210, height: 297 }, content: "original", scale: 100, orientation: "portrait", position: "center", customPosition: { x: 0, y: 0 }, margins: { top: 0, right: 0, bottom: 0, left: 0 }, count: 1, repeat: false, order: "horizontal", gapX: 0, gapY: 0 };
+const fullCrop: VisualCrop = { x: 0, y: 0, width: 1, height: 1 };
+
+function errorText(reason: unknown) {
+  const code = reason instanceof Error ? reason.message : "";
+  if (code === "invalid-pdf") return "Selecione arquivos no formato PDF.";
+  if (code === "protected-pdf") return "Um dos PDFs possui proteção e não pôde ser processado.";
+  if (code === "too-many-pages") return "A seleção ultrapassa o limite total de 100 páginas.";
+  if (code === "too-large") return "Os arquivos ultrapassam o limite total de 25 MB.";
+  return "Não foi possível montar o PDF para impressão. Revise os arquivos e tente novamente.";
 }
 
-function Select({ label, value, options, values, onChange }: { label: string; value: string; options: readonly string[]; values?: readonly string[]; onChange: (value: string) => void }) { if (label === "Visualização") return null; return <label className="grid gap-2 text-sm font-medium">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="min-h-11 rounded-md border bg-background px-3">{options.map((option, index) => <option key={option} value={values?.[index] ?? option}>{option}</option>)}</select></label>; }
-function NumberField({ label, value, min = 0, max = 1000, onChange }: { label: string; value: number; min?: number; max?: number; onChange: (value: number) => void }) { return <label className="grid gap-2 text-sm font-medium">{label}<input type="number" min={min} max={max} value={value} onChange={(event) => onChange(Number(event.target.value))} className="min-h-11 rounded-md border bg-background px-3" /></label>; }
-function Pair({ label, a, b, onChange }: { label: string; a: number; b: number; onChange: (a: number, b: number) => void }) { return <fieldset><legend className="mb-2 text-sm font-medium">{label}</legend><div className="grid grid-cols-2 gap-2"><input aria-label={`${label} primeiro valor`} type="number" min="0" value={a} onChange={(event) => onChange(Number(event.target.value), b)} className="min-h-11 rounded-md border px-3" /><input aria-label={`${label} segundo valor`} type="number" min="0" value={b} onChange={(event) => onChange(a, Number(event.target.value))} className="min-h-11 rounded-md border px-3" /></div></fieldset>; }
-function FourMargins({ value, onChange }: { value: PrintSettings["margins"]; onChange: (value: PrintSettings["margins"]) => void }) { return <div className="grid grid-cols-2 gap-2">{(["top","right","bottom","left"] as const).map((side) => <NumberField key={side} label={{top:"Superior",right:"Direita",bottom:"Inferior",left:"Esquerda"}[side]} value={value[side]} onChange={(number) => onChange({ ...value, [side]: number })} />)}</div>; }
-function OriginalPreview({ page }: { page: ResizePageInfo }) { return <figure className="rounded-lg border bg-muted/20 p-4"><div className="relative mx-auto h-80 max-w-full bg-white"><Image src={page.thumbnailUrl} alt="Página original" fill unoptimized className="object-contain" /></div><figcaption className="mt-2 text-center text-xs text-muted-foreground">Antes · {Math.round(page.widthMm)} × {Math.round(page.heightMm)} mm</figcaption></figure>; }
-function LayoutPreview({ pages, layout }: { pages: ResizePageInfo[]; layout: ReturnType<typeof createLayout> }) { const scale = Math.min(0.52, 360 / layout.height, 520 / layout.width); return <figure className="rounded-lg border bg-muted/20 p-4"><div className="relative mx-auto overflow-hidden bg-white shadow" style={{ width: layout.width * scale, height: layout.height * scale }}>{layout.slots.map((slot, index) => <div key={`${slot.sourcePage}-${index}`} className="absolute overflow-hidden border border-primary/30" style={{ left: slot.x * scale, bottom: slot.y * scale, width: slot.width * scale, height: slot.height * scale }}><Image src={pages[slot.sourcePage].thumbnailUrl} alt={`Conteúdo ${index + 1}`} fill unoptimized className="object-fill" /></div>)}</div><figcaption className="mt-2 text-center text-xs text-muted-foreground">Depois · {layout.slots.length} item(ns) na folha</figcaption></figure>; }
+function outputName(name: string) { return `${name.replace(/\.pdf$/i, "").replace(/[<>:\"/\\|?*\u0000-\u001f]/g, "-").trim() || "documentos"}-impressao.pdf`; }
+function clamp(value: number, min: number, max: number) { return Math.min(max, Math.max(min, value)); }
+function sheetSize(settings: PrintSettings) {
+  if (settings.sheet === "Personalizado") return settings.customSheet;
+  const preset = SHEET_SIZES[settings.sheet];
+  return { width: preset.widthMm, height: preset.heightMm };
+}
+
+function newPlacement(page: ResizePageInfo, index: number, settings: PrintSettings): VisualPlacement {
+  const selected = sheetSize(settings);
+  const sheetWidth = settings.orientation === "landscape" ? selected.height : selected.width;
+  const sheetHeight = settings.orientation === "landscape" ? selected.width : selected.height;
+  const pageRatio = page.widthPt / page.heightPt;
+  let width = 0.38;
+  let height = width * (sheetWidth / sheetHeight) / pageRatio;
+  if (height > 0.48) { height = 0.48; width = height * pageRatio * (sheetHeight / sheetWidth); }
+  const step = (index % 6) * 0.035;
+  return { x: clamp(0.08 + step, 0, 1 - width), y: clamp(0.08 + step, 0, 1 - height), width, height };
+}
+
+export default function MontarPdfParaImpressaoClient() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<DocumentItem[]>([]);
+  const combinedBytesRef = useRef<Uint8Array | null>(null);
+  const resultUrlRef = useRef<string | null>(null);
+  const dragRef = useRef<DragState | null>(null);
+  const idCounterRef = useRef(1);
+  const [items, setItems] = useState<DocumentItem[]>([]);
+  const [pages, setPages] = useState<ResizePageInfo[]>([]);
+  const [placements, setPlacements] = useState<VisualPlacement[]>([]);
+  const [crops, setCrops] = useState<VisualCrop[]>([]);
+  const [cropTarget, setCropTarget] = useState<number | null>(null);
+  const [settings, setSettings] = useState(initial);
+  const [selected, setSelected] = useState(0);
+  const [status, setStatus] = useState<ToolStatus>("idle");
+  const [stage, setStage] = useState("Lendo os PDFs");
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<{ name: string; blob: Blob } | null>(null);
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
+
+  useEffect(() => { itemsRef.current = items; }, [items]);
+  useEffect(() => { resultUrlRef.current = resultUrl; }, [resultUrl]);
+  useEffect(() => () => { itemsRef.current.forEach((item) => disposeResizeInspection(item.inspection)); if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current); }, []);
+
+  const layout = useMemo(() => pages.length && placements.length === pages.length ? createVisualLayout(pages, settings, placements) : null, [pages, placements, settings]);
+  const labels = useMemo(() => items.flatMap((item) => item.inspection.pages.map((_, index) => item.inspection.pages.length > 1 ? `${item.file.name} · pág. ${index + 1}` : item.file.name)), [items]);
+
+  async function rebuild(next: DocumentItem[]) {
+    const { PDFDocument } = await import("pdf-lib");
+    const merged = await PDFDocument.create();
+    const flatPages: ResizePageInfo[] = [];
+    for (const item of next) {
+      const source = await PDFDocument.load(item.inspection.bytes.slice(), { ignoreEncryption: false });
+      const copied = await merged.copyPages(source, source.getPageIndices());
+      copied.forEach((page) => merged.addPage(page));
+      item.inspection.pages.forEach((page) => flatPages.push({ ...page, pageNumber: flatPages.length + 1, selected: true }));
+    }
+    combinedBytesRef.current = next.length ? await merged.save({ useObjectStreams: true }) : null;
+    setPages(flatPages);
+    setPlacements((current) => flatPages.map((page, index) => current[index] ?? newPlacement(page, index, settings)));
+    setCrops((current) => flatPages.map((_, index) => current[index] ?? fullCrop));
+    setSelected((current) => Math.min(current, Math.max(0, flatPages.length - 1)));
+  }
+
+  async function addFiles(selectedFiles: File[]) {
+    if (!selectedFiles.length || status === "processing") return;
+    setError(null);
+    const totalSize = items.reduce((sum, item) => sum + item.file.size, 0) + selectedFiles.reduce((sum, file) => sum + file.size, 0);
+    if (totalSize > 25 * 1024 * 1024) { setError(errorText(new Error("too-large"))); setStatus("error"); return; }
+    setStatus("processing");
+    setStage("Lendo os PDFs");
+    const added: DocumentItem[] = [];
+    try {
+      for (let index = 0; index < selectedFiles.length; index++) {
+        const file = selectedFiles[index];
+        if (!file.size || file.name.split(".").pop()?.toLowerCase() !== "pdf") throw new Error("invalid-pdf");
+        setStage(`Analisando arquivo ${index + 1} de ${selectedFiles.length}`);
+        const inspection = await inspectResizePdf(file, setStage);
+        added.push({ id: `${idCounterRef.current++}-${index}-${file.name}`, file, inspection });
+      }
+      const next = [...items, ...added];
+      if (next.reduce((sum, item) => sum + item.inspection.pages.length, 0) > 100) throw new Error("too-many-pages");
+      await rebuild(next);
+      setItems(next);
+      setStatus("ready");
+    } catch (reason) {
+      added.forEach((item) => disposeResizeInspection(item.inspection));
+      setError(errorText(reason));
+      setStatus("error");
+    }
+  }
+
+  async function removeItem(item: DocumentItem) {
+    setStatus("processing");
+    setStage("Atualizando a montagem");
+    const next = items.filter((entry) => entry.id !== item.id);
+    setPlacements([]);
+    setCrops([]);
+    await rebuild(next);
+    setItems(next);
+    disposeResizeInspection(item.inspection);
+    setStatus(next.length ? "ready" : "idle");
+  }
+
+  function clear() {
+    items.forEach((item) => disposeResizeInspection(item.inspection));
+    if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
+    combinedBytesRef.current = null;
+    setItems([]); setPages([]); setPlacements([]); setCrops([]); setCropTarget(null); setResult(null); setResultUrl(null); setError(null); setStatus("idle");
+  }
+
+  async function generate() {
+    if (!combinedBytesRef.current || status === "processing" || !placements.length) return;
+    setError(null);
+    try {
+      setStatus("processing");
+      setStage("Montando sua folha");
+      const blob = await buildVisualPrintPdf(combinedBytesRef.current, pages, settings, placements, crops, setStage);
+      if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
+      const url = URL.createObjectURL(blob);
+      setResult({ name: outputName(items[0]?.file.name ?? "documentos.pdf"), blob });
+      setResultUrl(url);
+      setStatus("success");
+    } catch (reason) { setError(errorText(reason)); setStatus("error"); }
+  }
+
+  function pointerStarter(index: number, mode: ResizeMode, placement: VisualPlacement) {
+    return (event: ReactPointerEvent) => {
+      event.preventDefault(); event.stopPropagation();
+      canvasRef.current?.setPointerCapture(event.pointerId);
+      dragRef.current = { index, mode, startX: event.clientX, startY: event.clientY, origin: placement };
+      setSelected(index);
+    };
+  }
+
+  function cropPointerStarter(index: number, mode: CropEdgeMode, placement: VisualPlacement, crop: VisualCrop) {
+    return (event: ReactPointerEvent) => {
+      event.preventDefault(); event.stopPropagation();
+      canvasRef.current?.setPointerCapture(event.pointerId);
+      dragRef.current = { index, mode, startX: event.clientX, startY: event.clientY, origin: placement, crop };
+      setSelected(index);
+    };
+  }
+
+  function movePointer(event: ReactPointerEvent) {
+    const drag = dragRef.current;
+    const canvas = canvasRef.current;
+    if (!drag || !canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const dx = (event.clientX - drag.startX) / rect.width;
+    const dy = (event.clientY - drag.startY) / rect.height;
+    const original = drag.origin;
+    let next = original;
+    if (drag.mode.startsWith("crop-") && drag.crop) {
+      const crop = drag.crop;
+      let nextCrop = crop;
+      if (drag.mode === "crop-right") {
+        const right = clamp(crop.x + crop.width + dx * (crop.width / original.width), crop.x + 0.04, Math.min(1, crop.x + crop.width * ((1 - original.x) / original.width)));
+        const width = crop.width ? original.width * ((right - crop.x) / crop.width) : original.width;
+        nextCrop = { ...crop, width: right - crop.x };
+        next = { ...original, width };
+      } else if (drag.mode === "crop-left") {
+        const right = crop.x + crop.width;
+        const minimumX = Math.max(0, right - crop.width * ((original.x + original.width) / original.width));
+        const x = clamp(crop.x + dx * (crop.width / original.width), minimumX, right - 0.04);
+        const width = crop.width ? original.width * ((right - x) / crop.width) : original.width;
+        nextCrop = { ...crop, x, width: right - x };
+        next = { ...original, x: original.x + original.width - width, width };
+      } else if (drag.mode === "crop-bottom") {
+        const bottom = clamp(crop.y + crop.height + dy * (crop.height / original.height), crop.y + 0.04, Math.min(1, crop.y + crop.height * ((1 - original.y) / original.height)));
+        const height = crop.height ? original.height * ((bottom - crop.y) / crop.height) : original.height;
+        nextCrop = { ...crop, height: bottom - crop.y };
+        next = { ...original, height };
+      } else {
+        const bottom = crop.y + crop.height;
+        const minimumY = Math.max(0, bottom - crop.height * ((original.y + original.height) / original.height));
+        const y = clamp(crop.y + dy * (crop.height / original.height), minimumY, bottom - 0.04);
+        const height = crop.height ? original.height * ((bottom - y) / crop.height) : original.height;
+        nextCrop = { ...crop, y, height: bottom - y };
+        next = { ...original, y: original.y + original.height - height, height };
+      }
+      setCrops((current) => current.map((value, index) => index === drag.index ? nextCrop : value));
+      setPlacements((current) => current.map((placement, index) => index === drag.index ? next : placement));
+      setResult(null);
+      return;
+    }
+    if (drag.mode === "move") {
+      next = { ...original, x: clamp(original.x + dx, 0, 1 - original.width), y: clamp(original.y + dy, 0, 1 - original.height) };
+    } else {
+      const east = drag.mode.endsWith("e");
+      const south = drag.mode.startsWith("s");
+      const xScale = 1 + (east ? dx : -dx) / original.width;
+      const yScale = 1 + (south ? dy : -dy) / original.height;
+      let scale = Math.abs(xScale - 1) > Math.abs(yScale - 1) ? xScale : yScale;
+      const maxX = east ? (1 - original.x) / original.width : (original.x + original.width) / original.width;
+      const maxY = south ? (1 - original.y) / original.height : (original.y + original.height) / original.height;
+      scale = clamp(scale, Math.max(0.08 / original.width, 0.08 / original.height), Math.min(maxX, maxY));
+      const width = original.width * scale;
+      const height = original.height * scale;
+      next = { x: east ? original.x : original.x + original.width - width, y: south ? original.y : original.y + original.height - height, width, height };
+    }
+    setPlacements((current) => current.map((placement, index) => index === drag.index ? next : placement));
+    setResult(null);
+  }
+
+  function applyCrop(index: number, crop: VisualCrop) {
+    const page = pages[index];
+    const placement = placements[index];
+    const selectedSheet = sheetSize(settings);
+    const sheetWidth = settings.orientation === "landscape" ? selectedSheet.height : selectedSheet.width;
+    const sheetHeight = settings.orientation === "landscape" ? selectedSheet.width : selectedSheet.height;
+    const croppedRatio = (page.widthPt * crop.width) / (page.heightPt * crop.height);
+    let width = placement.width;
+    let height = width * (sheetWidth / sheetHeight) / croppedRatio;
+    const availableHeight = 1 - placement.y;
+    if (height > availableHeight) { width *= availableHeight / height; height = availableHeight; }
+    setCrops((current) => current.map((value, pageIndex) => pageIndex === index ? crop : value));
+    setPlacements((current) => current.map((value, pageIndex) => pageIndex === index ? { ...value, width, height } : value));
+    setCropTarget(null);
+    setResult(null);
+  }
+
+  const sheet = sheetSize(settings);
+  const landscape = settings.orientation === "landscape";
+  const canvasRatio = landscape ? sheet.height / sheet.width : sheet.width / sheet.height;
+
+  return <ToolPageShell title="Montar PDF para Impressão" description="Posicione e redimensione seus arquivos diretamente na folha, de um jeito simples e visual." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Use somente documentos que você tem autorização para processar.">
+    <Card className="mx-auto max-w-7xl overflow-hidden">
+      <CardHeader className="border-b">
+        <CardTitle>Montar PDF para Impressão</CardTitle>
+        <CardDescription>Adicione seus PDFs e monte a folha com o mouse. Arraste para mover e use as alças para redimensionar.</CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <input ref={inputRef} type="file" accept="application/pdf,.pdf" multiple className="sr-only" onChange={(event) => { void addFiles(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
+        {!items.length && status !== "processing" && <div className="p-5 sm:p-8"><button type="button" onClick={() => inputRef.current?.click()} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); void addFiles(Array.from(event.dataTransfer.files)); }} className="flex min-h-72 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/35 bg-primary/[0.03] p-8 text-center transition hover:border-primary hover:bg-primary/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><span className="grid size-14 place-items-center rounded-full bg-primary/10 text-primary"><Upload className="size-7" /></span><span className="mt-5 font-heading text-xl font-semibold">Adicione seus arquivos PDF</span><span className="mt-2 max-w-md text-sm text-muted-foreground">Arraste os arquivos para cá ou clique para escolher. Você poderá posicionar e redimensionar tudo diretamente na folha.</span><span className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">Escolher arquivos</span></button><ToolErrorMessage message={error} /></div>}
+        <div className="px-5"><ToolProcessingStatus status={status} message={stage} /></div>
+        {!!items.length && status !== "success" && <div className="min-h-[690px] bg-muted/20 lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
+          <aside className="border-b bg-background p-4 lg:border-b-0 lg:border-r">
+            <div className="grid grid-cols-3 gap-2 lg:grid-cols-2">{pages.map((page, index) => <button key={`${page.pageNumber}-${index}`} type="button" onClick={() => setSelected(index)} onDoubleClick={() => setCropTarget(index)} className={`group rounded-lg border p-1.5 text-left transition ${selected === index ? "border-primary bg-primary/5 ring-2 ring-primary/15" : "hover:border-primary/50"}`}><span className="relative block aspect-[3/4] overflow-hidden rounded bg-white"><Image src={page.thumbnailUrl} alt={labels[index] ?? `Página ${index + 1}`} fill unoptimized className="object-contain" />{crops[index] && crops[index].width < 0.999 && <span className="absolute bottom-1 right-1 rounded bg-primary px-1.5 py-0.5 text-[9px] font-semibold text-primary-foreground">Recortada</span>}</span><span className="mt-1.5 block truncate text-[11px] font-medium">Página {index + 1}</span></button>)}</div>
+            <div className="mt-5 space-y-2 border-t pt-4">{items.map((item) => <div key={item.id} className="flex items-center gap-2 text-xs"><GripVertical className="size-3.5 shrink-0 text-muted-foreground" /><span className="min-w-0 flex-1 truncate" title={item.file.name}>{item.file.name}</span><button type="button" onClick={() => void removeItem(item)} className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label={`Remover ${item.file.name}`}><Trash2 className="size-3.5" /></button></div>)}</div>
+          </aside>
+          <section className="flex min-w-0 flex-col">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-background px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2"><Button variant="outline" size="sm" onClick={() => inputRef.current?.click()}><FilePlus2 className="size-4" />Adicionar PDF</Button><Button variant="outline" size="sm" disabled={selected < 0} onClick={() => setCropTarget(selected)}><Crop className="size-4" />Recortar</Button><label className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm font-medium"><LayoutTemplate className="size-4 text-muted-foreground" /><select aria-label="Tamanho da folha" value={settings.sheet} onChange={(event) => { setSettings((current) => ({ ...current, sheet: event.target.value as SheetSize })); setResult(null); }} className="bg-transparent outline-none">{Object.keys(SHEET_SIZES).map((size) => <option key={size}>{size}</option>)}</select></label><button type="button" onClick={() => { setSettings((current) => ({ ...current, orientation: current.orientation === "landscape" ? "portrait" : "landscape" })); setResult(null); }} className="rounded-md border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted">{landscape ? "Paisagem" : "Retrato"}</button></div>
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><MousePointer2 className="size-3.5" />Arraste e redimensione livremente</p>
+            </div>
+            <div className="flex flex-1 items-center justify-center overflow-auto bg-[radial-gradient(circle,_hsl(var(--border))_1px,_transparent_1px)] bg-[size:18px_18px] p-5 sm:p-8">
+              <div ref={canvasRef} onPointerMove={movePointer} onPointerUp={() => { dragRef.current = null; }} onPointerCancel={() => { dragRef.current = null; }} onPointerDown={() => setSelected(-1)} className="relative w-full max-w-[560px] touch-none overflow-hidden bg-white shadow-[0_12px_45px_rgba(15,23,42,0.18)]" style={{ aspectRatio: canvasRatio }} aria-label={`Folha ${settings.sheet} em modo ${landscape ? "paisagem" : "retrato"}`}>
+                {placements.map((placement, index) => <div key={`${pages[index]?.pageNumber}-${index}`} onDoubleClick={() => setCropTarget(index)} onPointerDown={pointerStarter(index, "move", placement)} className={`absolute cursor-move select-none overflow-visible ${selected === index ? "z-20 ring-2 ring-primary" : "z-10 hover:ring-1 hover:ring-primary/60"}`} style={{ left: `${placement.x * 100}%`, top: `${placement.y * 100}%`, width: `${placement.width * 100}%`, height: `${placement.height * 100}%` }}><CroppedPageImage page={pages[index]} crop={crops[index] ?? fullCrop} alt={labels[index] ?? `Página ${index + 1}`} />{selected === index && <>{(["nw", "ne", "sw", "se"] as const).map((corner) => <button key={corner} type="button" aria-label={`Redimensionar pelo canto ${corner}`} onPointerDown={pointerStarter(index, corner, placement)} className={`absolute size-3 rounded-full border-2 border-white bg-primary shadow-sm ${corner === "nw" ? "-left-1.5 -top-1.5 cursor-nwse-resize" : corner === "ne" ? "-right-1.5 -top-1.5 cursor-nesw-resize" : corner === "sw" ? "-bottom-1.5 -left-1.5 cursor-nesw-resize" : "-bottom-1.5 -right-1.5 cursor-nwse-resize"}`} />)}<button type="button" aria-label="Recortar pela borda esquerda" onPointerDown={cropPointerStarter(index, "crop-left", placement, crops[index] ?? fullCrop)} className="absolute -left-1 top-1/2 h-8 w-2 -translate-y-1/2 cursor-ew-resize rounded-full border border-primary bg-white shadow" /><button type="button" aria-label="Recortar pela borda direita" onPointerDown={cropPointerStarter(index, "crop-right", placement, crops[index] ?? fullCrop)} className="absolute -right-1 top-1/2 h-8 w-2 -translate-y-1/2 cursor-ew-resize rounded-full border border-primary bg-white shadow" /><button type="button" aria-label="Recortar pela borda superior" onPointerDown={cropPointerStarter(index, "crop-top", placement, crops[index] ?? fullCrop)} className="absolute left-1/2 -top-1 h-2 w-8 -translate-x-1/2 cursor-ns-resize rounded-full border border-primary bg-white shadow" /><button type="button" aria-label="Recortar pela borda inferior" onPointerDown={cropPointerStarter(index, "crop-bottom", placement, crops[index] ?? fullCrop)} className="absolute -bottom-1 left-1/2 h-2 w-8 -translate-x-1/2 cursor-ns-resize rounded-full border border-primary bg-white shadow" /></>}</div>)}
+                {!placements.length && <div className="absolute inset-0 grid place-items-center text-sm text-muted-foreground">Adicione um PDF para começar</div>}
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-muted-foreground">{pages.length} {pages.length === 1 ? "página" : "páginas"} na folha · {layout?.occupiedPercent.toFixed(0) ?? 0}% ocupado · {formatFileSize(items.reduce((sum, item) => sum + item.file.size, 0))}</p><Button size="lg" onClick={() => void generate()} disabled={status === "processing"}><Download className="size-4" />Gerar PDF para impressão</Button></div>
+          </section>
+        </div>}
+        <div className="px-5"><ToolErrorMessage message={error} /></div>
+        {result && status === "success" && <div className="p-5 sm:p-6"><ToolResultCard title="PDF pronto para impressão" description={`${result.name} · ${formatFileSize(result.blob.size)}`} actions={<><Button asChild><a href={resultUrl ?? undefined} download={result.name}><Download className="size-4" />Baixar PDF</a></Button><Button variant="outline" onClick={() => { setResult(null); setStatus("ready"); }}><RefreshCw className="size-4" />Continuar editando</Button><Button variant="outline" onClick={clear}><RotateCcw className="size-4" />Nova montagem</Button></>} /></div>}
+      </CardContent>
+    </Card>
+    {cropTarget !== null && pages[cropTarget] && <VisualCropEditor page={pages[cropTarget]} value={crops[cropTarget] ?? fullCrop} onCancel={() => setCropTarget(null)} onApply={(crop) => applyCrop(cropTarget, crop)} />}
+  </ToolPageShell>;
+}
+
+function CroppedPageImage({ page, crop, alt }: { page: ResizePageInfo; crop: VisualCrop; alt: string }) {
+  return <div className="relative size-full overflow-hidden bg-white"><div className="absolute" style={{ left: `${-(crop.x / crop.width) * 100}%`, top: `${-(crop.y / crop.height) * 100}%`, width: `${100 / crop.width}%`, height: `${100 / crop.height}%` }}><Image src={page.thumbnailUrl} alt={alt} fill unoptimized draggable={false} className="pointer-events-none object-fill" /></div></div>;
+}
