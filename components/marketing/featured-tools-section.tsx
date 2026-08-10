@@ -8,6 +8,7 @@ const mostUsedTools = [
   "compressor-de-imagens",
   "gerador-de-qr-code",
   "pdf-para-imagens",
+  "montar-pdf-para-impressao",
 ].flatMap((slug) => {
   const tool = tools.find((item) => item.slug === slug);
   return tool ? [tool] : [];
@@ -23,7 +24,7 @@ export function FeaturedToolsSection() {
           </h2>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           {mostUsedTools.map((tool) => {
             const Icon = tool.icon;
 

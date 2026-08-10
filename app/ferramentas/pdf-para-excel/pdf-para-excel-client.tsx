@@ -13,6 +13,7 @@ import { ToolProcessingStatus, type ToolStatus } from "@/components/tools/tool-p
 import { ToolResultCard } from "@/components/tools/tool-result-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { downloadBlob } from "@/lib/image-tools/canvas";
 import { formatFileSize } from "@/lib/tool-files";
 import {
   PDF_TO_EXCEL_MAX_FILE_SIZE,
@@ -61,7 +62,6 @@ export default function PdfParaExcelClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const replaceRef = useRef<HTMLInputElement>(null);
   const inspectionRef = useRef<PdfInspection | null>(null);
-  const resultUrlRef = useRef<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState<PageItem[]>([]);
   const [tables, setTables] = useState<ExtractedTable[]>([]);
@@ -75,13 +75,10 @@ export default function PdfParaExcelClient() {
   const [stage, setStage] = useState("Lendo o PDF");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
-  const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
 
-  useEffect(() => { resultUrlRef.current = resultUrl; }, [resultUrl]);
   useEffect(() => () => {
     disposeInspection(inspectionRef.current);
-    if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
   }, []);
 
   const includedPages = pages.filter((page) => page.included);
@@ -91,14 +88,12 @@ export default function PdfParaExcelClient() {
   function release() {
     disposeInspection(inspectionRef.current);
     inspectionRef.current = null;
-    if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
-    resultUrlRef.current = null;
   }
 
   function reset() {
     release();
     setFile(null); setPages([]); setTables([]); setPageRange(""); setPageRangeError(null);
-    setResult(null); setResultUrl(null); setError(null); setStatus("idle");
+    setResult(null); setError(null); setStatus("idle");
   }
 
   async function selectFile(files: File[]) {
@@ -110,7 +105,7 @@ export default function PdfParaExcelClient() {
     }
     if (!selected.size) { setError("Selecione um arquivo no formato PDF."); setStatus("error"); return; }
     if (selected.size > PDF_TO_EXCEL_MAX_FILE_SIZE) { setError(`O arquivo ultrapassa o limite permitido de ${PDF_TO_EXCEL_MAX_FILE_SIZE_LABEL}.`); setStatus("error"); return; }
-    release(); setFile(null); setPages([]); setTables([]); setResult(null); setResultUrl(null);
+    release(); setFile(null); setPages([]); setTables([]); setResult(null);
     setStatus("processing"); setStage("Lendo o PDF");
     try {
       const inspection = await inspectPdf(selected, () => setStage("Analisando páginas"));
@@ -149,23 +144,15 @@ export default function PdfParaExcelClient() {
     setStatus("processing"); setError(null); setStage("Organizando os dados");
     try {
       const output = await createExcel(tables, { organization, headerMode, emptyRows, numericMode }, setStage);
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
-      const url = URL.createObjectURL(output.blob);
       const name = safeOutputName(file.name);
       setResult({ blob: output.blob, name, size: output.blob.size, tables: selectedTables.length, sheets: output.sheetCount, csv: selectedTables.length === 1 ? createCsv(selectedTables[0], { organization, headerMode, emptyRows, numericMode }) : undefined });
-      setResultUrl(url); setStatus("success");
+      setStatus("success");
     } catch (reason) { setError(friendlyError(reason)); setStatus("error"); }
-  }
-
-  function downloadBlob(blob: Blob, name: string) {
-    const url = URL.createObjectURL(blob); const anchor = document.createElement("a");
-    anchor.href = url; anchor.download = name; document.body.appendChild(anchor); anchor.click(); anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
   }
 
   return <ToolPageShell title="Converter PDF para Excel" description="Extraia tabelas e dados de arquivos PDF para uma planilha Excel." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Use somente documentos que você tem autorização para processar.">
     <Card className="mx-auto max-w-5xl"><CardHeader><CardTitle>Converter PDF para Excel</CardTitle><CardDescription>Extraia tabelas e dados de arquivos PDF para uma planilha Excel.</CardDescription></CardHeader><CardContent className="space-y-6">
-      {!file && status !== "processing" && <><input ref={inputRef} type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(event) => { void selectFile(Array.from(event.target.files ?? [])); event.target.value = ""; }} /><div onDragEnter={(event) => { event.preventDefault(); setDragging(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }} onDrop={(event) => { event.preventDefault(); setDragging(false); void selectFile(Array.from(event.dataTransfer.files)); }} className={`flex min-h-64 flex-col items-center justify-center border border-dashed p-6 text-center transition-colors sm:p-10 ${dragging ? "border-primary bg-primary/5" : "border-border bg-muted/20"}`}><span className="flex size-14 items-center justify-center border border-border bg-background"><Upload className="size-5" /></span><p className="mt-5 font-heading text-lg font-medium">Arraste seu PDF aqui</p><p className="mt-2 text-sm text-muted-foreground">ou clique para selecionar</p><p className="mt-2 text-xs text-muted-foreground">Formato aceito: PDF · Máximo: {PDF_TO_EXCEL_MAX_FILE_SIZE_LABEL}</p><Button className="mt-5" onClick={() => openFilePicker(inputRef.current)}><FileText className="size-4" />Selecionar PDF</Button></div><ToolErrorMessage message={error} /></>}
+      {!file && status !== "processing" && <><input id="pdf-to-excel-file" ref={inputRef} type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(event) => { void selectFile(Array.from(event.target.files ?? [])); event.target.value = ""; }} /><div onDragEnter={(event) => { event.preventDefault(); setDragging(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }} onDrop={(event) => { event.preventDefault(); setDragging(false); void selectFile(Array.from(event.dataTransfer.files)); }} className={`flex min-h-64 flex-col items-center justify-center border border-dashed p-6 text-center transition-colors sm:p-10 ${dragging ? "border-primary bg-primary/5" : "border-border bg-muted/20"}`}><span className="flex size-14 items-center justify-center border border-border bg-background"><Upload className="size-5" /></span><p className="mt-5 font-heading text-lg font-medium">Arraste seu PDF aqui</p><p className="mt-2 text-sm text-muted-foreground">ou clique para selecionar</p><p className="mt-2 text-xs text-muted-foreground">Formato aceito: PDF · Máximo: {PDF_TO_EXCEL_MAX_FILE_SIZE_LABEL}</p><Button asChild className="mt-5"><label htmlFor="pdf-to-excel-file"><FileText className="size-4" />Selecionar PDF</label></Button></div><ToolErrorMessage message={error} /></>}
       <ToolProcessingStatus status={status} message={stage} />
 
       {file && status !== "success" && <>
@@ -183,7 +170,7 @@ export default function PdfParaExcelClient() {
         <ToolErrorMessage message={error} /><ToolActionBar><Button size="lg" onClick={convert} disabled={status === "processing" || !selectedTables.length}><FileSpreadsheet className="size-4" />Converter para Excel</Button></ToolActionBar>
       </>}
 
-      {result && status === "success" && <ToolResultCard title="Excel pronto" description={`${result.name} · ${result.tables} ${result.tables === 1 ? "tabela" : "tabelas"} · ${result.sheets} ${result.sheets === 1 ? "planilha" : "planilhas"} · ${formatFileSize(result.size)}`} actions={<><Button asChild><a href={resultUrl ?? undefined} download={result.name}><Download className="size-4" />Baixar Excel</a></Button>{result.csv && <Button variant="outline" onClick={() => downloadBlob(result.csv!, result.name.replace(/\.xlsx$/i, ".csv"))}>Baixar CSV</Button>}<Button variant="outline" onClick={reset}><RotateCcw className="size-4" />Converter outro PDF</Button></>} />}
+      {result && status === "success" && <ToolResultCard title="Excel pronto" description={`${result.name} · ${result.tables} ${result.tables === 1 ? "tabela" : "tabelas"} · ${result.sheets} ${result.sheets === 1 ? "planilha" : "planilhas"} · ${formatFileSize(result.size)}`} actions={<><Button onClick={() => downloadBlob(result.blob, result.name)}><Download className="size-4" />Baixar Excel</Button>{result.csv && <Button variant="outline" onClick={() => downloadBlob(result.csv!, result.name.replace(/\.xlsx$/i, ".csv"))}>Baixar CSV</Button>}<Button variant="outline" onClick={reset}><RotateCcw className="size-4" />Converter outro PDF</Button></>} />}
     </CardContent></Card>
   </ToolPageShell>;
 }

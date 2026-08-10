@@ -1,6 +1,5 @@
 "use client";
 
-import { openFilePicker } from "@/lib/browser/file-picker";
 import Link from "next/link";
 import {
   ChangeEvent,
@@ -22,7 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { removerFundo } from "@/lib/background-removal/engine";
+import { removerFundoRmbg } from "@/lib/background-removal/engine-rmbg";
 
 const FORMATOS_ACEITOS = ["image/png", "image/jpeg", "image/webp"];
 const TAMANHO_MAXIMO_GRATIS = 5 * 1024 * 1024;
@@ -153,7 +152,7 @@ function fazerOutraImagem() {
 }
  async function iniciarProcessamento() {
     
-  if (!arquivo) {
+  if (!arquivo || !previewUrl) {
     setErro("Selecione uma imagem antes de continuar.");
     return;
   }
@@ -164,7 +163,7 @@ function fazerOutraImagem() {
   try {
     limparResultado();
 
-    const resultadoBlob = await removerFundo(arquivo);
+    const resultadoBlob = await removerFundoRmbg(previewUrl);
 
     const novaResultadoUrl = URL.createObjectURL(resultadoBlob);
 
@@ -269,13 +268,8 @@ function fazerOutraImagem() {
                     imagem diretamente do seu dispositivo.
                   </p>
 
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="mt-6"
-                    onClick={() => openFilePicker(inputRef.current)}
-                  >
-                    Selecionar imagem
+                  <Button asChild size="lg" className="mt-6">
+                    <label htmlFor="background-removal-file">Selecionar imagem</label>
                   </Button>
 
                 </div>
@@ -390,6 +384,7 @@ function fazerOutraImagem() {
               )}
 
               <input
+                id="background-removal-file"
                 ref={inputRef}
                 type="file"
                 accept="image/png,image/jpeg,image/webp"

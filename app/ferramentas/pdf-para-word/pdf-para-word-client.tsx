@@ -12,23 +12,13 @@ import { ToolResultCard } from "@/components/tools/tool-result-card";
 import { ToolUploadArea } from "@/components/tools/tool-upload-area";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { downloadBlob } from "@/lib/image-tools/canvas";
 import { formatFileSize, validateFile } from "@/lib/tool-files";
 import { convertPdfToDocx, getPdfFileInfo } from "./pdf-to-docx";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 type SelectedPdf = { file: File; pages: number };
 type Result = { name: string; blob: Blob };
-
-function download(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = name;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
-}
 
 function friendlyError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
@@ -43,10 +33,12 @@ export default function PdfParaWordClient() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<Result[]>([]);
+  const [downloadResult, setDownloadResult] = useState<Result | null>(null);
 
   async function selectFiles(selected: File[]) {
     setError(null);
     setResults([]);
+    setDownloadResult(null);
     const accepted: SelectedPdf[] = [];
     for (const file of selected) {
       const validation = validateFile({ file, acceptedMimeTypes: ["application/pdf"], acceptedExtensions: ["pdf"], maxSizeBytes: MAX_FILE_SIZE });
@@ -65,7 +57,7 @@ export default function PdfParaWordClient() {
   }
 
   function reset() {
-    setFiles([]); setResults([]); setError(null); setProgress(0); setStatus("idle");
+    setFiles([]); setResults([]); setDownloadResult(null); setError(null); setProgress(0); setStatus("idle");
   }
 
   async function convert() {
@@ -81,13 +73,14 @@ export default function PdfParaWordClient() {
         converted.push({ name: item.file.name.replace(/\.pdf$/i, ".docx"), blob });
       }
       setResults(converted);
-      setStatus("success");
-      if (converted.length === 1) download(converted[0].blob, converted[0].name);
-      else {
+      if (converted.length === 1) {
+        setDownloadResult(converted[0]);
+      } else {
         const zip = new JSZip();
         converted.forEach((item) => zip.file(item.name, item.blob));
-        download(await zip.generateAsync({ type: "blob" }), "kivai-pdf-para-word.zip");
+        setDownloadResult({ blob: await zip.generateAsync({ type: "blob" }), name: "kivai-pdf-para-word.zip" });
       }
+      setStatus("success");
     } catch (reason) {
       setError(friendlyError(reason)); setStatus("error");
     }
@@ -106,7 +99,7 @@ export default function PdfParaWordClient() {
           <ToolProcessingStatus status={status} progress={progress} message={`Convertendo ${files.length > 1 ? "arquivos" : "arquivo"} para Word...`} />
           <ToolErrorMessage message={files.length ? error : null} />
           {files.length > 0 && status !== "success" && <ToolActionBar><Button size="lg" onClick={convert} disabled={status === "processing"}><FileText className="size-4" />Converter para Word</Button></ToolActionBar>}
-          {status === "success" && <ToolResultCard title={results.length > 1 ? "Documentos prontos" : "Documento pronto"} description={results.length > 1 ? `${results.length} arquivos DOCX foram reunidos em um ZIP e baixados automaticamente.` : "O arquivo DOCX foi baixado automaticamente."} actions={<><Button onClick={() => results.length === 1 && download(results[0].blob, results[0].name)} disabled={results.length !== 1}><Download className="size-4" />Baixar novamente</Button><Button variant="outline" onClick={reset}><RotateCcw className="size-4" />Converter outro arquivo</Button></>} />}
+          {status === "success" && <ToolResultCard title={results.length > 1 ? "Documentos prontos" : "Documento pronto"} description={results.length > 1 ? `${results.length} arquivos DOCX foram reunidos em um ZIP. Toque em baixar para salvar no dispositivo.` : "O DOCX está pronto. Toque em baixar para salvar no dispositivo."} actions={<><Button onClick={() => downloadResult && downloadBlob(downloadResult.blob, downloadResult.name)} disabled={!downloadResult}><Download className="size-4" />{results.length > 1 ? "Baixar ZIP" : "Baixar DOCX"}</Button><Button variant="outline" onClick={reset}><RotateCcw className="size-4" />Converter outro arquivo</Button></>} />}
         </CardContent>
       </Card>
     </ToolPageShell>
