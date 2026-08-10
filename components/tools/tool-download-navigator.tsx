@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+
+import { getToolBySlug, toolCategories } from "@/lib/tools";
 
 const DOWNLOAD_LABEL = /\b(baixar|download|exportar)\b/i;
 const ACTION_SELECTOR = 'a[download], button, [role="button"]';
@@ -35,6 +39,9 @@ function isAvailableDownloadAction(element: HTMLElement) {
 export function ToolDownloadNavigator({ children }: { children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const slug = pathname.split("/").filter(Boolean)[1] ?? "";
+  const tool = getToolBySlug(slug);
+  const category = toolCategories.find((item) => item.slug === tool?.category);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -113,5 +120,38 @@ export function ToolDownloadNavigator({ children }: { children: ReactNode }) {
     };
   }, [pathname]);
 
-  return <div ref={rootRef}>{children}</div>;
+  const categoryName = category?.slug === "pdf" ? "PDF" : category?.name;
+
+  return (
+    <div
+      ref={rootRef}
+      className={tool && category ? "tool-route-shell relative" : undefined}
+    >
+      {tool && category && (
+        <nav
+          aria-label="Navegação estrutural da ferramenta"
+          className="tool-route-breadcrumb absolute inset-x-0 top-24 z-20 mx-auto flex w-full max-w-6xl items-center gap-2 overflow-x-auto whitespace-nowrap px-4 text-sm text-muted-foreground sm:px-6 lg:px-8"
+        >
+          <Link
+            href="/"
+            className="shrink-0 transition-colors hover:text-foreground"
+          >
+            Início
+          </Link>
+          <ChevronRight className="size-3.5 shrink-0" aria-hidden="true" />
+          <Link
+            href={category.href}
+            className="shrink-0 transition-colors hover:text-foreground"
+          >
+            {categoryName}
+          </Link>
+          <ChevronRight className="size-3.5 shrink-0" aria-hidden="true" />
+          <span aria-current="page" className="truncate text-foreground">
+            {tool.name}
+          </span>
+        </nav>
+      )}
+      {children}
+    </div>
+  );
 }

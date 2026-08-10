@@ -107,6 +107,30 @@ input[type="file"][hidden] {
   display: none;
 }
 
+/*
+ * O layout injeta uma única navegação estrutural em todas as ferramentas.
+ * As versões antigas permanecem no fluxo para preservar o espaçamento do
+ * cabeçalho, mas deixam de competir visualmente com o padrão atual.
+ */
+.tool-route-shell nav[aria-label="Navegação estrutural"],
+.tool-route-shell nav[aria-label="Breadcrumb"],
+.tool-route-shell :is(main, section) > div:first-child > a:first-child[href^="/ferramentas/"],
+.tool-route-shell :is(main, section) > div:first-child > div:first-child > a:first-child[href^="/ferramentas/"] {
+  visibility: hidden !important;
+}
+
+.tool-route-shell header > a:first-child[href^="/ferramentas/"] {
+  display: none !important;
+}
+
+.tool-route-breadcrumb {
+  scrollbar-width: none;
+}
+
+.tool-route-breadcrumb::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 640px) {
   :where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) {
     min-height: 19rem !important;
