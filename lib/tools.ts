@@ -23,6 +23,7 @@ import {
   WandSparkles,
   Box,
   Code2,
+  Unlock,
 } from "lucide-react";
 
 export type ToolCategory =
@@ -134,6 +135,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "contador-de-caracteres-instagram",
   "contador-de-hashtags-instagram",
   "contador-de-palavras",
+  "desbloquear-pdf",
   "dividir-pdf",
   "dividir-video",
   "editar-pdf",
@@ -420,6 +422,19 @@ export const tools: Tool[] = [
     seoTitle: "PDF para HTML: converta PDF em HTML online | Kivai",
     seoDescription: "Converta PDF para HTML online. Extraia textos, títulos, tabelas e conteúdos do PDF para reutilizar em páginas da web de forma simples.",
     keywords: ["pdf para html", "converter pdf em html", "transformar pdf em html", "pdf html", "extrair html de pdf", "converter documento para html"],
+  },
+  {
+    slug: "desbloquear-pdf",
+    name: "Desbloquear PDF",
+    description: "Remova a proteção de PDFs quando você possuir a senha ou autorização para modificar o documento.",
+    category: "pdf",
+    hubFilter: "Editar",
+    badge: "PDF",
+    icon: Unlock,
+    available: true,
+    seoTitle: "Desbloquear PDF Online: remover senha com autorização | Kivai",
+    seoDescription: "Desbloqueie arquivos PDF utilizando a senha correta. Gere uma nova versão do documento sem proteção de abertura de forma simples com o Kivai.",
+    keywords: ["desbloquear pdf", "remover senha pdf", "tirar senha de pdf", "remover proteção pdf", "pdf protegido", "desbloqueador de pdf"],
   },
   {
     slug: "html-para-pdf",

@@ -5,6 +5,7 @@
  * preserva o gesto do usuário e abre Fotos/Arquivos de forma consistente.
  */
 input[type="file"].hidden,
+input[type="file"].sr-only,
 input[type="file"][hidden] {
   position: absolute !important;
   display: block !important;
