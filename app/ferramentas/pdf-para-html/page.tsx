@@ -1,0 +1,49 @@
+import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
+
+import { getToolMetadata } from "@/lib/seo";
+import PdfParaHtmlClient from "./pdf-para-html-client";
+
+export const metadata = getToolMetadata("pdf-para-html");
+
+const faq = [
+  ["Como converter PDF para HTML?", "Selecione um PDF, informe as páginas desejadas, escolha entre HTML estruturado ou preservação da aparência e clique em Converter para HTML. Depois, revise a prévia e baixe o arquivo."],
+  ["O HTML gerado pode ser editado?", "Sim. A aba Código HTML permite ativar a edição, fazer pequenos ajustes, desfazer, refazer, localizar textos e restaurar a versão originalmente gerada."],
+  ["Os textos do PDF serão preservados?", "Textos selecionáveis são extraídos em UTF-8 e organizados na ordem aproximada de leitura. PDFs com colunas ou posicionamentos complexos podem exigir revisão."],
+  ["Imagens também são convertidas?", "Esta primeira versão prioriza texto e estrutura. Imagens incorporadas ao PDF nem sempre podem ser recuperadas de forma confiável e podem não aparecer no HTML."],
+  ["As tabelas são preservadas?", "Tabelas simples podem manter os dados de forma legível. Estruturas complexas, células mescladas e tabelas desenhadas como imagem podem não ser reconstruídas como uma tabela HTML."],
+  ["O layout ficará igual ao PDF?", "Não necessariamente. PDF é orientado à aparência fixa; HTML é fluido. O modo Preservar aparência aproxima posições, mas pode gerar código mais complexo e diferenças entre telas."],
+  ["Posso converter apenas algumas páginas?", "Sim. Use números, listas e intervalos, como 1, 1-5, 1,3,7 ou 2-5,8."],
+  ["PDFs digitalizados funcionam?", "PDFs formados somente por imagens precisam de OCR para reconhecer texto. Esta versão não inclui OCR e informa quando não encontra conteúdo textual suficiente."],
+  ["O HTML gerado funciona em qualquer navegador?", "O arquivo usa HTML5, UTF-8 e CSS comum, sendo compatível com navegadores modernos. Aparência e fontes podem variar entre dispositivos."],
+  ["Posso copiar o código diretamente?", "Sim. Use Copiar HTML para enviar ao clipboard a versão sanitizada do documento."],
+  ["Qual é a diferença entre PDF e HTML?", "PDF preserva uma página fixa para leitura e impressão. HTML organiza conteúdo para navegação e adaptação a diferentes tamanhos de tela."],
+  ["O arquivo gerado possui CSS?", "Sim. O CSS necessário é incluído no próprio documento, sem frameworks, scripts externos ou rastreadores."],
+  ["Posso usar o HTML no meu site?", "Sim, desde que você tenha autorização sobre o conteúdo. Revise a estrutura, adapte os estilos ao seu site e valide links e acessibilidade antes de publicar."],
+  ["O HTML será responsivo?", "O modo estruturado inclui estilos responsivos básicos. O modo visual prioriza posições originais e pode precisar de ajustes para telas pequenas."],
+  ["Por que alguns elementos ficam diferentes?", "Fontes, colunas, gráficos, formulários, textos sobrepostos e elementos vetoriais do PDF não possuem correspondência direta em HTML."],
+] as const;
+
+const schema = [
+  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "PDF para HTML", applicationCategory: "UtilitiesApplication", operatingSystem: "Qualquer sistema com navegador moderno", url: "https://www.kivai.com.br/ferramentas/pdf-para-html", description: "Conversor online de conteúdo PDF para documentos HTML.", offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" } },
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://www.kivai.com.br" }, { "@type": "ListItem", position: 2, name: "PDF", item: "https://www.kivai.com.br/ferramentas/pdfs" }, { "@type": "ListItem", position: 3, name: "PDF para HTML", item: "https://www.kivai.com.br/ferramentas/pdf-para-html" }] },
+  { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) },
+];
+
+const uses = ["Publicar documentos em sites", "Recuperar textos de PDFs", "Migrar manuais e relatórios", "Reutilizar títulos e parágrafos", "Preparar conteúdo para blogs", "Revisar estruturas no navegador"];
+
+export default function PdfParaHtmlPage() {
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><PdfParaHtmlClient /><section className="border-t border-border bg-muted/10 py-12 sm:py-16"><div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">O que é PDF para HTML?</h2><p className="mt-4 leading-7 text-muted-foreground">PDF para HTML transforma o conteúdo textual de um documento PDF em uma estrutura utilizável em páginas da web. A ferramenta identifica linhas, tamanhos de fonte e listas para criar títulos, parágrafos e itens semânticos sempre que a estrutura do arquivo permite.</p></article>
+    <div className="grid gap-6 lg:grid-cols-2"><Info title="Quando converter PDF para HTML?"><ul className="grid gap-2">{uses.map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="mt-1 size-4 shrink-0 text-primary" />{item}</li>)}</ul></Info><Info title="PDF e HTML são iguais?"><p>Não. O PDF registra páginas de dimensões fixas e prioriza impressão e consistência visual. O HTML descreve estrutura e conteúdo para que o navegador reorganize a página conforme a tela, as fontes disponíveis e as regras de estilo.</p></Info></div>
+    <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Como converter PDF em HTML</h2><ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-muted-foreground"><li>Selecione um PDF digital com texto selecionável.</li><li>Confira nome, tamanho, quantidade de páginas e miniatura.</li><li>Deixe o campo de páginas vazio para converter tudo ou informe intervalos como <strong className="text-foreground">1-5,8</strong>.</li><li>Escolha HTML estruturado para reutilização de conteúdo ou Preservar aparência para aproximar posições.</li><li>Converta e revise as abas Visualização e Código HTML.</li><li>Copie o código ou baixe o arquivo HTML completo.</li></ol></article>
+    <div className="grid gap-6 lg:grid-cols-2"><Info title="O layout será preservado?"><p>Documentos simples, com uma coluna e hierarquia clara, normalmente produzem resultados melhores. O modo visual utiliza posições proporcionais para aproximar a composição, mas fontes, gráficos, formulários e elementos vetoriais podem mudar.</p></Info><Info title="PDFs digitalizados funcionam?"><p>Esta versão depende do texto existente no PDF e não realiza OCR. Se o documento for apenas uma fotografia ou digitalização, será necessário reconhecer o texto antes da conversão.</p></Info></div>
+    <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Exemplo prático</h2><p className="mt-4 leading-7 text-muted-foreground">Imagine um manual de produtos disponível apenas em PDF. Você pode selecionar os capítulos necessários, converter as páginas, revisar títulos e parágrafos no editor e copiar o HTML para o sistema do site. Da mesma forma, um relatório pode fornecer uma base de conteúdo para um painel, blog ou área administrativa, evitando a digitação integral do documento.</p></article>
+    <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Segurança e limitações</h2><p className="mt-4 leading-7 text-muted-foreground">A prévia remove scripts, eventos JavaScript, objetos incorporados, formulários e URLs com esquemas perigosos, além de ser exibida em um iframe isolado. Ainda assim, revise o código antes de publicá-lo. Tabelas complexas, imagens, textos sobrepostos, múltiplas colunas e PDFs protegidos ou digitalizados podem exigir tratamento adicional.</p></article>
+    <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Perguntas frequentes</h2><div className="mt-5 space-y-3">{faq.map(([question, answer]) => <details key={question} className="rounded-lg border border-border p-4"><summary className="cursor-pointer font-medium">{question}</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">{answer}</p></details>)}</div></article>
+    <nav aria-label="Ferramentas relacionadas" className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2><div className="mt-4 flex flex-wrap gap-3"><Related href="/ferramentas/pdf-para-word">PDF para Word</Related><Related href="/ferramentas/pdf-para-excel">PDF para Excel</Related><Related href="/ferramentas/pdf-para-powerpoint">PDF para PowerPoint</Related><Related href="/ferramentas/pdf-para-imagens">PDF para Imagens</Related><Related href="/ferramentas/editar-pdf">Editar PDF</Related><Related href="/ferramentas/dividir-pdf">Dividir PDF</Related><Related href="/ferramentas/compactar-pdf">Compactar PDF</Related><Related href="/ferramentas/word-para-pdf">Word para PDF</Related></div></nav>
+  </div></section></>;
+}
+
+function Info({ title, children }: { title: string; children: React.ReactNode }) { return <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-xl font-semibold">{title}</h2><div className="mt-4 text-sm leading-7 text-muted-foreground">{children}</div></article>; }
+function Related({ href, children }: { href: string; children: React.ReactNode }) { return <Link href={href} className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-primary hover:text-primary">{children}</Link>; }

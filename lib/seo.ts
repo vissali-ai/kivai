@@ -19,7 +19,7 @@ type PageMetadataInput = {
 };
 
 function withBrand(title: string) {
-  return `${title.replace(/\s*\|\s*(?:Kivai|Nexion Tools)\s*$/i, "")} | Kivai`;
+  return `${title.replace(/\s*\|\s*Kivai\s*$/i, "")} | Kivai`;
 }
 
 export function getPageMetadata({
