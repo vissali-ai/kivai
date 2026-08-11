@@ -24,6 +24,7 @@ import {
   Box,
   Code2,
   Unlock,
+  Video,
 } from "lucide-react";
 
 export type ToolCategory =
@@ -149,6 +150,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "girar-pdf",
   "girar-video",
   "html-para-pdf",
+  "hevc-para-mp4",
   "imagem-para-favicon",
   "imagens-para-pdf",
   "montar-pdf-para-impressao",
@@ -724,6 +726,19 @@ export const tools: Tool[] = [
     badge: "Social Media",
     icon: Type,
     available: true,
+  },
+  {
+    slug: "hevc-para-mp4",
+    name: "HEVC → MP4",
+    description: "Converta vídeos HEVC/H.265 para MP4 e melhore a compatibilidade para reprodução, edição e compartilhamento.",
+    category: "video",
+    hubFilter: "Converter",
+    badge: "Vídeo",
+    icon: Video,
+    available: true,
+    seoTitle: "HEVC para MP4: converta H.265 para MP4 online | Kivai",
+    seoDescription: "Converta vídeos HEVC/H.265 para MP4 online. Melhore a compatibilidade do seu vídeo para reprodução, edição e compartilhamento.",
+    keywords: ["hevc para mp4", "converter hevc para mp4", "h265 para mp4", "h.265 para mp4", "converter vídeo hevc", "video hevc para mp4"],
   },
   {
     slug: "ajustar-velocidade-video",

@@ -1,17 +1,21 @@
 import asyncio
 import io
+import os
 import re
+import shutil
+import tempfile
 
 import bleach
 from bleach.css_sanitizer import CSSSanitizer
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field
 from playwright.async_api import async_playwright
 from pypdf import PdfReader, PdfWriter
 from pypdf.errors import PdfReadError
+from starlette.background import BackgroundTask
 
 
 app = FastAPI(
@@ -30,13 +34,14 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["X-PDF-Page-Count", "Content-Disposition"],
+    expose_headers=["X-PDF-Page-Count", "X-Video-Duration", "X-Video-Width", "X-Video-Height", "Content-Disposition"],
 )
 
 device = "cpu"
 
 PDF_UNLOCK_MAX_FILE_SIZE = 25 * 1024 * 1024
 PDF_UNLOCK_MAX_PAGES = 100
+VIDEO_CONVERT_MAX_FILE_SIZE = 200 * 1024 * 1024
 
 model = None
 
@@ -149,6 +154,112 @@ async def unlock_pdf(file: UploadFile = File(...), password: str = Form(default=
         raise HTTPException(status_code=422, detail="Não foi possível abrir este PDF. Verifique o arquivo e tente novamente.")
     except Exception:
         raise HTTPException(status_code=500, detail="Não foi possível desbloquear este PDF. Verifique a senha e tente novamente.")
+
+
+async def run_ffmpeg(*args: str, timeout: int) -> tuple[int, bytes, bytes]:
+    process = await asyncio.create_subprocess_exec(
+        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+    try:
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
+        return process.returncode or 0, stdout, stderr
+    except TimeoutError:
+        process.kill()
+        await process.communicate()
+        raise
+
+
+def video_metadata(probe_text: str) -> tuple[str | None, float | None, int | None, int | None, bool]:
+    video = re.search(r"Video:\s*([^,\s]+).*?(\d{2,5})x(\d{2,5})", probe_text, flags=re.I)
+    duration = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", probe_text, flags=re.I)
+    seconds = None
+    if duration:
+        seconds = int(duration.group(1)) * 3600 + int(duration.group(2)) * 60 + float(duration.group(3))
+    return (
+        video.group(1).lower() if video else None,
+        seconds,
+        int(video.group(2)) if video else None,
+        int(video.group(3)) if video else None,
+        bool(re.search(r"Audio:\s*", probe_text, flags=re.I)),
+    )
+
+
+@app.post("/video/hevc-to-mp4")
+async def hevc_to_mp4(file: UploadFile = File(...), quality: str = Form(default="auto")):
+    if quality not in {"auto", "high", "small"}:
+        raise HTTPException(status_code=400, detail="Configuração de qualidade inválida.")
+    if file.content_type and not (file.content_type.startswith("video/") or file.content_type == "application/octet-stream"):
+        raise HTTPException(status_code=415, detail="Selecione um vídeo HEVC/H.265 compatível.")
+
+    workdir = tempfile.mkdtemp(prefix="kivai-hevc-")
+    input_path = os.path.join(workdir, "entrada-video")
+    output_path = os.path.join(workdir, "video-convertido.mp4")
+    try:
+        total = 0
+        with open(input_path, "wb") as destination:
+            while chunk := await file.read(1024 * 1024):
+                total += len(chunk)
+                if total > VIDEO_CONVERT_MAX_FILE_SIZE:
+                    raise HTTPException(status_code=413, detail="O vídeo ultrapassa o limite permitido.")
+                destination.write(chunk)
+        if total == 0:
+            raise HTTPException(status_code=422, detail="Não foi possível ler este vídeo.")
+
+        from imageio_ffmpeg import get_ffmpeg_exe
+
+        ffmpeg = get_ffmpeg_exe()
+        _, _, probe_error = await run_ffmpeg(ffmpeg, "-hide_banner", "-i", input_path, timeout=30)
+        codec, duration, width, height, has_audio = video_metadata(probe_error.decode("utf-8", errors="replace"))
+        if codec not in {"hevc", "h265"}:
+            raise HTTPException(status_code=415, detail="Não foi possível processar o codec deste arquivo.")
+        if width is None or height is None:
+            raise HTTPException(status_code=422, detail="Não foi possível ler este vídeo.")
+        duration = duration or 0.0
+
+        crf, preset = {"auto": (23, "medium"), "high": (19, "slow"), "small": (28, "medium")}[quality]
+        command = [
+            ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path,
+            "-map", "0:v:0", "-map", "0:a?", "-c:v", "libx264", "-preset", preset,
+            "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+        ]
+        if has_audio:
+            command.extend(["-c:a", "aac", "-b:a", "192k"])
+        command.append(output_path)
+        returncode, _, conversion_error = await run_ffmpeg(*command, timeout=900)
+        if returncode != 0 or not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+            raise RuntimeError(conversion_error.decode("utf-8", errors="replace")[-1000:])
+
+        verification_code, _, verification_error = await run_ffmpeg(
+            ffmpeg, "-v", "error", "-i", output_path, "-f", "null", "-", timeout=120
+        )
+        if verification_code != 0:
+            raise RuntimeError(verification_error.decode("utf-8", errors="replace")[-1000:])
+
+        return FileResponse(
+            output_path,
+            media_type="video/mp4",
+            filename="video-convertido.mp4",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Video-Duration": f"{duration:.3f}",
+                "X-Video-Width": str(width),
+                "X-Video-Height": str(height),
+            },
+            background=BackgroundTask(shutil.rmtree, workdir, True),
+        )
+    except HTTPException:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise
+    except TimeoutError:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=408, detail="A conversão demorou mais do que o limite permitido. Tente utilizar um arquivo menor.")
+    except MemoryError:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=507, detail="Este vídeo exige mais memória do que o dispositivo pode disponibilizar. Tente utilizar um arquivo menor.")
+    except Exception as error:
+        print(f"Erro HEVC para MP4: {type(error).__name__}")
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=500, detail="Não foi possível converter o vídeo para MP4. Tente novamente com outro arquivo.")
 
 
 class HtmlToPdfRequest(BaseModel):
