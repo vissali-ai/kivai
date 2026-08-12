@@ -17,7 +17,7 @@ const MAX_IMAGE_SIZE = 12 * 1024 * 1024;
 
 export default function PreviewClient() {
   const [settings, setSettings] = useState<Settings>(initial); const [avatar, setAvatar] = useState(""); const [postImage, setPostImage] = useState("");
-  const [avatarName, setAvatarName] = useState(""); const [imageName, setImageName] = useState(""); const [error, setError] = useState(""); const [feedback, setFeedback] = useState(""); const [confirmClear, setConfirmClear] = useState(false); const [ready, setReady] = useState(false);
+  const [avatarName, setAvatarName] = useState(""); const [imageName, setImageName] = useState(""); const [error, setError] = useState(""); const [feedback, setFeedback] = useState(""); const [isExporting, setIsExporting] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [ready, setReady] = useState(false);
   const avatarInput = useRef<HTMLInputElement>(null); const imageInput = useRef<HTMLInputElement>(null); const previewRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     try {
@@ -35,7 +35,24 @@ export default function PreviewClient() {
   function upload(event: ChangeEvent<HTMLInputElement>, kind: "avatar" | "post") { const file = event.target.files?.[0]; event.target.value = ""; if (!file) return; if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setError("Use uma imagem JPG, PNG ou WebP."); return; } if (file.size > MAX_IMAGE_SIZE) { setError("A imagem deve ter no máximo 12 MB."); return; } const url = URL.createObjectURL(file); setError(""); if (kind === "avatar") { if (avatar) URL.revokeObjectURL(avatar); setAvatar(url); setAvatarName(file.name); } else { if (postImage) URL.revokeObjectURL(postImage); setPostImage(url); setImageName(file.name); } }
   function remove(kind: "avatar" | "post") { if (kind === "avatar") { if (avatar) URL.revokeObjectURL(avatar); setAvatar(""); setAvatarName(""); } else { if (postImage) URL.revokeObjectURL(postImage); setPostImage(""); setImageName(""); } }
   async function copyCaption() { try { await navigator.clipboard.writeText(settings.caption); setFeedback("Legenda copiada."); } catch { setFeedback("Não foi possível copiar a legenda."); } window.setTimeout(() => setFeedback(""), 2200); }
-  async function downloadPreview() { if (!previewRef.current) return; setFeedback("Preparando imagem…"); try { const { toPng } = await import("html-to-image"); const dataUrl = await toPng(previewRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: "#ffffff", skipFonts: true }); const link = document.createElement("a"); link.download = `preview-${settings.platform.toLowerCase()}.png`; link.href = dataUrl; link.click(); setFeedback("Preview baixado em PNG."); } catch { setFeedback("Não foi possível gerar a imagem neste navegador."); } window.setTimeout(() => setFeedback(""), 2500); }
+  async function downloadPreview() {
+    if (!previewRef.current || isExporting) return;
+    setIsExporting(true); setFeedback("Preparando imagem…");
+    try {
+      const images = Array.from(previewRef.current.querySelectorAll("img"));
+      await Promise.all(images.map(async (image) => { if (!image.complete) await new Promise<void>((resolve) => { image.addEventListener("load", () => resolve(), { once: true }); image.addEventListener("error", () => resolve(), { once: true }); }); try { await image.decode(); } catch { /* The loaded image can still be rendered when decode is unavailable. */ } }));
+      const { toBlob } = await import("html-to-image");
+      const darkPreview = settings.platform === "Instagram" || settings.platform === "X" || settings.platform === "Threads";
+      const blob = await toBlob(previewRef.current, { cacheBust: false, pixelRatio: Math.min(window.devicePixelRatio || 1, 2), backgroundColor: darkPreview ? "#000000" : "#ffffff", skipFonts: true });
+      if (!blob) throw new Error("empty-export");
+      const url = URL.createObjectURL(blob); const link = document.createElement("a");
+      link.download = `preview-${settings.platform.toLowerCase()}.png`; link.href = url; link.rel = "noopener"; link.style.display = "none";
+      document.body.appendChild(link); link.click(); link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+      setFeedback("Download iniciado. Verifique a pasta de downloads.");
+    } catch { setFeedback("Não foi possível baixar o preview. Tente novamente ou use outro navegador."); }
+    finally { setIsExporting(false); window.setTimeout(() => setFeedback(""), 4000); }
+  }
   function clearAll() { remove("avatar"); remove("post"); setSettings(initial); setError(""); setFeedback(""); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
   const hasChanges = avatar || postImage || JSON.stringify(settings) !== JSON.stringify(initial);
   return <ToolPageShell title="Preview de Post para Redes Sociais" description="Visualize perfil, imagem e legenda em uma simulação de publicação antes de apresentar ou postar seu conteúdo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="As imagens são usadas somente no seu navegador para montar a visualização e não são enviadas ao Kivai.">
@@ -47,7 +64,7 @@ export default function PreviewClient() {
         <label className="grid gap-1.5 border-t border-border pt-5 text-sm font-medium">Legenda<textarea rows={8} value={settings.caption} onChange={(event) => update("caption", event.target.value)} className="min-w-0 border border-border bg-background p-3" placeholder="Digite sua legenda, hashtags e emojis" /><span className="text-right text-xs font-normal text-muted-foreground" aria-live="polite">{settings.caption.length} {settings.caption.length === 1 ? "caractere" : "caracteres"}</span></label><p className="text-xs leading-5 text-muted-foreground">Os limites e a apresentação podem mudar. Confira os requisitos no aplicativo oficial antes de publicar.</p>{error && <p role="alert" className="border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
         <div className="flex flex-wrap gap-2"><Button onClick={copyCaption} disabled={!settings.caption}><Copy />Copiar legenda</Button><Button variant="outline" onClick={() => hasChanges ? setConfirmClear(true) : clearAll()}><RotateCcw />Limpar preview</Button>{feedback && <p role="status" className="w-full text-sm text-primary">{feedback}</p>}</div>
       </CardContent></Card>
-      <div className="space-y-4 lg:sticky lg:top-24"><div ref={previewRef} className="mx-auto w-full max-w-[620px]"><PostPreview settings={settings} avatar={avatar} postImage={postImage} /></div><p className="mx-auto max-w-[620px] text-xs leading-5 text-muted-foreground">Esta visualização é uma simulação. O layout final pode variar conforme atualizações da plataforma, dispositivo e formato da publicação.</p><Button className="w-full max-w-[620px]" onClick={downloadPreview}><Download />Baixar preview em PNG</Button></div>
+      <div className="space-y-4 lg:sticky lg:top-24"><div ref={previewRef} className="mx-auto w-full max-w-[620px]"><PostPreview settings={settings} avatar={avatar} postImage={postImage} /></div><p className="mx-auto max-w-[620px] text-xs leading-5 text-muted-foreground">Esta visualização é uma simulação. O layout final pode variar conforme atualizações da plataforma, dispositivo e formato da publicação.</p><Button className="w-full max-w-[620px]" onClick={downloadPreview} disabled={isExporting}><Download />{isExporting ? "Preparando PNG…" : "Baixar preview em PNG"}</Button></div>
     </div>
     {confirmClear && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmClear(false); }}><div role="dialog" aria-modal="true" aria-labelledby="clear-preview-title" className="w-full max-w-md border border-border bg-background p-6"><h2 id="clear-preview-title" className="text-xl font-semibold">Limpar este preview?</h2><p className="mt-3 text-sm text-muted-foreground">Textos, preferências e imagens selecionadas serão removidos.</p><div className="mt-6 flex justify-end gap-2"><Button variant="outline" onClick={() => setConfirmClear(false)}>Cancelar</Button><Button variant="destructive" onClick={clearAll}>Limpar preview</Button></div></div></div>}
   </ToolPageShell>;
