@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { BarChart3, Bookmark, Copy, Download, Globe2, Heart, ImagePlus, MessageCircle, MoreHorizontal, Repeat2, RotateCcw, Send, Share2, ThumbsUp, Trash2 } from "lucide-react";
+import { BarChart3, Bell, Bookmark, Copy, Download, Globe2, Heart, Home, ImagePlus, MessageCircle, MoreHorizontal, Repeat2, RotateCcw, Search, Send, Share2, ThumbsUp, Trash2, UsersRound } from "lucide-react";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,43 +63,51 @@ function Avatar({ src, name }: { src: string; name: string }) {
 }
 function PostImage({ src, settings }: { src: string; settings: Settings }) {
   const ratio = formats[settings.format][1];
-  return <div className="flex w-full items-center justify-center overflow-hidden bg-muted/50" style={{ aspectRatio: ratio }}>{src ? <>
+  return <div className="flex w-full items-center justify-center overflow-hidden bg-neutral-100 text-neutral-500" style={{ aspectRatio: ratio }}>{src ? <>
     {/* Blob URLs selected by the user are intentionally rendered without optimization. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={src} alt="Imagem selecionada para o post" className={cn("size-full", settings.fit === "cover" ? "object-cover" : "object-contain")} style={{ objectPosition: `${settings.position}% 50%` }} />
-  </> : <div className="flex flex-col items-center gap-2 px-4 text-center text-muted-foreground"><ImagePlus className="size-9" /><span className="text-sm">Sua imagem aparecerá aqui</span></div>}</div>;
+  </> : <div className="flex flex-col items-center gap-2 px-4 text-center"><ImagePlus className="size-9" /><span className="text-sm">Sua imagem aparecerá aqui</span></div>}</div>;
 }
 function PostPreview({ settings, avatar, postImage }: { settings: Settings; avatar: string; postImage: string }) {
   const username = settings.username || "usuario"; const name = settings.name || "Nome do perfil"; const caption = settings.caption || "Digite sua legenda para visualizar o post.";
 
-  if (settings.platform === "Instagram") return <article aria-label="Simulação de post no Instagram" className="mx-auto max-w-[470px] overflow-hidden border border-neutral-200 bg-white text-neutral-950 shadow-sm">
+  if (settings.platform === "Instagram") return <PlatformFrame platform="Instagram"><article aria-label="Simulação de post no Instagram" className="mx-auto max-w-[470px] overflow-hidden border-x border-b border-neutral-200 bg-white text-neutral-950 shadow-sm">
     <div className="flex items-center gap-3 px-3 py-2.5"><Avatar src={avatar} name={name} /><div className="min-w-0 flex-1"><p className="truncate text-[13px] font-semibold leading-4">{username}</p><p className="truncate text-[11px] leading-4 text-neutral-700">Publicação no feed</p></div><MoreHorizontal className="size-5" aria-hidden /></div>
     <PostImage src={postImage} settings={settings} />
     <div className="flex items-center gap-4 px-3 py-3" aria-label="Ações ilustrativas do Instagram"><Heart className="size-6" strokeWidth={1.8} /><MessageCircle className="size-6" strokeWidth={1.8} /><Repeat2 className="size-6" strokeWidth={1.8} /><Send className="size-6" strokeWidth={1.8} /><Bookmark className="ml-auto size-6" strokeWidth={1.8} /></div>
     <div className="px-3 pb-4 text-[13px] leading-5"><p className="font-semibold">Curtidas</p><p className="mt-1 whitespace-pre-wrap break-words"><strong className="mr-2">{username}</strong>{caption}</p><p className="mt-1 text-xs text-neutral-500">Ver comentários</p></div>
-  </article>;
+  </article></PlatformFrame>;
 
-  if (settings.platform === "Facebook") return <article aria-label="Simulação de post no Facebook" className="mx-auto max-w-[560px] overflow-hidden rounded-xl border border-neutral-200 bg-white text-neutral-950 shadow-md">
+  if (settings.platform === "Facebook") return <PlatformFrame platform="Facebook"><article aria-label="Simulação de post no Facebook" className="mx-auto max-w-[560px] overflow-hidden rounded-lg border border-neutral-200 bg-white text-neutral-950 shadow-sm">
     <div className="flex items-center gap-3 px-4 pb-2 pt-3"><Avatar src={avatar} name={name} /><div className="min-w-0 flex-1"><p className="truncate text-[15px] font-semibold">{name}</p><p className="flex items-center gap-1 text-xs text-neutral-500">Agora · <Globe2 className="size-3" aria-label="Público" /></p></div><MoreHorizontal className="size-6 text-neutral-600" aria-hidden /></div>
     <p className="whitespace-pre-wrap break-words px-4 pb-3 text-[15px] leading-5">{caption}</p><PostImage src={postImage} settings={settings} />
     <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 text-xs text-neutral-500"><span className="flex items-center gap-1"><span className="flex size-5 items-center justify-center rounded-full bg-[#1877f2] text-white"><ThumbsUp className="size-3 fill-current" /></span>Reações</span><span>Comentários · Compartilhamentos</span></div>
     <div className="grid grid-cols-3 px-2 py-1 text-sm font-medium text-neutral-600" aria-label="Ações ilustrativas do Facebook"><PreviewAction icon={<ThumbsUp />} label="Curtir" /><PreviewAction icon={<MessageCircle />} label="Comentar" /><PreviewAction icon={<Share2 />} label="Compartilhar" /></div>
-  </article>;
+  </article></PlatformFrame>;
 
-  if (settings.platform === "LinkedIn") return <article aria-label="Simulação de post no LinkedIn" className="mx-auto max-w-[552px] overflow-hidden rounded-lg border border-[#d6d6d6] bg-white text-[#191919] shadow-sm">
+  if (settings.platform === "LinkedIn") return <PlatformFrame platform="LinkedIn"><article aria-label="Simulação de post no LinkedIn" className="mx-auto max-w-[552px] overflow-hidden rounded-lg border border-[#d6d6d6] bg-white text-neutral-950 shadow-sm">
     <div className="flex items-start gap-3 px-4 pb-2 pt-3"><Avatar src={avatar} name={name} /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold leading-5">{name}</p><p className="truncate text-xs text-neutral-500">{settings.professional || "Descrição profissional"}</p><p className="flex items-center gap-1 text-xs text-neutral-500">Agora · <Globe2 className="size-3" aria-label="Público" /></p></div><MoreHorizontal className="size-5" aria-hidden /></div>
     <p className="whitespace-pre-wrap break-words px-4 pb-3 text-sm leading-5">{caption}</p><PostImage src={postImage} settings={settings} />
     <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 text-xs text-neutral-500"><span className="flex items-center gap-1"><span className="flex size-4 items-center justify-center rounded-full bg-[#0a66c2] text-white"><ThumbsUp className="size-2.5 fill-current" /></span>Reações</span><span>Comentários · Republicações</span></div>
-    <div className="grid grid-cols-4 px-1 py-1 text-xs font-semibold text-neutral-600" aria-label="Ações ilustrativas do LinkedIn"><PreviewAction icon={<ThumbsUp />} label="Gostei" /><PreviewAction icon={<MessageCircle />} label="Comentar" /><PreviewAction icon={<Repeat2 />} label="Republicar" /><PreviewAction icon={<Send />} label="Enviar" /></div>
-  </article>;
+    <div className="grid grid-cols-4 px-1 py-1 text-[10px] font-semibold text-neutral-600 sm:text-xs" aria-label="Ações ilustrativas do LinkedIn"><PreviewAction icon={<ThumbsUp />} label="Gostei" /><PreviewAction icon={<MessageCircle />} label="Comentar" /><PreviewAction icon={<Repeat2 />} label="Republicar" /><PreviewAction icon={<Send />} label="Enviar" /></div>
+  </article></PlatformFrame>;
 
-  if (settings.platform === "X") return <article aria-label="Simulação de post no X" className="mx-auto max-w-[600px] border-y border-neutral-200 bg-white px-4 py-3 text-neutral-950">
+  if (settings.platform === "X") return <PlatformFrame platform="X"><article aria-label="Simulação de post no X" className="mx-auto max-w-[600px] border-b border-neutral-200 bg-white px-4 py-3 text-neutral-950">
     <div className="flex gap-3"><Avatar src={avatar} name={name} /><div className="min-w-0 flex-1"><div className="flex min-w-0 items-center gap-1 text-[15px]"><strong className="truncate">{name}</strong><span className="truncate text-neutral-500">@{username} · agora</span><MoreHorizontal className="ml-auto size-5 shrink-0 text-neutral-500" aria-hidden /></div><p className="mt-0.5 whitespace-pre-wrap break-words text-[15px] leading-5">{caption}</p><div className="mt-3 overflow-hidden rounded-2xl border border-neutral-200"><PostImage src={postImage} settings={settings} /></div><div className="mt-3 flex items-center justify-between text-neutral-500" aria-label="Ações ilustrativas do X"><MessageCircle className="size-[18px]" /><Repeat2 className="size-[18px]" /><Heart className="size-[18px]" /><BarChart3 className="size-[18px]" /><Bookmark className="size-[18px]" /><Share2 className="size-[18px]" /></div></div></div>
-  </article>;
+  </article></PlatformFrame>;
 
-  return <article aria-label="Simulação de post no Threads" className="mx-auto max-w-[620px] bg-white px-4 py-4 text-neutral-950">
+  return <PlatformFrame platform="Threads"><article aria-label="Simulação de post no Threads" className="mx-auto max-w-[620px] bg-white px-4 py-4 text-neutral-950">
     <div className="grid grid-cols-[44px_minmax(0,1fr)] gap-3"><div className="flex flex-col items-center"><Avatar src={avatar} name={name} /><span className="mt-2 w-0.5 flex-1 bg-neutral-200" aria-hidden /><span className="mt-2 flex -space-x-1" aria-hidden><span className="size-2 rounded-full bg-neutral-300" /><span className="size-2 rounded-full bg-neutral-400" /></span></div><div className="min-w-0"><div className="flex items-center gap-2"><strong className="truncate text-[15px]">{username}</strong><span className="ml-auto text-sm text-neutral-500">agora</span><MoreHorizontal className="size-5 text-neutral-500" aria-hidden /></div><p className="mt-1 whitespace-pre-wrap break-words text-[15px] leading-5">{caption}</p><div className="mt-3 overflow-hidden rounded-xl border border-neutral-200"><PostImage src={postImage} settings={settings} /></div><div className="mt-3 flex items-center gap-4" aria-label="Ações ilustrativas do Threads"><Heart className="size-5" /><MessageCircle className="size-5" /><Repeat2 className="size-5" /><Send className="size-5" /></div><p className="mt-3 text-sm text-neutral-500">Ver atividade · Respostas e curtidas</p></div></div>
-  </article>;
+  </article></PlatformFrame>;
 }
 
-function PreviewAction({ icon, label }: { icon: React.ReactElement<{ className?: string }>; label: string }) { return <span className="flex min-w-0 items-center justify-center gap-1.5 py-2.5 [&_svg]:size-[18px]"><span aria-hidden>{icon}</span><span className="truncate">{label}</span></span>; }
+function PreviewAction({ icon, label }: { icon: React.ReactElement<{ className?: string }>; label: string }) { return <span className="flex min-w-0 items-center justify-center gap-1 py-2.5 [&_svg]:size-4 sm:[&_svg]:size-[18px]"><span aria-hidden>{icon}</span><span className="truncate">{label}</span></span>; }
+
+function PlatformFrame({ platform, children }: { platform: Platform; children: React.ReactNode }) {
+  if (platform === "Instagram") return <div className="mx-auto max-w-[470px] overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm"><div className="flex h-12 items-center border-b border-neutral-200 px-3 text-neutral-950"><span className="font-serif text-xl font-semibold italic tracking-tight">Instagram</span><div className="ml-auto flex items-center gap-4"><Home className="size-5" aria-hidden /><Send className="size-5" aria-hidden /></div></div>{children}</div>;
+  if (platform === "Facebook") return <div className="mx-auto max-w-[600px] overflow-hidden rounded-lg border border-neutral-200 bg-[#f0f2f5] shadow-sm"><div className="flex h-13 items-center gap-3 border-b border-neutral-200 bg-white px-3 text-neutral-950"><span className="flex size-8 items-center justify-center rounded-full bg-[#0866ff] text-xl font-bold text-white">f</span><span className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-full bg-[#f0f2f5] px-3 text-xs text-neutral-500"><Search className="size-4" aria-hidden />Pesquisar no Facebook</span><Bell className="size-5 text-neutral-600" aria-hidden /></div><div className="p-3">{children}</div></div>;
+  if (platform === "LinkedIn") return <div className="mx-auto max-w-[600px] overflow-hidden rounded-md border border-neutral-200 bg-[#f3f2ef] shadow-sm"><div className="flex min-h-14 items-center gap-3 border-b border-neutral-200 bg-white px-3 text-neutral-950"><span className="flex size-8 items-center justify-center rounded-sm bg-[#0a66c2] text-lg font-bold text-white">in</span><span className="hidden h-8 min-w-0 flex-1 items-center gap-2 rounded bg-[#edf3f8] px-3 text-xs text-neutral-600 sm:flex"><Search className="size-4" aria-hidden />Pesquisar</span><span className="ml-auto flex items-center gap-4 text-[10px] text-neutral-600"><span className="flex flex-col items-center"><Home className="size-5" />Início</span><span className="flex flex-col items-center"><UsersRound className="size-5" />Minha rede</span><span className="flex flex-col items-center"><Bell className="size-5" />Notificações</span></span></div><div className="p-3">{children}</div></div>;
+  if (platform === "X") return <div className="mx-auto max-w-[600px] overflow-hidden border-x border-neutral-200 bg-white text-neutral-950 shadow-sm"><div className="flex h-12 items-center border-b border-neutral-200 px-4"><span className="text-xl font-semibold">𝕏</span><span className="mx-auto font-semibold">Página inicial</span><Search className="size-5" aria-hidden /></div><div className="grid h-12 grid-cols-2 border-b border-neutral-200 text-sm font-medium"><span className="flex items-center justify-center border-b-2 border-[#1d9bf0]">Para você</span><span className="flex items-center justify-center text-neutral-500">Seguindo</span></div>{children}</div>;
+  return <div className="mx-auto max-w-[620px] overflow-hidden rounded-lg border border-neutral-200 bg-white text-neutral-950 shadow-sm"><div className="grid h-13 grid-cols-[1fr_auto_1fr] items-center border-b border-neutral-200 px-4"><span className="text-xl font-semibold">@</span><span className="font-semibold">Para você</span><MoreHorizontal className="ml-auto size-5" aria-hidden /></div>{children}</div>;
+}
