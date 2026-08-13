@@ -27,6 +27,13 @@ const ALLOWED_FEED_HOSTS = new Set([
   "www.nuvemshop.com.br",
   "www.practicalecommerce.com",
   "www.digitalcommerce360.com",
+  "mittechreview.com.br",
+  "www.meioemensagem.com.br",
+  "propmark.com.br",
+  "ecommercenapratica.com",
+  "blog.bling.com.br",
+  "lojaintegrada.com.br",
+  "melhorenvio.com.br",
 ]);
 
 const parser = new XMLParser({
