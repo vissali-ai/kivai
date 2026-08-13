@@ -50,6 +50,11 @@ export function PostEditor({ post, categories, tools }: { post?: Post | null; ca
     setForm((current) => ({ ...current, ...data, id: data.id, tagNames: tags }));
     setMessage("Salvo");
     if (preview) window.open(`/admin/blog/${data.id}/preview`, "_blank", "noopener,noreferrer");
+    if (status === "published" && !preview) {
+      router.push("/admin/blog?status=published");
+      router.refresh();
+      return;
+    }
     if (!form.id) router.replace(`/admin/blog/${data.id}`);
     router.refresh();
   }
