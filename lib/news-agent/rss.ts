@@ -4,7 +4,7 @@ import { XMLParser } from "fast-xml-parser";
 import { plainText, sanitizeImportedFeedHtml } from "@/lib/blog/sanitize";
 import type { NewsCandidate, NewsSource } from "@/lib/news-agent/types";
 
-const MAX_FEED_BYTES = 2_000_000;
+const MAX_FEED_BYTES = 3_000_000;
 const ALLOWED_FEED_HOSTS = new Set([
   "feeds.arstechnica.com",
   "techcrunch.com",
@@ -18,6 +18,15 @@ const ALLOWED_FEED_HOSTS = new Set([
   "olhardigital.com.br",
   "rss.tecmundo.com.br",
   "g1.globo.com",
+  "news.mit.edu",
+  "huggingface.co",
+  "deepmind.google",
+  "blog.hubspot.com",
+  "www.searchenginejournal.com",
+  "www.socialmediaexaminer.com",
+  "www.nuvemshop.com.br",
+  "www.practicalecommerce.com",
+  "www.digitalcommerce360.com",
 ]);
 
 const parser = new XMLParser({
