@@ -5,12 +5,12 @@ import { getToolBySlug } from "@/lib/tools";
 import { sanitizePostHtml } from "@/lib/blog/sanitize";
 import type { Post } from "@/lib/blog/types";
 
-const fullDate = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" });
+const fullDate = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" });
 
 export function ArticleView({ post, preview = false }: { post: Post; preview?: boolean }) {
   const relatedTools = post.relatedToolSlugs.flatMap((slug) => { const tool = getToolBySlug(slug); return tool ? [tool] : []; });
   const published = post.publishedAt ?? post.scheduledAt ?? post.createdAt;
-  return <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-10 pt-28 sm:px-6 lg:pb-16 lg:pt-32">
+  return <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-10 pt-10 sm:px-6 lg:pb-16 lg:pt-14">
     {preview ? <div className="mb-6 border border-amber-500/30 bg-amber-500/10 p-3 text-center text-sm text-amber-100">Pré-visualização privada. Esta página não é indexável.</div> : null}
     <nav aria-label="Breadcrumb" className="mb-8 text-xs text-muted-foreground"><Link href="/">Início</Link><span className="mx-2">/</span><Link href="/blog">Blog</Link>{post.category ? <><span className="mx-2">/</span><Link href={`/blog/categoria/${post.category.slug}`}>{post.category.name}</Link></> : null}</nav>
     <article><header className="mx-auto max-w-4xl"><div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">{post.category ? <Link href={`/blog/categoria/${post.category.slug}`} className="border border-primary/30 bg-primary/10 px-2 py-1 text-primary">{post.category.name}</Link> : null}<span className="flex items-center gap-1"><UserRound className="size-3.5" />{post.author}</span><time className="flex items-center gap-1" dateTime={published}><CalendarDays className="size-3.5" />{fullDate.format(new Date(published))}</time>{post.updatedAt !== post.createdAt ? <span className="flex items-center gap-1"><Clock3 className="size-3.5" />Atualizada em {fullDate.format(new Date(post.updatedAt))}</span> : null}</div><h1 className="text-balance text-3xl font-semibold leading-tight sm:text-5xl">{post.title}</h1>{post.subtitle ? <p className="mt-5 text-lg leading-relaxed text-muted-foreground sm:text-xl">{post.subtitle}</p> : null}</header>

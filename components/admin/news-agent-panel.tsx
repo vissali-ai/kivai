@@ -29,7 +29,7 @@ export function NewsAgentPanel({ canRun }: { canRun: boolean }) {
 
   return <div className="border border-primary/30 bg-primary/10 p-5">
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="flex max-w-2xl gap-3"><Bot className="mt-0.5 size-5 shrink-0 text-primary" /><div><h2 className="font-semibold">Executar coleta agora</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">O agente consulta os RSS e cria somente pautas em rascunho, com fonte e link original. Você prepara o texto, adiciona a imagem e publica manualmente.</p></div></div>
+      <div className="flex max-w-2xl gap-3"><Bot className="mt-0.5 size-5 shrink-0 text-primary" /><div><h2 className="font-semibold">Executar coleta agora</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">O agente consulta os RSS brasileiros e cria até 30 pautas em rascunho, com título, categoria, fonte e link original. Os campos editoriais ficam livres para você preencher com o material preparado no GPT.</p></div></div>
       <Button disabled={!canRun || running} onClick={run}><Play />{running ? "Executando..." : "Buscar notícias"}</Button>
     </div>
     {message ? <p className="mt-4 border-t border-primary/20 pt-3 text-sm">{message}</p> : null}

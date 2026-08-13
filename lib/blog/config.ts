@@ -12,7 +12,7 @@ export const newsAgentConfig = {
   openAiApiKey: process.env.OPENAI_API_KEY ?? "",
   model: process.env.OPENAI_EDITORIAL_MODEL ?? "gpt-5.6-luna",
   cronSecret: process.env.NEWS_AGENT_CRON_SECRET ?? "",
-  maxDrafts: Math.min(Math.max(Number(process.env.NEWS_AGENT_MAX_DRAFTS ?? 10), 1), 10),
+  maxDrafts: 30,
   maxAgeHours: Math.min(Math.max(Number(process.env.NEWS_AGENT_MAX_AGE_HOURS ?? 48), 4), 168),
 };
 

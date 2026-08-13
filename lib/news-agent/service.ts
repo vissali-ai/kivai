@@ -45,26 +45,16 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Falha desconhecida no agente editorial.";
 }
 
-function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
-  })[character] ?? character);
-}
-
 function createRssDraft(candidate: NewsCandidate) {
-  const excerpt = candidate.excerpt.trim() || "O feed não forneceu um resumo. Consulte a matéria original antes de preparar a versão do Kivai.";
-  const publishedAt = candidate.publishedAt
-    ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "short" }).format(new Date(candidate.publishedAt))
-    : "Não informada pelo feed";
   return {
     title: candidate.title,
-    subtitle: excerpt.slice(0, 180),
-    excerpt: excerpt.slice(0, 320),
-    contentHtml: `<h2>Material disponibilizado no RSS</h2><p><strong>Fonte original:</strong> <a href="${escapeHtml(candidate.url)}">${escapeHtml(candidate.sourceName)}</a></p><p><strong>Data informada:</strong> ${escapeHtml(publishedAt)}</p><hr>${candidate.contentHtml || `<p>${escapeHtml(excerpt)}</p>`}<hr><h2>Antes de publicar</h2><ul><li>Leia a fonte original e confirme os fatos importantes.</li><li>Substitua este material por uma versão própria e revisada para o Blog do Kivai.</li><li>Escolha a categoria correta e adicione uma imagem de capa com direito de uso.</li><li>Mantenha o crédito e o link da fonte consultada.</li></ul>`,
+    subtitle: "",
+    excerpt: "",
+    contentHtml: "<p></p>",
     categorySlug: candidate.categorySlug,
-    tags: [...new Set([candidate.categorySlug.replace(/-/g, " "), candidate.sourceName, ...candidate.tags])].slice(0, 8),
-    seoTitle: candidate.title.slice(0, 70),
-    metaDescription: excerpt.slice(0, 170),
+    tags: [],
+    seoTitle: "",
+    metaDescription: "",
   };
 }
 
@@ -138,8 +128,8 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
           seoTitle: article.seoTitle,
           metaDescription: article.metaDescription,
           canonicalUrl: "",
-          ogTitle: article.title,
-          ogDescription: article.excerpt,
+          ogTitle: newsAgentConfig.mode === "ai" ? article.title : "",
+          ogDescription: newsAgentConfig.mode === "ai" ? article.excerpt : "",
           ogImage: "",
           relatedToolSlugs: [],
           featured: false,

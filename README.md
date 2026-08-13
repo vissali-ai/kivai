@@ -51,8 +51,9 @@ O painel salva novos conteúdos como rascunho, protege também as APIs no servid
 3. Abra `/admin/blog/agente` para testar uma coleta manual e consultar o histórico.
 4. No Supabase Cron, crie uma chamada HTTP `POST` para `https://www.kivai.com.br/api/cron/news-agent` com a expressão `0 */4 * * *` e o header `Authorization: Bearer SEU_NEWS_AGENT_CRON_SECRET`.
 5. Para adicionar as fontes brasileiras padrão, aplique também `supabase/migrations/004_brazilian_rss_sources.sql`.
-6. Cada execução cria até 10 rascunhos por padrão; ajuste com `NEWS_AGENT_MAX_DRAFTS` entre 1 e 10.
+6. Cada execução cria até 30 rascunhos.
 7. As fontes especializadas internacionais de IA, marketing e e-commerce estão em `supabase/migrations/005_specialized_rss_sources.sql`.
 8. As fontes brasileiras especializadas de IA, marketing e e-commerce estão em `supabase/migrations/006_brazilian_specialized_rss_sources.sql`.
+9. Para manter apenas fontes em português e criar a categoria Guia de Ferramentas, aplique `supabase/migrations/007_portuguese_sources_and_tools_guide.sql`.
 
 Cada execução consulta apenas feeds permitidos, elimina URLs e pautas repetidas, respeita o limite configurado de rascunhos e nunca publica. Rascunhos automáticos exigem revisão humana e imagem de capa antes da publicação.
