@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { PostCard } from "@/components/blog/post-card";
+import { FeaturedPostCard } from "@/components/blog/featured-post-card";
 import { Button } from "@/components/ui/button";
 import type { Post } from "@/lib/blog/types";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 12;
 
 export function PostList({ posts }: { posts: Post[] }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -14,8 +14,8 @@ export function PostList({ posts }: { posts: Post[] }) {
 
   return (
     <>
-      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {visiblePosts.map((post) => <PostCard key={post.id} post={post} />)}
+      <div className="mt-6 grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {visiblePosts.map((post) => <FeaturedPostCard key={post.id} post={post} />)}
       </div>
       {hasMore ? (
         <div className="mt-8 flex justify-center">

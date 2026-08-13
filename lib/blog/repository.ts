@@ -124,7 +124,9 @@ export async function listAllPosts() {
 export async function listPublishedPosts() {
   const posts = await listAllPosts();
   const now = Date.now();
-  return posts.filter((post) => post.status === "published" || (post.status === "scheduled" && Boolean(post.scheduledAt) && new Date(post.scheduledAt!).getTime() <= now));
+  return posts
+    .filter((post) => post.status === "published" || (post.status === "scheduled" && Boolean(post.scheduledAt) && new Date(post.scheduledAt!).getTime() <= now))
+    .sort((left, right) => new Date(right.publishedAt ?? right.scheduledAt ?? right.createdAt).getTime() - new Date(left.publishedAt ?? left.scheduledAt ?? left.createdAt).getTime());
 }
 
 export async function listFeaturedPosts() {
