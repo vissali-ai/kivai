@@ -17,6 +17,8 @@ export type NewsCandidate = {
   url: string;
   title: string;
   excerpt: string;
+  contentHtml: string;
+  tags: string[];
   publishedAt: string | null;
 };
 

@@ -58,11 +58,11 @@ function createRssDraft(candidate: NewsCandidate) {
     : "Não informada pelo feed";
   return {
     title: candidate.title,
-    subtitle: `Pauta importada do RSS de ${candidate.sourceName} para edição manual.`,
+    subtitle: excerpt.slice(0, 180),
     excerpt: excerpt.slice(0, 320),
-    contentHtml: `<h2>Pauta coletada via RSS</h2><p><strong>Fonte original:</strong> <a href="${escapeHtml(candidate.url)}">${escapeHtml(candidate.sourceName)}</a></p><p><strong>Data informada:</strong> ${escapeHtml(publishedAt)}</p><h2>Resumo fornecido pelo feed</h2><p>${escapeHtml(excerpt)}</p><h2>Antes de publicar</h2><ul><li>Leia a fonte original e confirme os fatos importantes.</li><li>Substitua este conteúdo por uma versão própria e revisada para o Blog do Kivai.</li><li>Escolha a categoria correta e adicione uma imagem de capa com direito de uso.</li><li>Mantenha o crédito e o link da fonte consultada.</li></ul>`,
+    contentHtml: `<h2>Material disponibilizado no RSS</h2><p><strong>Fonte original:</strong> <a href="${escapeHtml(candidate.url)}">${escapeHtml(candidate.sourceName)}</a></p><p><strong>Data informada:</strong> ${escapeHtml(publishedAt)}</p><hr>${candidate.contentHtml || `<p>${escapeHtml(excerpt)}</p>`}<hr><h2>Antes de publicar</h2><ul><li>Leia a fonte original e confirme os fatos importantes.</li><li>Substitua este material por uma versão própria e revisada para o Blog do Kivai.</li><li>Escolha a categoria correta e adicione uma imagem de capa com direito de uso.</li><li>Mantenha o crédito e o link da fonte consultada.</li></ul>`,
     categorySlug: candidate.categorySlug,
-    tags: [candidate.categorySlug.replace(/-/g, " "), candidate.sourceName],
+    tags: [...new Set([candidate.categorySlug.replace(/-/g, " "), candidate.sourceName, ...candidate.tags])].slice(0, 8),
     seoTitle: candidate.title.slice(0, 70),
     metaDescription: excerpt.slice(0, 170),
   };

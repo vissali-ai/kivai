@@ -1,7 +1,7 @@
 import "server-only";
 
 import { XMLParser } from "fast-xml-parser";
-import { plainText } from "@/lib/blog/sanitize";
+import { plainText, sanitizeImportedFeedHtml } from "@/lib/blog/sanitize";
 import type { NewsCandidate, NewsSource } from "@/lib/news-agent/types";
 
 const MAX_FEED_BYTES = 2_000_000;
@@ -96,7 +96,11 @@ export async function fetchNewsFeed(source: NewsSource): Promise<NewsCandidate[]
       const rawUrl = textValue(item.link) || atomLink(item.link) || textValue(item.guid);
       const url = normalizeUrl(rawUrl);
       const title = plainText(textValue(item.title)).trim();
-      const excerpt = plainText(textValue(item.description ?? item.summary ?? item.content)).trim().slice(0, 1800);
+      const description = textValue(item.description ?? item.summary ?? item.content);
+      const rawContent = textValue(item["content:encoded"] ?? item.content ?? item.description ?? item.summary);
+      const excerpt = plainText(description || rawContent).trim().slice(0, 1800);
+      const contentHtml = sanitizeImportedFeedHtml(rawContent.slice(0, 80_000));
+      const tags = asArray(item.category).map(textValue).map((tag) => plainText(tag).trim()).filter(Boolean).slice(0, 8);
       if (!title || !url) return [];
       return [{
         sourceId: source.id,
@@ -106,6 +110,8 @@ export async function fetchNewsFeed(source: NewsSource): Promise<NewsCandidate[]
         url,
         title,
         excerpt,
+        contentHtml,
+        tags,
         publishedAt: safeDate(item.pubDate ?? item.published ?? item.updated),
       }];
     } catch {

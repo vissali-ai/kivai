@@ -40,3 +40,17 @@ export function sanitizePostHtml(value: string) {
 export function plainText(value: string) {
   return sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} }).trim();
 }
+
+export function sanitizeImportedFeedHtml(value: string) {
+  return sanitizeHtml(value, {
+    allowedTags: ["p", "br", "h2", "h3", "strong", "em", "ul", "ol", "li", "a", "blockquote", "hr"],
+    allowedAttributes: { a: ["href", "target", "rel"] },
+    allowedSchemes: ["http", "https"],
+    transformTags: {
+      a: (_tagName, attribs) => ({
+        tagName: "a",
+        attribs: { href: attribs.href ?? "", target: "_blank", rel: "noopener noreferrer nofollow" },
+      }),
+    },
+  });
+}

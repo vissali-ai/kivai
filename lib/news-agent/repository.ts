@@ -75,10 +75,11 @@ export async function finishAgentRun(id: string, input: {
 
 export async function listKnownContentHashes(hashes: string[]) {
   if (!hashes.length) return new Set<string>();
-  const rows = await supabaseRest<Pick<DbImport, "content_hash">[]>(
-    `blog_news_imports?select=content_hash&status=in.(processing,draft-created,ignored)&content_hash=in.(${hashes.join(",")})`,
-  );
-  return new Set(rows.map((row) => row.content_hash));
+  const batches = Array.from({ length: Math.ceil(hashes.length / 40) }, (_, index) => hashes.slice(index * 40, index * 40 + 40));
+  const results = await Promise.all(batches.map((batch) => supabaseRest<Pick<DbImport, "content_hash">[]>(
+    `blog_news_imports?select=content_hash&status=in.(processing,draft-created,ignored)&content_hash=in.(${batch.join(",")})`,
+  )));
+  return new Set(results.flat().map((row) => row.content_hash));
 }
 
 export async function claimNewsImport(candidate: NewsCandidate, runId: string, contentHash: string) {
