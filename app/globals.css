@@ -197,3 +197,10 @@
 .docx-preview-shell .docx-wrapper > section:last-child {
   margin-bottom: 0;
 }
+.media-library article {
+  min-width: 0;
+}
+
+.media-library article img {
+  max-width: 100%;
+}

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, BookOpen, FolderTree, LayoutDashboard, LogOut, Plus } from "lucide-react";
+import { Bot, BookOpen, FolderTree, Images, LayoutDashboard, LogOut, Plus } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 
 const links = [
   { href: "/admin/blog", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/blog/nova", label: "Nova matéria", icon: Plus },
+  { href: "/admin/blog/midias", label: "Biblioteca", icon: Images },
   { href: "/admin/blog/categorias", label: "Categorias", icon: FolderTree },
   { href: "/admin/blog/agente", label: "Agente", icon: Bot },
 ];
