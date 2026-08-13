@@ -1,9 +1,13 @@
 import type { MetadataRoute } from "next";
 import { isToolIndexable, tools } from "@/lib/tools";
+import { listCategories, listPublishedPosts } from "@/lib/blog/repository";
 
 const baseUrl = "https://www.kivai.com.br";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [blogPosts, categories] = await Promise.all([listPublishedPosts(), listCategories()]);
   const pages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -89,6 +93,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.5,
     },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: blogPosts[0]?.updatedAt ? new Date(blogPosts[0].updatedAt) : new Date(),
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    ...blogPosts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.updatedAt),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
+    ...categories.filter((category) => blogPosts.some((post) => post.categoryId === category.id)).map((category) => ({
+      url: `${baseUrl}/blog/categoria/${category.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
   ];
 
   const toolPages: MetadataRoute.Sitemap = tools

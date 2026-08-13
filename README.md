@@ -34,3 +34,21 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Painel administrativo do blog
+
+1. Crie um projeto no Supabase e execute `supabase/migrations/001_blog_cms.sql` no SQL Editor.
+2. Copie `.env.example` para `.env.local` e preencha as credenciais. A service role nunca deve usar o prefixo `NEXT_PUBLIC_`.
+3. Execute `npm run dev`, abra `/login` e use `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
+4. Cadastre categorias e imagens, depois crie a primeira matéria em `/admin/blog/nova`.
+
+O painel salva novos conteúdos como rascunho, protege também as APIs no servidor, sanitiza o HTML editorial e publica somente após uma ação explícita. O storage é o bucket `blog-media`; uploads são validados e deduplicados por SHA-256.
+
+### Agente editorial de notícias
+
+1. Execute `supabase/migrations/002_blog_featured_and_categories.sql` e `supabase/migrations/003_news_agent.sql` no SQL Editor.
+2. Configure `OPENAI_API_KEY`, `OPENAI_EDITORIAL_MODEL` e `NEWS_AGENT_CRON_SECRET` no ambiente do servidor.
+3. Abra `/admin/blog/agente` para testar uma coleta manual e consultar o histórico.
+4. No Supabase Cron, crie uma chamada HTTP `POST` para `https://www.kivai.com.br/api/cron/news-agent` com a expressão `0 */4 * * *` e o header `Authorization: Bearer SEU_NEWS_AGENT_CRON_SECRET`.
+
+Cada execução consulta apenas feeds permitidos, elimina URLs e pautas repetidas, respeita o limite configurado de rascunhos e nunca publica. Rascunhos automáticos exigem revisão humana e imagem de capa antes da publicação.

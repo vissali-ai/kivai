@@ -7,6 +7,7 @@ import { CookieSettingsButton } from "@/components/privacy/cookie-settings-butto
 const productLinks = [
   { label: "Ferramentas", href: "/ferramentas" },
   { label: "Serviços", href: "/servicos" },
+  { label: "Blog", href: "/blog", newTab: true },
 ];
 
 const ecosystemLinks = toolCategories.map((category) => ({
@@ -75,6 +76,8 @@ export function Footer() {
                   <li key={`${link.label}-${link.href}`}>
                     <Link
                       href={link.href}
+                      target={"newTab" in link && link.newTab ? "_blank" : undefined}
+                      rel={"newTab" in link && link.newTab ? "noopener noreferrer" : undefined}
                       className="group inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
                     >
                       {link.label}

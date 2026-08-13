@@ -55,7 +55,7 @@
 }
 
 /* =========================================================
-   NEXION TOOLS — PREMIUM DARK DESIGN SYSTEM
+   KIVAI — PREMIUM DARK DESIGN SYSTEM
    ========================================================= */
 
 :root {
@@ -162,6 +162,26 @@
     color: var(--foreground);
   }
 }
+
+/* Editor e conteúdo editorial do blog */
+.cms-editor p,
+.blog-article p { margin: 1.1rem 0; line-height: 1.85; }
+.cms-editor h2,
+.blog-article h2 { margin: 2.25rem 0 0.8rem; font-size: 1.65rem; font-weight: 650; line-height: 1.25; }
+.cms-editor h3,
+.blog-article h3 { margin: 1.75rem 0 0.65rem; font-size: 1.25rem; font-weight: 650; line-height: 1.35; }
+.cms-editor ul, .cms-editor ol,
+.blog-article ul, .blog-article ol { margin: 1rem 0; padding-left: 1.5rem; }
+.cms-editor ul, .blog-article ul { list-style: disc; }
+.cms-editor ol, .blog-article ol { list-style: decimal; }
+.cms-editor li, .blog-article li { margin: 0.45rem 0; line-height: 1.75; }
+.cms-editor blockquote,
+.blog-article blockquote { margin: 1.5rem 0; border-left: 3px solid var(--primary); padding: 0.5rem 0 0.5rem 1.25rem; color: var(--muted-foreground); }
+.cms-editor a, .blog-article a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.cms-editor img, .blog-article img { margin: 1.5rem auto; max-width: 100%; height: auto; }
+.cms-editor hr, .blog-article hr { margin: 2rem 0; border-color: color-mix(in oklab, currentColor 15%, transparent); }
+.cms-editor iframe, .blog-article iframe { aspect-ratio: 16 / 9; width: 100%; height: auto; margin: 1.5rem 0; border: 0; }
+.cms-editor > :first-child, .blog-article > :first-child { margin-top: 0; }
 
 .docx-preview-shell .docx-wrapper {
   background: transparent;

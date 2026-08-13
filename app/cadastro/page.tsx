@@ -13,7 +13,7 @@ export default function Cadastro() {
     <main>
       <h1>Cadastro</h1>
 
-      <p>Crie sua conta no Nexion Tools.</p>
+      <p>Crie sua conta no Kivai.</p>
     </main>
   );
 }
