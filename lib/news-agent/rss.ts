@@ -11,6 +11,13 @@ const ALLOWED_FEED_HOSTS = new Set([
   "www.theverge.com",
   "blog.google",
   "openai.com",
+  "tecnoblog.net",
+  "manualdousuario.net",
+  "canaltech.com.br",
+  "rss.uol.com.br",
+  "olhardigital.com.br",
+  "rss.tecmundo.com.br",
+  "g1.globo.com",
 ]);
 
 const parser = new XMLParser({

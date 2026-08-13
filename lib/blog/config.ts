@@ -8,6 +8,7 @@ export const blogConfig = {
 };
 
 export const newsAgentConfig = {
+  mode: process.env.NEWS_AGENT_MODE?.trim().toLowerCase() === "ai" ? "ai" as const : "rss" as const,
   openAiApiKey: process.env.OPENAI_API_KEY ?? "",
   model: process.env.OPENAI_EDITORIAL_MODEL ?? "gpt-5.6-luna",
   cronSecret: process.env.NEWS_AGENT_CRON_SECRET ?? "",
@@ -16,7 +17,8 @@ export const newsAgentConfig = {
 };
 
 export function isNewsAgentConfigured() {
-  return Boolean(newsAgentConfig.openAiApiKey && newsAgentConfig.cronSecret.length >= 32);
+  const generationReady = newsAgentConfig.mode === "rss" || Boolean(newsAgentConfig.openAiApiKey);
+  return Boolean(generationReady && newsAgentConfig.cronSecret.length >= 32);
 }
 
 export function isBlogDatabaseConfigured() {

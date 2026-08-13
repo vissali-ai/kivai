@@ -13,7 +13,7 @@ export function NewsAgentPanel({ canRun }: { canRun: boolean }) {
 
   async function run() {
     setRunning(true);
-    setMessage("Consultando os feeds e preparando rascunhos. Isso pode levar alguns minutos...");
+    setMessage("Consultando os feeds e criando pautas em rascunho...");
     try {
       const response = await fetch("/api/admin/news-agent/run", { method: "POST" });
       const data = await response.json() as NewsAgentResult & { error?: string };
@@ -29,7 +29,7 @@ export function NewsAgentPanel({ canRun }: { canRun: boolean }) {
 
   return <div className="border border-primary/30 bg-primary/10 p-5">
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="flex max-w-2xl gap-3"><Bot className="mt-0.5 size-5 shrink-0 text-primary" /><div><h2 className="font-semibold">Executar coleta agora</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">O agente criará somente rascunhos. Ele não baixa imagens e não possui permissão para publicar.</p></div></div>
+      <div className="flex max-w-2xl gap-3"><Bot className="mt-0.5 size-5 shrink-0 text-primary" /><div><h2 className="font-semibold">Executar coleta agora</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">O agente consulta os RSS e cria somente pautas em rascunho, com fonte e link original. Você prepara o texto, adiciona a imagem e publica manualmente.</p></div></div>
       <Button disabled={!canRun || running} onClick={run}><Play />{running ? "Executando..." : "Buscar notícias"}</Button>
     </div>
     {message ? <p className="mt-4 border-t border-primary/20 pt-3 text-sm">{message}</p> : null}

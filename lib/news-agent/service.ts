@@ -45,8 +45,33 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Falha desconhecida no agente editorial.";
 }
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
+  })[character] ?? character);
+}
+
+function createRssDraft(candidate: NewsCandidate) {
+  const excerpt = candidate.excerpt.trim() || "O feed não forneceu um resumo. Consulte a matéria original antes de preparar a versão do Kivai.";
+  const publishedAt = candidate.publishedAt
+    ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "short" }).format(new Date(candidate.publishedAt))
+    : "Não informada pelo feed";
+  return {
+    title: candidate.title,
+    subtitle: `Pauta importada do RSS de ${candidate.sourceName} para edição manual.`,
+    excerpt: excerpt.slice(0, 320),
+    contentHtml: `<h2>Pauta coletada via RSS</h2><p><strong>Fonte original:</strong> <a href="${escapeHtml(candidate.url)}">${escapeHtml(candidate.sourceName)}</a></p><p><strong>Data informada:</strong> ${escapeHtml(publishedAt)}</p><h2>Resumo fornecido pelo feed</h2><p>${escapeHtml(excerpt)}</p><h2>Antes de publicar</h2><ul><li>Leia a fonte original e confirme os fatos importantes.</li><li>Substitua este conteúdo por uma versão própria e revisada para o Blog do Kivai.</li><li>Escolha a categoria correta e adicione uma imagem de capa com direito de uso.</li><li>Mantenha o crédito e o link da fonte consultada.</li></ul>`,
+    categorySlug: candidate.categorySlug,
+    tags: [candidate.categorySlug.replace(/-/g, " "), candidate.sourceName],
+    seoTitle: candidate.title.slice(0, 70),
+    metaDescription: excerpt.slice(0, 170),
+  };
+}
+
 export async function runNewsAgent(): Promise<NewsAgentResult> {
-  if (!newsAgentConfig.openAiApiKey) throw new Error("Configure OPENAI_API_KEY antes de executar o agente.");
+  if (newsAgentConfig.mode === "ai" && !newsAgentConfig.openAiApiKey) {
+    throw new Error("O modo IA está ativo, mas OPENAI_API_KEY não foi configurada. Use NEWS_AGENT_MODE=rss para coleta sem IA.");
+  }
   const run = await createAgentRun();
   let sourcesChecked = 0;
   let itemsFound = 0;
@@ -87,7 +112,9 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
       const importId = await claimNewsImport(candidate, run.id, hash);
       if (!importId) { itemsSkipped += 1; continue; }
       try {
-        const article = await generateEditorialDraft(candidate);
+        const article = newsAgentConfig.mode === "ai"
+          ? await generateEditorialDraft(candidate)
+          : createRssDraft(candidate);
         const category = categories.find((item) => item.slug === article.categorySlug)
           ?? categories.find((item) => item.slug === candidate.categorySlug);
         const post = await savePost({
@@ -119,7 +146,7 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
           featuredOrder: null,
           origin: "rss-agent",
           reviewStatus: "awaiting-review",
-          generationModel: newsAgentConfig.model,
+          generationModel: newsAgentConfig.mode === "ai" ? newsAgentConfig.model : "rss-only",
           needsCover: true,
           scheduledAt: null,
           tagNames: article.tags,

@@ -15,13 +15,14 @@ export default async function NewsAgentPage() {
   const runs = runResult.status === "fulfilled" ? runResult.value : [];
   const openAiReady = Boolean(newsAgentConfig.openAiApiKey);
   const cronReady = newsAgentConfig.cronSecret.length >= 32;
-  const canRun = migrationReady && openAiReady;
+  const rssOnly = newsAgentConfig.mode === "rss";
+  const canRun = migrationReady && (rssOnly || openAiReady);
 
   return <main>
-    <header className="mb-6"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Automação editorial</p><h1 className="mt-1 text-3xl font-semibold">Agente de notícias</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Monitora RSS, pesquisa a pauta e prepara uma versão original para sua revisão. A publicação continua sendo exclusivamente manual.</p></header>
+    <header className="mb-6"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Automação editorial</p><h1 className="mt-1 text-3xl font-semibold">Agente de notícias</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Monitora feeds RSS, elimina duplicados e cria pautas para sua edição. Nenhum conteúdo é publicado automaticamente.</p></header>
     {!migrationReady ? <div className="mb-5 border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100"><strong>Aplique a migração pendente:</strong> <code>supabase/migrations/003_news_agent.sql</code>.</div> : null}
     <div className="mb-5 grid gap-3 md:grid-cols-3">
-      {[{ label: "Banco e fontes", ready: migrationReady }, { label: "API de IA", ready: openAiReady }, { label: "Agendamento protegido", ready: cronReady }].map((item) => <Card key={item.label}><CardContent className="flex items-center justify-between p-4"><span className="text-sm">{item.label}</span>{item.ready ? <CheckCircle2 className="size-5 text-emerald-400" /> : <AlertTriangle className="size-5 text-amber-400" />}</CardContent></Card>)}
+      {[{ label: "Banco e fontes", ready: migrationReady }, { label: rssOnly ? "Modo RSS gratuito" : "API de IA", ready: rssOnly || openAiReady }, { label: "Agendamento protegido", ready: cronReady }].map((item) => <Card key={item.label}><CardContent className="flex items-center justify-between p-4"><span className="text-sm">{item.label}</span>{item.ready ? <CheckCircle2 className="size-5 text-emerald-400" /> : <AlertTriangle className="size-5 text-amber-400" />}</CardContent></Card>)}
     </div>
     <NewsAgentPanel canRun={canRun} />
     <div className="mt-6 grid gap-6 xl:grid-cols-2">

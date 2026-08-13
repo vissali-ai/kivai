@@ -47,8 +47,9 @@ O painel salva novos conteúdos como rascunho, protege também as APIs no servid
 ### Agente editorial de notícias
 
 1. Execute `supabase/migrations/002_blog_featured_and_categories.sql` e `supabase/migrations/003_news_agent.sql` no SQL Editor.
-2. Configure `OPENAI_API_KEY`, `OPENAI_EDITORIAL_MODEL` e `NEWS_AGENT_CRON_SECRET` no ambiente do servidor.
+2. Para coleta gratuita, configure `NEWS_AGENT_MODE=rss` e `NEWS_AGENT_CRON_SECRET`. `OPENAI_API_KEY` e `OPENAI_EDITORIAL_MODEL` são opcionais e usados somente com `NEWS_AGENT_MODE=ai`.
 3. Abra `/admin/blog/agente` para testar uma coleta manual e consultar o histórico.
 4. No Supabase Cron, crie uma chamada HTTP `POST` para `https://www.kivai.com.br/api/cron/news-agent` com a expressão `0 */4 * * *` e o header `Authorization: Bearer SEU_NEWS_AGENT_CRON_SECRET`.
+5. Para adicionar as fontes brasileiras padrão, aplique também `supabase/migrations/004_brazilian_rss_sources.sql`.
 
 Cada execução consulta apenas feeds permitidos, elimina URLs e pautas repetidas, respeita o limite configurado de rascunhos e nunca publica. Rascunhos automáticos exigem revisão humana e imagem de capa antes da publicação.
