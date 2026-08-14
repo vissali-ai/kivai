@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { isBlogDatabaseConfigured } from "@/lib/blog/config";
-import { listAllPosts, listCategories, listPosts } from "@/lib/blog/repository";
+import { listAllPosts, listCategories, listPosts, publishDueScheduledPosts } from "@/lib/blog/repository";
 import type { PostStatus } from "@/lib/blog/types";
 
 const statusLabels = { draft: "Rascunho", published: "Publicada", scheduled: "Agendada" };
@@ -25,6 +25,7 @@ function formatDate(value: string | null) {
 export default async function BlogAdmin({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; category?: string; page?: string }> }) {
   const params = await searchParams;
   const status = (["draft", "published", "scheduled", "all"].includes(params.status ?? "") ? params.status : "draft") as PostStatus | "all";
+  await publishDueScheduledPosts();
   const [allPosts, posts, categories] = await Promise.all([
     listAllPosts(), listPosts({ query: params.q, status, categoryId: params.category, page: Number(params.page || 1) }), listCategories(),
   ]);

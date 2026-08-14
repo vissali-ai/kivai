@@ -30,6 +30,7 @@ type DbPost = {
   category?: DbCategory | null; cover?: DbMedia | null;
   post_tags?: { tag: DbTag | null }[];
 };
+type DbScheduledPost = Pick<DbPost, "id" | "scheduled_at" | "origin">;
 
 const postSelect = "*,category:blog_categories(*),cover:blog_media(*),post_tags:blog_post_tags(tag:blog_tags(*))";
 
@@ -121,7 +122,26 @@ export async function listAllPosts() {
   return rows.map(mapPost);
 }
 
+export async function publishDueScheduledPosts() {
+  if (!isBlogDatabaseConfigured()) return 0;
+  const now = new Date().toISOString();
+  const rows = await supabaseRest<DbScheduledPost[]>(
+    `blog_posts?select=id,scheduled_at,origin&status=eq.scheduled&scheduled_at=lte.${encode(now)}`,
+  );
+  await Promise.all(rows.map((post) => supabaseRest(`blog_posts?id=eq.${encode(post.id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      status: "published",
+      published_at: post.scheduled_at || now,
+      scheduled_at: null,
+      ...(post.origin === "rss-agent" ? { review_status: "approved" } : {}),
+    }),
+  })));
+  return rows.length;
+}
+
 export async function listPublishedPosts() {
+  await publishDueScheduledPosts();
   const posts = await listAllPosts();
   const now = Date.now();
   return posts
