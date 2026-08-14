@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { newsAgentConfig } from "@/lib/blog/config";
 import { listCategories, savePost } from "@/lib/blog/repository";
 import { slugify } from "@/lib/blog/slug";
+import { deduplicateNewsTopics, normalizedNewsTitle } from "@/lib/news-agent/candidate-ranking";
 import { generateEditorialDraft } from "@/lib/news-agent/openai";
 import {
   claimNewsImport,
@@ -17,28 +18,8 @@ import {
 import { fetchNewsSource } from "@/lib/news-agent/source-collector";
 import type { NewsAgentResult, NewsCandidate } from "@/lib/news-agent/types";
 
-function normalizedTitle(value: string) {
-  return slugify(value).replace(/-/g, " ");
-}
-
 function contentHash(candidate: NewsCandidate) {
-  return createHash("sha256").update(`${candidate.url}\n${normalizedTitle(candidate.title)}`).digest("hex");
-}
-
-function similarity(left: string, right: string) {
-  const a = new Set(normalizedTitle(left).split(" ").filter((word) => word.length > 2));
-  const b = new Set(normalizedTitle(right).split(" ").filter((word) => word.length > 2));
-  if (!a.size || !b.size) return 0;
-  const intersection = [...a].filter((word) => b.has(word)).length;
-  return intersection / new Set([...a, ...b]).size;
-}
-
-function deduplicateTopics(candidates: NewsCandidate[]) {
-  const selected: NewsCandidate[] = [];
-  for (const candidate of candidates) {
-    if (!selected.some((item) => similarity(item.title, candidate.title) >= 0.58)) selected.push(candidate);
-  }
-  return selected;
+  return createHash("sha256").update(`${candidate.url}\n${normalizedNewsTitle(candidate.title)}`).digest("hex");
 }
 
 function errorMessage(error: unknown) {
@@ -88,7 +69,7 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
     const sorted = allCandidates.sort((left, right) =>
       new Date(right.publishedAt ?? 0).getTime() - new Date(left.publishedAt ?? 0).getTime(),
     );
-    const topicUnique = deduplicateTopics(sorted);
+    const topicUnique = deduplicateNewsTopics(sorted);
     const hashes = new Map(topicUnique.map((candidate) => [candidate.url, contentHash(candidate)]));
     const known = await listKnownContentHashes([...hashes.values()]);
     const candidates = topicUnique

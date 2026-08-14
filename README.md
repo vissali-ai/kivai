@@ -57,3 +57,11 @@ O painel salva novos conteúdos como rascunho, protege também as APIs no servid
 9. Para manter apenas fontes em português e criar a categoria Guia de Ferramentas, aplique `supabase/migrations/007_portuguese_sources_and_tools_guide.sql`.
 
 Cada execução consulta apenas feeds permitidos, elimina URLs e pautas repetidas, respeita o limite configurado de rascunhos e nunca publica. Rascunhos automáticos exigem revisão humana e imagem de capa antes da publicação.
+
+### Radar de notícias e tendências
+
+1. Depois das migrações do agente editorial, aplique `supabase/migrations/011_news_radar_pilot.sql`.
+2. O piloto público fica em `/ferramentas/radar-de-tendencias` e usa somente Marketing, Inteligência Artificial e E-commerce.
+3. Configure `NEWS_RADAR_ENABLED`, `NEWS_RADAR_CACHE_SECONDS` e `NEWS_RADAR_REQUEST_LIMIT` conforme `.env.example`.
+4. Cache, trava de concorrência, rate limit e métricas agregadas ficam no Supabase. Nenhum endereço IP é persistido nas métricas.
+5. Os indicadores dos últimos 30 dias aparecem em `/admin/blog/agente`.
