@@ -216,7 +216,7 @@ function toPostRow(input: PostInput) {
     origin: input.origin, review_status: input.status === "published" && input.origin === "rss-agent" ? "approved" : input.reviewStatus,
     generation_model: input.generationModel || null,
     needs_cover: input.origin === "rss-agent" ? !input.coverMediaId : false,
-    published_at: publishNow ? (input.publishedAt || input.originalPublishedAt || new Date().toISOString()) : null,
+    published_at: publishNow ? (input.publishedAt || new Date().toISOString()) : null,
   };
 }
 
