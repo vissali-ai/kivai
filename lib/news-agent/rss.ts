@@ -13,6 +13,7 @@ const ALLOWED_FEED_HOSTS = new Set([
   "olhardigital.com.br",
   "rss.tecmundo.com.br",
   "g1.globo.com",
+  "www.mobiletime.com.br",
   "www.nuvemshop.com.br",
   "mittechreview.com.br",
   "www.meioemensagem.com.br",

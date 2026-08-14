@@ -8,9 +8,30 @@ import type { NewsCandidate, NewsSource } from "@/lib/news-agent/types";
 const MAX_DOCUMENT_BYTES = 3_000_000;
 const MAX_ITEMS_PER_SOURCE = 24;
 const USER_AGENT = "KivaiNewsAgent/1.0 (+https://www.kivai.com.br/blog)";
-const SITEMAP_HOSTS = new Set(["tray.com.br"]);
+type SitemapRule = {
+  articlePath: (pathname: string) => boolean;
+  childSitemapPath?: RegExp;
+};
+
+const SEBRAE_TOPIC = /(?:inteligencia-artificial|\bia\b|tecnologia|marketing|digital|ferrament|e-?commerce|comercio-eletronico|marketplace|vendas?-online|redes?-sociais|whatsapp|google|canva)/i;
+const SITEMAP_RULES: Record<string, SitemapRule> = {
+  "tray.com.br": {
+    articlePath: (pathname) => pathname.startsWith("/escola/"),
+    childSitemapPath: /post-sitemap/i,
+  },
+  "www.rdstation.com": {
+    articlePath: (pathname) => pathname.startsWith("/blog/"),
+  },
+  "www.vtex.com": {
+    articlePath: (pathname) => pathname.startsWith("/pt-br/recursos/blog/"),
+  },
+  "sebrae.com.br": {
+    articlePath: (pathname) => pathname.startsWith("/empreendedores/conteudos/") && SEBRAE_TOPIC.test(pathname),
+  },
+};
 const PAGE_RULES: Record<string, RegExp> = {
   "www.ecommercebrasil.com.br": /^\/(?:noticias|artigos)\//,
+  "mundodomarketing.com.br": /^\/(?!todas-noticias\/?$|ultimas-noticias\/?$|noticias\/?$|artigos\/?$|feed-rss\/?$|dino\/?$)(?:(?:customer-engagement)\/)?[a-z0-9][a-z0-9-]+\/?$/i,
 };
 
 const parser = new XMLParser({ ignoreAttributes: false, processEntities: false, trimValues: true });
@@ -125,13 +146,14 @@ async function articleCandidate(
 
 async function fetchSitemapSource(source: NewsSource) {
   const root = normalizeUrl(source.feedUrl);
-  if (!SITEMAP_HOSTS.has(root.hostname)) throw new Error(`Sitemap não autorizado: ${source.name}.`);
+  const rule = SITEMAP_RULES[root.hostname];
+  if (!rule) throw new Error(`Sitemap não autorizado: ${source.name}.`);
   const allowedHosts = new Set([root.hostname]);
   const rootXml = await fetchDocument(root, allowedHosts);
   const rootDocument = parser.parse(rootXml) as SitemapDocument;
   const sitemapEntries = asArray(rootDocument.sitemapindex?.sitemap)
     .map((entry) => ({ url: normalizeUrl(textValue(entry.loc), root) }))
-    .filter((entry) => entry.url.pathname.includes("post-sitemap"))
+    .filter((entry) => !rule.childSitemapPath || rule.childSitemapPath.test(entry.url.pathname))
     .slice(0, 4);
   const documents = sitemapEntries.length
     ? await Promise.all(sitemapEntries.map((entry) => fetchDocument(entry.url, allowedHosts)))
@@ -141,7 +163,7 @@ async function fetchSitemapSource(source: NewsSource) {
     return asArray(document.urlset?.url).flatMap((entry) => {
       try {
         const url = normalizeUrl(textValue(entry.loc), root);
-        if (url.hostname !== root.hostname || !url.pathname.startsWith("/escola/")) return [];
+        if (url.hostname !== root.hostname || !rule.articlePath(url.pathname)) return [];
         return [{ url, lastmod: safeDate(textValue(entry.lastmod)) }];
       } catch { return []; }
     });

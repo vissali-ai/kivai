@@ -20,7 +20,10 @@ function sourceKind(feedUrl: string): NewsSourceKind {
   const url = new URL(feedUrl);
   const pathname = url.pathname.toLowerCase();
   if (pathname.includes("sitemap")) return "sitemap";
-  if (url.hostname === "www.ecommercebrasil.com.br" && pathname === "/") return "page";
+  if (
+    (url.hostname === "www.ecommercebrasil.com.br" && pathname === "/")
+    || (url.hostname === "mundodomarketing.com.br" && pathname === "/")
+  ) return "page";
   return "rss";
 }
 
