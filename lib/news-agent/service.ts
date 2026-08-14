@@ -14,7 +14,7 @@ import {
   listKnownContentHashes,
   listNewsSources,
 } from "@/lib/news-agent/repository";
-import { fetchNewsFeed } from "@/lib/news-agent/rss";
+import { fetchNewsSource } from "@/lib/news-agent/source-collector";
 import type { NewsAgentResult, NewsCandidate } from "@/lib/news-agent/types";
 
 function normalizedTitle(value: string) {
@@ -45,7 +45,7 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Falha desconhecida no agente editorial.";
 }
 
-function createRssDraft(candidate: NewsCandidate) {
+function createSourceDraft(candidate: NewsCandidate) {
   return {
     title: candidate.title,
     subtitle: "",
@@ -71,14 +71,14 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
 
   try {
     const sources = (await listNewsSources()).filter((source) => source.enabled);
-    if (!sources.length) throw new Error("Nenhuma fonte RSS ativa. Aplique a migração 003_news_agent.sql.");
+    if (!sources.length) throw new Error("Nenhuma fonte editorial ativa. Aplique as migrações do agente de notícias.");
     const results = await Promise.allSettled(sources.map(async (source) => {
-      const items = await fetchNewsFeed(source);
+      const items = await fetchNewsSource(source);
       return { source, items };
     }));
     sourcesChecked = sources.length;
     const successful = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
-    if (!successful.length) throw new Error("Nenhuma fonte RSS respondeu nesta execução.");
+    if (!successful.length) throw new Error("Nenhuma fonte editorial respondeu nesta execução.");
 
     const oldestAllowed = Date.now() - newsAgentConfig.maxAgeHours * 60 * 60 * 1000;
     const allCandidates = successful.flatMap(({ items }) => items).filter((candidate) =>
@@ -104,7 +104,7 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
       try {
         const article = newsAgentConfig.mode === "ai"
           ? await generateEditorialDraft(candidate)
-          : createRssDraft(candidate);
+          : createSourceDraft(candidate);
         const category = categories.find((item) => item.slug === article.categorySlug)
           ?? categories.find((item) => item.slug === candidate.categorySlug);
         const post = await savePost({
@@ -136,7 +136,7 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
           featuredOrder: null,
           origin: "rss-agent",
           reviewStatus: "awaiting-review",
-          generationModel: newsAgentConfig.mode === "ai" ? newsAgentConfig.model : "rss-only",
+          generationModel: newsAgentConfig.mode === "ai" ? newsAgentConfig.model : "source-only",
           needsCover: true,
           scheduledAt: null,
           tagNames: article.tags,

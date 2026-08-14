@@ -1,8 +1,11 @@
+export type NewsSourceKind = "rss" | "sitemap" | "page";
+
 export type NewsSource = {
   id: string;
   name: string;
   feedUrl: string;
   siteUrl: string;
+  kind: NewsSourceKind;
   defaultCategorySlug: string;
   enabled: boolean;
   createdAt: string;

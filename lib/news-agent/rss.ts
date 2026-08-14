@@ -21,6 +21,9 @@ const ALLOWED_FEED_HOSTS = new Set([
   "blog.bling.com.br",
   "lojaintegrada.com.br",
   "melhorenvio.com.br",
+  "www.yampi.com.br",
+  "blog.vindi.com.br",
+  "mercadoeconsumo.com.br",
 ]);
 
 const parser = new XMLParser({

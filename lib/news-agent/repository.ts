@@ -1,7 +1,7 @@
 import "server-only";
 
 import { supabaseRest } from "@/lib/blog/supabase";
-import type { NewsAgentRun, NewsCandidate, NewsSource } from "@/lib/news-agent/types";
+import type { NewsAgentRun, NewsCandidate, NewsSource, NewsSourceKind } from "@/lib/news-agent/types";
 
 type DbSource = {
   id: string; name: string; feed_url: string; site_url: string; default_category_slug: string;
@@ -16,10 +16,18 @@ type DbImport = { id: string; content_hash: string; status?: string };
 
 function encode(value: string) { return encodeURIComponent(value); }
 
+function sourceKind(feedUrl: string): NewsSourceKind {
+  const url = new URL(feedUrl);
+  const pathname = url.pathname.toLowerCase();
+  if (pathname.includes("sitemap")) return "sitemap";
+  if (url.hostname === "www.ecommercebrasil.com.br" && pathname === "/") return "page";
+  return "rss";
+}
+
 function mapSource(row: DbSource): NewsSource {
   return {
     id: row.id, name: row.name, feedUrl: row.feed_url, siteUrl: row.site_url,
-    defaultCategorySlug: row.default_category_slug, enabled: row.enabled,
+    kind: sourceKind(row.feed_url), defaultCategorySlug: row.default_category_slug, enabled: row.enabled,
     createdAt: row.created_at, updatedAt: row.updated_at,
   };
 }
