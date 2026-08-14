@@ -1,19 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CalendarDays, Clock3, ExternalLink, Tag as TagIcon, UserRound } from "lucide-react";
+import { CalendarDays, ExternalLink, Tag as TagIcon, UserRound } from "lucide-react";
 import { getToolBySlug } from "@/lib/tools";
 import { sanitizePostHtml } from "@/lib/blog/sanitize";
 import type { Post } from "@/lib/blog/types";
 
-const fullDate = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" });
+const fullDate = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "short", timeZone: "America/Sao_Paulo" });
 
 export function ArticleView({ post, preview = false }: { post: Post; preview?: boolean }) {
   const relatedTools = post.relatedToolSlugs.flatMap((slug) => { const tool = getToolBySlug(slug); return tool ? [tool] : []; });
-  const published = post.publishedAt ?? post.scheduledAt ?? post.createdAt;
+  const published = post.originalPublishedAt ?? post.publishedAt ?? post.scheduledAt ?? post.createdAt;
   return <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-10 pt-10 sm:px-6 lg:pb-16 lg:pt-14">
     {preview ? <div className="mb-6 border border-amber-500/30 bg-amber-500/10 p-3 text-center text-sm text-amber-100">Pré-visualização privada. Esta página não é indexável.</div> : null}
     <nav aria-label="Breadcrumb" className="mb-8 text-xs text-muted-foreground"><Link href="/">Início</Link><span className="mx-2">/</span><Link href="/blog">Blog</Link>{post.category ? <><span className="mx-2">/</span><Link href={`/blog/categoria/${post.category.slug}`}>{post.category.name}</Link></> : null}</nav>
-    <article><header className="mx-auto max-w-4xl"><div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">{post.category ? <Link href={`/blog/categoria/${post.category.slug}`} className="border border-primary/30 bg-primary/10 px-2 py-1 text-primary">{post.category.name}</Link> : null}<span className="flex items-center gap-1"><UserRound className="size-3.5" />{post.author}</span><time className="flex items-center gap-1" dateTime={published}><CalendarDays className="size-3.5" />{fullDate.format(new Date(published))}</time>{post.updatedAt !== post.createdAt ? <span className="flex items-center gap-1"><Clock3 className="size-3.5" />Atualizada em {fullDate.format(new Date(post.updatedAt))}</span> : null}</div><h1 className="text-balance text-3xl font-semibold leading-tight sm:text-5xl">{post.title}</h1>{post.subtitle ? <p className="mt-5 text-lg leading-relaxed text-muted-foreground sm:text-xl">{post.subtitle}</p> : null}</header>
+    <article><header className="mx-auto max-w-4xl"><div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">{post.category ? <Link href={`/blog/categoria/${post.category.slug}`} className="border border-primary/30 bg-primary/10 px-2 py-1 text-primary">{post.category.name}</Link> : null}<span className="flex items-center gap-1"><UserRound className="size-3.5" />{post.author}</span><time className="flex items-center gap-1" dateTime={published}><CalendarDays className="size-3.5" />{fullDate.format(new Date(published))}</time></div><h1 className="text-balance text-3xl font-semibold leading-tight sm:text-5xl">{post.title}</h1>{post.subtitle ? <p className="mt-5 text-lg leading-relaxed text-muted-foreground sm:text-xl">{post.subtitle}</p> : null}</header>
       {post.cover ? <figure className="my-10"><Image src={post.cover.url} alt={post.coverAlt || post.cover.alt} width={post.cover.width} height={post.cover.height} sizes="(max-width: 1024px) 100vw, 1024px" className="max-h-[620px] w-full object-cover" /><figcaption className="mt-2 text-xs text-muted-foreground">{post.coverCaption || post.cover.caption}{post.coverCredit || post.cover.credit ? <span> · {post.coverCredit || post.cover.credit}</span> : null}</figcaption></figure> : null}
       <div className="blog-article mx-auto max-w-3xl" dangerouslySetInnerHTML={{ __html: sanitizePostHtml(post.content) }} />
       {post.sourceName || post.sourceUrl ? <section className="mx-auto mt-10 max-w-3xl border-l-2 border-primary bg-white/5 p-4"><h2 className="text-sm font-semibold">Fonte</h2><p className="mt-1 text-sm text-muted-foreground">{post.sourceUrl ? <a href={post.sourceUrl} rel="nofollow noopener noreferrer" target="_blank" className="inline-flex items-center gap-1 text-primary hover:underline">{post.sourceName || new URL(post.sourceUrl).hostname}<ExternalLink className="size-3" /></a> : post.sourceName}</p></section> : null}
