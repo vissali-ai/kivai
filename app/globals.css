@@ -204,3 +204,34 @@
 .media-library article img {
   max-width: 100%;
 }
+
+@keyframes testimonial-marquee-scroll {
+  to {
+    transform: translateX(calc(-50% - 0.5rem));
+  }
+}
+
+.testimonial-marquee-track {
+  width: max-content;
+  animation: testimonial-marquee-scroll 48s linear infinite;
+}
+
+.testimonial-marquee:hover .testimonial-marquee-track,
+.testimonial-marquee:focus-within .testimonial-marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testimonial-marquee {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .testimonial-marquee-track {
+    animation: none;
+  }
+
+  .testimonial-marquee-copy {
+    display: none;
+  }
+}

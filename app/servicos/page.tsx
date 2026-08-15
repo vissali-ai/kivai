@@ -5,17 +5,27 @@ import {
   BarChart3,
   LayoutTemplate,
   Megaphone,
+  Share2,
   Sparkles,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
 
 export const metadata = getPageMetadata({
   title: "Serviços Digitais",
-  description: "Conheça os serviços de tráfego pago, divulgação artística e criação de landing pages do Kivai.",
+  description: "Conheça os serviços de Social Media, tráfego pago, divulgação artística e criação de landing pages do Kivai.",
   pathname: "/servicos",
 });
 
 const services = [
+  {
+    icon: Share2,
+    title: "Social Media",
+    description:
+      "Planejamento, criação e publicação de conteúdos para empresas que querem fortalecer sua presença nas redes sociais.",
+    href: "/servicos/social-media",
+    action: "Conhecer serviço",
+    badge: "Período de teste grátis",
+  },
   {
     icon: BarChart3,
     title: "Gestão de Tráfego Pago",

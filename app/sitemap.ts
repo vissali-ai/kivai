@@ -45,6 +45,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/servicos/social-media`,
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/servicos/divulgacao-artistas`,
       changeFrequency: "monthly",
       priority: 0.9,
