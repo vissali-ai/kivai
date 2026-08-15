@@ -91,7 +91,7 @@ export default function GestaoDeTrafegoPage() {
           className="absolute left-1/2 top-0 -z-10 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-primary/15 blur-[150px]"
         />
 
-        <div className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 sm:pb-24 lg:px-8 lg:pb-28">
+        <div className="mx-auto max-w-7xl px-4 pb-20 pt-24 sm:px-6 sm:pb-24 lg:px-8 lg:pb-28">
            <Link
   href="/servicos"
   className="inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
