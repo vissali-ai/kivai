@@ -13,10 +13,17 @@ import {
   Video,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import {
+  RelatedServiceArticles,
+  ServiceFaqSection,
+  ServiceSeoContent,
+  ServiceStructuredData,
+  type ServiceFaq,
+} from "@/components/marketing/service-seo-content";
 
 export const metadata = getPageMetadata({
   title: "Divulgação para Artistas e Bandas",
-  description: "Serviço de divulgação digital para lançamentos, shows e projetos de artistas e bandas.",
+  description: "Divulgação para artistas e bandas em redes sociais e plataformas digitais. Promova músicas, clipes, shows, lançamentos e projetos musicais.",
   pathname: "/servicos/divulgacao-artistas",
 });
 
@@ -63,6 +70,52 @@ const channels = [
   },
 ];
 
+const artistFaqs: ServiceFaq[] = [
+  {
+    question: "Como funciona a divulgação para artistas e bandas?",
+    answer:
+      "O material do projeto é organizado e publicado nos perfis participantes da rede de divulgação. O formato contratado define os canais, a edição, o período de destaque e as entregas adicionais.",
+  },
+  {
+    question: "Quais projetos musicais podem ser divulgados?",
+    answer:
+      "Podem ser divulgados singles, álbuns, EPs, clipes, shows, festivais, agendas, entrevistas, campanhas de financiamento, projetos autorais e outras iniciativas relacionadas à música.",
+  },
+  {
+    question: "A divulgação garante um número de visualizações?",
+    answer:
+      "Não. Seguidores, visualizações, curtidas e alcance variam conforme plataforma, formato, interesse do público e desempenho do conteúdo. Os números dos perfis indicam o tamanho atual da rede, não uma garantia individual.",
+  },
+  {
+    question: "O artista precisa enviar o material pronto?",
+    answer:
+      "Na opção de publicação direta, o material deve estar adequado para divulgação. No plano com mais destaque, o escopo pode incluir edição de vídeo e preparação adicional conforme as condições apresentadas na página.",
+  },
+  {
+    question: "Existe impulsionamento pago na divulgação?",
+    answer:
+      "A modalidade Essencial não inclui impulsionamento. A modalidade Destaque informa separadamente quando existe valor de impulsionamento como bônus, mantendo essa entrega clara no plano contratado.",
+  },
+];
+
+const artistSeoItems = [
+  {
+    title: "Para artistas independentes e bandas",
+    description:
+      "Uma opção para músicos, bandas, produtores, selos e projetos que precisam apresentar lançamentos e novidades a públicos conectados com conteúdo musical.",
+  },
+  {
+    title: "Divulgação de músicas, clipes e shows",
+    description:
+      "A rede pode apoiar a circulação de singles, álbuns, videoclipes, agendas, apresentações, entrevistas e campanhas relacionadas à carreira artística.",
+  },
+  {
+    title: "Mais pontos de contato para o projeto",
+    description:
+      "O serviço ajuda a reduzir a dependência de um único perfil e amplia a presença do material em plataformas e audiências diferentes, conforme o plano escolhido.",
+  },
+];
+
 const simpleFeatures = [
   "Publicação nos perfis participantes",
   "Distribuição em diferentes plataformas",
@@ -82,6 +135,14 @@ const highlightFeatures = [
 export default function DivulgacaoArtistasPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
+      <ServiceStructuredData
+        name="Divulgação para Artistas e Bandas"
+        description="Serviço de divulgação digital para músicas, clipes, shows, lançamentos e projetos musicais."
+        pathname="/servicos/divulgacao-artistas"
+        serviceType="Divulgação digital para artistas e bandas"
+        audience="Artistas, bandas, músicos, produtores e projetos musicais"
+        faqs={artistFaqs}
+      />
       <section className="relative isolate overflow-hidden border-b border-white/5">
         <div
           aria-hidden="true"
@@ -109,7 +170,7 @@ export default function DivulgacaoArtistasPage() {
             </div>
 
             <h1 className="mt-7 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-7xl lg:leading-[1.02]">
-              Sua música merece{" "}
+              Divulgação para artistas e bandas: sua música pode{" "}
               <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                 chegar mais longe.
               </span>
@@ -390,6 +451,29 @@ export default function DivulgacaoArtistasPage() {
           </div>
         </div>
       </section>
+
+      <ServiceSeoContent
+        eyebrow="Divulgação de projetos musicais"
+        title="Leve músicas, clipes, shows e lançamentos a novos pontos de contato."
+        description="A divulgação para artistas e bandas ajuda projetos musicais a circularem em uma rede de perfis e plataformas, criando novas oportunidades de descoberta e relacionamento com o público."
+        items={artistSeoItems}
+      />
+
+      <ServiceFaqSection
+        title="Dúvidas sobre divulgação para artistas"
+        description="Entenda quais materiais podem ser divulgados, como funcionam os planos e quais resultados dependem do desempenho de cada conteúdo."
+        faqs={artistFaqs}
+      />
+
+      <RelatedServiceArticles
+        articles={[
+          {
+            title: "Divulgação para artistas e bandas: como ampliar o alcance",
+            description: "Veja como preparar lançamentos e escolher canais para colocar um projeto musical em circulação.",
+            slug: "divulgacao-para-artistas-e-bandas",
+          },
+        ]}
+      />
     </main>
   );
 }

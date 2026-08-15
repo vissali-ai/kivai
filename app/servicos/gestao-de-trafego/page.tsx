@@ -13,10 +13,17 @@ import {
   Zap,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import {
+  RelatedServiceArticles,
+  ServiceFaqSection,
+  ServiceSeoContent,
+  ServiceStructuredData,
+  type ServiceFaq,
+} from "@/components/marketing/service-seo-content";
 
 export const metadata = getPageMetadata({
-  title: "Gestão de Tráfego Pago",
-  description: "Serviço de gestão de tráfego pago com planejamento, configuração e acompanhamento de campanhas.",
+  title: "Gestão de Tráfego Pago para Empresas",
+  description: "Gestão de tráfego pago para empresas com campanhas em Google Ads e Meta Ads, planejamento, configuração, análise e otimização contínua.",
   pathname: "/servicos/gestao-de-trafego",
 });
 
@@ -77,9 +84,63 @@ const processSteps = [
   },
 ];
 
+const trafficFaqs: ServiceFaq[] = [
+  {
+    question: "O que faz um serviço de gestão de tráfego pago?",
+    answer:
+      "A gestão de tráfego pago planeja, configura, acompanha e otimiza campanhas em plataformas como Google Ads e Meta Ads. O trabalho envolve objetivos, público, segmentação, palavras-chave, anúncios, orçamento e análise de desempenho.",
+  },
+  {
+    question: "A gestão inclui Google Ads e Meta Ads?",
+    answer:
+      "Sim. Os canais são definidos de acordo com o objetivo, o público e o momento da empresa. A estratégia pode concentrar esforços no Google Ads, no Meta Ads ou combinar as plataformas quando isso fizer sentido.",
+  },
+  {
+    question: "Qual empresa pode contratar gestão de tráfego pago?",
+    answer:
+      "O serviço atende empresas, profissionais e e-commerces que desejam divulgar produtos ou serviços, gerar contatos, alcançar novos públicos ou estruturar campanhas com acompanhamento profissional.",
+  },
+  {
+    question: "O investimento nos anúncios está incluído na gestão?",
+    answer:
+      "A verba destinada às plataformas de anúncios é separada do valor do serviço de gestão. O investimento é definido conforme o cenário, os objetivos e a capacidade de atendimento ou venda do negócio.",
+  },
+  {
+    question: "É possível garantir vendas ou resultados?",
+    answer:
+      "Não existe garantia responsável de vendas ou de um número específico de resultados. A gestão busca melhorar a estrutura e a eficiência das campanhas, mas o desempenho também depende da oferta, do mercado, do site, do atendimento e do orçamento disponível.",
+  },
+];
+
+const trafficSeoItems = [
+  {
+    title: "Para empresas que precisam gerar demanda",
+    description:
+      "Indicado para negócios que querem aumentar a procura por produtos e serviços, atrair contatos ou levar potenciais clientes até uma página, loja ou canal de atendimento.",
+  },
+  {
+    title: "Campanhas com estrutura profissional",
+    description:
+      "Planejamento de canais, públicos, palavras-chave, anúncios, conversões e orçamento para evitar decisões improvisadas e tornar o investimento mais mensurável.",
+  },
+  {
+    title: "Problemas que a gestão ajuda a resolver",
+    description:
+      "Campanhas sem acompanhamento, verba desperdiçada, anúncios pouco relevantes, segmentações amplas demais e dificuldade para entender quais ações geram oportunidades.",
+  },
+];
+
 export default function GestaoDeTrafegoPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
+      <ServiceStructuredData
+        name="Gestão de Tráfego Pago para Empresas"
+        description="Planejamento, configuração e otimização de campanhas em Google Ads e Meta Ads para empresas."
+        pathname="/servicos/gestao-de-trafego"
+        serviceType="Gestão de tráfego pago"
+        audience="Empresas, profissionais e e-commerces"
+        faqs={trafficFaqs}
+      />
       <section className="relative isolate overflow-hidden border-b border-white/5">
         <div
           aria-hidden="true"
@@ -107,7 +168,7 @@ export default function GestaoDeTrafegoPage() {
             </div>
 
             <h1 className="mt-7 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-7xl lg:leading-[1.02]">
-              Tráfego pago com estratégia para{" "}
+              Gestão de tráfego pago para empresas que querem{" "}
               <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                 gerar oportunidades reais.
               </span>
@@ -332,6 +393,29 @@ export default function GestaoDeTrafegoPage() {
           </div>
         </div>
       </section>
+
+      <ServiceSeoContent
+        eyebrow="Gestão de anúncios para empresas"
+        title="Planejamento, campanhas e otimização para transformar mídia em oportunidades."
+        description="A gestão de tráfego pago é indicada para quem precisa anunciar com mais clareza, acompanhar o investimento e tomar decisões com base no desempenho real das campanhas."
+        items={trafficSeoItems}
+      />
+
+      <ServiceFaqSection
+        title="Dúvidas sobre gestão de tráfego pago"
+        description="Entenda o escopo do serviço, os canais utilizados e o que considerar antes de começar a anunciar."
+        faqs={trafficFaqs}
+      />
+
+      <RelatedServiceArticles
+        articles={[
+          {
+            title: "Gestão de tráfego pago: como funciona e quando contratar",
+            description: "Veja o que está envolvido em uma gestão profissional de Google Ads e Meta Ads.",
+            slug: "gestao-de-trafego-pago-como-funciona",
+          },
+        ]}
+      />
 
       <section className="relative overflow-hidden py-20 sm:py-24 lg:py-28">
         <div

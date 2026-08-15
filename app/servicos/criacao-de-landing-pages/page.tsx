@@ -19,10 +19,17 @@ import {
   Zap,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import {
+  RelatedServiceArticles,
+  ServiceFaqSection,
+  ServiceSeoContent,
+  ServiceStructuredData,
+  type ServiceFaq,
+} from "@/components/marketing/service-seo-content";
 
 export const metadata = getPageMetadata({
-  title: "Criação de Landing Pages",
-  description: "Criação de landing pages responsivas e personalizadas para negócios, campanhas, eventos e projetos.",
+  title: "Criação de Landing Pages Profissionais",
+  description: "Criação de landing pages profissionais, rápidas, responsivas e personalizadas para empresas, campanhas, produtos, serviços, eventos e projetos.",
   pathname: "/servicos/criacao-de-landing-pages",
 });
 
@@ -122,9 +129,63 @@ const process = [
   },
 ];
 
+const landingPageFaqs: ServiceFaq[] = [
+  {
+    question: "O que é uma landing page profissional?",
+    answer:
+      "Uma landing page é uma página criada para apresentar uma oferta, serviço, produto, evento ou projeto com uma ação principal clara. Ela organiza informações, benefícios e chamadas para ação em uma experiência focada no objetivo da campanha.",
+  },
+  {
+    question: "Para quais projetos uma landing page pode ser criada?",
+    answer:
+      "A página pode atender empresas, profissionais, produtos, serviços, lançamentos, eventos, artistas, campanhas e projetos especiais. A estrutura é adaptada ao público, ao conteúdo disponível e ao resultado esperado.",
+  },
+  {
+    question: "A landing page funciona bem no celular?",
+    answer:
+      "Sim. O projeto é desenvolvido com layout responsivo para funcionar em celulares, tablets e computadores, mantendo boa leitura, navegação e acesso aos botões principais.",
+  },
+  {
+    question: "Posso usar domínio próprio na landing page?",
+    answer:
+      "Sim. A necessidade de domínio próprio, endereço de publicação e hospedagem é definida durante o planejamento. O formato depende da estrutura escolhida para o projeto.",
+  },
+  {
+    question: "A página pode direcionar para WhatsApp ou formulário?",
+    answer:
+      "Sim. A landing page pode incluir botões para WhatsApp, formulários, links de compra, inscrições, redes sociais ou outros caminhos compatíveis com o objetivo do projeto.",
+  },
+];
+
+const landingPageSeoItems = [
+  {
+    title: "Para empresas, campanhas e profissionais",
+    description:
+      "Indicada para apresentar serviços, validar ofertas, divulgar produtos, receber contatos, concentrar informações de eventos ou criar uma presença digital para um projeto específico.",
+  },
+  {
+    title: "Entregas voltadas à conversão",
+    description:
+      "Estrutura de conteúdo, hierarquia das seções, experiência responsiva, chamadas para ação e direcionamento para WhatsApp, formulário, compra ou inscrição.",
+  },
+  {
+    title: "Problemas que uma landing page resolve",
+    description:
+      "Informações dispersas, ausência de uma página própria, dificuldade para explicar uma oferta e campanhas que direcionam visitantes para canais sem foco ou sem uma próxima ação clara.",
+  },
+];
+
 export default function CriacaoDeLandingPagesPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
+      <ServiceStructuredData
+        name="Criação de Landing Pages Profissionais"
+        description="Criação de landing pages responsivas e personalizadas para empresas, campanhas, produtos, serviços e eventos."
+        pathname="/servicos/criacao-de-landing-pages"
+        serviceType="Criação de landing pages"
+        audience="Empresas, profissionais, eventos, artistas e projetos"
+        faqs={landingPageFaqs}
+      />
       <section className="relative isolate overflow-hidden border-b border-white/5">
         <div
           aria-hidden="true"
@@ -152,9 +213,9 @@ export default function CriacaoDeLandingPagesPage() {
             </div>
 
             <h1 className="mt-7 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-7xl lg:leading-[1.02]">
-              Sua ideia merece uma página que{" "}
+              Criação de landing pages que conectam sua ideia e{" "}
               <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                conecte e gere ação.
+                geram ação.
               </span>
             </h1>
 
@@ -372,6 +433,29 @@ export default function CriacaoDeLandingPagesPage() {
           </div>
         </div>
       </section>
+
+      <ServiceSeoContent
+        eyebrow="Landing pages profissionais"
+        title="Uma página própria para apresentar sua oferta e orientar o próximo passo."
+        description="A criação de landing pages reúne conteúdo, design responsivo e chamadas para ação em uma estrutura planejada para comunicar com clareza e apoiar campanhas e objetivos comerciais."
+        items={landingPageSeoItems}
+      />
+
+      <ServiceFaqSection
+        title="Dúvidas sobre criação de landing pages"
+        description="Confira o que pode fazer parte do projeto e como uma página profissional pode apoiar sua presença digital."
+        faqs={landingPageFaqs}
+      />
+
+      <RelatedServiceArticles
+        articles={[
+          {
+            title: "Landing page profissional: quando sua empresa precisa de uma",
+            description: "Entenda quando uma página focada pode melhorar a apresentação de uma oferta ou campanha.",
+            slug: "landing-page-profissional-quando-criar",
+          },
+        ]}
+      />
 
       <section className="relative overflow-hidden py-20 sm:py-24 lg:py-28">
         <div

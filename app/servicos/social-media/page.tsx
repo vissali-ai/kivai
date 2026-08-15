@@ -23,6 +23,13 @@ import {
   Zap,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import {
+  RelatedServiceArticles,
+  ServiceFaqSection,
+  ServiceSeoContent,
+  ServiceStructuredData,
+  type ServiceFaq,
+} from "@/components/marketing/service-seo-content";
 
 export const metadata: Metadata = {
   ...getPageMetadata({
@@ -137,6 +144,52 @@ const testimonials = [
   },
 ];
 
+const socialMediaFaqs: ServiceFaq[] = [
+  {
+    question: "O que está incluído no serviço de Social Media?",
+    answer:
+      "O serviço pode incluir planejamento para 30 dias, calendário editorial, definição de temas, criação de pautas, artes, textos, legendas, carrosséis, Stories, planejamento de Reels, programação das publicações e acompanhamento básico de métricas.",
+  },
+  {
+    question: "Para quais empresas o serviço de Social Media é indicado?",
+    answer:
+      "É indicado para empresas, profissionais e e-commerces que desejam manter uma presença profissional, comunicar produtos e serviços com consistência e transformar as redes sociais em um canal organizado de posicionamento e relacionamento.",
+  },
+  {
+    question: "O serviço inclui gravação de vídeos e fotos presenciais?",
+    answer:
+      "Não. A captação presencial não faz parte do escopo padrão. Quando uma publicação precisar de imagens, vídeos, produtos, equipe ou informações internas, esses materiais deverão ser fornecidos pelo cliente.",
+  },
+  {
+    question: "Social Media e tráfego pago são o mesmo serviço?",
+    answer:
+      "Não. Social Media organiza o planejamento, a criação e a publicação do conteúdo. A gestão de tráfego pago trabalha campanhas e investimento em mídia. Os serviços podem ser contratados separadamente ou de forma complementar.",
+  },
+  {
+    question: "Como funciona o período de teste grátis?",
+    answer:
+      "O interessado pode entrar em contato pelo WhatsApp para conhecer as condições do período de teste, alinhar o momento da empresa e entender como o serviço pode ser estruturado antes da continuidade da contratação.",
+  },
+];
+
+const socialMediaSeoItems = [
+  {
+    title: "Para empresas que precisam de consistência",
+    description:
+      "Indicado para negócios que publicam sem frequência, têm dificuldade para organizar temas ou precisam apresentar produtos, serviços e diferenciais com uma comunicação mais profissional.",
+  },
+  {
+    title: "Entregas além das artes",
+    description:
+      "O trabalho reúne planejamento editorial, pautas, copywriting, formatos, calendário, publicação e leitura das principais métricas para orientar os próximos ciclos de conteúdo.",
+  },
+  {
+    title: "Problemas que o Social Media ajuda a resolver",
+    description:
+      "Feed desorganizado, falta de ideias, comunicação inconsistente, períodos sem publicação e conteúdos sem conexão com posicionamento, público ou objetivos comerciais.",
+  },
+];
+
 function TestimonialCard({
   testimonial,
 }: {
@@ -171,6 +224,14 @@ function TestimonialCard({
 export default function SocialMediaPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
+      <ServiceStructuredData
+        name="Social Media para Empresas"
+        description="Planejamento, criação, organização e publicação de conteúdo para redes sociais de empresas."
+        pathname="/servicos/social-media"
+        serviceType="Social Media"
+        audience="Empresas, profissionais e e-commerces"
+        faqs={socialMediaFaqs}
+      />
       <section className="relative isolate overflow-hidden border-b border-white/5">
         <div
           aria-hidden="true"
@@ -197,7 +258,7 @@ export default function SocialMediaPage() {
             </div>
 
             <h1 className="mt-7 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-7xl lg:leading-[1.02]">
-              Conteúdo com estratégia para fortalecer sua presença nas{" "}
+              Social Media para empresas: conteúdo com estratégia para fortalecer suas{" "}
               <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                 redes sociais.
               </span>
@@ -504,6 +565,29 @@ export default function SocialMediaPage() {
           </div>
         </div>
       </section>
+
+      <ServiceSeoContent
+        eyebrow="Gestão de conteúdo para redes sociais"
+        title="Planejamento e conteúdo para empresas que querem uma presença digital consistente."
+        description="O serviço de Social Media transforma objetivos, produtos, serviços e assuntos relevantes em uma rotina editorial organizada, com conteúdo adaptado à comunicação da marca."
+        items={socialMediaSeoItems}
+      />
+
+      <ServiceFaqSection
+        title="Dúvidas sobre o serviço de Social Media"
+        description="Confira o que faz parte do trabalho, quais materiais são necessários e como o serviço se relaciona com o tráfego pago."
+        faqs={socialMediaFaqs}
+      />
+
+      <RelatedServiceArticles
+        articles={[
+          {
+            title: "Social Media para empresas: como planejar conteúdo",
+            description: "Aprenda a organizar temas, formatos e objetivos para transformar as redes sociais em um canal estratégico.",
+            slug: "social-media-para-empresas-como-planejar-conteudo",
+          },
+        ]}
+      />
 
       <section className="relative overflow-hidden py-20 sm:py-24 lg:py-28">
         <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-[480px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.08] blur-[150px]" />
