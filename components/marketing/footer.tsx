@@ -63,6 +63,18 @@ export function Footer() {
               <span className="size-1.5 rounded-full bg-emerald-400" />
               Ferramentas inteligentes para resultados reais
             </div>
+
+            <a
+              href="https://www.instagram.com/kivai_br?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram oficial do Kivai, abre em nova aba"
+              className="group mt-4 flex w-fit items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              <InstagramIcon />
+              <span>@kivai_br</span>
+              <ArrowUpRight aria-hidden="true" className="size-3 opacity-60" />
+            </a>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
@@ -143,5 +155,24 @@ export function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-4 transition-transform group-hover:scale-105"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none" />
+    </svg>
   );
 }
