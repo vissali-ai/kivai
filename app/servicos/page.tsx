@@ -3,16 +3,23 @@ import {
   ArrowLeft,
   ArrowRight,
   BarChart3,
+  MapPin,
   LayoutTemplate,
   Megaphone,
+  PieChart,
+  Search,
+  Settings2,
   Share2,
+  ShoppingCart,
   Sparkles,
+  Store,
+  Workflow,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
 
 export const metadata = getPageMetadata({
   title: "Serviços Digitais",
-  description: "Conheça os serviços de Social Media, tráfego pago, divulgação artística e criação de landing pages do Kivai.",
+  description: "Serviços de marketing, e-commerce, SEO local, presença no Google, automação de processos, dashboards, sistemas, Social Media e tráfego pago.",
   pathname: "/servicos",
 });
 
@@ -51,6 +58,62 @@ const services = [
     action: "Conhecer",
     badge: "Serviço Premium",
   },
+  {
+    icon: Workflow,
+    title: "Automação de Processos",
+    description:
+      "Integre ferramentas, automatize tarefas, relatórios e notificações e organize fluxos operacionais.",
+    href: "/servicos/automacao-de-processos",
+    action: "Conhecer o serviço",
+  },
+  {
+    icon: MapPin,
+    title: "Presença Local no Google",
+    description:
+      "Criação e otimização do Perfil da Empresa com serviços, fotos, avaliações, conteúdo e acompanhamento.",
+    href: "/servicos/presenca-local-no-google",
+    action: "Fortalecer presença local",
+  },
+  {
+    icon: ShoppingCart,
+    title: "Consultoria para E-commerce",
+    description:
+      "Análise de operação, catálogo, margem, conversão, marketplaces, estoque, marketing e indicadores.",
+    href: "/servicos/consultoria-para-e-commerce",
+    action: "Conhecer a consultoria",
+  },
+  {
+    icon: Store,
+    title: "Criação de Loja Virtual",
+    description:
+      "Implantação de e-commerce com catálogo, pagamentos, integrações, Analytics, pixels e Merchant Center.",
+    href: "/servicos/criacao-de-loja-virtual",
+    action: "Planejar minha loja",
+  },
+  {
+    icon: Search,
+    title: "SEO Local",
+    description:
+      "Estrutura de páginas, palavras-chave locais, presença no Google, reputação e acompanhamento de posições.",
+    href: "/servicos/seo-local",
+    action: "Conhecer o serviço",
+  },
+  {
+    icon: PieChart,
+    title: "Dashboards e Relatórios",
+    description:
+      "Indicadores personalizados para marketing, vendas, financeiro e operação, com fontes integradas.",
+    href: "/servicos/dashboards-e-relatorios",
+    action: "Organizar meus dados",
+  },
+  {
+    icon: Settings2,
+    title: "Sistemas e Automações Personalizadas",
+    description:
+      "Ferramentas web para CRM, estoque, pedidos, leads, orçamentos, agendas e rotinas internas.",
+    href: "/servicos/sistemas-e-automacoes-personalizadas",
+    action: "Avaliar meu projeto",
+  },
 ];
 
 export default function ServicosPage() {
@@ -88,8 +151,8 @@ export default function ServicosPage() {
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Conheça soluções profissionais para atrair oportunidades,
-              fortalecer sua presença digital e alcançar novos públicos.
+              Conheça soluções para atrair oportunidades, organizar sua
+              operação, acompanhar dados e fortalecer sua presença digital.
             </p>
           </div>
 

@@ -59,6 +59,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    ...[
+      "automacao-de-processos",
+      "presenca-local-no-google",
+      "consultoria-para-e-commerce",
+      "criacao-de-loja-virtual",
+      "seo-local",
+      "dashboards-e-relatorios",
+      "sistemas-e-automacoes-personalizadas",
+    ].map((slug) => ({
+      url: `${baseUrl}/servicos/${slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    })),
 
     // Institucional
     {
