@@ -23,7 +23,6 @@ export type ImageToolEditorialSlug =
   | "gerador-de-qr-code"
   | "gerador-de-favicon"
   | "imagem-para-favicon"
-  | "gerador-de-mockups"
   | "adicionar-marca-dagua"
   | "conversor-svg-png"
   | "espelhar-e-girar-imagem"
@@ -375,49 +374,6 @@ export const imageToolEditorialContent = {
       { href: "/ferramentas/conversor-de-imagens", label: "Converter imagens" },
     ],
   },
-  "gerador-de-mockups": {
-    overview: [
-      "O Gerador de Mockups aplica uma arte a modelos visuais de dispositivos, publicações, quadros, camisetas e outros suportes. Ele ajuda a apresentar uma interface, identidade ou campanha em contexto sem exigir a montagem inicial em um editor gráfico complexo.",
-      "A imagem pode ser ajustada dentro da área prevista pelo modelo, alterando escala e posição. O resultado é uma composição plana pronta para download. Trata-se de uma simulação visual: iluminação, perspectiva e textura dependem do modelo escolhido e não substituem uma fotografia real do produto.",
-    ],
-    useCases: [
-      { title: "Portfólios", description: "Apresente telas, marcas e peças de campanha de forma contextualizada em estudos de caso." },
-      { title: "Aprovação de conceito", description: "Mostre ao cliente uma prévia rápida antes de investir em fotografia ou produção física." },
-      { title: "Conteúdo social", description: "Crie imagens de apresentação para divulgar aplicativos, sites, estampas ou materiais gráficos." },
-      { title: "Vitrines e propostas", description: "Demonstre como uma arte pode aparecer em dispositivos e objetos durante uma negociação." },
-    ],
-    steps: [
-      "Escolha um modelo adequado ao tipo de apresentação desejada.",
-      "Selecione a arte que será inserida na área do mockup.",
-      "Ajuste escala e posição até preencher a região sem ocultar conteúdo importante.",
-      "Gere a composição, revise o enquadramento e baixe a imagem final.",
-    ],
-    specifications: [
-      { label: "Entrada", value: "Imagem de arte ou captura compatível com o navegador." },
-      { label: "Modelos", value: "Categorias como dispositivos, publicação, moldura, camiseta e outdoor." },
-      { label: "Controles", value: "Seleção de modelo, escala e deslocamento da arte." },
-      { label: "Saída", value: "Composição rasterizada pronta para apresentação e compartilhamento." },
-    ],
-    privacy: "A arte é carregada na memória do navegador e desenhada sobre o modelo escolhido. O arquivo não precisa ser enviado a um serviço de mockups. Fechar a página encerra a sessão e libera as referências temporárias criadas para a prévia.",
-    limitations: [
-      "O mockup é ilustrativo e não garante cor, material ou proporção de um produto físico real.",
-      "Artes com proporção muito diferente da área do modelo podem ser cortadas durante o preenchimento.",
-      "O gerador não substitui provas de impressão, protótipos nem validação de acabamento.",
-      "Para trabalhos finais, confira resolução e direitos de uso de todos os elementos incorporados.",
-    ],
-    faqs: [
-      { question: "O mockup é uma fotografia real?", answer: "Não necessariamente. A ferramenta cria uma simulação gráfica para apresentação e não uma prova física do produto." },
-      { question: "Minha arte pode ser reposicionada?", answer: "Sim. Use os controles de escala e deslocamento para enquadrar o conteúdo na área disponível." },
-      { question: "Posso usar o resultado em uma proposta?", answer: "Sim, desde que fique claro quando a imagem representa uma simulação e não o produto final produzido." },
-      { question: "O resultado serve como arquivo de impressão?", answer: "Não é essa a finalidade principal. Envie ao fornecedor a arte original e siga as especificações técnicas de produção." },
-      { question: "A arte enviada fica no servidor?", answer: "Não. A composição é realizada no navegador do usuário." },
-    ],
-    related: [
-      { href: "/ferramentas/adicionar-marca-dagua", label: "Adicionar marca d'água" },
-      { href: "/ferramentas/recortar-imagem", label: "Recortar imagem" },
-      { href: "/ferramentas/redimensionar-imagem", label: "Redimensionar imagem" },
-    ],
-  },
   "adicionar-marca-dagua": {
     overview: [
       "Adicionar Marca d'Água insere um texto ou logotipo sobre uma imagem. É possível ajustar opacidade, tamanho e posição antes de gerar a cópia final em PNG. O recurso ajuda a identificar autoria, origem ou finalidade de uma fotografia sem modificar o arquivo original.",
@@ -432,13 +388,13 @@ export const imageToolEditorialContent = {
     steps: [
       "Selecione a imagem principal em PNG, JPG ou WebP.",
       "Escolha marca de texto ou envie uma imagem de logotipo.",
-      "Ajuste tamanho, opacidade e uma das posições disponíveis.",
-      "Aplique, confira a composição e baixe a cópia em PNG.",
+      "Arraste a marca sobre a prévia e use a alça para redimensioná-la.",
+      "Ajuste a opacidade, confira a composição e baixe a cópia em PNG.",
     ],
     specifications: [
       { label: "Imagem principal", value: "PNG, JPG ou WebP compatível com o navegador." },
       { label: "Marca", value: "Texto digitado ou logotipo em PNG, JPG ou WebP." },
-      { label: "Controles", value: "Tamanho, opacidade e posições superiores, centrais ou inferiores." },
+      { label: "Controles", value: "Posição e tamanho por manipulação direta na prévia, além do ajuste de opacidade." },
       { label: "Saída", value: "PNG com a marca incorporada visualmente aos pixels." },
     ],
     privacy: "A imagem e o logotipo são lidos localmente e combinados em um canvas no navegador. Nenhum dos arquivos precisa ser enviado ao Kivai. A ferramenta cria uma nova cópia e não altera o original armazenado no dispositivo.",
@@ -456,7 +412,7 @@ export const imageToolEditorialContent = {
       { question: "As imagens são enviadas ao servidor?", answer: "Não. A composição acontece localmente no navegador." },
     ],
     related: [
-      { href: "/ferramentas/gerador-de-mockups", label: "Gerar mockups" },
+      { href: "/ferramentas/espelhar-e-girar-imagem", label: "Espelhar e girar" },
       { href: "/ferramentas/recortar-imagem", label: "Recortar imagem" },
       { href: "/ferramentas/compressor-de-imagens", label: "Comprimir imagem" },
     ],

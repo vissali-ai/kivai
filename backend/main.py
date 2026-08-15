@@ -48,6 +48,10 @@ VIDEO_COMPRESS_EXTENSIONS = {"mp4", "mov", "webm", "avi", "mkv", "mpeg", "mpg"}
 VIDEO_COMPRESS_FORMATS = {"mov", "mp4", "matroska", "webm", "avi", "mpeg"}
 MOV_COPY_VIDEO_CODECS = {"h264", "hevc", "mpeg4", "prores", "mjpeg"}
 MOV_COPY_AUDIO_CODECS = {"aac", "alac", "mp3", "ac3", "eac3", "pcm_s16le", "pcm_s24le"}
+AVI_COPY_VIDEO_CODECS = {"mpeg4"}
+AVI_COPY_AUDIO_CODECS = {"mp3"}
+MP4_COPY_VIDEO_CODECS = {"h264", "hevc", "mpeg4", "av1"}
+MP4_COPY_AUDIO_CODECS = {"aac", "mp3"}
 
 VIDEO_COMPRESS_MODES = {
     "light": {"crf": 20, "factor": 1.0},
@@ -212,6 +216,7 @@ def detailed_video_metadata(probe_text: str) -> dict:
     formats = set(input_format.group(1).lower().split(",")) if input_format else set()
     return {
         "format": next((item for item in ("mp4", "mov", "webm", "matroska", "avi", "mpeg") if item in formats), None),
+        "formats": sorted(formats),
         "duration": duration,
         "width": width,
         "height": height,
@@ -284,6 +289,48 @@ async def probe_mp4_file(ffmpeg: str, input_path: str) -> dict:
 def can_remux_mp4_to_mov(metadata: dict) -> bool:
     video_compatible = metadata["videoCodec"] in MOV_COPY_VIDEO_CODECS
     audio_compatible = not metadata["hasAudio"] or metadata["audioCodec"] in MOV_COPY_AUDIO_CODECS
+    return video_compatible and audio_compatible
+
+
+def can_remux_mp4_to_avi(metadata: dict) -> bool:
+    video_compatible = metadata["videoCodec"] in AVI_COPY_VIDEO_CODECS
+    audio_compatible = not metadata["hasAudio"] or metadata["audioCodec"] in AVI_COPY_AUDIO_CODECS
+    return video_compatible and audio_compatible
+
+
+async def save_mov_upload(file: UploadFile, workdir: str) -> tuple[str, int]:
+    extension = (file.filename or "").rsplit(".", 1)[-1].lower()
+    if extension != "mov":
+        raise HTTPException(status_code=415, detail="Selecione um arquivo MOV válido.")
+    if file.content_type and file.content_type not in {
+        "video/quicktime", "video/x-quicktime", "video/mov", "application/octet-stream"
+    }:
+        raise HTTPException(status_code=415, detail="Selecione um arquivo MOV válido.")
+    input_path = os.path.join(workdir, "entrada.mov")
+    total = 0
+    with open(input_path, "wb") as destination:
+        while chunk := await file.read(1024 * 1024):
+            total += len(chunk)
+            if total > VIDEO_CONVERT_MAX_FILE_SIZE:
+                raise HTTPException(status_code=413, detail="O vídeo ultrapassa o limite permitido.")
+            destination.write(chunk)
+    if total == 0:
+        raise HTTPException(status_code=422, detail="Selecione um arquivo MOV válido.")
+    return input_path, total
+
+
+async def probe_mov_file(ffmpeg: str, input_path: str) -> dict:
+    metadata = await probe_video_file(ffmpeg, input_path)
+    with open(input_path, "rb") as source:
+        header = source.read(64)
+    if "mov" not in metadata.get("formats", []) or b"ftypqt  " not in header:
+        raise HTTPException(status_code=415, detail="Selecione um arquivo MOV válido.")
+    return metadata
+
+
+def can_remux_mov_to_mp4(metadata: dict) -> bool:
+    video_compatible = metadata["videoCodec"] in MP4_COPY_VIDEO_CODECS
+    audio_compatible = not metadata["hasAudio"] or metadata["audioCodec"] in MP4_COPY_AUDIO_CODECS
     return video_compatible and audio_compatible
 
 
@@ -596,6 +643,266 @@ async def mp4_to_mov(
         print(f"Erro MP4 para MOV: {type(error).__name__}")
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="Não foi possível converter este vídeo para MOV. Tente novamente com outro arquivo.")
+
+
+@app.post("/video/mp4-to-avi/inspect")
+async def inspect_mp4_to_avi(file: UploadFile = File(...)):
+    workdir = tempfile.mkdtemp(prefix="kivai-mp4-avi-inspect-")
+    try:
+        input_path, size = await save_mp4_upload(file, workdir)
+        from imageio_ffmpeg import get_ffmpeg_exe
+
+        metadata = await probe_mp4_file(get_ffmpeg_exe(), input_path)
+        return {
+            **metadata,
+            "size": size,
+            "strategy": "remux" if can_remux_mp4_to_avi(metadata) else "transcode",
+        }
+    except HTTPException:
+        raise
+    except TimeoutError:
+        raise HTTPException(status_code=408, detail="A análise demorou mais do que o limite permitido. Tente utilizar um arquivo menor.")
+    except Exception as error:
+        print(f"Erro ao analisar MP4 para AVI: {type(error).__name__}")
+        raise HTTPException(status_code=422, detail="Não foi possível ler este vídeo. Verifique o arquivo e tente novamente.")
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+
+@app.post("/video/mp4-to-avi")
+async def mp4_to_avi(
+    request: Request,
+    file: UploadFile = File(...),
+    quality: str = Form(default="auto"),
+    resolution: str = Form(default="original"),
+    fps: str = Form(default="original"),
+):
+    if quality not in {"auto", "high", "small"}:
+        raise HTTPException(status_code=400, detail="Configuração de qualidade inválida.")
+    if resolution not in {"original", "2160", "1080", "720", "480"}:
+        raise HTTPException(status_code=400, detail="Resolução inválida.")
+    if fps not in {"original", "60", "30", "24"}:
+        raise HTTPException(status_code=400, detail="Configuração de FPS inválida.")
+
+    workdir = tempfile.mkdtemp(prefix="kivai-mp4-avi-")
+    output_path = os.path.join(workdir, "video-convertido.avi")
+    try:
+        input_path, original_size = await save_mp4_upload(file, workdir)
+        from imageio_ffmpeg import get_ffmpeg_exe
+
+        ffmpeg = get_ffmpeg_exe()
+        metadata = await probe_mp4_file(ffmpeg, input_path)
+        use_remux = quality == "auto" and resolution == "original" and fps == "original" and can_remux_mp4_to_avi(metadata)
+        command = [
+            ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path,
+            "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
+        ]
+
+        if use_remux:
+            command.extend(["-c", "copy"])
+        else:
+            requested_height = metadata["height"] if resolution == "original" else min(metadata["height"], int(resolution))
+            final_height = max(2, round(requested_height / 2) * 2)
+            final_width = max(2, round(metadata["width"] * final_height / metadata["height"] / 2) * 2)
+            filters = []
+            if final_width != metadata["width"] or final_height != metadata["height"]:
+                filters.append(f"scale={final_width}:{final_height}:flags=lanczos")
+            if fps != "original" and metadata["fps"]:
+                requested_fps = float(fps)
+                if requested_fps < metadata["fps"]:
+                    filters.append(f"fps={requested_fps:g}")
+            if filters:
+                command.extend(["-vf", ",".join(filters)])
+            quality_scale = {"auto": 4, "high": 2, "small": 7}[quality]
+            command.extend(["-c:v", "mpeg4", "-q:v", str(quality_scale), "-pix_fmt", "yuv420p", "-vtag", "XVID"])
+            if metadata["hasAudio"]:
+                command.extend(["-c:a", "libmp3lame", "-b:a", "192k"])
+
+        command.extend(["-f", "avi", output_path])
+        returncode, _, conversion_error = await run_ffmpeg_cancellable(request, *command, timeout=1800)
+        if returncode != 0 or not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+            raise RuntimeError(conversion_error.decode("utf-8", errors="replace")[-1000:])
+
+        with open(output_path, "rb") as converted_file:
+            header = converted_file.read(12)
+        if header[:4] != b"RIFF" or header[8:12] != b"AVI ":
+            raise RuntimeError("avi-container-verification-failed")
+        verification_code, _, verification_error = await run_ffmpeg(
+            ffmpeg, "-v", "error", "-i", output_path, "-f", "null", "-", timeout=180
+        )
+        if verification_code != 0:
+            raise RuntimeError(verification_error.decode("utf-8", errors="replace")[-1000:])
+        _, _, output_probe = await run_ffmpeg(ffmpeg, "-hide_banner", "-i", output_path, timeout=30)
+        output_metadata = detailed_video_metadata(output_probe.decode("utf-8", errors="replace"))
+        if output_metadata["format"] != "avi" or not output_metadata["videoCodec"] or not output_metadata["width"] or not output_metadata["height"]:
+            raise RuntimeError("avi-output-probe-failed")
+
+        converted_size = os.path.getsize(output_path)
+        return FileResponse(
+            output_path,
+            media_type="video/x-msvideo",
+            filename="video-convertido.avi",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Video-Duration": f"{(output_metadata['duration'] or metadata['duration']):.3f}",
+                "X-Video-Width": str(output_metadata["width"]),
+                "X-Video-Height": str(output_metadata["height"]),
+                "X-Video-FPS": f"{output_metadata['fps']:.3f}" if output_metadata["fps"] else "",
+                "X-Video-Original-Size": str(original_size),
+                "X-Video-Compressed-Size": str(converted_size),
+                "X-Video-Codec": output_metadata["videoCodec"] or "",
+                "X-Audio-Codec": output_metadata["audioCodec"] or "none",
+                "X-Conversion-Strategy": "remux" if use_remux else "transcode",
+            },
+            background=BackgroundTask(shutil.rmtree, workdir, True),
+        )
+    except asyncio.CancelledError:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=499, detail="A conversão foi cancelada.")
+    except HTTPException:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise
+    except TimeoutError:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=408, detail="A conversão demorou mais do que o limite permitido. Tente utilizar um arquivo menor.")
+    except MemoryError:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=507, detail="Este vídeo exige mais memória do que o dispositivo pode disponibilizar. Tente utilizar um arquivo menor.")
+    except Exception as error:
+        print(f"Erro MP4 para AVI: {type(error).__name__}")
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=500, detail="Não foi possível converter este vídeo para AVI. Tente novamente com outro arquivo.")
+
+
+@app.post("/video/mov-to-mp4/inspect")
+async def inspect_mov_to_mp4(file: UploadFile = File(...)):
+    workdir = tempfile.mkdtemp(prefix="kivai-mov-mp4-inspect-")
+    try:
+        input_path, size = await save_mov_upload(file, workdir)
+        from imageio_ffmpeg import get_ffmpeg_exe
+
+        metadata = await probe_mov_file(get_ffmpeg_exe(), input_path)
+        return {
+            **metadata,
+            "size": size,
+            "strategy": "remux" if can_remux_mov_to_mp4(metadata) else "transcode",
+        }
+    except HTTPException:
+        raise
+    except TimeoutError:
+        raise HTTPException(status_code=408, detail="A análise demorou mais do que o limite permitido. Tente utilizar um arquivo menor.")
+    except Exception as error:
+        print(f"Erro ao analisar MOV para MP4: {type(error).__name__}")
+        raise HTTPException(status_code=422, detail="Não foi possível ler este vídeo. Verifique o arquivo e tente novamente.")
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+
+@app.post("/video/mov-to-mp4")
+async def mov_to_mp4(
+    request: Request,
+    file: UploadFile = File(...),
+    quality: str = Form(default="auto"),
+    resolution: str = Form(default="original"),
+    fps: str = Form(default="original"),
+):
+    if quality not in {"auto", "high", "small"}:
+        raise HTTPException(status_code=400, detail="Configuração de qualidade inválida.")
+    if resolution not in {"original", "2160", "1080", "720", "480"}:
+        raise HTTPException(status_code=400, detail="Resolução inválida.")
+    if fps not in {"original", "60", "30", "24"}:
+        raise HTTPException(status_code=400, detail="Configuração de FPS inválida.")
+
+    workdir = tempfile.mkdtemp(prefix="kivai-mov-mp4-")
+    output_path = os.path.join(workdir, "video-convertido.mp4")
+    try:
+        input_path, original_size = await save_mov_upload(file, workdir)
+        from imageio_ffmpeg import get_ffmpeg_exe
+
+        ffmpeg = get_ffmpeg_exe()
+        metadata = await probe_mov_file(ffmpeg, input_path)
+        use_remux = quality == "auto" and resolution == "original" and fps == "original" and can_remux_mov_to_mp4(metadata)
+        command = [
+            ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path,
+            "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
+        ]
+
+        if use_remux:
+            command.extend(["-c", "copy"])
+            if metadata["videoCodec"] == "hevc":
+                command.extend(["-tag:v", "hvc1"])
+        else:
+            requested_height = metadata["height"] if resolution == "original" else min(metadata["height"], int(resolution))
+            final_height = max(2, round(requested_height / 2) * 2)
+            final_width = max(2, round(metadata["width"] * final_height / metadata["height"] / 2) * 2)
+            filters = []
+            if final_width != metadata["width"] or final_height != metadata["height"]:
+                filters.append(f"scale={final_width}:{final_height}:flags=lanczos")
+            if fps != "original" and metadata["fps"]:
+                requested_fps = float(fps)
+                if requested_fps < metadata["fps"]:
+                    filters.append(f"fps={requested_fps:g}")
+            if filters:
+                command.extend(["-vf", ",".join(filters)])
+            crf, preset = {"auto": (20, "medium"), "high": (17, "slow"), "small": (26, "medium")}[quality]
+            command.extend(["-c:v", "libx264", "-preset", preset, "-crf", str(crf), "-pix_fmt", "yuv420p", "-tag:v", "avc1"])
+            if metadata["hasAudio"]:
+                command.extend(["-c:a", "aac", "-b:a", "192k"])
+
+        command.extend(["-movflags", "+faststart+use_metadata_tags", "-f", "mp4", output_path])
+        returncode, _, conversion_error = await run_ffmpeg_cancellable(request, *command, timeout=1800)
+        if returncode != 0 or not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+            raise RuntimeError(conversion_error.decode("utf-8", errors="replace")[-1000:])
+
+        with open(output_path, "rb") as converted_file:
+            header = converted_file.read(64)
+        if b"ftyp" not in header or b"ftypqt  " in header:
+            raise RuntimeError("mp4-container-verification-failed")
+        verification_code, _, verification_error = await run_ffmpeg(
+            ffmpeg, "-v", "error", "-i", output_path, "-f", "null", "-", timeout=180
+        )
+        if verification_code != 0:
+            raise RuntimeError(verification_error.decode("utf-8", errors="replace")[-1000:])
+        _, _, output_probe = await run_ffmpeg(ffmpeg, "-hide_banner", "-i", output_path, timeout=30)
+        output_metadata = detailed_video_metadata(output_probe.decode("utf-8", errors="replace"))
+        if not output_metadata["videoCodec"] or not output_metadata["width"] or not output_metadata["height"]:
+            raise RuntimeError("mp4-output-probe-failed")
+
+        converted_size = os.path.getsize(output_path)
+        return FileResponse(
+            output_path,
+            media_type="video/mp4",
+            filename="video-convertido.mp4",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Video-Duration": f"{(output_metadata['duration'] or metadata['duration']):.3f}",
+                "X-Video-Width": str(output_metadata["width"]),
+                "X-Video-Height": str(output_metadata["height"]),
+                "X-Video-FPS": f"{output_metadata['fps']:.3f}" if output_metadata["fps"] else "",
+                "X-Video-Original-Size": str(original_size),
+                "X-Video-Compressed-Size": str(converted_size),
+                "X-Video-Codec": output_metadata["videoCodec"] or "",
+                "X-Audio-Codec": output_metadata["audioCodec"] or "none",
+                "X-Conversion-Strategy": "remux" if use_remux else "transcode",
+            },
+            background=BackgroundTask(shutil.rmtree, workdir, True),
+        )
+    except asyncio.CancelledError:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=499, detail="A conversão foi cancelada.")
+    except HTTPException:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise
+    except TimeoutError:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=408, detail="A conversão demorou mais do que o limite permitido. Tente utilizar um arquivo menor.")
+    except MemoryError:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=507, detail="Este vídeo exige mais memória do que o dispositivo pode disponibilizar. Tente utilizar um arquivo menor.")
+    except Exception as error:
+        print(f"Erro MOV para MP4: {type(error).__name__}")
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise HTTPException(status_code=500, detail="Não foi possível converter este vídeo para MP4. Tente novamente com outro arquivo.")
 
 
 @app.post("/video/hevc-to-mp4")
