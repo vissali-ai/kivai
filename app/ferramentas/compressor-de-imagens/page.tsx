@@ -7,9 +7,9 @@ export const metadata = getToolMetadata("compressor-de-imagens");
 
 export default function CompressorDeImagensPage() {
   return (
-    <main>
+    <>
       <CompressorDeImagensClient />
       <ImageToolEditorial slug="compressor-de-imagens" />
-    </main>
+    </>
   );
 }

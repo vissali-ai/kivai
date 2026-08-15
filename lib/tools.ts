@@ -115,7 +115,6 @@ export interface Tool {
   icon: LucideIcon;
   featured?: boolean;
   available: boolean;
-  index?: boolean;
   seoTitle?: string;
   seoDescription?: string;
   keywords?: string[];
@@ -866,7 +865,6 @@ export const tools: Tool[] = [
     badge: "Vídeo",
     icon: Video,
     available: true,
-    index: true,
     seoTitle: "MP4 para MOV: converta vídeo MP4 em MOV online | Kivai",
     seoDescription: "Converta MP4 para MOV online. Transforme seus vídeos para MOV mantendo resolução, áudio e qualidade sempre que possível.",
     keywords: ["mp4 para mov", "converter mp4 para mov", "mp4 mov", "transformar mp4 em mov", "vídeo mp4 para mov", "converter vídeo mov"],

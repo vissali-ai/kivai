@@ -7,9 +7,9 @@ export const metadata = getToolMetadata("gerador-de-qr-code");
 
 export default function GeradorDeQrCodePage() {
   return (
-    <main>
+    <>
       <GeradorDeQrCodeClient />
       <ImageToolEditorial slug="gerador-de-qr-code" />
-    </main>
+    </>
   );
 }

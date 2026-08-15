@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
 import PlanejadorClient from "./planejador-client";
 
 const url = "https://www.kivai.com.br/ferramentas/planejador-de-conteudo-social-media";
 const title = "Planejador de Conteúdo Social Media Grátis | Kivai";
 const description = "Organize objetivo, público, tema, formato, abordagem e briefing das suas publicações com o Planejador de Conteúdo Social Media do Kivai.";
-export const metadata: Metadata = { title, description, keywords: ["planejador de conteúdo social media", "planejador de conteúdo", "planejamento de conteúdo", "plano de conteúdo", "briefing para social media", "pilares de conteúdo"], alternates: { canonical: url }, robots: { index: true, follow: true }, openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR" }, twitter: { card: "summary_large_image", title, description } };
+export const metadata: Metadata = { title: { absolute: title }, description, keywords: ["planejador de conteúdo social media", "planejador de conteúdo", "planejamento de conteúdo", "plano de conteúdo", "briefing para social media", "pilares de conteúdo"], alternates: { canonical: url }, robots: { index: true, follow: true }, openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR", images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }] }, twitter: { card: "summary_large_image", title, description, images: [DEFAULT_SOCIAL_IMAGE] } };
 
 const faq = [
   ["O que é um planejador de conteúdo?", "É uma ferramenta para estruturar o objetivo, público, tema, mensagem, formato e desenvolvimento de uma pauta antes da produção."],

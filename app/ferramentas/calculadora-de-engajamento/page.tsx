@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
 import CalculadoraEngajamentoClient from "./calculadora-client";
 
 const url = "https://www.kivai.com.br/ferramentas/calculadora-de-engajamento";
 const title = "Calculadora de Engajamento para Redes Sociais | Kivai";
 const description = "Calcule gratuitamente a taxa de engajamento por seguidores, alcance ou impressões e analise as interações das suas publicações.";
-export const metadata: Metadata = { title, description, keywords: ["calculadora de engajamento", "taxa de engajamento", "calcular engajamento", "engajamento Instagram", "engajamento TikTok", "engajamento por alcance", "média de engajamento"], alternates: { canonical: url }, robots: { index: true, follow: true }, openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR" }, twitter: { card: "summary_large_image", title, description } };
+export const metadata: Metadata = { title: { absolute: title }, description, keywords: ["calculadora de engajamento", "taxa de engajamento", "calcular engajamento", "engajamento Instagram", "engajamento TikTok", "engajamento por alcance", "média de engajamento"], alternates: { canonical: url }, robots: { index: true, follow: true }, openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR", images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }] }, twitter: { card: "summary_large_image", title, description, images: [DEFAULT_SOCIAL_IMAGE] } };
 const faq = [
   ["O que é taxa de engajamento?", "É a relação percentual entre as interações registradas e uma base escolhida, como seguidores, alcance ou impressões."],
   ["Como calcular a taxa de engajamento?", "Some as interações, divida pela base analisada e multiplique por 100. A ferramenta faz essa operação automaticamente."],

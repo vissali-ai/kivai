@@ -5,5 +5,5 @@ import { PdfToolEditorial } from "@/components/tools/pdf-tool-editorial";
 export const metadata = getToolMetadata("dividir-pdf");
 
 export default function Page() {
-  return <main><DividirPdfClient /><PdfToolEditorial slug="dividir-pdf" /></main>;
+  return <><DividirPdfClient /><PdfToolEditorial slug="dividir-pdf" /></>;
 }

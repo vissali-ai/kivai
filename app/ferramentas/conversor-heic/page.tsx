@@ -7,9 +7,9 @@ export const metadata = getToolMetadata("conversor-heic");
 
 export default function ConversorHeicPage() {
   return (
-    <main>
+    <>
       <ConversorHeicClient />
       <ImageToolEditorial slug="conversor-heic" />
-    </main>
+    </>
   );
 }

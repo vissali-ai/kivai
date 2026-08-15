@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { isToolIndexable, tools } from "@/lib/tools";
 
 export const SITE_URL = "https://www.kivai.com.br";
+export const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/og-image.jpg`;
 
 export const noIndexRobots: NonNullable<Metadata["robots"]> = {
   index: false,
@@ -41,11 +42,13 @@ export function getPageMetadata({
       siteName: "Kivai",
       locale: "pt_BR",
       type: "website",
+      images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }],
     },
     twitter: {
       card: "summary_large_image",
       title: brandedTitle,
       description,
+      images: [DEFAULT_SOCIAL_IMAGE],
     },
   };
 }
@@ -88,12 +91,14 @@ export function getToolMetadata(slug: string): Metadata {
       siteName: "Kivai",
       locale: "pt_BR",
       type: "website",
+      images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }],
     },
 
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [DEFAULT_SOCIAL_IMAGE],
     },
   };
 }

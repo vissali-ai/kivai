@@ -6,9 +6,9 @@ export const metadata = getToolMetadata("removedor-de-fundo");
 
 export default function RemovedorDeFundoPage() {
   return (
-    <main>
+    <>
       <RemovedorDeFundoClient />
       <ImageToolEditorial slug="removedor-de-fundo" />
-    </main>
+    </>
   );
 }

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
 import PreviewClient from "./preview-client";
 
 const url = "https://www.kivai.com.br/ferramentas/preview-de-post-redes-sociais";
 const title = "Preview de Post para Redes Sociais Grátis | Kivai";
 const description = "Visualize perfil, imagem, texto e legenda antes de publicar com o Preview de Post para Redes Sociais do Kivai.";
-export const metadata: Metadata = { title, description, keywords: ["preview de post para redes sociais", "preview de post", "simulador de post", "visualizar post antes de publicar", "preview Instagram", "preview Facebook", "preview LinkedIn"], alternates: { canonical: url }, robots: { index: true, follow: true }, openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR" }, twitter: { card: "summary_large_image", title, description } };
+export const metadata: Metadata = { title: { absolute: title }, description, keywords: ["preview de post para redes sociais", "preview de post", "simulador de post", "visualizar post antes de publicar", "preview Instagram", "preview Facebook", "preview LinkedIn"], alternates: { canonical: url }, robots: { index: true, follow: true }, openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR", images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }] }, twitter: { card: "summary_large_image", title, description, images: [DEFAULT_SOCIAL_IMAGE] } };
 const faq = [
   ["O que é um preview de post?", "É uma simulação visual que reúne perfil, imagem e legenda para ajudar na revisão de uma publicação antes de ela ser apresentada ou postada."],
   ["A ferramenta publica meu conteúdo?", "Não. O Kivai apenas monta a visualização no navegador e não publica, agenda ou envia conteúdo para redes sociais."],

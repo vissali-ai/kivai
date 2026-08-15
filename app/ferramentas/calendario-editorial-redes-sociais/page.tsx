@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
 import CalendarioEditorialClient from "./calendario-editorial-client";
 
 const url = "https://www.kivai.com.br/ferramentas/calendario-editorial-redes-sociais";
@@ -8,12 +9,12 @@ const title = "Calendário Editorial para Redes Sociais Grátis | Kivai";
 const description = "Crie um calendário editorial para Instagram, TikTok, LinkedIn e outras redes. Planeje publicações, filtre conteúdos e exporte seu plano em CSV.";
 
 export const metadata: Metadata = {
-  title,
+  title: { absolute: title },
   description,
   keywords: ["calendário editorial", "calendário de conteúdo", "planejamento de redes sociais", "calendário social media", "planejamento de conteúdo", "calendário Instagram"],
   alternates: { canonical: url },
-  openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR" },
-  twitter: { card: "summary_large_image", title, description },
+  openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR", images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }] },
+  twitter: { card: "summary_large_image", title, description, images: [DEFAULT_SOCIAL_IMAGE] },
 };
 
 const faq = [

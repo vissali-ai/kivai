@@ -5,5 +5,5 @@ import { PdfToolEditorial } from "@/components/tools/pdf-tool-editorial";
 export const metadata = getToolMetadata("pdf-para-imagens");
 
 export default function Page() {
-  return <main><PdfParaImagensClient /><PdfToolEditorial slug="pdf-para-imagens" /></main>;
+  return <><PdfParaImagensClient /><PdfToolEditorial slug="pdf-para-imagens" /></>;
 }

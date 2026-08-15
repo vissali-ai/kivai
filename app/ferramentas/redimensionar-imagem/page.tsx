@@ -7,9 +7,9 @@ export const metadata = getToolMetadata("redimensionar-imagem");
 
 export default function RedimensionarImagemPage() {
   return (
-    <main>
+    <>
       <RedimensionarImagemClient />
       <ImageToolEditorial slug="redimensionar-imagem" />
-    </main>
+    </>
   );
 }

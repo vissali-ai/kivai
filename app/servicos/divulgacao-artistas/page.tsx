@@ -11,7 +11,6 @@ import {
   Sparkles,
   Star,
   Video,
-  Zap,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
 

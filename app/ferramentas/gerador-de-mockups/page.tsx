@@ -6,9 +6,9 @@ export const metadata = getToolMetadata("gerador-de-mockups");
 
 export default function GeradorDeMockupsPage() {
   return (
-    <main>
+    <>
       <MockupGeneratorClient />
       <ImageToolEditorial slug="gerador-de-mockups" />
-    </main>
+    </>
   );
 }

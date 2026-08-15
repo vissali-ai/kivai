@@ -5,5 +5,5 @@ import { PdfToolEditorial } from "@/components/tools/pdf-tool-editorial";
 export const metadata = getToolMetadata("girar-pdf");
 
 export default function Page() {
-  return <main><GirarPdfClient /><PdfToolEditorial slug="girar-pdf" /></main>;
+  return <><GirarPdfClient /><PdfToolEditorial slug="girar-pdf" /></>;
 }

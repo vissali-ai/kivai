@@ -10,10 +10,13 @@ import { ImageToolPageShell } from "@/components/tools/image-tool-page-shell";
 import { createFaviconZip, generateFaviconAssets, type FaviconAsset } from "@/lib/favicon/engine";
 
 const FORMATOS = ["image/png", "image/jpeg", "image/webp"];
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 type Props = { title: string; description: string; names: Record<number, string>; showAll: boolean };
 
 export function FaviconGeneratorClient({ title, description, names, showAll }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
+  const generatedUrlsRef = useRef<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [assets, setAssets] = useState<FaviconAsset[]>([]);
@@ -21,11 +24,14 @@ export function FaviconGeneratorClient({ title, description, names, showAll }: P
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); assets.forEach((asset) => URL.revokeObjectURL(asset.url)); if (ico) URL.revokeObjectURL(ico.url); }, [preview, assets, ico]);
+  useEffect(() => () => {
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    generatedUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
   const download = (url: string, name: string) => { const link = document.createElement("a"); link.href = url; link.download = name; document.body.appendChild(link); link.click(); link.remove(); };
-  const select = (event: ChangeEvent<HTMLInputElement>) => { const selected = event.target.files?.[0]; if (!selected) return; if (!FORMATOS.includes(selected.type)) { setError("Use uma imagem PNG, JPG ou WebP."); return; } assets.forEach((asset) => URL.revokeObjectURL(asset.url)); if (ico) URL.revokeObjectURL(ico.url); if (preview) URL.revokeObjectURL(preview); setFile(selected); setPreview(URL.createObjectURL(selected)); setAssets([]); setIco(null); setError(""); };
-  const generate = async () => { if (!file) return; setLoading(true); setError(""); try { const result = await generateFaviconAssets(file, names); setAssets(result.assets); setIco({ blob: result.icoBlob, url: result.icoUrl }); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível gerar os favicons."); } finally { setLoading(false); } };
-  const downloadZip = async () => { if (!ico) return; const zip = await createFaviconZip(assets, ico.blob); download(URL.createObjectURL(zip), "favicons.zip"); };
+  const select = (event: ChangeEvent<HTMLInputElement>) => { const selected = event.target.files?.[0]; if (!selected) return; if (!FORMATOS.includes(selected.type)) { setError("Use uma imagem PNG, JPG ou WebP."); return; } if (selected.size > MAX_IMAGE_SIZE) { setError("A imagem deve ter no máximo 20 MB."); return; } generatedUrlsRef.current.forEach((url) => URL.revokeObjectURL(url)); generatedUrlsRef.current = []; if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current); const nextPreview = URL.createObjectURL(selected); previewUrlRef.current = nextPreview; setFile(selected); setPreview(nextPreview); setAssets([]); setIco(null); setError(""); };
+  const generate = async () => { if (!file) return; setLoading(true); setError(""); try { const result = await generateFaviconAssets(file, names); generatedUrlsRef.current.forEach((url) => URL.revokeObjectURL(url)); generatedUrlsRef.current = [...result.assets.map((asset) => asset.url), result.icoUrl]; setAssets(result.assets); setIco({ blob: result.icoBlob, url: result.icoUrl }); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível gerar os favicons."); } finally { setLoading(false); } };
+  const downloadZip = async () => { if (!ico) return; const zip = await createFaviconZip(assets, ico.blob); const url = URL.createObjectURL(zip); download(url, "favicons.zip"); setTimeout(() => URL.revokeObjectURL(url), 0); };
 
   return <ImageToolPageShell title={title} description={`${description} Todo o processamento acontece no seu navegador.`}>
     <Card className="mx-auto max-w-5xl"><CardHeader><CardTitle>Área de geração</CardTitle><CardDescription>Envie uma imagem PNG, JPG ou WebP para gerar os ícones.</CardDescription></CardHeader><CardContent>

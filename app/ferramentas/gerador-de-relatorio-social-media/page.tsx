@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
 import RelatorioSocialMediaClient from "./relatorio-client";
 
 const title = "Gerador de Relatório Social Media Grátis | Kivai";
@@ -7,12 +8,12 @@ const description = "Crie relatórios de redes sociais com métricas, engajament
 const canonical = "https://www.kivai.com.br/ferramentas/gerador-de-relatorio-social-media";
 
 export const metadata: Metadata = {
-  title,
+  title: { absolute: title },
   description,
   alternates: { canonical },
   robots: { index: true, follow: true },
-  openGraph: { title, description, url: canonical, siteName: "Kivai", locale: "pt_BR", type: "website" },
-  twitter: { card: "summary_large_image", title, description },
+  openGraph: { title, description, url: canonical, siteName: "Kivai", locale: "pt_BR", type: "website", images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }] },
+  twitter: { card: "summary_large_image", title, description, images: [DEFAULT_SOCIAL_IMAGE] },
   keywords: ["gerador de relatório social media", "relatório social media", "relatório de redes sociais", "relatório Instagram", "modelo de relatório social media", "relatório para cliente social media"],
 };
 

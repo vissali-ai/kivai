@@ -25,13 +25,6 @@ import {
 
 import { converterHeicParaJpg } from "./heic-utils";
 
-const FORMATOS_ACEITOS = [
-  "image/heic",
-  "image/heif",
-  ".heic",
-  ".heif",
-];
-
 const TAMANHO_MAXIMO_GRATIS = 20 * 1024 * 1024;
 
 export default function ConversorHeicClient() {

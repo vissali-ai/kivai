@@ -7,9 +7,9 @@ export const metadata = getToolMetadata("conversor-de-imagens");
 
 export default function ConversorDeImagensPage() {
   return (
-    <main>
+    <>
       <ConversorDeImagensClient />
       <ImageToolEditorial slug="conversor-de-imagens" />
-    </main>
+    </>
   );
 }

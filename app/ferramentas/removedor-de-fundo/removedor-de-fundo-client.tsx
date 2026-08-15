@@ -109,21 +109,6 @@ export default function RemovedorDeFundoClient() {
     }
   }
 
-  function removerArquivo() {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
-    limparResultado();
-
-    setArquivo(null);
-    setPreviewUrl(null);
-    setErro("");
-
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
-  }
 function fazerOutraImagem() {
   if (previewUrl) {
     URL.revokeObjectURL(previewUrl);
