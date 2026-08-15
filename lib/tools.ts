@@ -115,6 +115,7 @@ export interface Tool {
   icon: LucideIcon;
   featured?: boolean;
   available: boolean;
+  index?: boolean;
   seoTitle?: string;
   seoDescription?: string;
   keywords?: string[];
@@ -159,6 +160,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "html-para-pdf",
   "hevc-para-mp4",
   "mp4-para-hevc",
+  "mp4-para-mov",
   "imagem-para-favicon",
   "imagens-para-pdf",
   "montar-pdf-para-impressao",
@@ -854,6 +856,20 @@ export const tools: Tool[] = [
     seoTitle: "MP4 para HEVC: converta vídeo para H.265 online | Kivai",
     seoDescription: "Converta vídeos MP4 para HEVC/H.265 online. Reduza o tamanho do arquivo mantendo a resolução e boa qualidade visual.",
     keywords: ["mp4 para hevc", "converter mp4 para hevc", "mp4 para h265", "mp4 para h.265", "converter vídeo para hevc", "compactar mp4 com hevc"],
+  },
+  {
+    slug: "mp4-para-mov",
+    name: "MP4 → MOV",
+    description: "Converta vídeos MP4 para MOV de forma simples, mantendo resolução, duração e qualidade sempre que possível.",
+    category: "video",
+    hubFilter: "Converter",
+    badge: "Vídeo",
+    icon: Video,
+    available: true,
+    index: true,
+    seoTitle: "MP4 para MOV: converta vídeo MP4 em MOV online | Kivai",
+    seoDescription: "Converta MP4 para MOV online. Transforme seus vídeos para MOV mantendo resolução, áudio e qualidade sempre que possível.",
+    keywords: ["mp4 para mov", "converter mp4 para mov", "mp4 mov", "transformar mp4 em mov", "vídeo mp4 para mov", "converter vídeo mov"],
   },
   {
     slug: "ajustar-velocidade-video",
