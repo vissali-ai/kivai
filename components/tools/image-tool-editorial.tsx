@@ -89,7 +89,7 @@ export function ImageToolEditorial({ slug }: { slug: ImageToolEditorialSlug }) {
 
             <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
               <h2 className="text-2xl font-semibold">Como usar</h2>
-              <ol className="mt-5 space-y-3">
+              <ol className="mt-5 list-none space-y-3">
                 {content.steps.map((step, index) => (
                   <li key={step} className="flex gap-3 text-sm leading-6 text-muted-foreground">
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
