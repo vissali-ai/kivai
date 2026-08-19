@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { ToolGuideArtwork } from "@/components/blog/tool-guide-artwork";
 import type { Post } from "@/lib/blog/types";
 
 const date = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
@@ -10,7 +11,7 @@ export function FeaturedPostCard({ post }: { post: Post }) {
   return <article className="group overflow-hidden border border-white/10 bg-card transition hover:border-primary/35">
     <Link href={`/blog/${post.slug}`} className="grid h-full grid-cols-[112px_minmax(0,1fr)] sm:flex sm:flex-col">
       <div className="relative min-h-32 overflow-hidden bg-white/[0.03] sm:aspect-[16/9] sm:min-h-0">
-        {post.cover ? <Image src={post.cover.url} alt={post.coverAlt || post.cover.alt} fill sizes="(max-width: 640px) 112px, (max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-500 group-hover:scale-[1.025]" /> : <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,color-mix(in_oklab,var(--primary)_20%,transparent),transparent_58%)]" />}
+        {post.cover ? <Image src={post.cover.url} alt={post.coverAlt || post.cover.alt} fill sizes="(max-width: 640px) 112px, (max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-500 group-hover:scale-[1.025]" /> : <ToolGuideArtwork post={post} />}
         {post.category ? <span className="absolute left-2 top-2 hidden border border-primary/35 bg-background/85 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-primary backdrop-blur-md sm:block">{post.category.name}</span> : null}
       </div>
       <div className="flex min-w-0 flex-1 flex-col p-3.5 sm:p-4">
