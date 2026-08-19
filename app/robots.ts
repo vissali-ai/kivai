@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/admin/"],
+        // Páginas HTML administrativas usam meta robots noindex.
+        // A API administrativa continua bloqueada para crawlers.
+        disallow: ["/api/admin/"],
       },
     ],
 
