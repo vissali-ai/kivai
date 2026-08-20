@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
+import type JSZip from "jszip";
 import {
-  Archive,
   ArrowLeft,
   Download,
   File,
@@ -50,7 +50,7 @@ export default function DescompactarZipClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [entries, setEntries] = useState<ZipEntryView[]>([]);
-  const [zipInstance, setZipInstance] = useState<import("jszip") | null>(null);
+  const [zipInstance, setZipInstance] = useState<JSZip | null>(null);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -82,8 +82,8 @@ export default function DescompactarZipClient() {
     setLoading(true);
 
     try {
-      const { default: JSZip } = await import("jszip");
-      const zip = await JSZip.loadAsync(await selectedFile.arrayBuffer());
+      const { default: JSZipLibrary } = await import("jszip");
+      const zip = await JSZipLibrary.loadAsync(await selectedFile.arrayBuffer());
       const items = Object.values(zip.files);
 
       if (items.length > MAX_ENTRIES) {
