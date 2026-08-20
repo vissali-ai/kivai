@@ -26,11 +26,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "texto",
       "social-media",
       "videos",
+      "arquivos",
     ].map((slug) => ({
       url: `${baseUrl}/ferramentas/${slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
+    {
+      url: `${baseUrl}/ferramentas/descompactar-zip`,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
 
     // Páginas principais
     {
