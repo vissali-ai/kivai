@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run verify:adsense && next build",
+    "build": "npm run verify:adsense && npm run prepare:unrar-assets && next build",
     "start": "next start",
     "lint": "eslint",
     "audit:tools": "node scripts/audit-tools.mjs",
+    "prepare:unrar-assets": "node scripts/copy-unrar-assets.mjs",
     "verify:adsense": "node scripts/verify-adsense.mjs"
   },
   "dependencies": {
