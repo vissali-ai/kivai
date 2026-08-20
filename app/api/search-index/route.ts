@@ -1,8 +1,10 @@
-import { listPublishedPosts } from "@/lib/blog/repository";
+import { listAllPosts } from "@/lib/blog/repository";
 
 export async function GET() {
   try {
-    const posts = await listPublishedPosts();
+    const posts = (await listAllPosts()).filter(
+      (post) => post.status === "published"
+    );
 
     const searchPosts = posts.slice(0, 150).map((post) => ({
       id: `article:${post.slug}`,
