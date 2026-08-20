@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 
+import { GlobalSearch } from "@/components/marketing/global-search";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -33,10 +34,10 @@ const navItems = [
 export function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/8 bg-background/75 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="group flex items-center gap-2"
+          className="group flex shrink-0 items-center gap-2"
           aria-label="Kivai — Página inicial"
         >
           <Image
@@ -48,13 +49,13 @@ export function Navbar() {
             className="transition-transform duration-300 group-hover:scale-105"
           />
 
-          <span className="text-lg font-semibold tracking-tight text-foreground">
+          <span className="hidden text-lg font-semibold tracking-tight text-foreground sm:inline">
             Kivai
           </span>
         </Link>
 
         <nav
-          className="hidden items-center gap-7 md:flex"
+          className="ml-auto hidden items-center gap-7 lg:flex"
           aria-label="Navegação principal"
         >
           {navItems.map((item) => (
@@ -68,7 +69,11 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="md:hidden">
+        <div className="ml-auto w-[min(48vw,240px)] sm:w-64 lg:ml-3 lg:w-72">
+          <GlobalSearch />
+        </div>
+
+        <div className="lg:hidden">
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -95,9 +100,7 @@ export function Navbar() {
                     priority
                   />
 
-                  <span className="text-lg font-semibold">
-                    Kivai
-                  </span>
+                  <span className="text-lg font-semibold">Kivai</span>
                 </SheetTitle>
 
                 <SheetDescription>
@@ -121,7 +124,6 @@ export function Navbar() {
                     </SheetClose>
                   ))}
                 </nav>
-
               </div>
             </SheetContent>
           </Sheet>
