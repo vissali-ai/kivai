@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 import { getPageMetadata, SITE_URL } from "@/lib/seo";
+import { plannedToolCategories } from "@/lib/planned-tool-categories";
 import {
   getToolHref,
   getToolsByCategory,
@@ -13,11 +14,12 @@ import {
 export const metadata = getPageMetadata({
   title: "Ferramentas Online",
   description:
-    "Encontre ferramentas online do Kivai para PDFs, imagens, vídeos, textos, redes sociais e cálculos.",
+    "Encontre ferramentas online do Kivai para PDFs, imagens, vídeos, arquivos, textos, redes sociais e cálculos.",
   pathname: "/ferramentas",
 });
 
 const reviewedTools = tools.filter((tool) => isToolIndexable(tool.slug));
+const categories = [...toolCategories, ...plannedToolCategories];
 
 const schema = {
   "@context": "https://schema.org",
@@ -57,11 +59,12 @@ export default function FerramentasPage() {
         </p>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {toolCategories.map((category) => {
+          {categories.map((category) => {
             const Icon = category.icon;
-            const availableCount = getToolsByCategory(category.slug).filter(
-              (tool) => tool.available
-            ).length;
+            const isPlanned = category.slug === "arquivos";
+            const availableCount = isPlanned
+              ? 0
+              : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
               <Link
@@ -77,7 +80,9 @@ export default function FerramentasPage() {
                   {category.description}
                 </p>
                 <p className="mt-5 flex items-center gap-2 text-sm font-medium text-primary">
-                  Ver {availableCount} {availableCount === 1 ? "ferramenta" : "ferramentas"}
+                  {isPlanned
+                    ? "Ver ferramentas planejadas"
+                    : `Ver ${availableCount} ${availableCount === 1 ? "ferramenta" : "ferramentas"}`}
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </p>
               </Link>
