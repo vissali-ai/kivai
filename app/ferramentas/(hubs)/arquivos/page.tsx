@@ -13,8 +13,8 @@ const tools = [
     name: "Descompactar RAR",
     description: "Abra arquivos RAR e extraia os arquivos contidos no pacote.",
     badge: "RAR",
-    href: null,
-    available: false,
+    href: "/ferramentas/descompactar-rar",
+    available: true,
   },
   {
     name: "Compactar Arquivos em ZIP",
@@ -98,7 +98,7 @@ export default function ArquivosPage() {
 
           <div className="mt-8 max-w-4xl rounded-xl border border-border bg-muted/10 p-5 text-sm leading-7 text-muted-foreground">
             As ferramentas deste hub são liberadas individualmente depois de testes de funcionamento,
-            compatibilidade, privacidade e experiência de uso. Descompactar ZIP já está disponível.
+            compatibilidade, privacidade e experiência de uso. Descompactar ZIP e Descompactar RAR já estão disponíveis.
           </div>
         </div>
       </section>
