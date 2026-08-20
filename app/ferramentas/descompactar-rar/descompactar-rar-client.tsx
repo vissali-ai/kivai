@@ -342,7 +342,9 @@ export default function DescompactarRarClient() {
         throw new Error("Arquivo interno não encontrado.");
       }
 
-      const blob = new Blob([extracted]);
+      const downloadBytes = new Uint8Array(extracted.byteLength);
+      downloadBytes.set(extracted);
+      const blob = new Blob([downloadBytes.buffer]);
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
