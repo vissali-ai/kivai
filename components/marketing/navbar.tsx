@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 
-import { GlobalSearch } from "@/components/marketing/global-search";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -69,66 +68,63 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <GlobalSearch />
-
-          <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-xl border-white/10 bg-white/[0.03]"
-                  aria-label="Abrir menu"
-                >
-                  <Menu className="size-5" />
-                </Button>
-              </SheetTrigger>
-
-              <SheetContent
-                side="right"
-                className="w-[88%] border-white/10 bg-background/95 p-0 backdrop-blur-2xl sm:max-w-sm"
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-xl border-white/10 bg-white/[0.03]"
+                aria-label="Abrir menu"
               >
-                <SheetHeader className="border-b border-white/8 px-6 py-5 text-left">
-                  <SheetTitle className="flex items-center gap-3">
-                    <Image
-                      src="/logo.png"
-                      alt="Kivai"
-                      width={25}
-                      height={25}
-                      priority
-                    />
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
 
-                    <span className="text-lg font-semibold">
-                      Kivai
-                    </span>
-                  </SheetTitle>
+            <SheetContent
+              side="right"
+              className="w-[88%] border-white/10 bg-background/95 p-0 backdrop-blur-2xl sm:max-w-sm"
+            >
+              <SheetHeader className="border-b border-white/8 px-6 py-5 text-left">
+                <SheetTitle className="flex items-center gap-3">
+                  <Image
+                    src="/logo.png"
+                    alt="Kivai"
+                    width={25}
+                    height={25}
+                    priority
+                  />
 
-                  <SheetDescription>
-                    Ferramentas inteligentes para resultados reais.
-                  </SheetDescription>
-                </SheetHeader>
+                  <span className="text-lg font-semibold">
+                    Kivai
+                  </span>
+                </SheetTitle>
 
-                <div className="flex flex-col px-4 py-5">
-                  <nav
-                    className="flex flex-col gap-1"
-                    aria-label="Navegação mobile"
-                  >
-                    {navItems.map((item) => (
-                      <SheetClose asChild key={item.label}>
-                        <Link
-                          href={item.href}
-                          className="rounded-xl px-3 py-3 text-base font-medium text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
-                        >
-                          {item.label}
-                        </Link>
-                      </SheetClose>
-                    ))}
-                  </nav>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+                <SheetDescription>
+                  Ferramentas inteligentes para resultados reais.
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="flex flex-col px-4 py-5">
+                <nav
+                  className="flex flex-col gap-1"
+                  aria-label="Navegação mobile"
+                >
+                  {navItems.map((item) => (
+                    <SheetClose asChild key={item.label}>
+                      <Link
+                        href={item.href}
+                        className="rounded-xl px-3 py-3 text-base font-medium text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
+                      >
+                        {item.label}
+                      </Link>
+                    </SheetClose>
+                  ))}
+                </nav>
+
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
