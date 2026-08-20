@@ -32,11 +32,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
-    {
-      url: `${baseUrl}/ferramentas/descompactar-zip`,
-      changeFrequency: "weekly",
+    ...[
+      "descompactar-zip",
+      "descompactar-rar",
+    ].map((slug) => ({
+      url: `${baseUrl}/ferramentas/${slug}`,
+      changeFrequency: "weekly" as const,
       priority: 0.8,
-    },
+    })),
 
     // Páginas principais
     {
