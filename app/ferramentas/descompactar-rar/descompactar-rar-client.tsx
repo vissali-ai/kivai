@@ -60,6 +60,26 @@ type UnrarModule = {
   };
 };
 
+type RuntimeModule = {
+  Archive: UnrarModule["Archive"];
+  CommandData: UnrarModule["CommandData"];
+  setPassword: UnrarModule["setPassword"];
+  FS: UnrarModule["FS"];
+  FILE_HEAD_VALUE: number;
+  ENDARC_HEAD_VALUE: number;
+};
+
+type UnrarFactory = (options?: {
+  locateFile?: (path: string, prefix: string) => string;
+}) => Promise<RuntimeModule>;
+
+declare global {
+  interface Window {
+    Module?: UnrarFactory;
+    __kivaiUnrarPromise?: Promise<UnrarModule>;
+  }
+}
+
 function formatBytes(bytes: number) {
   if (bytes <= 0) return "0 B";
   const units = ["B", "KB", "MB", "GB"];
@@ -73,9 +93,64 @@ function safeDownloadName(path: string) {
   return parts.at(-1) || "arquivo-extraido";
 }
 
+function loadUnrarFactory(): Promise<UnrarFactory> {
+  if (typeof window.Module === "function") {
+    return Promise.resolve(window.Module);
+  }
+
+  return new Promise((resolve, reject) => {
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[data-kivai-unrar="true"]',
+    );
+
+    if (existingScript) {
+      existingScript.addEventListener("load", () => {
+        if (typeof window.Module === "function") resolve(window.Module);
+        else reject(new Error("Runtime UnRAR carregado sem inicializador."));
+      }, { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Falha ao carregar runtime UnRAR.")), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = `${UNRAR_ASSET_PATH}unrar.js`;
+    script.async = true;
+    script.dataset.kivaiUnrar = "true";
+    script.onload = () => {
+      if (typeof window.Module === "function") resolve(window.Module);
+      else reject(new Error("Runtime UnRAR carregado sem inicializador."));
+    };
+    script.onerror = () => reject(new Error("Falha ao carregar runtime UnRAR."));
+    document.head.appendChild(script);
+  });
+}
+
 async function loadUnrarModule(): Promise<UnrarModule> {
-  const module = await import("@unrar-browser/core");
-  return (await module.getUnrarModule(UNRAR_ASSET_PATH)) as UnrarModule;
+  if (!window.__kivaiUnrarPromise) {
+    window.__kivaiUnrarPromise = (async () => {
+      const factory = await loadUnrarFactory();
+      const runtime = await factory({
+        locateFile: (path, prefix) =>
+          path.endsWith(".wasm") ? `${UNRAR_ASSET_PATH}${path}` : `${prefix}${path}`,
+      });
+
+      return {
+        Archive: runtime.Archive,
+        CommandData: runtime.CommandData,
+        setPassword: runtime.setPassword,
+        FS: runtime.FS,
+        HeaderType: {
+          HEAD_FILE: runtime.FILE_HEAD_VALUE,
+          HEAD_ENDARC: runtime.ENDARC_HEAD_VALUE,
+        },
+      };
+    })().catch((error) => {
+      window.__kivaiUnrarPromise = undefined;
+      throw error;
+    });
+  }
+
+  return window.__kivaiUnrarPromise;
 }
 
 function getErrorMessage(error: unknown) {
