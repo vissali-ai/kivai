@@ -18,11 +18,18 @@ export const metadata = getPageMetadata({
   pathname: "/ferramentas",
 });
 
-const arquivosReviewedTool = {
-  slug: "descompactar-zip",
-  name: "Descompactar ZIP",
-  description: "Abra um arquivo ZIP, visualize seu conteúdo e baixe os arquivos diretamente no navegador.",
-};
+const arquivosReviewedTools = [
+  {
+    slug: "descompactar-zip",
+    name: "Descompactar ZIP",
+    description: "Abra um arquivo ZIP, visualize seu conteúdo e baixe os arquivos diretamente no navegador.",
+  },
+  {
+    slug: "descompactar-rar",
+    name: "Descompactar RAR",
+    description: "Abra um arquivo RAR, visualize o conteúdo e extraia os arquivos diretamente no navegador.",
+  },
+];
 
 const reviewedTools = [
   ...tools.filter((tool) => isToolIndexable(tool.slug)).map((tool) => ({
@@ -30,7 +37,7 @@ const reviewedTools = [
     name: tool.name,
     description: tool.description,
   })),
-  arquivosReviewedTool,
+  ...arquivosReviewedTools,
 ];
 const categories = [...toolCategories, ...plannedToolCategories];
 
@@ -76,7 +83,7 @@ export default function FerramentasPage() {
             const Icon = category.icon;
             const isArquivos = category.slug === "arquivos";
             const availableCount = isArquivos
-              ? 1
+              ? 2
               : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
@@ -120,7 +127,7 @@ export default function FerramentasPage() {
             {reviewedTools.map((tool) => (
               <Link
                 key={tool.slug}
-                href={tool.slug === "descompactar-zip" ? "/ferramentas/descompactar-zip" : getToolHref(tool.slug)}
+                href={arquivosReviewedTools.some((item) => item.slug === tool.slug) ? `/ferramentas/${tool.slug}` : getToolHref(tool.slug)}
                 className="group rounded-xl border border-border bg-background p-5 transition hover:border-primary/40"
               >
                 <div className="flex items-start justify-between gap-4">
