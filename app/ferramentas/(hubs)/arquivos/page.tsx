@@ -1,21 +1,27 @@
 import Link from "next/link";
-import { Archive, ArrowLeft } from "lucide-react";
+import { Archive, ArrowLeft, ArrowRight } from "lucide-react";
 
-const plannedTools = [
+const tools = [
   {
     name: "Descompactar ZIP",
     description: "Abra arquivos ZIP e extraia o conteúdo para usar os arquivos normalmente.",
     badge: "ZIP",
+    href: "/ferramentas/descompactar-zip",
+    available: true,
   },
   {
     name: "Descompactar RAR",
     description: "Abra arquivos RAR e extraia os arquivos contidos no pacote.",
     badge: "RAR",
+    href: null,
+    available: false,
   },
   {
     name: "Compactar Arquivos em ZIP",
     description: "Reúna vários arquivos em um único pacote ZIP para organizar e compartilhar.",
     badge: "ZIP",
+    href: null,
+    available: false,
   },
 ] as const;
 
@@ -48,11 +54,8 @@ export default function ArquivosPage() {
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {plannedTools.map((tool) => (
-              <article
-                key={tool.name}
-                className="relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 sm:p-4"
-              >
+            {tools.map((tool) => {
+              const card = (
                 <div className="flex h-full flex-col">
                   <div className="flex items-start justify-between">
                     <span className="flex size-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
@@ -67,18 +70,35 @@ export default function ArquivosPage() {
                   <p className="mt-2 text-xs leading-5 text-muted-foreground">
                     {tool.description}
                   </p>
-                  <div className="mt-auto pt-4 text-xs font-medium text-muted-foreground">
-                    Em desenvolvimento
+                  <div className={`mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium ${tool.available ? "group-hover:text-primary" : "text-muted-foreground"}`}>
+                    {tool.available ? "Explorar" : "Em desenvolvimento"}
+                    {tool.available && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />}
                   </div>
                 </div>
-              </article>
-            ))}
+              );
+
+              return tool.available && tool.href ? (
+                <Link
+                  key={tool.name}
+                  href={tool.href}
+                  className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:p-4"
+                >
+                  {card}
+                </Link>
+              ) : (
+                <article
+                  key={tool.name}
+                  className="relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 sm:p-4"
+                >
+                  {card}
+                </article>
+              );
+            })}
           </div>
 
           <div className="mt-8 max-w-4xl rounded-xl border border-border bg-muted/10 p-5 text-sm leading-7 text-muted-foreground">
-            O Hub Arquivos está sendo implantado em etapas. As ferramentas serão liberadas
-            individualmente depois de testes de funcionamento, compatibilidade, privacidade e
-            experiência de uso.
+            As ferramentas deste hub são liberadas individualmente depois de testes de funcionamento,
+            compatibilidade, privacidade e experiência de uso. Descompactar ZIP já está disponível.
           </div>
         </div>
       </section>

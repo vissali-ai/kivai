@@ -18,7 +18,20 @@ export const metadata = getPageMetadata({
   pathname: "/ferramentas",
 });
 
-const reviewedTools = tools.filter((tool) => isToolIndexable(tool.slug));
+const arquivosReviewedTool = {
+  slug: "descompactar-zip",
+  name: "Descompactar ZIP",
+  description: "Abra um arquivo ZIP, visualize seu conteúdo e baixe os arquivos diretamente no navegador.",
+};
+
+const reviewedTools = [
+  ...tools.filter((tool) => isToolIndexable(tool.slug)).map((tool) => ({
+    slug: tool.slug,
+    name: tool.name,
+    description: tool.description,
+  })),
+  arquivosReviewedTool,
+];
 const categories = [...toolCategories, ...plannedToolCategories];
 
 const schema = {
@@ -32,7 +45,7 @@ const schema = {
       "@type": "ListItem",
       position: index + 1,
       name: tool.name,
-      url: `${SITE_URL}${getToolHref(tool.slug)}`,
+      url: `${SITE_URL}/ferramentas/${tool.slug}`,
     })),
   },
 };
@@ -61,9 +74,9 @@ export default function FerramentasPage() {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => {
             const Icon = category.icon;
-            const isPlanned = category.slug === "arquivos";
-            const availableCount = isPlanned
-              ? 0
+            const isArquivos = category.slug === "arquivos";
+            const availableCount = isArquivos
+              ? 1
               : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
@@ -80,9 +93,7 @@ export default function FerramentasPage() {
                   {category.description}
                 </p>
                 <p className="mt-5 flex items-center gap-2 text-sm font-medium text-primary">
-                  {isPlanned
-                    ? "Ver ferramentas planejadas"
-                    : `Ver ${availableCount} ${availableCount === 1 ? "ferramenta" : "ferramentas"}`}
+                  Ver {availableCount} {availableCount === 1 ? "ferramenta" : "ferramentas"}
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </p>
               </Link>
@@ -109,7 +120,7 @@ export default function FerramentasPage() {
             {reviewedTools.map((tool) => (
               <Link
                 key={tool.slug}
-                href={getToolHref(tool.slug)}
+                href={tool.slug === "descompactar-zip" ? "/ferramentas/descompactar-zip" : getToolHref(tool.slug)}
                 className="group rounded-xl border border-border bg-background p-5 transition hover:border-primary/40"
               >
                 <div className="flex items-start justify-between gap-4">
