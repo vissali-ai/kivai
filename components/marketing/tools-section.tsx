@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { toolCategories } from "@/lib/tools";
+import { plannedToolCategories } from "@/lib/planned-tool-categories";
+
+const categories = [...toolCategories, ...plannedToolCategories];
 
 export function ToolsSection() {
   return (
@@ -14,17 +17,17 @@ export function ToolsSection() {
 
       <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-  <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-    Explorar categorias
-  </h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            Explorar categorias
+          </h2>
 
-  <p className="mt-2 text-sm text-muted-foreground">
-    Encontre rapidamente a ferramenta ideal para cada necessidade.
-  </p>
-</div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Encontre rapidamente a ferramenta ideal para cada necessidade.
+          </p>
+        </div>
 
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {toolCategories.map((category) => {
+          {categories.map((category) => {
             const Icon = category.icon;
 
             const cardClassName = [
