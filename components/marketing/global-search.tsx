@@ -321,7 +321,7 @@ export function GlobalSearch() {
   }, [open]);
 
   useEffect(() => {
-    if (!open || articlesLoaded || articlesLoading) return;
+    if (!open || articlesLoaded) return;
 
     const controller = new AbortController();
     setArticlesLoading(true);
@@ -340,7 +340,7 @@ export function GlobalSearch() {
       });
 
     return () => controller.abort();
-  }, [open, articlesLoaded, articlesLoading]);
+  }, [open, articlesLoaded]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -458,8 +458,8 @@ export function GlobalSearch() {
 
             <div
               id="global-search-results"
-              role="listbox"
-              aria-label="Resultados da pesquisa"
+              role={hasQuery ? "listbox" : undefined}
+              aria-label={hasQuery ? "Resultados da pesquisa" : undefined}
               className="max-h-[65vh] overflow-y-auto p-2 sm:p-3"
             >
               {!hasQuery ? (
