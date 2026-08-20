@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
-import { GlobalSearch } from "@/components/marketing/global-search";
 import { getPageMetadata, SITE_URL } from "@/lib/seo";
 import {
   getToolHref,
@@ -52,16 +51,12 @@ export default function FerramentasPage() {
           Ferramentas para tarefas digitais do dia a dia
         </h1>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
-          Pesquise diretamente pelo que você precisa fazer ou escolha uma categoria.
-          O Kivai mostra ferramentas disponíveis e conteúdos relacionados para ajudar
-          você a encontrar a opção mais adequada.
+          Escolha uma categoria para encontrar a operação adequada. As ferramentas
+          ficam disponíveis gratuitamente; páginas em revisão continuam acessíveis,
+          mas só entram na seleção editorial depois de receber documentação própria.
         </p>
 
-        <div className="mt-8">
-          <GlobalSearch />
-        </div>
-
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {toolCategories.map((category) => {
             const Icon = category.icon;
             const availableCount = getToolsByCategory(category.slug).filter(
