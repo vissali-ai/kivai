@@ -1,9 +1,15 @@
-import ImagensParaPdfClient from "./imagens-para-pdf-client";
+import { PdfToolEditorialV2 } from "@/components/tools/pdf-tool-editorial-v2";
 import { getToolMetadata } from "@/lib/seo";
-import { PdfToolEditorial } from "@/components/tools/pdf-tool-editorial";
+
+import ImagensParaPdfClient from "./imagens-para-pdf-client";
 
 export const metadata = getToolMetadata("imagens-para-pdf");
 
 export default function ImagensParaPdfPage() {
-  return <><ImagensParaPdfClient /><PdfToolEditorial slug="imagens-para-pdf" /></>;
+  return (
+    <>
+      <ImagensParaPdfClient />
+      <PdfToolEditorialV2 slug="imagens-para-pdf" />
+    </>
+  );
 }
