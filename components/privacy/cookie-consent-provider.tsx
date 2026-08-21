@@ -124,7 +124,7 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
 
         if (typeof tcfApi !== "function") return;
 
-        tcfApi("addEventListener", 0, (tcData, success) => {
+        tcfApi("addEventListener", 2, (tcData, success) => {
           if (!success || !tcData || typeof tcData.gdprApplies !== "boolean") {
             return;
           }
@@ -140,9 +140,9 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
     });
 
     // Fora das regiões gerenciadas pela CMP do Google, o Kivai continua
-    // responsável pelo próprio banner. O pequeno atraso evita dois fluxos de
-    // consentimento concorrentes enquanto a API regional do Google inicializa.
-    const fallbackTimer = window.setTimeout(activateLocalConsent, 2500);
+    // responsável pelo próprio banner. O atraso dá tempo para a API regional
+    // do Google indicar se o GDPR se aplica antes de ativar o fluxo local.
+    const fallbackTimer = window.setTimeout(activateLocalConsent, 5000);
 
     return () => {
       cancelled = true;
