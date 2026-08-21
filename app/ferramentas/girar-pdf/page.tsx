@@ -1,9 +1,15 @@
-import GirarPdfClient from "./girar-pdf-client";
+import { PdfToolEditorialV2 } from "@/components/tools/pdf-tool-editorial-v2";
 import { getToolMetadata } from "@/lib/seo";
-import { PdfToolEditorial } from "@/components/tools/pdf-tool-editorial";
+
+import GirarPdfClient from "./girar-pdf-client";
 
 export const metadata = getToolMetadata("girar-pdf");
 
 export default function Page() {
-  return <><GirarPdfClient /><PdfToolEditorial slug="girar-pdf" /></>;
+  return (
+    <>
+      <GirarPdfClient />
+      <PdfToolEditorialV2 slug="girar-pdf" />
+    </>
+  );
 }
