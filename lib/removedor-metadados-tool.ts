@@ -10,11 +10,12 @@ export const removedorMetadadosTool = {
   hubFilter: "Otimizar",
   badge: "Imagem",
   icon: ShieldOff,
-  seoTitle: "Removedor de Metadados de Imagem Online | Kivai",
+  seoTitle: "Remover Metadados de Foto Online Grátis | Kivai",
   seoDescription:
-    "Remova metadados herdados de imagens JPG, PNG e WebP diretamente no navegador e baixe uma nova cópia sem os dados incorporados do arquivo original.",
+    "Remova EXIF, GPS e outros metadados herdados de fotos JPG, PNG e WebP diretamente no navegador. Gere e baixe uma nova cópia da imagem.",
   keywords: [
     "remover metadados",
+    "remover metadados de foto",
     "remover exif",
     "apagar exif",
     "remover gps de foto",
