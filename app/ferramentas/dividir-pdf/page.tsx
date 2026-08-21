@@ -1,9 +1,15 @@
-import DividirPdfClient from "./dividir-pdf-client";
+import { PdfToolEditorialV2 } from "@/components/tools/pdf-tool-editorial-v2";
 import { getToolMetadata } from "@/lib/seo";
-import { PdfToolEditorial } from "@/components/tools/pdf-tool-editorial";
+
+import DividirPdfClient from "./dividir-pdf-client";
 
 export const metadata = getToolMetadata("dividir-pdf");
 
 export default function Page() {
-  return <><DividirPdfClient /><PdfToolEditorial slug="dividir-pdf" /></>;
+  return (
+    <>
+      <DividirPdfClient />
+      <PdfToolEditorialV2 slug="dividir-pdf" />
+    </>
+  );
 }
