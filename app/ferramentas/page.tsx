@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 import { getPageMetadata, SITE_URL } from "@/lib/seo";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
+import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import {
   getToolHref,
   getToolsByCategory,
@@ -46,15 +47,28 @@ const arquivosReviewedTools = [
   },
 ];
 
+const standaloneReviewedTools = [
+  {
+    slug: removedorMetadadosTool.slug,
+    name: removedorMetadadosTool.name,
+    description: removedorMetadadosTool.description,
+  },
+];
+
 const reviewedTools = [
   ...tools.filter((tool) => isToolIndexable(tool.slug)).map((tool) => ({
     slug: tool.slug,
     name: tool.name,
     description: tool.description,
   })),
+  ...standaloneReviewedTools,
   ...arquivosReviewedTools,
 ];
 const categories = [...toolCategories, ...plannedToolCategories];
+const standaloneSlugs = new Set([
+  ...arquivosReviewedTools.map((item) => item.slug),
+  ...standaloneReviewedTools.map((item) => item.slug),
+]);
 
 const schema = {
   "@context": "https://schema.org",
@@ -97,9 +111,9 @@ export default function FerramentasPage() {
           {categories.map((category) => {
             const Icon = category.icon;
             const isArquivos = category.slug === "arquivos";
-            const availableCount = isArquivos
-              ? 5
-              : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
+            const isImagens = category.slug === "imagens";
+            const registeredCount = getToolsByCategory(category.slug).filter((tool) => tool.available).length;
+            const availableCount = isArquivos ? 5 : isImagens ? registeredCount + 1 : registeredCount;
 
             return (
               <Link
@@ -142,7 +156,7 @@ export default function FerramentasPage() {
             {reviewedTools.map((tool) => (
               <Link
                 key={tool.slug}
-                href={arquivosReviewedTools.some((item) => item.slug === tool.slug) ? `/ferramentas/${tool.slug}` : getToolHref(tool.slug)}
+                href={standaloneSlugs.has(tool.slug) ? `/ferramentas/${tool.slug}` : getToolHref(tool.slug)}
                 className="group rounded-xl border border-border bg-background p-5 transition hover:border-primary/40"
               >
                 <div className="flex items-start justify-between gap-4">
