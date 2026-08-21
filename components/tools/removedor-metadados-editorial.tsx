@@ -1,7 +1,7 @@
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
 import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
-import { SITE_URL } from "@/lib/seo";
+import { buildToolPageSchema } from "@/lib/tool-page-schema";
 
 const slug = removedorMetadadosTool.slug;
 const name = removedorMetadadosTool.name;
@@ -51,38 +51,18 @@ const content = {
 };
 
 export function RemovedorMetadadosEditorial() {
-  const url = `${SITE_URL}/ferramentas/${slug}`;
-  const schema = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "SoftwareApplication",
-        name,
-        applicationCategory: "UtilitiesApplication",
-        operatingSystem: "Qualquer sistema com navegador moderno",
-        url,
-        description: removedorMetadadosTool.seoDescription,
-        offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
-      },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
-          { "@type": "ListItem", position: 2, name: "Ferramentas", item: `${SITE_URL}/ferramentas` },
-          { "@type": "ListItem", position: 3, name: "Imagens", item: `${SITE_URL}/ferramentas/imagens` },
-          { "@type": "ListItem", position: 4, name, item: url },
-        ],
-      },
-      {
-        "@type": "FAQPage",
-        mainEntity: content.faqs.map(({ question, answer }) => ({
-          "@type": "Question",
-          name: question,
-          acceptedAnswer: { "@type": "Answer", text: answer },
-        })),
-      },
+  const schema = buildToolPageSchema({
+    name,
+    slug,
+    description: removedorMetadadosTool.seoDescription,
+    breadcrumbs: [
+      { name: "Início", href: "/" },
+      { name: "Ferramentas", href: "/ferramentas" },
+      { name: "Imagens", href: "/ferramentas/imagens" },
+      { name, href: removedorMetadadosTool.href },
     ],
-  };
+    faqs: content.faqs,
+  });
 
   return (
     <>
