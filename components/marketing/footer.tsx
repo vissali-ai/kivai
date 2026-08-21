@@ -7,7 +7,7 @@ import { CookieSettingsButton } from "@/components/privacy/cookie-settings-butto
 const productLinks = [
   { label: "Ferramentas", href: "/ferramentas" },
   { label: "Serviços", href: "/servicos" },
-  { label: "Blog", href: "/blog", newTab: true },
+  { label: "Blog", href: "/blog" },
 ];
 
 const ecosystemLinks = toolCategories.map((category) => ({
@@ -28,10 +28,7 @@ const companyLinks = [
 export function Footer() {
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-black/10">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-      >
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <div className="absolute bottom-0 left-1/2 h-[320px] w-[760px] -translate-x-1/2 rounded-full bg-primary/[0.045] blur-[130px]" />
       </div>
 
@@ -67,7 +64,7 @@ export function Footer() {
             </div>
 
             <a
-              href="https://www.instagram.com/kivai_br?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+              href="https://www.instagram.com/kivai_br"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram oficial do Kivai, abre em nova aba"
@@ -81,17 +78,13 @@ export function Footer() {
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">
-                Produto
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground">Produto</h3>
 
               <ul className="mt-5 space-y-3">
                 {productLinks.map((link) => (
                   <li key={`${link.label}-${link.href}`}>
                     <Link
                       href={link.href}
-                      target={"newTab" in link && link.newTab ? "_blank" : undefined}
-                      rel={"newTab" in link && link.newTab ? "noopener noreferrer" : undefined}
                       className="group inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
                     >
                       {link.label}
@@ -103,9 +96,7 @@ export function Footer() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-foreground">
-                Ecossistema
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground">Ecossistema</h3>
 
               <ul className="mt-5 space-y-3">
                 {ecosystemLinks.map((link) => (
@@ -139,16 +130,16 @@ export function Footer() {
                     </Link>
                   </li>
                 ))}
-                <li><CookieSettingsButton /></li>
+                <li>
+                  <CookieSettingsButton />
+                </li>
               </ul>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col gap-4 pt-7 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} Kivai. Todos os direitos reservados.
-          </p>
+          <p>© {new Date().getFullYear()} Kivai. Todos os direitos reservados.</p>
 
           <p>
             Transformando tarefas digitais em experiências simples, rápidas e
