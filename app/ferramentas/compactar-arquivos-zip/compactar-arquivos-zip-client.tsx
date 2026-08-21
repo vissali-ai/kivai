@@ -374,7 +374,7 @@ export default function CompactarArquivosZipClient() {
         </div>
 
         <div className="mx-auto mt-10 max-w-5xl">
-          <AdSlot slot="tool-middle" />
+          <AdSlot variant="banner" />
         </div>
       </div>
     </section>
