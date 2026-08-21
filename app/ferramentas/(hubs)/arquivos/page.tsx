@@ -26,6 +26,12 @@ const tools = [
     badge: "LOTE",
     href: "/ferramentas/renomear-arquivos-em-lote",
   },
+  {
+    name: "Adicionar Prefixo ou Sufixo",
+    description: "Acrescente texto antes ou depois do nome de vários arquivos sem apagar o nome atual.",
+    badge: "LOTE",
+    href: "/ferramentas/adicionar-prefixo-sufixo-arquivos",
+  },
 ] as const;
 
 export default function ArquivosPage() {
