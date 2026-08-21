@@ -5,20 +5,25 @@ import process from "node:process";
 const root = process.cwd();
 const routesRoot = path.join(root, "app", "ferramentas");
 const catalogPath = path.join(root, "lib", "tools.ts");
-const hubRoutes = new Set(["imagens", "pdfs", "calculadoras", "texto", "social-media", "videos"]);
+const archiveCatalogPath = path.join(root, "lib", "archive-search-items.ts");
+const hubRoutes = new Set(["imagens", "pdfs", "calculadoras", "texto", "social-media", "videos", "arquivos"]);
 const errors = [];
 
 const catalogSource = await readFile(catalogPath, "utf8");
+const archiveCatalogSource = await readFile(archiveCatalogPath, "utf8");
 const toolsSource = catalogSource.slice(catalogSource.indexOf("export const tools: Tool[] = ["));
 const toolBlocks = [...toolsSource.matchAll(/\{\s*slug:\s*"([^"]+)"[\s\S]*?\n\s{2}\},/g)];
 const availableSlugs = toolBlocks
   .filter((match) => /\bavailable:\s*true\b/.test(match[0]))
   .map((match) => match[1]);
+const archiveSlugs = [...archiveCatalogSource.matchAll(/^\s*slug:\s*"([^"]+)",?$/gm)].map((match) => match[1]);
+availableSlugs.push(...archiveSlugs);
 const indexableSource = catalogSource.slice(
   catalogSource.indexOf("export const INDEXABLE_TOOL_SLUGS = ["),
   catalogSource.indexOf("] as const;", catalogSource.indexOf("export const INDEXABLE_TOOL_SLUGS = [")),
 );
 const indexableSlugs = [...indexableSource.matchAll(/^\s*"([^"]+)",?$/gm)].map((match) => match[1]);
+indexableSlugs.push(...archiveSlugs);
 
 const routeEntries = await readdir(routesRoot, { withFileTypes: true });
 const routeSlugs = [];

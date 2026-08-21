@@ -184,10 +184,6 @@ export function GlobalSearch() {
   }
 
   useEffect(() => {
-    setSelectedIndex(0);
-  }, [query]);
-
-  useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) setFocused(false);
     };
@@ -214,6 +210,7 @@ export function GlobalSearch() {
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
       setQuery("");
+      setSelectedIndex(0);
       setFocused(false);
       inputRef.current?.blur();
       return;
@@ -265,6 +262,7 @@ export function GlobalSearch() {
           }}
           onChange={(event) => {
             setQuery(event.target.value);
+            setSelectedIndex(0);
             setFocused(true);
           }}
           onKeyDown={handleKeyDown}
@@ -284,6 +282,7 @@ export function GlobalSearch() {
             type="button"
             onClick={() => {
               setQuery("");
+              setSelectedIndex(0);
               inputRef.current?.focus();
             }}
             className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-white/[0.06] hover:text-foreground"

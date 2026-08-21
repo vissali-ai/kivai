@@ -7,6 +7,7 @@
     "build": "npm run verify:adsense && npm run prepare:unrar-assets && next build",
     "start": "next start",
     "lint": "eslint",
+    "audit:live": "node scripts/audit-live-site.mjs",
     "audit:tools": "node scripts/audit-tools.mjs",
     "prepare:unrar-assets": "node scripts/copy-unrar-assets.mjs",
     "verify:adsense": "node scripts/verify-adsense.mjs"
@@ -14,7 +15,7 @@
   "dependencies": {
     "@aiden0z/pptx-renderer": "^1.2.4",
     "@huggingface/transformers": "^4.2.0",
-    "@next/third-parties": "^16.2.10",
+    "@next/third-parties": "^16.3.1",
     "@phosphor-icons/react": "^2.1.10",
     "@tiptap/extension-image": "^3.30.0",
     "@tiptap/extension-link": "^3.30.0",
@@ -35,10 +36,10 @@
     "jspdf": "^4.2.1",
     "jszip": "^3.10.1",
     "lucide-react": "^1.23.0",
-    "next": "16.2.10",
+    "next": "^16.3.1",
     "openai": "^7.4.0",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^6.1.200",
+    "pdfjs-dist": "^6.2.108",
     "pptxgenjs": "^4.0.1",
     "qrcode": "^1.5.4",
     "radix-ui": "^1.6.1",
@@ -58,7 +59,7 @@
     "@types/react-dom": "^19",
     "@types/sanitize-html": "^2.16.1",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "^16.3.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

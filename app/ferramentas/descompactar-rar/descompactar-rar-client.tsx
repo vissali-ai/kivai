@@ -242,9 +242,7 @@ export default function DescompactarRarClient() {
       }
 
       const found: RarEntry[] = [];
-      let headerSize = 0;
-
-      while ((headerSize = archive.readHeader()) > 0) {
+      while (archive.readHeader() > 0) {
         const headerType = archive.getHeaderType();
 
         if (headerType === unrar.HeaderType.HEAD_ENDARC) break;
@@ -295,7 +293,7 @@ export default function DescompactarRarClient() {
     setDownloading(target.name);
     setError(null);
 
-    const virtualPath = `/kivai-download-${Date.now()}.rar`;
+    const virtualPath = "/kivai-download.rar";
     let unrar: UnrarModule | null = null;
 
     try {
@@ -309,9 +307,7 @@ export default function DescompactarRarClient() {
       }
 
       let extracted: Uint8Array | null = null;
-      let headerSize = 0;
-
-      while ((headerSize = archive.readHeader()) > 0) {
+      while (archive.readHeader() > 0) {
         const headerType = archive.getHeaderType();
         if (headerType === unrar.HeaderType.HEAD_ENDARC) break;
 

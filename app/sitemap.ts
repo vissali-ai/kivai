@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { archiveSearchItems } from "@/lib/archive-search-items";
 import { isToolIndexable, tools } from "@/lib/tools";
 import { listCategories, listPublishedPosts } from "@/lib/blog/repository";
 
@@ -32,14 +33,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
-    ...[
-      "descompactar-zip",
-      "descompactar-rar",
-      "compactar-arquivos-zip",
-      "renomear-arquivos-em-lote",
-      "adicionar-prefixo-sufixo-arquivos",
-    ].map((slug) => ({
-      url: `${baseUrl}/ferramentas/${slug}`,
+    ...archiveSearchItems.map((tool) => ({
+      url: `${baseUrl}/ferramentas/${tool.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
