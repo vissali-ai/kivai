@@ -1,3 +1,4 @@
+import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
 import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { SITE_URL } from "@/lib/seo";
@@ -99,6 +100,7 @@ export function RemovedorMetadadosEditorial() {
         limitations={content.limitations}
         faqs={content.faqs}
         relatedTools={content.related}
+        afterFaq={<AdSlot placement="tool-bottom" variant="banner" />}
       />
     </>
   );
