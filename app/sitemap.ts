@@ -37,6 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "descompactar-rar",
       "compactar-arquivos-zip",
       "renomear-arquivos-em-lote",
+      "adicionar-prefixo-sufixo-arquivos",
     ].map((slug) => ({
       url: `${baseUrl}/ferramentas/${slug}`,
       changeFrequency: "weekly" as const,
