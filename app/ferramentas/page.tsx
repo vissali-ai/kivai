@@ -39,6 +39,11 @@ const arquivosReviewedTools = [
     name: "Renomear Arquivos em Lote",
     description: "Padronize vários nomes com numeração automática, preserve as extensões e baixe as cópias em ZIP.",
   },
+  {
+    slug: "adicionar-prefixo-sufixo-arquivos",
+    name: "Adicionar Prefixo ou Sufixo em Lote",
+    description: "Acrescente texto antes ou depois do nome de vários arquivos e baixe as cópias modificadas em ZIP.",
+  },
 ];
 
 const reviewedTools = [
@@ -93,7 +98,7 @@ export default function FerramentasPage() {
             const Icon = category.icon;
             const isArquivos = category.slug === "arquivos";
             const availableCount = isArquivos
-              ? 4
+              ? 5
               : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
