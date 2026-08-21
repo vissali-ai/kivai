@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft,
   Download,
   FileImage,
   Loader2,
@@ -14,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { AdSlot } from "@/components/ads/AdSlot";
+import { ToolPageBreadcrumb } from "@/components/tools/tool-page-breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -228,15 +227,14 @@ export default function RemovedorDeMetadadosClient() {
   return (
     <section className="min-h-screen bg-background text-foreground">
       <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-24 sm:px-6 lg:px-8 lg:pb-16">
-        <div className="mb-8">
-          <Link
-            href="/ferramentas/imagens"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Voltar para Imagens
-          </Link>
-        </div>
+        <ToolPageBreadcrumb
+          items={[
+            { label: "Início", href: "/" },
+            { label: "Ferramentas", href: "/ferramentas" },
+            { label: "Imagens", href: "/ferramentas/imagens" },
+            { label: "Removedor de Metadados" },
+          ]}
+        />
 
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">IMAGENS</p>
@@ -245,6 +243,10 @@ export default function RemovedorDeMetadadosClient() {
           </h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Crie uma nova cópia da imagem sem carregar os metadados incorporados do arquivo original.
+          </p>
+          <p className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground">
+            <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
+            Processamento local no navegador para JPG, PNG e WebP.
           </p>
         </div>
 
