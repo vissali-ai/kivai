@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 
@@ -56,12 +56,7 @@ export const metadata: Metadata = {
     "ferramentas gratuitas",
   ],
 
-  authors: [
-    {
-      name: "Marcus Vissali",
-    },
-  ],
-
+  authors: [{ name: "Marcus Vissali" }],
   creator: "Marcus Vissali",
   publisher: "Kivai",
 
@@ -115,8 +110,6 @@ export const metadata: Metadata = {
 
   category: "Technology",
 
-  // Verifica a propriedade no AdSense sem carregar scripts, criar cookies ou
-  // exibir anúncios. O carregamento publicitário continua sujeito ao consentimento.
   ...(adsConfig.clientId
     ? { other: { "google-adsense-account": adsConfig.clientId } }
     : {}),
@@ -127,6 +120,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const shouldLoadAdsense =
+    adsConfig.enabled &&
+    adsConfig.provider === "adsense" &&
+    Boolean(adsConfig.clientId);
+
   return (
     <html
       lang="pt-BR"
@@ -142,10 +140,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <StructuredData />
 
-        <Script
-          id="google-consent-default"
-          strategy="beforeInteractive"
-        >{`
+        <Script id="google-consent-default" strategy="beforeInteractive">{`
           window.dataLayer = window.dataLayer || [];
           window.gtag = window.gtag || function () {
             window.dataLayer.push(arguments);
@@ -160,11 +155,19 @@ export default function RootLayout({
           });
         `}</Script>
 
+        {shouldLoadAdsense ? (
+          <Script
+            id="google-adsense"
+            async
+            strategy="beforeInteractive"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsConfig.clientId}`}
+            crossOrigin="anonymous"
+          />
+        ) : null}
+
         <CookieConsentProvider>
           <Navbar />
-
           {children}
-
           <Footer />
         </CookieConsentProvider>
       </body>
