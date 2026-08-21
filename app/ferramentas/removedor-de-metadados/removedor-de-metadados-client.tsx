@@ -182,16 +182,21 @@ export default function RemovedorDeMetadadosClient() {
 
       context.drawImage(bitmap, 0, 0);
       const blob = await canvasToBlob(canvas, file.type);
+
+      if (blob.type !== file.type) {
+        throw new Error("O navegador não oferece exportação no formato original.");
+      }
+
       const url = URL.createObjectURL(blob);
 
       setResult({
         blob,
         url,
-        fileName: outputName(file.type),
+        fileName: outputName(blob.type),
       });
     } catch {
       setError(
-        "Não foi possível recriar a imagem. Tente um arquivo menor ou converta a imagem para JPG, PNG ou WebP antes de repetir a operação.",
+        "Não foi possível recriar a imagem neste formato. Tente outro navegador moderno ou converta a imagem para JPG, PNG ou WebP antes de repetir a operação.",
       );
     } finally {
       bitmap?.close();
@@ -371,7 +376,7 @@ export default function RemovedorDeMetadadosClient() {
           <div className="rounded-xl border border-border bg-muted/10 p-4">
             <FileImage className="size-5 text-primary" />
             <p className="mt-3 text-sm font-medium">Formato preservado</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">JPG continua JPG, PNG continua PNG e WebP continua WebP.</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">JPG continua JPG, PNG continua PNG e WebP continua WebP em navegadores compatíveis.</p>
           </div>
         </div>
 
