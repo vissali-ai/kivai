@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { archiveSearchItems } from "@/lib/archive-search-items";
+import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { isToolIndexable, tools } from "@/lib/tools";
 import { listCategories, listPublishedPosts } from "@/lib/blog/repository";
 
@@ -38,6 +39,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
+    {
+      url: `${baseUrl}${removedorMetadadosTool.href}`,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
 
     // Páginas principais
     {
