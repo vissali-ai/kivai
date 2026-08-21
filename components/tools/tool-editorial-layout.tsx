@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
@@ -32,6 +33,7 @@ type ToolEditorialLayoutProps = {
   faqs: ToolEditorialFaq[];
   relatedTools: ToolEditorialLink[];
   relatedArticles?: ToolEditorialLink[];
+  afterFaq?: ReactNode;
 };
 
 export function ToolEditorialLayout({
@@ -45,6 +47,7 @@ export function ToolEditorialLayout({
   faqs,
   relatedTools,
   relatedArticles = [],
+  afterFaq,
 }: ToolEditorialLayoutProps) {
   return (
     <section className="border-t border-border bg-muted/10 py-12 sm:py-16">
@@ -128,6 +131,8 @@ export function ToolEditorialLayout({
             ))}
           </div>
         </article>
+
+        {afterFaq ? <div className="py-2">{afterFaq}</div> : null}
 
         <div className={relatedArticles.length ? "grid gap-6 lg:grid-cols-2" : undefined}>
           <nav aria-label="Ferramentas relacionadas" className="rounded-xl border border-border bg-background p-5 sm:p-6">
