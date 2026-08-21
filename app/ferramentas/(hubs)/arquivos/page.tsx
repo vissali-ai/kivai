@@ -20,8 +20,8 @@ const tools = [
     name: "Compactar Arquivos em ZIP",
     description: "Reúna vários arquivos em um único pacote ZIP para organizar e compartilhar.",
     badge: "ZIP",
-    href: null,
-    available: false,
+    href: "/ferramentas/compactar-arquivos-zip",
+    available: true,
   },
 ] as const;
 
@@ -54,8 +54,12 @@ export default function ArquivosPage() {
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {tools.map((tool) => {
-              const card = (
+            {tools.map((tool) => (
+              <Link
+                key={tool.name}
+                href={tool.href}
+                className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:p-4"
+              >
                 <div className="flex h-full flex-col">
                   <div className="flex items-start justify-between">
                     <span className="flex size-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
@@ -70,35 +74,17 @@ export default function ArquivosPage() {
                   <p className="mt-2 text-xs leading-5 text-muted-foreground">
                     {tool.description}
                   </p>
-                  <div className={`mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium ${tool.available ? "group-hover:text-primary" : "text-muted-foreground"}`}>
-                    {tool.available ? "Explorar" : "Em desenvolvimento"}
-                    {tool.available && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />}
+                  <div className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium group-hover:text-primary">
+                    Explorar
+                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
                   </div>
                 </div>
-              );
-
-              return tool.available && tool.href ? (
-                <Link
-                  key={tool.name}
-                  href={tool.href}
-                  className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:p-4"
-                >
-                  {card}
-                </Link>
-              ) : (
-                <article
-                  key={tool.name}
-                  className="relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 sm:p-4"
-                >
-                  {card}
-                </article>
-              );
-            })}
+              </Link>
+            ))}
           </div>
 
           <div className="mt-8 max-w-4xl rounded-xl border border-border bg-muted/10 p-5 text-sm leading-7 text-muted-foreground">
-            As ferramentas deste hub são liberadas individualmente depois de testes de funcionamento,
-            compatibilidade, privacidade e experiência de uso. Descompactar ZIP e Descompactar RAR já estão disponíveis.
+            As três ferramentas iniciais do Hub Arquivos estão disponíveis e foram organizadas por intenção de uso: criar ZIP, descompactar ZIP e descompactar RAR.
           </div>
         </div>
       </section>
