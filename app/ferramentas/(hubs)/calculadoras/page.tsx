@@ -27,7 +27,7 @@ export default function CalculadorasPage() {
               return tool.available ? <Link key={tool.slug} href={getToolHref(tool.slug)} className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4">{content}</Link> : <article key={tool.slug} className="relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 opacity-75 sm:aspect-square sm:p-4">{content}</article>;
             })}
           </div>
-          <div className="mt-8"><AdSlot variant="banner" /></div>
+          <div className="mt-8"><AdSlot placement="page-footer" /></div>
         </div>
       </section>
     </main>
