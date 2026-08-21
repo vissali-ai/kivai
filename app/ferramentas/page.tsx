@@ -29,6 +29,11 @@ const arquivosReviewedTools = [
     name: "Descompactar RAR",
     description: "Abra um arquivo RAR, visualize o conteúdo e extraia os arquivos diretamente no navegador.",
   },
+  {
+    slug: "compactar-arquivos-zip",
+    name: "Compactar Arquivos em ZIP",
+    description: "Reúna vários arquivos em um único ZIP e faça o download diretamente no navegador.",
+  },
 ];
 
 const reviewedTools = [
@@ -83,7 +88,7 @@ export default function FerramentasPage() {
             const Icon = category.icon;
             const isArquivos = category.slug === "arquivos";
             const availableCount = isArquivos
-              ? 2
+              ? 3
               : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
