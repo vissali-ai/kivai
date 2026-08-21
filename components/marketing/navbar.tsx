@@ -26,6 +26,10 @@ const navItems = [
     href: "/servicos",
   },
   {
+    label: "Blog",
+    href: "/blog",
+  },
+  {
     label: "Sobre",
     href: "/sobre",
   },
@@ -124,6 +128,30 @@ export function Navbar() {
                     </SheetClose>
                   ))}
                 </nav>
+
+                <div className="mt-5 border-t border-white/8 pt-5">
+                  <p className="px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
+                    Suporte e transparência
+                  </p>
+                  <div className="mt-2 flex flex-col gap-1">
+                    <SheetClose asChild>
+                      <Link
+                        href="/ajuda"
+                        className="rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
+                      >
+                        Central de Ajuda
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link
+                        href="/contato"
+                        className="rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
+                      >
+                        Entre em contato
+                      </Link>
+                    </SheetClose>
+                  </div>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
