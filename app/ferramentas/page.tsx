@@ -34,6 +34,11 @@ const arquivosReviewedTools = [
     name: "Compactar Arquivos em ZIP",
     description: "Reúna vários arquivos em um único ZIP e faça o download diretamente no navegador.",
   },
+  {
+    slug: "renomear-arquivos-em-lote",
+    name: "Renomear Arquivos em Lote",
+    description: "Padronize vários nomes com numeração automática, preserve as extensões e baixe as cópias em ZIP.",
+  },
 ];
 
 const reviewedTools = [
@@ -88,7 +93,7 @@ export default function FerramentasPage() {
             const Icon = category.icon;
             const isArquivos = category.slug === "arquivos";
             const availableCount = isArquivos
-              ? 3
+              ? 4
               : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
