@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 
 import { RemovedorMetadadosEditorial } from "@/components/tools/removedor-metadados-editorial";
+import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { getPageMetadata } from "@/lib/seo";
 import RemovedorDeMetadadosClient from "./removedor-de-metadados-client";
 
 export const metadata: Metadata = getPageMetadata({
-  title: "Removedor de Metadados de Imagem Online",
-  description:
-    "Remova metadados herdados de imagens JPG, PNG e WebP diretamente no navegador e baixe uma nova cópia sem os dados incorporados do arquivo original.",
-  pathname: "/ferramentas/removedor-de-metadados",
+  title: removedorMetadadosTool.seoTitle,
+  description: removedorMetadadosTool.seoDescription,
+  pathname: removedorMetadadosTool.href,
 });
 
 export default function RemovedorDeMetadadosPage() {
