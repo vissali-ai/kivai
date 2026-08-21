@@ -1,8 +1,9 @@
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
+import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
+import { SITE_URL } from "@/lib/seo";
 
-const siteUrl = "https://www.kivai.com.br";
-const slug = "removedor-de-metadados";
-const name = "Removedor de Metadados";
+const slug = removedorMetadadosTool.slug;
+const name = removedorMetadadosTool.name;
 
 const content = {
   overview: [
@@ -49,7 +50,7 @@ const content = {
 };
 
 export function RemovedorMetadadosEditorial() {
-  const url = `${siteUrl}/ferramentas/${slug}`;
+  const url = `${SITE_URL}/ferramentas/${slug}`;
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -59,15 +60,15 @@ export function RemovedorMetadadosEditorial() {
         applicationCategory: "UtilitiesApplication",
         operatingSystem: "Qualquer sistema com navegador moderno",
         url,
-        description: "Remova metadados herdados de imagens JPG, PNG e WebP diretamente no navegador.",
+        description: removedorMetadadosTool.seoDescription,
         offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
       },
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Início", item: siteUrl },
-          { "@type": "ListItem", position: 2, name: "Ferramentas", item: `${siteUrl}/ferramentas` },
-          { "@type": "ListItem", position: 3, name: "Imagens", item: `${siteUrl}/ferramentas/imagens` },
+          { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Ferramentas", item: `${SITE_URL}/ferramentas` },
+          { "@type": "ListItem", position: 3, name: "Imagens", item: `${SITE_URL}/ferramentas/imagens` },
           { "@type": "ListItem", position: 4, name, item: url },
         ],
       },
