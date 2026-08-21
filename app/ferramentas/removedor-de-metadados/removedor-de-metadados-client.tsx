@@ -82,6 +82,7 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string) {
 
 export default function RemovedorDeMetadadosClient() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const [imageInfo, setImageInfo] = useState<ImageInfo | null>(null);
@@ -101,6 +102,11 @@ export default function RemovedorDeMetadadosClient() {
       if (result?.url) URL.revokeObjectURL(result.url);
     };
   }, [sourceUrl, result]);
+
+  useEffect(() => {
+    if (!result) return;
+    resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [result]);
 
   function clearResult() {
     if (result?.url) URL.revokeObjectURL(result.url);
@@ -226,7 +232,7 @@ export default function RemovedorDeMetadadosClient() {
 
   return (
     <section className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-24 sm:px-6 lg:px-8 lg:pb-16">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-20 sm:px-6 sm:pt-24 lg:px-8 lg:pb-16">
         <ToolPageBreadcrumb
           items={[
             { label: "Início", href: "/" },
@@ -236,46 +242,47 @@ export default function RemovedorDeMetadadosClient() {
           ]}
         />
 
-        <div className="mb-10 max-w-3xl">
-          <p className="text-sm font-medium uppercase tracking-wider text-primary">IMAGENS</p>
+        <div className="mb-8 max-w-3xl sm:mb-10">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary sm:text-sm">IMAGENS</p>
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
             Removedor de Metadados
           </h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Crie uma nova cópia da imagem sem carregar os metadados incorporados do arquivo original.
           </p>
-          <p className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground">
-            <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
+          <p className="mt-3 flex max-w-xl items-start gap-2 text-sm leading-6 text-muted-foreground sm:items-center">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary sm:mt-0" aria-hidden="true" />
             Processamento local no navegador para JPG, PNG e WebP.
           </p>
         </div>
 
         <Card className="mx-auto max-w-5xl">
-          <CardHeader>
+          <CardHeader className="p-5 sm:p-6">
             <CardTitle>Selecione uma imagem</CardTitle>
             <CardDescription>
               Compatível com JPG, PNG e WebP. A imagem é processada diretamente no navegador.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-5 pt-0 sm:p-6 sm:pt-0" aria-busy={processing}>
             <label
-              className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-primary/40 bg-muted/20 p-8 text-center transition hover:bg-muted/30 sm:p-10"
+              className="flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/40 bg-muted/20 p-6 text-center transition hover:bg-muted/30 focus-within:border-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/30 sm:min-h-48 sm:p-10"
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
                 void selectFile(event.dataTransfer.files?.[0] ?? null);
               }}
             >
-              <Upload className="mb-4 size-8 text-primary" />
+              <Upload className="mb-4 size-8 text-primary" aria-hidden="true" />
               <span className="font-medium">Clique ou arraste uma imagem para esta área</span>
-              <span className="mt-2 text-sm text-muted-foreground">
+              <span className="mt-2 text-sm leading-6 text-muted-foreground">
                 JPG, PNG ou WebP, até {formatBytes(MAX_FILE_SIZE)} e 40 megapixels
               </span>
               <input
                 ref={inputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-                className="hidden"
+                className="sr-only"
+                aria-label="Selecionar imagem JPG, PNG ou WebP"
                 onChange={(event) => void selectFile(event.currentTarget.files?.[0] ?? null)}
               />
             </label>
@@ -292,70 +299,81 @@ export default function RemovedorDeMetadadosClient() {
             {file && sourceUrl && imageInfo && (
               <div className="mt-6 space-y-6">
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
-                  <div className="overflow-hidden rounded-xl border border-border bg-muted/10 p-3">
+                  <div className="overflow-hidden rounded-xl border border-border bg-muted/10 p-2 sm:p-3">
                     <img
                       src={sourceUrl}
                       alt="Prévia da imagem selecionada"
-                      className="mx-auto max-h-[520px] w-auto max-w-full rounded-lg object-contain"
+                      className="mx-auto max-h-[360px] w-auto max-w-full rounded-lg object-contain sm:max-h-[520px]"
                     />
                   </div>
 
-                  <div className="space-y-3 rounded-xl border border-border bg-muted/10 p-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Arquivo</p>
-                      <p className="mt-1 break-all text-sm font-medium">{file.name}</p>
+                  <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-muted/10 p-4 sm:grid-cols-4 lg:grid-cols-1">
+                    <div className="col-span-2 sm:col-span-1 lg:col-span-1">
+                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Arquivo</dt>
+                      <dd className="mt-1 break-all text-sm font-medium">{file.name}</dd>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Formato</p>
-                      <p className="mt-1 text-sm font-medium">{file.type.replace("image/", "").toUpperCase()}</p>
+                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Formato</dt>
+                      <dd className="mt-1 text-sm font-medium">{file.type.replace("image/", "").toUpperCase()}</dd>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Dimensões</p>
-                      <p className="mt-1 text-sm font-medium">{imageInfo.width} × {imageInfo.height} px</p>
+                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Dimensões</dt>
+                      <dd className="mt-1 text-sm font-medium">{imageInfo.width} × {imageInfo.height} px</dd>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Tamanho original</p>
-                      <p className="mt-1 text-sm font-medium">{formatBytes(file.size)}</p>
+                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Tamanho original</dt>
+                      <dd className="mt-1 text-sm font-medium">{formatBytes(file.size)}</dd>
                     </div>
-                  </div>
+                  </dl>
                 </div>
 
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
                   <div className="flex gap-3">
-                    <ShieldOff className="mt-0.5 size-5 shrink-0 text-primary" />
+                    <ShieldOff className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                     <p>
                       A ferramenta decodifica os pixels e gera um novo arquivo. Com isso, os blocos de metadados herdados do original, como EXIF, GPS, XMP e IPTC quando presentes, não são copiados para a nova imagem.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <Button onClick={removeMetadata} disabled={processing}>
-                    {processing ? <Loader2 className="size-4 animate-spin" /> : <ShieldOff className="size-4" />}
+                <div className="grid gap-3 sm:flex sm:flex-wrap">
+                  <Button className="w-full sm:w-auto" onClick={removeMetadata} disabled={processing}>
+                    {processing ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <ShieldOff className="size-4" aria-hidden="true" />}
                     {processing ? "Removendo..." : "Remover metadados"}
                   </Button>
-                  <Button variant="outline" onClick={reset} disabled={processing}>
-                    <RotateCcw className="size-4" />
+                  <Button className="w-full sm:w-auto" variant="outline" onClick={reset} disabled={processing}>
+                    <RotateCcw className="size-4" aria-hidden="true" />
                     Limpar
                   </Button>
                 </div>
+
+                {processing ? (
+                  <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+                    Recriando a imagem no seu navegador...
+                  </p>
+                ) : null}
               </div>
             )}
 
             {result && file && (
-              <div className="mt-6 rounded-xl border border-primary/25 bg-primary/5 p-5">
+              <div
+                ref={resultRef}
+                className="mt-6 rounded-xl border border-primary/25 bg-primary/5 p-5"
+                role="status"
+                aria-live="polite"
+              >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-semibold text-foreground">Nova imagem pronta</p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    <p className="mt-1 break-words text-sm leading-6 text-muted-foreground">
                       {result.fileName} · {formatBytes(result.blob.size)}
                       {reduction !== null
                         ? ` · ${reduction >= 0 ? `${reduction.toFixed(1)}% menor` : `${Math.abs(reduction).toFixed(1)}% maior`}`
                         : ""}
                     </p>
                   </div>
-                  <Button onClick={downloadResult}>
-                    <Download className="size-4" />
+                  <Button className="w-full sm:w-auto" onClick={downloadResult}>
+                    <Download className="size-4" aria-hidden="true" />
                     Baixar imagem limpa
                   </Button>
                 </div>
@@ -366,17 +384,17 @@ export default function RemovedorDeMetadadosClient() {
 
         <div className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-border bg-muted/10 p-4">
-            <ShieldCheck className="size-5 text-primary" />
+            <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
             <p className="mt-3 text-sm font-medium">Processamento local</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">A imagem permanece no dispositivo durante a operação.</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/10 p-4">
-            <ShieldOff className="size-5 text-primary" />
+            <ShieldOff className="size-5 text-primary" aria-hidden="true" />
             <p className="mt-3 text-sm font-medium">Sem dados herdados</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">O novo arquivo não reutiliza os blocos de metadados do original.</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/10 p-4">
-            <FileImage className="size-5 text-primary" />
+            <FileImage className="size-5 text-primary" aria-hidden="true" />
             <p className="mt-3 text-sm font-medium">Formato preservado</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">JPG continua JPG, PNG continua PNG e WebP continua WebP em navegadores compatíveis.</p>
           </div>
