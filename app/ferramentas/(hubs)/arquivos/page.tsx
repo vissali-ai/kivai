@@ -7,21 +7,18 @@ const tools = [
     description: "Abra arquivos ZIP e extraia o conteúdo para usar os arquivos normalmente.",
     badge: "ZIP",
     href: "/ferramentas/descompactar-zip",
-    available: true,
   },
   {
     name: "Descompactar RAR",
     description: "Abra arquivos RAR e extraia os arquivos contidos no pacote.",
     badge: "RAR",
     href: "/ferramentas/descompactar-rar",
-    available: true,
   },
   {
     name: "Compactar Arquivos em ZIP",
     description: "Reúna vários arquivos em um único pacote ZIP para organizar e compartilhar.",
     badge: "ZIP",
     href: "/ferramentas/compactar-arquivos-zip",
-    available: true,
   },
 ] as const;
 
@@ -53,12 +50,12 @@ export default function ArquivosPage() {
             </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {tools.map((tool) => (
               <Link
                 key={tool.name}
                 href={tool.href}
-                className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:p-4"
+                className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4"
               >
                 <div className="flex h-full flex-col">
                   <div className="flex items-start justify-between">
@@ -81,10 +78,6 @@ export default function ArquivosPage() {
                 </div>
               </Link>
             ))}
-          </div>
-
-          <div className="mt-8 max-w-4xl rounded-xl border border-border bg-muted/10 p-5 text-sm leading-7 text-muted-foreground">
-            As três ferramentas iniciais do Hub Arquivos estão disponíveis e foram organizadas por intenção de uso: criar ZIP, descompactar ZIP e descompactar RAR.
           </div>
         </div>
       </section>
