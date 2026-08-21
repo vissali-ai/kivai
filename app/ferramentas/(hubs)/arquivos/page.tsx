@@ -20,6 +20,12 @@ const tools = [
     badge: "ZIP",
     href: "/ferramentas/compactar-arquivos-zip",
   },
+  {
+    name: "Renomear Arquivos em Lote",
+    description: "Padronize vários nomes de arquivo com numeração automática e extensões preservadas.",
+    badge: "LOTE",
+    href: "/ferramentas/renomear-arquivos-em-lote",
+  },
 ] as const;
 
 export default function ArquivosPage() {
@@ -45,8 +51,7 @@ export default function ArquivosPage() {
               Arquivos
             </h1>
             <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-              Ferramentas para compactar e descompactar arquivos ZIP e RAR de forma simples,
-              com prioridade para processamento diretamente no navegador.
+              Ferramentas para compactar, descompactar, organizar e gerenciar arquivos diretamente no navegador.
             </p>
           </div>
 
