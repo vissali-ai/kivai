@@ -1,5 +1,5 @@
+import { ImageToolEditorialV2 } from "@/components/tools/image-tool-editorial-v2";
 import { getToolMetadata } from "@/lib/seo";
-import { ImageToolEditorial } from "@/components/tools/image-tool-editorial";
 
 import GeradorDeQrCodeClient from "./gerador-de-qr-code-client";
 
@@ -9,7 +9,7 @@ export default function GeradorDeQrCodePage() {
   return (
     <>
       <GeradorDeQrCodeClient />
-      <ImageToolEditorial slug="gerador-de-qr-code" />
+      <ImageToolEditorialV2 slug="gerador-de-qr-code" />
     </>
   );
 }
