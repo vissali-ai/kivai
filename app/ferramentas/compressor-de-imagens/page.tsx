@@ -1,5 +1,5 @@
+import { ImageToolEditorialV2 } from "@/components/tools/image-tool-editorial-v2";
 import { getToolMetadata } from "@/lib/seo";
-import { ImageToolEditorial } from "@/components/tools/image-tool-editorial";
 
 import CompressorDeImagensClient from "./compressor-de-imagens-client";
 
@@ -9,7 +9,7 @@ export default function CompressorDeImagensPage() {
   return (
     <>
       <CompressorDeImagensClient />
-      <ImageToolEditorial slug="compressor-de-imagens" />
+      <ImageToolEditorialV2 slug="compressor-de-imagens" />
     </>
   );
 }
