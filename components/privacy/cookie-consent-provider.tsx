@@ -8,7 +8,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { usePathname } from "next/navigation";
 
 import { ConsentedGoogleServices } from "@/components/privacy/consented-google-services";
 import { CookieConsentBanner } from "@/components/privacy/cookie-consent-banner";
@@ -28,11 +27,40 @@ type ConsentContextValue = {
   preferences: CookieConsentPreferences | null;
   hasDecision: boolean;
   isPreferencesOpen: boolean;
+  googleCmpManaged: boolean;
   acceptAll: () => void;
   rejectOptional: () => void;
-  savePreferences: (preferences: Pick<CookieConsentPreferences, "analytics" | "advertising">) => void;
+  savePreferences: (
+    preferences: Pick<CookieConsentPreferences, "analytics" | "advertising">
+  ) => void;
   openPreferences: () => void;
   closePreferences: () => void;
+};
+
+type TcData = {
+  gdprApplies?: boolean;
+};
+
+type TcfApi = (
+  command: string,
+  version: number,
+  callback: (tcData: TcData | null, success: boolean) => void
+) => void;
+
+type GoogleFcCallback =
+  | (() => void)
+  | {
+      CONSENT_API_READY?: () => void;
+    };
+
+type GoogleFc = {
+  callbackQueue: GoogleFcCallback[];
+  showRevocationMessage?: () => void;
+};
+
+type ConsentWindow = Window & {
+  __tcfapi?: TcfApi;
+  googlefc?: GoogleFc;
 };
 
 const CookieConsentContext = createContext<ConsentContextValue | null>(null);
@@ -49,26 +77,77 @@ const newPreferences = (
 });
 
 export function CookieConsentProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [preferences, setPreferences] = useState<CookieConsentPreferences | null>(null);
+  const [preferences, setPreferences] =
+    useState<CookieConsentPreferences | null>(null);
   const [ready, setReady] = useState(false);
+  const [googleCmpManaged, setGoogleCmpManaged] = useState(false);
   const [isPreferencesOpen, setPreferencesOpen] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    let cancelled = false;
+    let localConsentResolved = false;
+
+    const activateLocalConsent = () => {
+      if (cancelled || localConsentResolved) return;
+
+      localConsentResolved = true;
       const storedPreferences = readCookieConsent();
 
       if (storedPreferences) {
-        // O padrão é sempre negado no HTML. Uma escolha salva precisa ser
-        // reaplicada antes que os serviços opcionais sejam renderizados.
         updateGoogleConsent(storedPreferences);
       }
 
+      setGoogleCmpManaged(false);
       setPreferences(storedPreferences);
       setReady(true);
-    }, 0);
+    };
 
-    return () => window.clearTimeout(timer);
+    const activateGoogleCmp = () => {
+      if (cancelled) return;
+
+      localConsentResolved = true;
+      setGoogleCmpManaged(true);
+      setPreferences(null);
+      setPreferencesOpen(false);
+      setReady(true);
+    };
+
+    const consentWindow = window as ConsentWindow;
+    const googlefc = consentWindow.googlefc ?? { callbackQueue: [] };
+
+    googlefc.callbackQueue = googlefc.callbackQueue ?? [];
+    consentWindow.googlefc = googlefc;
+
+    googlefc.callbackQueue.push({
+      CONSENT_API_READY: () => {
+        const tcfApi = consentWindow.__tcfapi;
+
+        if (typeof tcfApi !== "function") return;
+
+        tcfApi("addEventListener", 0, (tcData, success) => {
+          if (!success || !tcData || typeof tcData.gdprApplies !== "boolean") {
+            return;
+          }
+
+          if (tcData.gdprApplies) {
+            activateGoogleCmp();
+            return;
+          }
+
+          activateLocalConsent();
+        });
+      },
+    });
+
+    // Fora das regiões gerenciadas pela CMP do Google, o Kivai continua
+    // responsável pelo próprio banner. O pequeno atraso evita dois fluxos de
+    // consentimento concorrentes enquanto a API regional do Google inicializa.
+    const fallbackTimer = window.setTimeout(activateLocalConsent, 2500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fallbackTimer);
+    };
   }, []);
 
   const persist = useCallback((next: CookieConsentPreferences) => {
@@ -85,28 +164,56 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
     );
   }, []);
 
-  const acceptAll = useCallback(() => persist(newPreferences(true, true)), [persist]);
-  const rejectOptional = useCallback(() => persist(newPreferences(false, false)), [persist]);
+  const acceptAll = useCallback(
+    () => persist(newPreferences(true, true)),
+    [persist]
+  );
+
+  const rejectOptional = useCallback(
+    () => persist(newPreferences(false, false)),
+    [persist]
+  );
+
   const savePreferences = useCallback(
     (next: Pick<CookieConsentPreferences, "analytics" | "advertising">) =>
       persist(newPreferences(next.analytics, next.advertising)),
     [persist]
   );
 
+  const openPreferences = useCallback(() => {
+    if (googleCmpManaged) {
+      const consentWindow = window as ConsentWindow;
+      const googlefc = consentWindow.googlefc;
+
+      if (
+        googlefc?.callbackQueue &&
+        typeof googlefc.showRevocationMessage === "function"
+      ) {
+        googlefc.callbackQueue.push(googlefc.showRevocationMessage);
+        return;
+      }
+    }
+
+    setPreferencesOpen(true);
+  }, [googleCmpManaged]);
+
   const value = useMemo(
     () => ({
       preferences,
-      hasDecision: preferences !== null,
+      hasDecision: googleCmpManaged || preferences !== null,
       isPreferencesOpen,
+      googleCmpManaged,
       acceptAll,
       rejectOptional,
       savePreferences,
-      openPreferences: () => setPreferencesOpen(true),
+      openPreferences,
       closePreferences: () => setPreferencesOpen(false),
     }),
     [
       acceptAll,
+      googleCmpManaged,
       isPreferencesOpen,
+      openPreferences,
       preferences,
       rejectOptional,
       savePreferences,
@@ -119,12 +226,14 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
 
       {ready ? (
         <>
-          <CookieConsentBanner />
-          <CookiePreferencesDialog />
-          <ConsentedGoogleServices
-            pathname={pathname}
-            preferences={preferences}
-          />
+          {!googleCmpManaged ? (
+            <>
+              <CookieConsentBanner />
+              <CookiePreferencesDialog />
+            </>
+          ) : null}
+
+          <ConsentedGoogleServices preferences={preferences} />
         </>
       ) : null}
     </CookieConsentContext.Provider>
