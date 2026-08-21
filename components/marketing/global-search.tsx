@@ -5,6 +5,8 @@ import Link from "next/link";
 import { FileText, LayoutGrid, Loader2, Search, Wrench, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
+import { archiveSearchItems } from "@/lib/archive-search-items";
+import { plannedToolCategories } from "@/lib/planned-tool-categories";
 import { toolCategories, tools } from "@/lib/tools";
 
 type SearchItemType = "tool" | "hub" | "article";
@@ -23,8 +25,10 @@ type SearchIndexResponse = {
   posts?: SearchItem[];
 };
 
+const searchableCategories = [...toolCategories, ...plannedToolCategories];
+
 const categoryNameBySlug = new Map(
-  toolCategories.map((category) => [category.slug, category.name])
+  searchableCategories.map((category) => [category.slug, category.name])
 );
 
 const toolItems: SearchItem[] = tools
@@ -46,7 +50,17 @@ const toolItems: SearchItem[] = tools
     ].filter(Boolean),
   }));
 
-const hubItems: SearchItem[] = toolCategories.map((category) => ({
+const archiveToolItems: SearchItem[] = archiveSearchItems.map((tool) => ({
+  id: `tool:${tool.slug}`,
+  type: "tool",
+  title: tool.name,
+  description: tool.description,
+  href: `/ferramentas/${tool.slug}`,
+  category: "Arquivos",
+  keywords: [tool.name, tool.description, "arquivos", ...tool.keywords],
+}));
+
+const hubItems: SearchItem[] = searchableCategories.map((category) => ({
   id: `hub:${category.slug}`,
   type: "hub",
   title: category.name,
@@ -56,7 +70,7 @@ const hubItems: SearchItem[] = toolCategories.map((category) => ({
   keywords: [category.name, category.description, category.slug],
 }));
 
-const staticItems = [...toolItems, ...hubItems];
+const staticItems = [...toolItems, ...archiveToolItems, ...hubItems];
 
 const typeLabels: Record<SearchItemType, string> = {
   tool: "Ferramenta",
