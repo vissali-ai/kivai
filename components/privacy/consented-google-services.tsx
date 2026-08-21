@@ -1,10 +1,7 @@
 "use client";
 
 import { GoogleAnalytics } from "@next/third-parties/google";
-import Script from "next/script";
 
-import { adsConfig } from "@/lib/ads/config";
-import { isAdsenseEligiblePathname } from "@/lib/ads/eligibility";
 import type { CookieConsentPreferences } from "@/types/cookie-consent";
 
 type ConsentedGoogleServicesProps = {
@@ -13,32 +10,19 @@ type ConsentedGoogleServicesProps = {
 };
 
 /**
- * Ponto único de carregamento das tags opcionais do Google.
- * Nenhum script é inserido antes de uma decisão explícita do visitante.
+ * O Google Analytics continua sujeito à preferência analítica do Kivai.
+ *
+ * O script base do AdSense é carregado no layout para permitir que a CMP
+ * certificada do Google funcione e interprete os sinais do Consent Mode.
+ * A autorização para armazenamento, personalização e dados de publicidade
+ * continua sendo controlada pelos sinais de consentimento.
  */
 export function ConsentedGoogleServices({
-  pathname,
   preferences,
 }: ConsentedGoogleServicesProps) {
   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-  const adsenseClient = adsConfig.clientId;
 
-  return (
-    <>
-      {preferences?.analytics && gaId ? <GoogleAnalytics gaId={gaId} /> : null}
-
-      {preferences?.advertising &&
-      adsConfig.enabled &&
-      adsConfig.provider === "adsense" &&
-      adsenseClient &&
-      isAdsenseEligiblePathname(pathname) ? (
-        <Script
-          id="google-adsense"
-          strategy="afterInteractive"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
-          crossOrigin="anonymous"
-        />
-      ) : null}
-    </>
-  );
+  return preferences?.analytics && gaId ? (
+    <GoogleAnalytics gaId={gaId} />
+  ) : null;
 }
