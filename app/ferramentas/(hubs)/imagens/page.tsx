@@ -3,10 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { getToolHref, getToolsByCategory } from "@/lib/tools";
 
 const filters = ["Todos", "Otimizar", "Converter", "Editar"];
-const tools = getToolsByCategory("imagens");
+const registeredTools = getToolsByCategory("imagens");
+const tools = [
+  ...registeredTools.map((tool) => ({ ...tool, href: getToolHref(tool.slug) })),
+  removedorMetadadosTool,
+];
 
 export default function ImagensPage() {
   const [filter, setFilter] = useState("Todos");
@@ -35,12 +40,12 @@ export default function ImagensPage() {
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             return (
-              <Link key={tool.slug} href={getToolHref(tool.slug)} className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4">
+              <Link key={tool.slug} href={tool.href} className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4">
                 <div className="flex h-full flex-col">
-                  <div className="flex items-start justify-between"><span className="flex size-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary"><Icon className="size-4" /></span><span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.available ? tool.badge : "Utilidades"}</span></div>
+                  <div className="flex items-start justify-between"><span className="flex size-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary"><Icon className="size-4" /></span><span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span></div>
                   <h2 className="mt-4 text-[15px] font-semibold">{tool.name}</h2>
                   <p className="mt-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
-                  <div className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium group-hover:text-primary">{tool.available ? "Explorar" : "Utilidades"}{tool.available && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />}</div>
+                  <div className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium group-hover:text-primary">Explorar<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" /></div>
                 </div>
               </Link>
             );
