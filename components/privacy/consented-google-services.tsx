@@ -5,7 +5,6 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import type { CookieConsentPreferences } from "@/types/cookie-consent";
 
 type ConsentedGoogleServicesProps = {
-  pathname: string;
   preferences: CookieConsentPreferences | null;
 };
 
