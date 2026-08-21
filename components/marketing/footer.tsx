@@ -18,6 +18,7 @@ const ecosystemLinks = toolCategories.map((category) => ({
 const companyLinks = [
   { label: "Sobre o Kivai", href: "/sobre" },
   { label: "Metodologia", href: "/metodologia" },
+  { label: "Central de Ajuda", href: "/ajuda" },
   { label: "Segurança", href: "/seguranca" },
   { label: "Entre em contato", href: "/contato" },
   { label: "Termos de uso", href: "/termos" },
