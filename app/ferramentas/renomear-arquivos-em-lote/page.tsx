@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { ArchiveToolEditorial } from "@/components/tools/archive-tool-editorial";
+import { FileNamingToolEditorial } from "@/components/tools/file-naming-tool-editorial";
 import { getPageMetadata } from "@/lib/seo";
 import RenomearArquivosEmLoteClient from "./renomear-arquivos-em-lote-client";
 
@@ -15,7 +15,7 @@ export default function Page() {
   return (
     <>
       <RenomearArquivosEmLoteClient />
-      <ArchiveToolEditorial slug="renomear-arquivos-em-lote" />
+      <FileNamingToolEditorial slug="renomear-arquivos-em-lote" />
     </>
   );
 }
