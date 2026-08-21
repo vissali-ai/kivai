@@ -1,5 +1,5 @@
+import { ImageToolEditorialV2 } from "@/components/tools/image-tool-editorial-v2";
 import { getToolMetadata } from "@/lib/seo";
-import { ImageToolEditorial } from "@/components/tools/image-tool-editorial";
 
 import RedimensionarImagemClient from "./redimensionar-imagem-client";
 
@@ -9,7 +9,7 @@ export default function RedimensionarImagemPage() {
   return (
     <>
       <RedimensionarImagemClient />
-      <ImageToolEditorial slug="redimensionar-imagem" />
+      <ImageToolEditorialV2 slug="redimensionar-imagem" />
     </>
   );
 }
