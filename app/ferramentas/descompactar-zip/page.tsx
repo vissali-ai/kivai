@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { ArchiveToolEditorial } from "@/components/tools/archive-tool-editorial";
+import { ArchiveToolEditorialV2 } from "@/components/tools/archive-tool-editorial-v2";
 import { SITE_URL } from "@/lib/seo";
 import DescompactarZipClient from "./descompactar-zip-client";
 
@@ -20,26 +20,15 @@ export const metadata: Metadata = {
     "abrir arquivo zip",
   ],
   alternates: { canonical: url },
-  openGraph: {
-    title,
-    description,
-    url,
-    siteName: "Kivai",
-    locale: "pt_BR",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title,
-    description,
-  },
+  openGraph: { title, description, url, siteName: "Kivai", locale: "pt_BR", type: "website" },
+  twitter: { card: "summary_large_image", title, description },
 };
 
 export default function Page() {
   return (
     <>
       <DescompactarZipClient />
-      <ArchiveToolEditorial slug="descompactar-zip" />
+      <ArchiveToolEditorialV2 slug="descompactar-zip" />
     </>
   );
 }
