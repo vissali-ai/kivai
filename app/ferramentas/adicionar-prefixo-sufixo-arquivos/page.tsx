@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { FileNamingToolEditorial } from "@/components/tools/file-naming-tool-editorial";
+import { ArchiveToolEditorialV2 } from "@/components/tools/archive-tool-editorial-v2";
 import { getPageMetadata } from "@/lib/seo";
 import AdicionarPrefixoSufixoArquivosClient from "./adicionar-prefixo-sufixo-arquivos-client";
 
@@ -15,7 +15,7 @@ export default function Page() {
   return (
     <>
       <AdicionarPrefixoSufixoArquivosClient />
-      <FileNamingToolEditorial slug="adicionar-prefixo-sufixo-arquivos" />
+      <ArchiveToolEditorialV2 slug="adicionar-prefixo-sufixo-arquivos" />
     </>
   );
 }
