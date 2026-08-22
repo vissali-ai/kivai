@@ -1,63 +1,15 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
+import { SocialToolEditorialV2 } from "@/components/tools/social-tool-editorial-v2";
+import { getToolMetadata } from "@/lib/seo";
+
 import RelatorioSocialMediaClient from "./relatorio-client";
 
-const title = "Gerador de Relatório Social Media Grátis | Kivai";
-const description = "Crie relatórios de redes sociais com métricas, engajamento, crescimento, comparações e gráficos para acompanhar e apresentar resultados.";
-const canonical = "https://www.kivai.com.br/ferramentas/gerador-de-relatorio-social-media";
-
-export const metadata: Metadata = {
-  title: { absolute: title },
-  description,
-  alternates: { canonical },
-  robots: { index: true, follow: true },
-  openGraph: { title, description, url: canonical, siteName: "Kivai", locale: "pt_BR", type: "website", images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }] },
-  twitter: { card: "summary_large_image", title, description, images: [DEFAULT_SOCIAL_IMAGE] },
-  keywords: ["gerador de relatório social media", "relatório social media", "relatório de redes sociais", "relatório Instagram", "modelo de relatório social media", "relatório para cliente social media"],
-};
-
-const faq = [
-  ["O que é um relatório de social media?", "É um documento que organiza métricas de uma rede social em determinado período, contextualizando audiência, conteúdo, alcance, interações e outros indicadores informados."],
-  ["Quais métricas devo colocar no relatório?", "Use as métricas relacionadas aos objetivos do trabalho e disponíveis na plataforma, como seguidores, alcance, impressões, interações, conteúdo publicado, cliques e conversões."],
-  ["Preciso conectar meu Instagram?", "Não. Os dados são preenchidos manualmente e a ferramenta não solicita login, token ou acesso à conta."],
-  ["O Kivai acessa minha conta?", "Não. Esta versão não se conecta às APIs de Instagram, Facebook, TikTok, LinkedIn ou outras redes."],
-  ["Posso criar relatório para clientes?", "Sim. É possível informar cliente, perfil, rede, responsável, período e observações profissionais antes de imprimir ou exportar."],
-  ["Posso criar relatório de Instagram e TikTok?", "Sim. A estrutura se adapta às métricas informadas, inclusive quando uma plataforma não disponibiliza determinada métrica."],
-  ["Posso comparar dois períodos?", "Sim. Ative a comparação e informe seguidores, alcance, impressões, interações, cliques ou publicações do período anterior."],
-  ["Como é calculado o crescimento de seguidores?", "A diferença entre seguidores finais e iniciais é dividida pelos seguidores iniciais e multiplicada por 100. Se a base for zero, o percentual não é calculado."],
-  ["Como é calculada a taxa de engajamento?", "A soma das interações é dividida por seguidores, alcance ou impressões, conforme o método escolhido, e multiplicada por 100."],
-  ["Qual a diferença entre alcance e impressões?", "Alcance representa contas ou pessoas alcançadas; impressões representam exibições e podem incluir mais de uma exibição para a mesma pessoa."],
-  ["Posso adicionar resultados de mídia paga?", "Sim. Investimento, impressões, cliques, leads, conversões e receita são opcionais e geram indicadores complementares quando há dados suficientes."],
-  ["Posso baixar o relatório em PDF?", "Sim. Use o botão de download no relatório final. Como alternativa, a impressão do navegador permite escolher Salvar como PDF."],
-  ["Posso imprimir o relatório?", "Sim. A versão de impressão mostra somente o relatório e aplica configuração A4, ocultando formulário, navegação, anúncios e controles."],
-  ["Meus dados ficam salvos?", "O relatório em andamento e até dez relatórios salvos ficam no armazenamento local deste navegador. Eles não são enviados ao Kivai nesta versão."],
-  ["A ferramenta substitui os analytics das plataformas?", "Não. Ela organiza e calcula os dados fornecidos pelo usuário, sem coleta automática ou auditoria oficial das redes."],
-] as const;
-
-const jsonLd = [
-  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Gerador de Relatório Social Media", applicationCategory: "BusinessApplication", operatingSystem: "Web", url: canonical, description, offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" }, featureList: ["Relatório de métricas", "Comparação entre períodos", "Gráficos", "Persistência local", "Impressão A4", "Exportação em PDF"] },
-  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://www.kivai.com.br" }, { "@type": "ListItem", position: 2, name: "Social Media", item: "https://www.kivai.com.br/ferramentas/social-media" }, { "@type": "ListItem", position: 3, name: "Gerador de Relatório Social Media", item: canonical }] },
-  { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([question, answer]) => ({ "@type": "Question", name: question, acceptedAnswer: { "@type": "Answer", text: answer } })) },
-];
+export const metadata = getToolMetadata("gerador-de-relatorio-social-media");
 
 export default function GeradorRelatorioSocialMediaPage() {
-  return <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-    <RelatorioSocialMediaClient />
-    <section className="border-t border-border bg-muted/10 py-12"><div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-      <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">O que é um relatório de social media?</h2><p className="mt-4 leading-7 text-muted-foreground">Um relatório de social media organiza os números de uma rede social em um período definido. Ele ajuda a registrar o que foi publicado, como a audiência mudou, quantas pessoas foram alcançadas e quais interações foram informadas. Um bom documento identifica a origem dos dados, explica os cálculos e separa observações profissionais de conclusões matemáticas.</p><p className="mt-4 leading-7 text-muted-foreground">Este gerador não coleta dados das plataformas. Você transfere as métricas dos analytics da rede para um relatório visual, revisa a prévia e escolhe imprimir ou exportar. Isso permite trabalhar com Instagram, TikTok, Facebook, YouTube, LinkedIn e outras redes sem conceder acesso à conta.</p></article>
-
-      <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Quais métricas colocar em um relatório de redes sociais?</h2><div className="mt-5 grid gap-5 text-sm leading-6 text-muted-foreground md:grid-cols-3"><p><strong className="block text-foreground">Audiência e distribuição</strong>Seguidores ajudam a acompanhar o tamanho da audiência. Alcance, impressões e visualizações descrevem como o conteúdo foi distribuído e exibido.</p><p><strong className="block text-foreground">Conteúdo e interações</strong>Publicações, formatos, curtidas, comentários, compartilhamentos e salvamentos ajudam a observar produção e resposta do público.</p><p><strong className="block text-foreground">Tráfego e negócio</strong>Cliques, leads, conversões e receita aproximam a análise dos objetivos comerciais quando esses dados estão disponíveis.</p></div><p className="mt-5 leading-7 text-muted-foreground">Métricas indisponíveis podem ficar em branco, sem serem exibidas como zero. Alcance e interações não representam automaticamente vendas, lucro ou retorno financeiro. Para análises específicas, consulte a <Link className="text-primary hover:underline" href="/ferramentas/calculadora-de-roas">Calculadora de ROAS</Link> e a <Link className="text-primary hover:underline" href="/ferramentas/calculadora-de-roi">Calculadora de ROI</Link>.</p></article>
-
-      <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Como usar o Gerador de Relatório Social Media</h2><ol className="mt-5 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2"><li>1. Escolha a rede social e identifique cliente, perfil e responsável.</li><li>2. Informe o período analisado.</li><li>3. Adicione os números da audiência e do conteúdo publicado.</li><li>4. Preencha alcance, impressões e interações disponíveis.</li><li>5. Escolha a base da taxa de engajamento.</li><li>6. Inclua tráfego, conversões ou mídia paga, se possuir esses dados.</li><li>7. Ative a comparação com o período anterior, se necessário.</li><li>8. Adicione os conteúdos de destaque.</li><li>9. Escreva suas observações e próximos passos.</li><li>10. Revise métricas, gráficos e resumo.</li><li>11. Salve o relatório neste navegador.</li><li>12. Copie o resumo, imprima ou exporte em PDF.</li></ol></article>
-
-      <div className="grid gap-6 lg:grid-cols-2"><article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Exemplo de relatório de Instagram</h2><p className="mt-4 leading-7 text-muted-foreground">Considere julho de 2026 com 10.000 seguidores iniciais e 10.500 finais. A variação é de 500 seguidores e o crescimento calculado é 5%. Se o período registrar 5.000 interações e alcance de 80.000 contas, a taxa por alcance será:</p><p className="mt-4 border-l-2 border-primary bg-primary/5 px-4 py-3 text-lg font-semibold">5.000 ÷ 80.000 × 100 = 6,25%</p><p className="mt-4 text-sm leading-6 text-muted-foreground">O percentual descreve a relação entre interações e alcance neste conjunto de dados. A ferramenta não o classifica automaticamente como bom ou ruim.</p></article><article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Como comparar dois períodos</h2><p className="mt-4 leading-7 text-muted-foreground">A comparação utiliza variação absoluta e percentual. Um alcance que passa de 72.000 para 86.000 aumenta 14.000, ou <strong className="text-foreground">19,44%</strong>. Se o valor anterior for zero, a variação absoluta continua disponível, mas o percentual não é calculado.</p><p className="mt-4 text-sm leading-6 text-muted-foreground">Use definições e fontes consistentes. Se método, período ou composição das interações mudar, registre essa alteração nas observações do relatório.</p></article></div>
-
-      <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Como apresentar resultados para clientes</h2><div className="mt-5 grid gap-5 text-sm leading-6 text-muted-foreground md:grid-cols-3"><p><strong className="block text-foreground">Comece pelo contexto</strong>Identifique período, objetivo, perfil analisado e origem dos dados antes de apresentar os indicadores.</p><p><strong className="block text-foreground">Priorize o que importa</strong>Mostre os indicadores centrais, a comparação relevante e os conteúdos de destaque sem transformar o relatório em uma lista interminável.</p><p><strong className="block text-foreground">Separe dado e interpretação</strong>Use as observações para registrar contexto, sem atribuir causas que os números isoladamente não demonstram.</p></div><p className="mt-5 leading-7 text-muted-foreground">Para organizar a execução, use o <Link className="text-primary hover:underline" href="/ferramentas/planejador-de-conteudo-social-media">Planejador de Conteúdo</Link> e o <Link className="text-primary hover:underline" href="/ferramentas/calendario-editorial-redes-sociais">Calendário Editorial</Link>. Para revisar a apresentação antes de publicar, consulte o <Link className="text-primary hover:underline" href="/ferramentas/preview-de-post-redes-sociais">Preview de Post</Link>. Para estudar somente a fórmula, use a <Link className="text-primary hover:underline" href="/ferramentas/calculadora-de-engajamento">Calculadora de Engajamento</Link>.</p></article>
-
-      <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Perguntas frequentes</h2><div className="mt-5 space-y-3">{faq.map(([question, answer]) => <details key={question} className="border border-border p-4"><summary className="cursor-pointer font-medium">{question}</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">{answer}</p></details>)}</div></article>
-      <nav aria-label="Ferramentas relacionadas" className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2><div className="mt-4 flex flex-wrap gap-3">{[["Calculadora de Engajamento", "/ferramentas/calculadora-de-engajamento"], ["Planejador de Conteúdo", "/ferramentas/planejador-de-conteudo-social-media"], ["Calendário Editorial", "/ferramentas/calendario-editorial-redes-sociais"], ["Preview de Post", "/ferramentas/preview-de-post-redes-sociais"], ["Calculadora de ROAS", "/ferramentas/calculadora-de-roas"], ["Calculadora de ROI", "/ferramentas/calculadora-de-roi"]].map(([label, href]) => <Link key={href} href={href} className="border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-primary hover:text-primary">{label}</Link>)}</div></nav>
-    </div></section>
-  </>;
+  return (
+    <>
+      <RelatorioSocialMediaClient />
+      <SocialToolEditorialV2 slug="gerador-de-relatorio-social-media" />
+    </>
+  );
 }
