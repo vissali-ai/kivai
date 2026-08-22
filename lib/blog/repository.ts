@@ -199,34 +199,19 @@ function validatePost(input: PostInput) {
   if (input.origin === "rss-agent" && !["draft", "archived"].includes(input.status) && !input.coverMediaId) {
     throw new Error("Adicione uma imagem de capa antes de publicar uma matéria preparada pelo agente.");
   }
-  if (input.origin === "rss-agent") {
-    const publishing = input.status === "published" || input.status === "scheduled";
-    if (publishing && input.reviewStatus !== "approved") {
-      throw new Error("A pauta precisa passar pela revisão humana antes de ser publicada ou agendada.");
-    }
-    if (input.reviewStatus === "approved") {
-      let primarySource: URL;
-      try { primarySource = new URL(input.primarySourceUrl); } catch { throw new Error("Informe uma URL válida para a fonte primária."); }
-      if (primarySource.protocol !== "https:") throw new Error("A fonte primária precisa usar HTTPS.");
-      if (input.relevanceScore < 7 || input.relevanceScore > 12) throw new Error("A relevância editorial precisa ser avaliada entre 7 e 12.");
-      if (plainText(input.originalContribution).length < 160) throw new Error("Descreva com pelo menos 160 caracteres a contribuição original do Kivai.");
-      if (!input.relatedToolSlugs.length) throw new Error("Relacione pelo menos uma ferramenta do Kivai à matéria.");
-      if (plainText(content).split(/\s+/).filter(Boolean).length < 600) throw new Error("A matéria editorial precisa ter pelo menos 600 palavras.");
-      if (!input.coverMediaId) throw new Error("Selecione uma imagem de capa antes da aprovação editorial.");
-      if (input.reviewedBy.trim().length < 3) throw new Error("Informe o nome da pessoa responsável pela revisão.");
-    }
-  }
   return { title, slug, excerpt, author, content };
 }
 
 function toPostRow(input: PostInput) {
   const clean = validatePost(input);
   const publishNow = input.status === "published";
+  const convertSuggestion = input.origin === "rss-agent" && ["published", "scheduled"].includes(input.status);
+  const conversionDate = convertSuggestion ? new Date().toISOString() : null;
   return {
     title: clean.title, subtitle: input.subtitle.trim() || null, slug: clean.slug,
     excerpt: clean.excerpt, content: clean.content, status: input.status, author: clean.author || "Kivai",
     source_name: input.sourceName.trim() || null, source_url: input.sourceUrl.trim() || null,
-    original_published_at: input.originalPublishedAt || null, category_id: input.categoryId || null,
+    original_published_at: convertSuggestion ? null : input.originalPublishedAt || null, category_id: input.categoryId || null,
     cover_media_id: input.coverMediaId || null, cover_alt: input.coverAlt.trim() || null,
     cover_caption: input.coverCaption.trim() || null, cover_credit: input.coverCredit.trim() || null,
     cover_source: input.coverSource.trim() || null, cover_source_url: input.coverSourceUrl.trim() || null,
@@ -235,15 +220,17 @@ function toPostRow(input: PostInput) {
     og_description: input.ogDescription.trim() || null, og_image: input.ogImage.trim() || null,
     related_tool_slugs: input.relatedToolSlugs, scheduled_at: input.status === "scheduled" ? input.scheduledAt : null,
     featured: input.featured, featured_order: input.featured ? input.featuredOrder : null,
-    origin: input.origin, review_status: input.reviewStatus,
-    generation_model: input.generationModel || null,
-    needs_cover: input.origin === "rss-agent" ? !input.coverMediaId : false,
-    primary_source_url: input.primarySourceUrl.trim() || null,
-    original_contribution: input.originalContribution.trim() || null,
-    relevance_score: input.relevanceScore,
-    reviewed_by: input.reviewStatus === "approved" ? input.reviewedBy.trim() : null,
-    reviewed_at: input.reviewStatus === "approved" ? (input.reviewedAt || new Date().toISOString()) : null,
-    published_at: publishNow ? (input.publishedAt || new Date().toISOString()) : input.status === "archived" ? input.publishedAt : null,
+    origin: convertSuggestion ? "manual" : input.origin,
+    review_status: convertSuggestion ? "not-required" : input.reviewStatus,
+    generation_model: convertSuggestion ? null : input.generationModel || null,
+    needs_cover: convertSuggestion ? false : input.origin === "rss-agent" ? !input.coverMediaId : false,
+    primary_source_url: convertSuggestion ? null : input.primarySourceUrl.trim() || null,
+    original_contribution: convertSuggestion ? null : input.originalContribution.trim() || null,
+    relevance_score: convertSuggestion ? 0 : input.relevanceScore,
+    reviewed_by: convertSuggestion ? null : input.reviewStatus === "approved" ? input.reviewedBy.trim() : null,
+    reviewed_at: convertSuggestion ? null : input.reviewStatus === "approved" ? (input.reviewedAt || new Date().toISOString()) : null,
+    created_at: conversionDate ?? undefined,
+    published_at: publishNow ? (conversionDate || input.publishedAt || new Date().toISOString()) : input.status === "archived" ? input.publishedAt : null,
   };
 }
 
