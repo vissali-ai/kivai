@@ -41,7 +41,7 @@ export function VideoServerToolEditorialV2({ slug }: { slug: VideoServerToolEdit
         limitations={content.limitations}
         faqs={content.faqs}
         relatedTools={content.related}
-        afterFaq={<AdSlot placement="tool-bottom" variant="banner" />}
+        afterFaq={<AdSlot placement="tool-bottom" />}
       />
     </>
   );
