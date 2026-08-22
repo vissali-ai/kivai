@@ -25,6 +25,7 @@ type Gesture = {
   pointerX: number;
   pointerY: number;
   placement: Placement;
+  startDistance?: number;
 };
 
 const INITIAL_PLACEMENT: Placement = { x: 0.5, y: 0.78, scale: 0.09 };
@@ -109,13 +110,18 @@ export function WatermarkClient() {
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
-    gesture.current = { mode, pointerX: event.clientX, pointerY: event.clientY, placement };
+    const bounds = stage.current?.getBoundingClientRect();
+    const centerX = bounds ? bounds.left + placement.x * bounds.width : event.clientX;
+    const centerY = bounds ? bounds.top + placement.y * bounds.height : event.clientY;
+    gesture.current = { mode, pointerX: event.clientX, pointerY: event.clientY, placement, startDistance: mode === "resize" ? Math.max(12, Math.hypot(event.clientX - centerX, event.clientY - centerY)) : undefined };
   }
 
   function updateGesture(event: PointerEvent<HTMLElement>) {
     const active = gesture.current;
     const bounds = stage.current?.getBoundingClientRect();
     if (!active || !bounds?.width || !bounds.height) return;
+    event.preventDefault();
+    event.stopPropagation();
     const dx = (event.clientX - active.pointerX) / bounds.width;
     const dy = (event.clientY - active.pointerY) / bounds.height;
     if (active.mode === "move") {
@@ -127,7 +133,10 @@ export function WatermarkClient() {
     }
     const min = type === "logo" ? 0.04 : 0.02;
     const max = type === "logo" ? 0.8 : 0.35;
-    const nextScale = clamp(active.placement.scale + dx, min, max);
+    const centerX = bounds.left + active.placement.x * bounds.width;
+    const centerY = bounds.top + active.placement.y * bounds.height;
+    const distance = Math.hypot(event.clientX - centerX, event.clientY - centerY);
+    const nextScale = clamp(active.placement.scale * (distance / (active.startDistance ?? distance)), min, max);
     const nextDimensions = getWatermarkDimensions(image, type, text, logo, nextScale);
     setPlacement(clampPlacement({ ...active.placement, scale: nextScale }, nextDimensions));
   }
@@ -215,7 +224,7 @@ export function WatermarkClient() {
                   <canvas ref={canvas} aria-label="Prévia da imagem com marca d'água" className="block size-full" />
                   {canRender && (
                     <div
-                      role="button"
+                      role="group"
                       tabIndex={0}
                       aria-label="Marca d'água selecionada. Arraste para mover ou use as setas do teclado."
                       className="absolute cursor-move border-2 border-white shadow-[0_0_0_1px_rgba(37,99,235,.9)] outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -231,11 +240,15 @@ export function WatermarkClient() {
                       onPointerCancel={stopGesture}
                       onKeyDown={moveWithKeyboard}
                     >
-                      <span
-                        aria-hidden="true"
-                        className="absolute -bottom-2.5 -right-2.5 size-5 cursor-nwse-resize rounded-full border-2 border-white bg-primary shadow"
+                      <button
+                        type="button"
+                        aria-label="Redimensionar marca d'água pela alça inferior direita"
+                        className="absolute -bottom-5 -right-5 grid size-11 touch-none place-items-center rounded-full bg-transparent cursor-nwse-resize"
                         onPointerDown={(event) => beginGesture(event, "resize")}
-                      />
+                        onPointerMove={updateGesture}
+                        onPointerUp={stopGesture}
+                        onPointerCancel={stopGesture}
+                      ><span aria-hidden="true" className="size-5 rounded-full border-2 border-white bg-primary shadow-md" /></button>
                     </div>
                   )}
                 </div>

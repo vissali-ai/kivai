@@ -122,6 +122,7 @@ export function CropImageClient() {
     const stage = stageRef.current;
     if (!drag || !stage || !image) return;
     event.preventDefault();
+    event.stopPropagation();
     const bounds = stage.getBoundingClientRect();
     const dx = (event.clientX - drag.clientX) / bounds.width * image.naturalWidth;
     const dy = (event.clientY - drag.clientY) / bounds.height * image.naturalHeight;
@@ -209,12 +210,12 @@ export function CropImageClient() {
                         key={handle}
                         type="button"
                         aria-label={`Redimensionar pelo canto ${handle}`}
-                        className={`absolute size-7 touch-none rounded-full border-2 border-white bg-primary shadow ${handle.includes("n") ? "-top-3.5" : "-bottom-3.5"} ${handle.includes("w") ? "-left-3.5" : "-right-3.5"}`}
+                        className={`absolute grid size-11 touch-none place-items-center rounded-full bg-transparent ${handle.includes("n") ? "-top-[22px]" : "-bottom-[22px]"} ${handle.includes("w") ? "-left-[22px]" : "-right-[22px]"}`}
                         onPointerDown={(event) => beginDrag(event, "resize", handle)}
                         onPointerMove={moveDrag}
                         onPointerUp={() => { dragRef.current = null; }}
                         onPointerCancel={() => { dragRef.current = null; }}
-                      />
+                      ><span aria-hidden="true" className="size-7 rounded-full border-2 border-white bg-primary shadow-md" /></button>
                     ))}
                   </div>
                 </div>
