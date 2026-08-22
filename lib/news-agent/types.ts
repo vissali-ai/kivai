@@ -37,18 +37,6 @@ export type NewsAgentRun = {
   finishedAt: string | null;
 };
 
-export type GeneratedArticle = {
-  title: string;
-  subtitle: string;
-  excerpt: string;
-  contentHtml: string;
-  categorySlug: "noticias" | "inteligencia-artificial" | "tecnologia" | "marketing" | "e-commerce";
-  tags: string[];
-  seoTitle: string;
-  metaDescription: string;
-  referenceUrls: string[];
-};
-
 export type NewsAgentResult = {
   runId: string;
   sourcesChecked: number;

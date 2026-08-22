@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const posts = await listPosts({
       query: params.get("q") ?? "",
       status: (params.get("status") as PostStatus | "all") ?? "all",
+      origin: params.get("origin") === "rss-agent" ? "rss-agent" : params.get("origin") === "manual" ? "manual" : "all",
       categoryId: params.get("category") ?? "",
       page: Number(params.get("page") || 1),
     });

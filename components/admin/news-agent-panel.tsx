@@ -13,12 +13,12 @@ export function NewsAgentPanel({ canRun }: { canRun: boolean }) {
 
   async function run() {
     setRunning(true);
-    setMessage("Consultando RSS, sitemaps e páginas editoriais para criar pautas em rascunho...");
+    setMessage("Consultando RSS, sitemaps e páginas editoriais para coletar pautas relevantes...");
     try {
       const response = await fetch("/api/admin/news-agent/run", { method: "POST" });
       const data = await response.json() as NewsAgentResult & { error?: string };
       if (!response.ok) throw new Error(data.error || "Não foi possível executar o agente.");
-      setMessage(`${data.draftsCreated} rascunho(s) criado(s), ${data.itemsSkipped} item(ns) ignorado(s).`);
+      setMessage(`${data.draftsCreated} pauta(s) coletada(s), ${data.itemsSkipped} item(ns) ignorado(s).`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Falha ao executar o agente.");
@@ -29,7 +29,7 @@ export function NewsAgentPanel({ canRun }: { canRun: boolean }) {
 
   return <div className="border border-primary/30 bg-primary/10 p-5">
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="flex max-w-2xl gap-3"><Bot className="mt-0.5 size-5 shrink-0 text-primary" /><div><h2 className="font-semibold">Executar coleta agora</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">O agente consulta RSS, sitemaps e páginas editoriais brasileiras e cria até 30 pautas em rascunho, com título, categoria, fonte e link original. Os campos editoriais ficam livres para você preencher com o material preparado no GPT.</p></div></div>
+      <div className="flex max-w-2xl gap-3"><Bot className="mt-0.5 size-5 shrink-0 text-primary" /><div><h2 className="font-semibold">Executar coleta agora</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">O agente consulta RSS, sitemaps e páginas editoriais brasileiras, filtra assuntos relacionados ao Kivai e cria até 12 pautas. Ele não escreve nem publica matérias: pesquisa, contribuição original e aprovação humana continuam obrigatórias.</p></div></div>
       <Button disabled={!canRun || running} onClick={run}><Play />{running ? "Executando..." : "Buscar notícias"}</Button>
     </div>
     {message ? <p className="mt-4 border-t border-primary/20 pt-3 text-sm">{message}</p> : null}

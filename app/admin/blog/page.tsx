@@ -9,7 +9,7 @@ import { isBlogDatabaseConfigured } from "@/lib/blog/config";
 import { listAllPosts, listCategories, listPosts, publishDueScheduledPosts } from "@/lib/blog/repository";
 import { listRadarMetrics } from "@/lib/news-radar/repository";
 import { NEWS_RADAR_CATEGORIES } from "@/lib/news-radar/types";
-import type { PostStatus } from "@/lib/blog/types";
+import type { PostOrigin, PostStatus } from "@/lib/blog/types";
 
 const statusLabels: Record<PostStatus, string> = { draft: "Rascunho", published: "Publicada", scheduled: "Agendada", archived: "Arquivada" };
 const date = new Intl.DateTimeFormat("pt-BR", {
@@ -29,13 +29,14 @@ function formatPercentage(value: number, total: number) {
   return `${Math.round((value / total) * 100)}%`;
 }
 
-export default async function BlogAdmin({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; category?: string; page?: string }> }) {
+export default async function BlogAdmin({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; origin?: string; category?: string; page?: string }> }) {
   const params = await searchParams;
   const status = (["draft", "published", "scheduled", "archived", "all"].includes(params.status ?? "") ? params.status : "draft") as PostStatus | "all";
+  const origin = (["manual", "rss-agent", "all"].includes(params.origin ?? "") ? params.origin : "all") as PostOrigin | "all";
   await publishDueScheduledPosts();
   const [allPosts, posts, categories, radarResult] = await Promise.all([
     listAllPosts(),
-    listPosts({ query: params.q, status, categoryId: params.category, page: Number(params.page || 1) }),
+    listPosts({ query: params.q, status, origin, categoryId: params.category, page: Number(params.page || 1) }),
     listCategories(),
     listRadarMetrics(30).then((metrics) => ({ ready: true, metrics })).catch(() => ({ ready: false, metrics: [] })),
   ]);
@@ -61,7 +62,7 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
     { label: "Rascunhos", value: allPosts.filter((p) => p.status === "draft").length, icon: SquarePen },
     { label: "Agendadas", value: allPosts.filter((p) => p.status === "scheduled").length, icon: CalendarClock },
     { label: "Arquivadas", value: allPosts.filter((p) => p.status === "archived").length, icon: Archive },
-    { label: "Aguardando revisão", value: allPosts.filter((p) => p.origin === "rss-agent" && p.reviewStatus === "awaiting-review").length, icon: Bot },
+    { label: "Pautas em fluxo", value: allPosts.filter((p) => p.origin === "rss-agent" && p.status === "draft" && p.reviewStatus !== "rejected").length, icon: Bot },
   ];
   const statusTabs: { label: string; value: PostStatus | "all"; count: number }[] = [
     { label: "Rascunhos", value: "draft", count: allPosts.filter((post) => post.status === "draft").length },
@@ -74,6 +75,7 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
     const query = new URLSearchParams({ status: nextStatus });
     if (params.q) query.set("q", params.q);
     if (params.category) query.set("category", params.category);
+    if (origin !== "all") query.set("origin", origin);
     return `/admin/blog?${query.toString()}`;
   };
   return <main>
@@ -95,7 +97,7 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
     </CardContent></Card>
     <Card className="mt-6"><CardHeader><CardTitle>Matérias</CardTitle></CardHeader><CardContent>
       <nav aria-label="Status das matérias" className="mb-4 flex gap-2 overflow-x-auto border-b border-white/10 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{statusTabs.map((tab) => <Link key={tab.value} href={statusHref(tab.value)} className={`shrink-0 border px-3 py-2 text-xs font-medium transition ${status === tab.value ? "border-primary/40 bg-primary/10 text-primary" : "border-white/10 text-muted-foreground hover:border-primary/30 hover:text-foreground"}`}>{tab.label}<span className="ml-2 text-[10px] opacity-70">{tab.count}</span></Link>)}</nav>
-      <form className="mb-4 grid gap-2 md:grid-cols-[1fr_220px_auto]"><input type="hidden" name="status" value={status} /><Input name="q" defaultValue={params.q} placeholder="Buscar por título" /><select name="category" defaultValue={params.category} className="h-8 border border-input bg-background px-2 text-xs"><option value="">Todas as categorias</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select><Button type="submit" variant="outline">Filtrar</Button></form>
+      <form className="mb-4 grid gap-2 md:grid-cols-[1fr_190px_220px_auto]"><input type="hidden" name="status" value={status} /><Input name="q" defaultValue={params.q} placeholder="Buscar por título" /><select name="origin" defaultValue={origin} className="h-8 border border-input bg-background px-2 text-xs"><option value="all">Todas as origens</option><option value="manual">Editorial manual</option><option value="rss-agent">Pautas do agente</option></select><select name="category" defaultValue={params.category} className="h-8 border border-input bg-background px-2 text-xs"><option value="">Todas as categorias</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select><Button type="submit" variant="outline">Filtrar</Button></form>
       <div className="divide-y divide-white/5 md:hidden">{posts.map((post) => {
         const titleUrl = post.sourceUrl || (post.status === "published" ? `/blog/${post.slug}` : `/admin/blog/${post.id}/preview`);
         return <article key={post.id} className="py-3"><Link href={titleUrl} target="_blank" rel="noopener noreferrer" className="line-clamp-2 text-sm font-medium leading-snug hover:text-primary hover:underline">{post.title}</Link><p className="mt-1 text-xs text-muted-foreground">{post.category?.name ?? "Sem categoria"}</p><div className="mt-1.5 flex min-h-8 items-center gap-2">{post.needsCover ? <p className="text-[11px] text-amber-300">Aguardando foto</p> : null}<PostActions id={post.id} slug={post.slug} status={post.status} mobileCompact /></div></article>;

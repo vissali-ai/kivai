@@ -4,8 +4,7 @@ import { createHash } from "node:crypto";
 import { newsAgentConfig } from "@/lib/blog/config";
 import { listCategories, savePost } from "@/lib/blog/repository";
 import { slugify } from "@/lib/blog/slug";
-import { deduplicateNewsTopics, normalizedNewsTitle } from "@/lib/news-agent/candidate-ranking";
-import { generateEditorialDraft } from "@/lib/news-agent/openai";
+import { candidateEditorialRelevance, deduplicateNewsTopics, normalizedNewsTitle, rankEditorialCandidates } from "@/lib/news-agent/candidate-ranking";
 import {
   claimNewsImport,
   completeNewsImport,
@@ -40,9 +39,6 @@ function createSourceDraft(candidate: NewsCandidate) {
 }
 
 export async function runNewsAgent(): Promise<NewsAgentResult> {
-  if (newsAgentConfig.mode === "ai" && !newsAgentConfig.openAiApiKey) {
-    throw new Error("O modo IA está ativo, mas OPENAI_API_KEY não foi configurada. Use NEWS_AGENT_MODE=rss para coleta sem IA.");
-  }
   const run = await createAgentRun();
   let sourcesChecked = 0;
   let itemsFound = 0;
@@ -69,7 +65,8 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
     const sorted = allCandidates.sort((left, right) =>
       new Date(right.publishedAt ?? 0).getTime() - new Date(left.publishedAt ?? 0).getTime(),
     );
-    const topicUnique = deduplicateNewsTopics(sorted);
+    const ranked = rankEditorialCandidates(deduplicateNewsTopics(sorted));
+    const topicUnique = ranked.map((item) => item.candidate);
     const hashes = new Map(topicUnique.map((candidate) => [candidate.url, contentHash(candidate)]));
     const known = await listKnownContentHashes([...hashes.values()]);
     const candidates = topicUnique
@@ -83,9 +80,7 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
       const importId = await claimNewsImport(candidate, run.id, hash);
       if (!importId) { itemsSkipped += 1; continue; }
       try {
-        const article = newsAgentConfig.mode === "ai"
-          ? await generateEditorialDraft(candidate)
-          : createSourceDraft(candidate);
+        const article = createSourceDraft(candidate);
         const category = categories.find((item) => item.slug === article.categorySlug)
           ?? categories.find((item) => item.slug === candidate.categorySlug);
         const post = await savePost({
@@ -109,16 +104,21 @@ export async function runNewsAgent(): Promise<NewsAgentResult> {
           seoTitle: article.seoTitle,
           metaDescription: article.metaDescription,
           canonicalUrl: "",
-          ogTitle: newsAgentConfig.mode === "ai" ? article.title : "",
-          ogDescription: newsAgentConfig.mode === "ai" ? article.excerpt : "",
+          ogTitle: "",
+          ogDescription: "",
           ogImage: "",
           relatedToolSlugs: [],
           featured: false,
           featuredOrder: null,
           origin: "rss-agent",
-          reviewStatus: "awaiting-review",
-          generationModel: newsAgentConfig.mode === "ai" ? newsAgentConfig.model : "source-only",
+          reviewStatus: "collected",
+          generationModel: "source-only",
           needsCover: true,
+          primarySourceUrl: "",
+          originalContribution: "",
+          relevanceScore: candidateEditorialRelevance(candidate),
+          reviewedBy: "",
+          reviewedAt: null,
           scheduledAt: null,
           tagNames: article.tags,
         });

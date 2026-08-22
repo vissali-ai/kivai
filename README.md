@@ -47,11 +47,11 @@ O painel salva novos conteúdos como rascunho, protege também as APIs no servid
 ### Agente editorial de notícias
 
 1. Execute `supabase/migrations/002_blog_featured_and_categories.sql` e `supabase/migrations/003_news_agent.sql` no SQL Editor.
-2. Para coleta gratuita, configure `NEWS_AGENT_MODE=rss` e `NEWS_AGENT_CRON_SECRET`. `OPENAI_API_KEY` e `OPENAI_EDITORIAL_MODEL` são opcionais e usados somente com `NEWS_AGENT_MODE=ai`.
+2. Configure `NEWS_AGENT_CRON_SECRET`. O agente funciona somente como radar: coleta e classifica pautas, sem escrever ou publicar matérias.
 3. Abra `/admin/blog/agente` para testar uma coleta manual e consultar o histórico.
 4. No Supabase Cron, crie uma chamada HTTP `POST` para `https://www.kivai.com.br/api/cron/news-agent` com a expressão `0 */4 * * *` e o header `Authorization: Bearer SEU_NEWS_AGENT_CRON_SECRET`.
 5. Para adicionar as fontes brasileiras padrão, aplique também `supabase/migrations/004_brazilian_rss_sources.sql`.
-6. Cada execução cria até 30 rascunhos.
+6. Cada execução coleta até 12 pautas relevantes. A publicação exige fonte primária, pesquisa, contribuição original, vínculo com ferramentas do Kivai e aprovação humana registrada no editor.
 7. As fontes especializadas internacionais de IA, marketing e e-commerce estão em `supabase/migrations/005_specialized_rss_sources.sql`.
 8. As fontes brasileiras especializadas de IA, marketing e e-commerce estão em `supabase/migrations/006_brazilian_specialized_rss_sources.sql`.
 9. Para manter apenas fontes em português e criar a categoria Guia de Ferramentas, aplique `supabase/migrations/007_portuguese_sources_and_tools_guide.sql`.

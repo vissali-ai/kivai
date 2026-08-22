@@ -1,6 +1,13 @@
 export type PostStatus = "draft" | "published" | "scheduled" | "archived";
 export type PostOrigin = "manual" | "rss-agent";
-export type ReviewStatus = "not-required" | "awaiting-review" | "approved" | "rejected";
+export type ReviewStatus =
+  | "not-required"
+  | "collected"
+  | "selected"
+  | "researching"
+  | "awaiting-review"
+  | "approved"
+  | "rejected";
 
 export type MediaSource =
   | "own"
@@ -77,6 +84,11 @@ export type Post = {
   reviewStatus: ReviewStatus;
   generationModel: string;
   needsCover: boolean;
+  primarySourceUrl: string;
+  originalContribution: string;
+  relevanceScore: number;
+  reviewedBy: string;
+  reviewedAt: string | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string | null;
@@ -95,6 +107,7 @@ export type PostInput = Omit<
 export type DashboardFilters = {
   query?: string;
   status?: PostStatus | "all";
+  origin?: PostOrigin | "all";
   categoryId?: string;
   page?: number;
   pageSize?: number;

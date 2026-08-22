@@ -26,11 +26,13 @@ type DbPost = {
   featured: boolean | null; featured_order: number | null;
   origin: Post["origin"] | null; review_status: Post["reviewStatus"] | null;
   generation_model: string | null; needs_cover: boolean | null;
+  primary_source_url: string | null; original_contribution: string | null;
+  relevance_score: number | null; reviewed_by: string | null; reviewed_at: string | null;
   published_at: string | null; scheduled_at: string | null;
   category?: DbCategory | null; cover?: DbMedia | null;
   post_tags?: { tag: DbTag | null }[];
 };
-type DbScheduledPost = Pick<DbPost, "id" | "scheduled_at" | "origin">;
+type DbScheduledPost = Pick<DbPost, "id" | "scheduled_at" | "origin" | "review_status">;
 
 const postSelect = "*,category:blog_categories(*),cover:blog_media(*),post_tags:blog_post_tags(tag:blog_tags(*))";
 
@@ -68,6 +70,8 @@ function mapPost(row: DbPost): Post {
     featured: row.featured ?? false, featuredOrder: row.featured_order ?? null,
     origin: row.origin ?? "manual", reviewStatus: row.review_status ?? "not-required",
     generationModel: row.generation_model ?? "", needsCover: row.needs_cover ?? false,
+    primarySourceUrl: row.primary_source_url ?? "", originalContribution: row.original_contribution ?? "",
+    relevanceScore: row.relevance_score ?? 0, reviewedBy: row.reviewed_by ?? "", reviewedAt: row.reviewed_at,
     createdAt: row.created_at, updatedAt: row.updated_at, publishedAt: row.published_at,
     scheduledAt: row.scheduled_at,
   };
@@ -110,6 +114,7 @@ export async function listPosts(filters: DashboardFilters = {}) {
   let posts = rows.map(mapPost);
   if (filters.query) posts = posts.filter((post) => post.title.toLocaleLowerCase("pt-BR").includes(filters.query!.toLocaleLowerCase("pt-BR")));
   if (filters.status && filters.status !== "all") posts = posts.filter((post) => post.status === filters.status);
+  if (filters.origin && filters.origin !== "all") posts = posts.filter((post) => post.origin === filters.origin);
   if (filters.categoryId) posts = posts.filter((post) => post.categoryId === filters.categoryId);
   const pageSize = filters.pageSize ?? 20;
   const start = ((filters.page ?? 1) - 1) * pageSize;
@@ -126,18 +131,18 @@ export async function publishDueScheduledPosts() {
   if (!isBlogDatabaseConfigured()) return 0;
   const now = new Date().toISOString();
   const rows = await supabaseRest<DbScheduledPost[]>(
-    `blog_posts?select=id,scheduled_at,origin&status=eq.scheduled&scheduled_at=lte.${encode(now)}`,
+    `blog_posts?select=id,scheduled_at,origin,review_status&status=eq.scheduled&scheduled_at=lte.${encode(now)}`,
   );
-  await Promise.all(rows.map((post) => supabaseRest(`blog_posts?id=eq.${encode(post.id)}`, {
+  const eligible = rows.filter((post) => post.origin === "manual" || post.review_status === "approved");
+  await Promise.all(eligible.map((post) => supabaseRest(`blog_posts?id=eq.${encode(post.id)}`, {
     method: "PATCH",
     body: JSON.stringify({
       status: "published",
       published_at: post.scheduled_at || now,
       scheduled_at: null,
-      ...(post.origin === "rss-agent" ? { review_status: "approved" } : {}),
     }),
   })));
-  return rows.length;
+  return eligible.length;
 }
 
 export async function listPublishedPosts() {
@@ -194,6 +199,23 @@ function validatePost(input: PostInput) {
   if (input.origin === "rss-agent" && !["draft", "archived"].includes(input.status) && !input.coverMediaId) {
     throw new Error("Adicione uma imagem de capa antes de publicar uma matéria preparada pelo agente.");
   }
+  if (input.origin === "rss-agent") {
+    const publishing = input.status === "published" || input.status === "scheduled";
+    if (publishing && input.reviewStatus !== "approved") {
+      throw new Error("A pauta precisa passar pela revisão humana antes de ser publicada ou agendada.");
+    }
+    if (input.reviewStatus === "approved") {
+      let primarySource: URL;
+      try { primarySource = new URL(input.primarySourceUrl); } catch { throw new Error("Informe uma URL válida para a fonte primária."); }
+      if (primarySource.protocol !== "https:") throw new Error("A fonte primária precisa usar HTTPS.");
+      if (input.relevanceScore < 7 || input.relevanceScore > 12) throw new Error("A relevância editorial precisa ser avaliada entre 7 e 12.");
+      if (plainText(input.originalContribution).length < 160) throw new Error("Descreva com pelo menos 160 caracteres a contribuição original do Kivai.");
+      if (!input.relatedToolSlugs.length) throw new Error("Relacione pelo menos uma ferramenta do Kivai à matéria.");
+      if (plainText(content).split(/\s+/).filter(Boolean).length < 600) throw new Error("A matéria editorial precisa ter pelo menos 600 palavras.");
+      if (!input.coverMediaId) throw new Error("Selecione uma imagem de capa antes da aprovação editorial.");
+      if (input.reviewedBy.trim().length < 3) throw new Error("Informe o nome da pessoa responsável pela revisão.");
+    }
+  }
   return { title, slug, excerpt, author, content };
 }
 
@@ -213,9 +235,14 @@ function toPostRow(input: PostInput) {
     og_description: input.ogDescription.trim() || null, og_image: input.ogImage.trim() || null,
     related_tool_slugs: input.relatedToolSlugs, scheduled_at: input.status === "scheduled" ? input.scheduledAt : null,
     featured: input.featured, featured_order: input.featured ? input.featuredOrder : null,
-    origin: input.origin, review_status: input.status === "published" && input.origin === "rss-agent" ? "approved" : input.reviewStatus,
+    origin: input.origin, review_status: input.reviewStatus,
     generation_model: input.generationModel || null,
     needs_cover: input.origin === "rss-agent" ? !input.coverMediaId : false,
+    primary_source_url: input.primarySourceUrl.trim() || null,
+    original_contribution: input.originalContribution.trim() || null,
+    relevance_score: input.relevanceScore,
+    reviewed_by: input.reviewStatus === "approved" ? input.reviewedBy.trim() : null,
+    reviewed_at: input.reviewStatus === "approved" ? (input.reviewedAt || new Date().toISOString()) : null,
     published_at: publishNow ? (input.publishedAt || new Date().toISOString()) : input.status === "archived" ? input.publishedAt : null,
   };
 }
