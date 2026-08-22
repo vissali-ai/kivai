@@ -181,17 +181,17 @@ function validatePost(input: PostInput) {
   const author = input.author.trim();
   const content = sanitizePostHtml(input.content);
   if (!title || !slug) throw new Error("Título e slug são obrigatórios.");
-  if (input.status !== "draft" && (!excerpt || !author || !plainText(content))) {
+  if (!["draft", "archived"].includes(input.status) && (!excerpt || !author || !plainText(content))) {
     throw new Error("Resumo, autor e conteúdo são obrigatórios para publicar ou agendar.");
   }
-  if (input.status !== "draft" && !input.categoryId) {
+  if (!["draft", "archived"].includes(input.status) && !input.categoryId) {
     throw new Error("Escolha uma categoria antes de publicar ou agendar.");
   }
   if (input.status === "scheduled" && !input.scheduledAt) throw new Error("Defina a data do agendamento.");
   if (input.featured && (!input.featuredOrder || input.featuredOrder < 1 || input.featuredOrder > 12)) {
     throw new Error("Defina uma posição de destaque entre 1 e 12.");
   }
-  if (input.origin === "rss-agent" && input.status !== "draft" && !input.coverMediaId) {
+  if (input.origin === "rss-agent" && !["draft", "archived"].includes(input.status) && !input.coverMediaId) {
     throw new Error("Adicione uma imagem de capa antes de publicar uma matéria preparada pelo agente.");
   }
   return { title, slug, excerpt, author, content };
@@ -216,7 +216,7 @@ function toPostRow(input: PostInput) {
     origin: input.origin, review_status: input.status === "published" && input.origin === "rss-agent" ? "approved" : input.reviewStatus,
     generation_model: input.generationModel || null,
     needs_cover: input.origin === "rss-agent" ? !input.coverMediaId : false,
-    published_at: publishNow ? (input.publishedAt || new Date().toISOString()) : null,
+    published_at: publishNow ? (input.publishedAt || new Date().toISOString()) : input.status === "archived" ? input.publishedAt : null,
   };
 }
 
@@ -254,7 +254,15 @@ export async function savePost(input: PostInput) {
 export async function setPostStatus(id: string, status: Post["status"]) {
   const post = await getPostById(id);
   if (!post) throw new Error("Matéria não encontrada.");
-  return savePost({ ...post, id, status, tagNames: post.tags.map((tag) => tag.name), publishedAt: post.publishedAt });
+  return savePost({
+    ...post,
+    id,
+    status,
+    featured: status === "archived" ? false : post.featured,
+    featuredOrder: status === "archived" ? null : post.featuredOrder,
+    tagNames: post.tags.map((tag) => tag.name),
+    publishedAt: post.publishedAt,
+  });
 }
 
 export async function deletePost(id: string) {

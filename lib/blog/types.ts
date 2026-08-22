@@ -1,4 +1,4 @@
-export type PostStatus = "draft" | "published" | "scheduled";
+export type PostStatus = "draft" | "published" | "scheduled" | "archived";
 export type PostOrigin = "manual" | "rss-agent";
 export type ReviewStatus = "not-required" | "awaiting-review" | "approved" | "rejected";
 

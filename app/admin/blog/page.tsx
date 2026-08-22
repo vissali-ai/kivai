@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, BarChart3, Bot, CalendarClock, Clock3, ExternalLink, FileText, MousePointerClick, Plus, Rss, Search, Send, SquarePen } from "lucide-react";
+import { AlertTriangle, Archive, BarChart3, Bot, CalendarClock, Clock3, ExternalLink, FileText, MousePointerClick, Plus, Rss, Search, Send, SquarePen } from "lucide-react";
 import { PostActions } from "@/components/admin/post-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { listRadarMetrics } from "@/lib/news-radar/repository";
 import { NEWS_RADAR_CATEGORIES } from "@/lib/news-radar/types";
 import type { PostStatus } from "@/lib/blog/types";
 
-const statusLabels = { draft: "Rascunho", published: "Publicada", scheduled: "Agendada" };
+const statusLabels: Record<PostStatus, string> = { draft: "Rascunho", published: "Publicada", scheduled: "Agendada", archived: "Arquivada" };
 const date = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
   timeStyle: "short",
@@ -31,7 +31,7 @@ function formatPercentage(value: number, total: number) {
 
 export default async function BlogAdmin({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; category?: string; page?: string }> }) {
   const params = await searchParams;
-  const status = (["draft", "published", "scheduled", "all"].includes(params.status ?? "") ? params.status : "draft") as PostStatus | "all";
+  const status = (["draft", "published", "scheduled", "archived", "all"].includes(params.status ?? "") ? params.status : "draft") as PostStatus | "all";
   await publishDueScheduledPosts();
   const [allPosts, posts, categories, radarResult] = await Promise.all([
     listAllPosts(),
@@ -60,12 +60,14 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
     { label: "Publicadas", value: allPosts.filter((p) => p.status === "published").length, icon: Send },
     { label: "Rascunhos", value: allPosts.filter((p) => p.status === "draft").length, icon: SquarePen },
     { label: "Agendadas", value: allPosts.filter((p) => p.status === "scheduled").length, icon: CalendarClock },
+    { label: "Arquivadas", value: allPosts.filter((p) => p.status === "archived").length, icon: Archive },
     { label: "Aguardando revisão", value: allPosts.filter((p) => p.origin === "rss-agent" && p.reviewStatus === "awaiting-review").length, icon: Bot },
   ];
   const statusTabs: { label: string; value: PostStatus | "all"; count: number }[] = [
     { label: "Rascunhos", value: "draft", count: allPosts.filter((post) => post.status === "draft").length },
     { label: "Publicadas", value: "published", count: allPosts.filter((post) => post.status === "published").length },
     { label: "Agendadas", value: "scheduled", count: allPosts.filter((post) => post.status === "scheduled").length },
+    { label: "Arquivadas", value: "archived", count: allPosts.filter((post) => post.status === "archived").length },
     { label: "Todas", value: "all", count: allPosts.length },
   ];
   const statusHref = (nextStatus: PostStatus | "all") => {
@@ -77,7 +79,7 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
   return <main>
     <header className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Blog</p><h1 className="mt-1 text-3xl font-semibold">Painel editorial</h1><p className="mt-2 text-sm text-muted-foreground">Crie, revise e publique conteúdo no Kivai.</p></div><Button asChild className="h-9"><Link href="/admin/blog/nova"><Plus />Nova matéria</Link></Button></header>
     {!isBlogDatabaseConfigured() ? <div className="mb-6 border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100"><strong>Configuração pendente.</strong> Aplique <code>supabase/migrations/001_blog_cms.sql</code> e configure as variáveis descritas em <code>.env.example</code>.</div> : null}
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{stats.map(({ label, value, icon: Icon }) => <Card key={label}><CardHeader className="flex-row items-center justify-between"><CardTitle>{label}</CardTitle><Icon className="size-4 text-primary" /></CardHeader><CardContent><p className="text-3xl font-semibold">{value}</p></CardContent></Card>)}</div>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">{stats.map(({ label, value, icon: Icon }) => <Card key={label}><CardHeader className="flex-row items-center justify-between"><CardTitle>{label}</CardTitle><Icon className="size-4 text-primary" /></CardHeader><CardContent><p className="text-3xl font-semibold">{value}</p></CardContent></Card>)}</div>
     <Card className="mt-6"><CardHeader className="flex-row items-center justify-between gap-4"><div><CardTitle className="flex items-center gap-2"><BarChart3 className="size-4 text-primary" />Radar público · últimos 30 dias</CardTitle><p className="mt-1 text-xs text-muted-foreground">Acompanhamento agregado do piloto, sem armazenar IP nas métricas.</p></div><Button asChild variant="outline" size="sm"><Link href="/ferramentas/radar-de-tendencias" target="_blank">Abrir Radar <ExternalLink /></Link></Button></CardHeader><CardContent>
       {!radarResult.ready ? <div className="mb-4 flex gap-3 border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100"><AlertTriangle className="mt-0.5 size-4 shrink-0" /><p>Não foi possível carregar as métricas do Radar agora.</p></div> : null}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">

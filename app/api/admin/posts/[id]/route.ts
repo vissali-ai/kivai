@@ -39,7 +39,7 @@ export async function PATCH(request: Request, { params }: Context) {
     const id = (await params).id;
     const previous = await getPostById(id);
     const { status } = await request.json() as { status: PostStatus };
-    if (!(["draft", "published", "scheduled"] as string[]).includes(status)) throw new Error("Status inválido.");
+    if (!(["draft", "published", "scheduled", "archived"] as string[]).includes(status)) throw new Error("Status inválido.");
     const post = await setPostStatus(id, status);
     revalidateBlog(previous?.slug);
     revalidateBlog(post?.slug);
