@@ -23,8 +23,8 @@ const MAINTENANCE_GUIDES = [
     title: "1. Abrir o Kivai na porta 3000",
     risk: "Desenvolvimento local",
     tone: "safe",
-    command: "npm run dev -- -p 3000",
-    description: "Inicia o Kivai no computador em http://localhost:3000, com atualização automática ao editar o código. Mantenha este terminal aberto enquanto usa o site local; pressione Ctrl+C para encerrar. É nesse modo local que a auditoria consegue medir os arquivos do seu computador.",
+    command: "npm run dev",
+    description: "Inicia o Kivai no computador em http://localhost:3000, que é a porta padrão do Next.js, com atualização automática ao editar o código. Mantenha este terminal aberto enquanto usa o site local; pressione Ctrl+C para encerrar. É nesse modo local que a auditoria consegue medir os arquivos do seu computador.",
   },
   {
     id: "audit",
