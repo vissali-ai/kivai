@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleView } from "@/components/blog/article-view";
+import { isPostIndexable } from "@/lib/blog/indexing";
 import { getPublishedPostBySlug } from "@/lib/blog/repository";
 import { SITE_URL, noIndexRobots } from "@/lib/seo";
 
@@ -12,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "Matéria não encontrada", robots: noIndexRobots };
   const title = post.seoTitle || post.title; const description = post.metaDescription || post.excerpt;
   const canonical = post.canonicalUrl || `${SITE_URL}/blog/${post.slug}`; const image = post.ogImage || post.cover?.url;
-  return { title: { absolute: `${title.replace(/\s*\|\s*Kivai$/i, "")} | Kivai` }, description, alternates: { canonical }, robots: { index: true, follow: true }, openGraph: { type: "article", locale: "pt_BR", siteName: "Kivai", url: canonical, title: post.ogTitle || title, description: post.ogDescription || description, publishedTime: post.originalPublishedAt ?? post.publishedAt ?? undefined, modifiedTime: post.updatedAt, authors: [post.author], images: image ? [{ url: image, alt: post.coverAlt || post.title }] : undefined }, twitter: { card: "summary_large_image", title: post.ogTitle || title, description: post.ogDescription || description, images: image ? [image] : undefined } };
+  return { title: { absolute: `${title.replace(/\s*\|\s*Kivai$/i, "")} | Kivai` }, description, alternates: { canonical }, robots: isPostIndexable(post) ? { index: true, follow: true } : noIndexRobots, openGraph: { type: "article", locale: "pt_BR", siteName: "Kivai", url: canonical, title: post.ogTitle || title, description: post.ogDescription || description, publishedTime: post.originalPublishedAt ?? post.publishedAt ?? undefined, modifiedTime: post.updatedAt, authors: [post.author], images: image ? [{ url: image, alt: post.coverAlt || post.title }] : undefined }, twitter: { card: "summary_large_image", title: post.ogTitle || title, description: post.ogDescription || description, images: image ? [image] : undefined } };
 }
 
 export default async function ArticlePage({ params }: Props) {

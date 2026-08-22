@@ -25,7 +25,7 @@ export function PostList({ posts }: { posts: Post[] }) {
             size="lg"
             onClick={() => setVisibleCount((current) => Math.min(current + PAGE_SIZE, posts.length))}
           >
-            Mais notícias
+            Mais conteúdos
           </Button>
         </div>
       ) : null}

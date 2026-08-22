@@ -6,6 +6,9 @@ const root = process.cwd();
 const routesRoot = path.join(root, "app", "ferramentas");
 const catalogPath = path.join(root, "lib", "tools.ts");
 const archiveCatalogPath = path.join(root, "lib", "archive-search-items.ts");
+const standaloneCatalogPaths = [
+  path.join(root, "lib", "removedor-metadados-tool.ts"),
+];
 const hubRoutes = new Set(["imagens", "pdfs", "calculadoras", "texto", "social-media", "videos", "arquivos"]);
 const errors = [];
 
@@ -24,6 +27,17 @@ const indexableSource = catalogSource.slice(
 );
 const indexableSlugs = [...indexableSource.matchAll(/^\s*"([^"]+)",?$/gm)].map((match) => match[1]);
 indexableSlugs.push(...archiveSlugs);
+
+for (const standaloneCatalogPath of standaloneCatalogPaths) {
+  const standaloneSource = await readFile(standaloneCatalogPath, "utf8");
+  const slug = standaloneSource.match(/^\s*slug:\s*"([^"]+)",?$/m)?.[1];
+  if (!slug) {
+    errors.push(`Catálogo independente sem slug: ${path.relative(root, standaloneCatalogPath)}`);
+    continue;
+  }
+  availableSlugs.push(slug);
+  indexableSlugs.push(slug);
+}
 
 const routeEntries = await readdir(routesRoot, { withFileTypes: true });
 const routeSlugs = [];

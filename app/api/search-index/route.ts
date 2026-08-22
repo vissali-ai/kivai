@@ -1,9 +1,10 @@
+import { isPostIndexable } from "@/lib/blog/indexing";
 import { listAllPosts } from "@/lib/blog/repository";
 
 export async function GET() {
   try {
     const posts = (await listAllPosts()).filter(
-      (post) => post.status === "published"
+      (post) => post.status === "published" && isPostIndexable(post)
     );
 
     const searchPosts = posts.slice(0, 150).map((post) => ({

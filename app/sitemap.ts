@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { archiveSearchItems } from "@/lib/archive-search-items";
+import { filterIndexablePosts } from "@/lib/blog/indexing";
 import { listCategories, listPublishedPosts } from "@/lib/blog/repository";
 import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { SITE_URL } from "@/lib/seo";
@@ -12,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     listPublishedPosts(),
     listCategories(),
   ]);
+  const indexableBlogPosts = filterIndexablePosts(blogPosts);
 
   const pages: MetadataRoute.Sitemap = [
     {
@@ -122,20 +124,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${SITE_URL}/blog`,
-      ...(blogPosts[0]?.updatedAt
-        ? { lastModified: new Date(blogPosts[0].updatedAt) }
+      ...(indexableBlogPosts[0]?.updatedAt
+        ? { lastModified: new Date(indexableBlogPosts[0].updatedAt) }
         : {}),
       changeFrequency: "daily",
       priority: 0.8,
     },
-    ...blogPosts.map((post) => ({
+    ...indexableBlogPosts.map((post) => ({
       url: `${SITE_URL}/blog/${post.slug}`,
       lastModified: new Date(post.updatedAt),
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
     ...categories.flatMap((category) => {
-      const categoryPosts = blogPosts.filter(
+      const categoryPosts = indexableBlogPosts.filter(
         (post) => post.categoryId === category.id
       );
 
