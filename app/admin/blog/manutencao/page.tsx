@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AlertTriangle, Archive, CheckCircle2, Wrench } from "lucide-react";
+import { AlertTriangle, Archive, CheckCircle2 } from "lucide-react";
+import { ProjectMaintenancePanel } from "@/components/admin/project-maintenance-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +47,7 @@ export default async function MaintenancePage() {
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{checks.map(({ label, value, href, detail }) => <Card key={label}><CardHeader className="flex-row items-center justify-between gap-3"><CardTitle>{label}</CardTitle>{value ? <AlertTriangle className="size-4 shrink-0 text-amber-400" /> : <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />}</CardHeader><CardContent><p className="text-3xl font-semibold">{value}</p><p className="mt-2 min-h-10 text-xs leading-5 text-muted-foreground">{detail}</p><Button asChild variant="outline" size="sm" className="mt-3"><Link href={href}>Ver detalhes</Link></Button></CardContent></Card>)}</div>
     <div className="mt-6 grid gap-6 xl:grid-cols-2">
       <Card><CardHeader><CardTitle className="flex items-center gap-2"><Archive className="size-4 text-primary" />Arquivo editorial</CardTitle></CardHeader><CardContent><p className="text-3xl font-semibold">{archived.length}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">Matérias arquivadas continuam preservadas no banco e fora do blog público. Isso é intencional e não é tratado como sujeira.</p><Button asChild variant="outline" size="sm" className="mt-4"><Link href="/admin/blog?status=archived">Abrir arquivo</Link></Button></CardContent></Card>
-      <Card><CardHeader><CardTitle className="flex items-center gap-2"><Wrench className="size-4 text-primary" />Código e arquivos do projeto</CardTitle></CardHeader><CardContent><p className="text-sm leading-6 text-muted-foreground">O servidor publicado não deve apagar arquivos do próprio código. Para verificar resíduos, caches versionados e arquivos grandes com segurança, execute localmente:</p><code className="mt-3 block border border-white/10 bg-black/20 p-3 text-xs text-primary">npm run audit:maintenance</code><p className="mt-3 text-xs leading-5 text-muted-foreground">A rotina apenas informa; a decisão de excluir continua manual ou pode ser feita com ajuda do Codex após revisão.</p></CardContent></Card>
+      <ProjectMaintenancePanel />
     </div>
     <Card className="mt-6"><CardHeader><CardTitle>Cadência recomendada</CardTitle></CardHeader><CardContent className="grid gap-4 text-sm md:grid-cols-3"><div><p className="font-medium">Semanal</p><p className="mt-1 text-muted-foreground">Falhas do agente e pautas acumuladas.</p></div><div><p className="font-medium">Mensal</p><p className="mt-1 text-muted-foreground">Rascunhos antigos, mídia sem uso e arquivo editorial.</p></div><div><p className="font-medium">Trimestral</p><p className="mt-1 text-muted-foreground">Auditoria do repositório e dependências.</p></div></CardContent></Card>
   </main>;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bot, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { NewsAgentResult } from "@/lib/news-agent/types";
 
@@ -27,11 +27,8 @@ export function NewsAgentPanel({ canRun }: { canRun: boolean }) {
     }
   }
 
-  return <div className="border border-primary/30 bg-primary/10 p-5">
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="flex max-w-2xl gap-3"><Bot className="mt-0.5 size-5 shrink-0 text-primary" /><div><h2 className="font-semibold">Executar coleta agora</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">O agente consulta RSS, sitemaps e páginas editoriais, filtra assuntos relacionados ao Kivai e cria até 15 pautas. Ele não escreve nem publica matérias. Ao publicar uma versão reescrita, a pauta é convertida em uma matéria editorial manual, sem marcadores do agente.</p></div></div>
-      <Button disabled={!canRun || running} onClick={run}><Play />{running ? "Executando..." : "Buscar notícias"}</Button>
-    </div>
-    {message ? <p className="mt-4 border-t border-primary/20 pt-3 text-sm">{message}</p> : null}
+  return <div className="flex flex-wrap items-center justify-end gap-3">
+    {message ? <p className="max-w-md text-right text-xs leading-5 text-muted-foreground" aria-live="polite">{message}</p> : null}
+    <Button size="sm" disabled={!canRun || running} onClick={run}><Play />{running ? "Coletando..." : "Executar coleta agora"}</Button>
   </div>;
 }
