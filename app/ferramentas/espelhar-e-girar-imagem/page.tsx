@@ -1,8 +1,8 @@
 import { ImageToolEditorialV2 } from "@/components/tools/image-tool-editorial-v2";
 import { TransformImageClient } from "@/components/tools/transform-image-client";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("espelhar-e-girar-imagem");
+export async function generateMetadata() { return getToolMetadataAsync("espelhar-e-girar-imagem"); }
 
 export default function EspelharEGirarImagemPage() {
   return (

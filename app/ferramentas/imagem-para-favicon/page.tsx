@@ -1,8 +1,8 @@
 import { FaviconGeneratorClient } from "@/components/tools/favicon-generator-client";
 import { ImageToolEditorialV2 } from "@/components/tools/image-tool-editorial-v2";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("imagem-para-favicon");
+export async function generateMetadata() { return getToolMetadataAsync("imagem-para-favicon"); }
 
 export default function ImagemParaFaviconPage() {
   return (

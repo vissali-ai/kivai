@@ -152,7 +152,9 @@ const hubContent: Record<HubKey, HubContent> = {
   },
 };
 
-export function HubEditorialContent({ hub }: { hub: HubKey }) {
+export async function HubEditorialContent({ hub }: { hub: HubKey }) {
+  const managedHub = await getSiteHubBySlug(hub, true);
+  if (managedHub?.contentHtml) return <section className="border-t border-border bg-muted/10 py-14 sm:py-18"><article className="cms-public-content mx-auto max-w-6xl px-4 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: managedHub.contentHtml }} /></section>;
   const content = hubContent[hub];
 
   return (
@@ -202,3 +204,4 @@ export function HubEditorialContent({ hub }: { hub: HubKey }) {
     </section>
   );
 }
+import { getSiteHubBySlug } from "@/lib/site-cms/repository";

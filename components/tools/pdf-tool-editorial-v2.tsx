@@ -36,6 +36,7 @@ export function PdfToolEditorialV2({ slug }: { slug: PdfToolEditorialSlug }) {
       />
 
       <ToolEditorialLayout
+        slug={slug}
         overview={content.overview}
         useCases={content.useCases}
         steps={content.steps}

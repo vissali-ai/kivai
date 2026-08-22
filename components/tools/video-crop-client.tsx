@@ -7,7 +7,6 @@ import Link from "next/link";
 import { Download, RotateCcw, Scissors, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { VideoToolSeoContent } from "@/components/tools/video-tool-seo-content";
 
 type Crop = { x: number; y: number; width: number; height: number };
 
@@ -212,7 +211,6 @@ export function VideoCropClient() {
           {result && <section className="rounded-xl border border-border p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-semibold">Vídeo recortado</h2><p className="mt-1 text-sm text-muted-foreground">{(result.blob.size / 1024 / 1024).toFixed(2)} MB · WebM</p></div><Button onClick={downloadResult}><Download />Baixar WebM</Button></div><video src={result.url} controls playsInline className="mt-5 aspect-video w-full rounded-lg bg-black" /></section>}
         </CardContent></Card></div>
         <section className="mx-auto mt-8 grid max-w-4xl overflow-hidden rounded-xl border border-border sm:grid-cols-3"><article className="border-b border-border p-5 sm:border-b-0 sm:border-r"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Formatos</p><p className="mt-3 font-semibold">MP4 e WebM</p></article><article className="border-b border-border p-5 sm:border-b-0 sm:border-r"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Limite</p><p className="mt-3 font-semibold">Até 200 MB por vídeo</p></article><article className="p-5"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Saída</p><p className="mt-3 font-semibold">Vídeo WebM</p></article></section>
-        <VideoToolSeoContent variant="crop" />
       </div>
     </main>
   );

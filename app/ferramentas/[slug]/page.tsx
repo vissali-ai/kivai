@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { SocialMediaToolClient } from "@/components/tools/social-media-tool-client";
+import { PublicContentPage, PublicHubPage } from "@/components/site-cms/public-content-page";
 import { getToolBySlug } from "@/lib/tools";
-import { getToolMetadata } from "@/lib/seo";
+import { getCmsHubMetadata, getCmsPageMetadata, getToolMetadataAsync } from "@/lib/seo";
+import { getPublishedSiteContentByPath, getSiteHubBySlug, listPublishedSiteContentsByHub, listSiteHubs } from "@/lib/site-cms/repository";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -12,13 +14,26 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props) {
-  return getToolMetadata((await params).slug);
+  const slug = (await params).slug;
+  if (getToolBySlug(slug)) return getToolMetadataAsync(slug);
+  if (await getPublishedSiteContentByPath(`/ferramentas/${slug}`)) return getCmsPageMetadata(`/ferramentas/${slug}`);
+  return getCmsHubMetadata(slug);
 }
 
 export default async function SocialMediaToolPage({ params }: Props) {
   const { slug } = await params;
   const tool = getToolBySlug(slug);
-  if (!tool || tool.category !== "social") notFound();
+  if (!tool) {
+    const content = await getPublishedSiteContentByPath(`/ferramentas/${slug}`);
+    if (content?.contentType === "tool") {
+      const hub = content.hubId ? (await listSiteHubs()).find((item) => item.id === content.hubId) : null;
+      return <PublicContentPage content={content} hub={hub} />;
+    }
+    const hub = await getSiteHubBySlug(slug, true);
+    if (hub) return <PublicHubPage hub={hub} contents={await listPublishedSiteContentsByHub(hub.id)} />;
+    notFound();
+  }
+  if (tool.category !== "social") notFound();
   const faq = [
     [`${tool.name} é gratuito?`, "Sim. A ferramenta é gratuita e funciona diretamente no navegador."],
     ["Os dados são enviados para um servidor?", "Não. Os dados digitados são processados localmente no seu dispositivo."],

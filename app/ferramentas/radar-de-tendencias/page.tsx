@@ -1,9 +1,9 @@
 import { RadarToolEditorialV2 } from "@/components/tools/radar-tool-editorial-v2";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadataAsync } from "@/lib/seo";
 import { RadarDeTendenciasClient } from "./radar-de-tendencias-client";
 
-export const metadata = getToolMetadata("radar-de-tendencias");
+export async function generateMetadata() { return getToolMetadataAsync("radar-de-tendencias"); }
 
 export default function RadarDeTendenciasPage() {
   return (

@@ -1,8 +1,8 @@
 import { PlaceholderClient } from "@/components/tools/placeholder-client";
 import { ImageToolEditorialV2 } from "@/components/tools/image-tool-editorial-v2";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("gerador-de-placeholder");
+export async function generateMetadata() { return getToolMetadataAsync("gerador-de-placeholder"); }
 
 export default function GeradorDePlaceholderPage() {
   return (

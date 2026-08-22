@@ -13,6 +13,9 @@ import {
   Video,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import { PublicServicePage } from "@/components/site-cms/public-service-page";
+import { getPublishedSiteService } from "@/lib/site-cms/service-repository";
+import { getManagedServiceMetadata } from "@/lib/site-cms/service-metadata";
 import {
   RelatedServiceArticles,
   ServiceFaqSection,
@@ -21,11 +24,12 @@ import {
   type ServiceFaq,
 } from "@/components/marketing/service-seo-content";
 
-export const metadata = getPageMetadata({
+const fallbackMetadata = getPageMetadata({
   title: "Divulgação para Artistas e Bandas",
   description: "Divulgação para artistas e bandas em redes sociais e plataformas digitais. Promova músicas, clipes, shows, lançamentos e projetos musicais.",
   pathname: "/servicos/divulgacao-artistas",
 });
+export async function generateMetadata() { const item = await getPublishedSiteService("divulgacao-artistas"); return item ? getManagedServiceMetadata(item) : fallbackMetadata; }
 
 const channels = [
   {
@@ -132,7 +136,9 @@ const highlightFeatures = [
   "R$ 10 em impulsionamento como bônus",
 ];
 
-export default function DivulgacaoArtistasPage() {
+export default async function DivulgacaoArtistasPage() {
+  const override = await getPublishedSiteService("divulgacao-artistas");
+  if (override) return <PublicServicePage service={override} />;
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <ServiceStructuredData

@@ -1,4 +1,8 @@
-export function ArquivosHubEditorial() {
+import { getSiteHubBySlug } from "@/lib/site-cms/repository";
+
+export async function ArquivosHubEditorial() {
+  const managedHub = await getSiteHubBySlug("arquivos", true);
+  if (managedHub?.contentHtml) return <section className="border-t border-border bg-muted/10 py-14 sm:py-18"><article className="cms-public-content mx-auto max-w-6xl px-4 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: managedHub.contentHtml }} /></section>;
   return (
     <section
       aria-labelledby="arquivos-editorial-title"

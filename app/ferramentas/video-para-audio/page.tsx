@@ -1,8 +1,8 @@
-import { VideoWorkbenchClient } from "@/components/tools/video-workbench-client";
-import { getToolMetadata } from "@/lib/seo";
+import { VideoToolPage } from "@/components/tools/video-tool-page";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("video-para-audio");
+export async function generateMetadata() { return getToolMetadataAsync("video-para-audio"); }
 
 export default function VideoParaAudioPage() {
-  return <VideoWorkbenchClient mode="audio" />;
+  return <VideoToolPage mode="audio" />;
 }

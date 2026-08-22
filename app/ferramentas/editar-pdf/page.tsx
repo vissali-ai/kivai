@@ -1,9 +1,9 @@
 import { PdfSpecialToolEditorialV2 } from "@/components/tools/pdf-special-tool-editorial-v2";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadataAsync } from "@/lib/seo";
 
 import EditarPdfClient from "./editar-pdf-client";
 
-export const metadata = getToolMetadata("editar-pdf");
+export async function generateMetadata() { return getToolMetadataAsync("editar-pdf"); }
 
 export default function EditarPdfPage() {
   return (

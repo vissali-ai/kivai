@@ -5,15 +5,23 @@ import { listCategories, listPublishedPosts } from "@/lib/blog/repository";
 import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { SITE_URL } from "@/lib/seo";
 import { isToolIndexable, tools } from "@/lib/tools";
+import { listSiteHubs, listSitemapSiteContent, listStoredSiteContents } from "@/lib/site-cms/repository";
+import { listSitemapSiteServices, listStoredSiteServices } from "@/lib/site-cms/service-repository";
 
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [blogPosts, categories] = await Promise.all([
+  const [blogPosts, categories, managedSitemap, storedSiteContents, allHubs, managedServices, storedServices] = await Promise.all([
     listPublishedPosts(),
     listCategories(),
+    listSitemapSiteContent(),
+    listStoredSiteContents(),
+    listSiteHubs(),
+    listSitemapSiteServices(),
+    listStoredSiteServices(),
   ]);
   const indexableBlogPosts = filterIndexablePosts(blogPosts);
+  const hubSettings = new Map(allHubs.map((hub) => [hub.slug, hub]));
 
   const pages: MetadataRoute.Sitemap = [
     {
@@ -34,7 +42,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "social-media",
       "videos",
       "arquivos",
-    ].map((slug) => ({
+    ].filter((slug) => {
+      const hub = hubSettings.get(slug);
+      return !hub || (hub.status === "published" && hub.indexable && hub.includeInSitemap);
+    }).map((slug) => ({
       url: `${SITE_URL}/ferramentas/${slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.7,
@@ -159,12 +170,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const toolPages: MetadataRoute.Sitemap = tools
-    .filter((tool) => isToolIndexable(tool.slug))
+    .filter((tool) => {
+      const override = storedSiteContents.find((item) => item.existingToolSlug === tool.slug);
+      if (!override || override.status === "draft") return isToolIndexable(tool.slug);
+      return override.status === "published" && override.indexable && override.includeInSitemap;
+    })
     .map((tool) => ({
       url: `${SITE_URL}/ferramentas/${tool.slug}`,
       changeFrequency: "weekly",
       priority: tool.featured ? 0.9 : 0.8,
     }));
 
-  return [...pages, ...toolPages];
+  const managedPages: MetadataRoute.Sitemap = [
+    ...managedSitemap.hubs.map((hub) => ({ url: `${SITE_URL}${hub.path}`, lastModified: new Date(hub.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })),
+    ...managedSitemap.contents.map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "weekly" as const, priority: item.contentType === "tool" ? 0.8 : 0.6 })),
+    ...managedServices.map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "monthly" as const, priority: 0.8 })),
+  ];
+  const serviceOverrides = new Map(storedServices.filter((item) => item.existingServiceSlug).map((item) => [item.existingServiceSlug, item]));
+  const allowedPages = pages.filter((item) => { const match = item.url.match(/\/servicos\/([^/]+)$/); if (!match) return true; const override = serviceOverrides.get(match[1]); return !override || (override.status === "published" && override.indexable && override.includeInSitemap); });
+  return [...new Map([...allowedPages, ...toolPages, ...managedPages].map((item) => [item.url, item])).values()];
 }

@@ -1,5 +1,3 @@
-"use client";
-
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
 import {
@@ -41,6 +39,7 @@ export function VideoToolSeoContent({ variant }: { variant: VideoLocalVariant })
       />
 
       <ToolEditorialLayout
+        slug={slug}
         overview={content.overview}
         useCases={content.useCases}
         steps={content.steps}

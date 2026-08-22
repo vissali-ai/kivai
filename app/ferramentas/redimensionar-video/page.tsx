@@ -1,8 +1,8 @@
-import { VideoWorkbenchClient } from "@/components/tools/video-workbench-client";
-import { getToolMetadata } from "@/lib/seo";
+import { VideoToolPage } from "@/components/tools/video-tool-page";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("redimensionar-video");
+export async function generateMetadata() { return getToolMetadataAsync("redimensionar-video"); }
 
 export default function RedimensionarVideoPage() {
-  return <VideoWorkbenchClient mode="resize" />;
+  return <VideoToolPage mode="resize" />;
 }

@@ -1,8 +1,8 @@
-import { VideoWorkbenchClient } from "@/components/tools/video-workbench-client";
-import { getToolMetadata } from "@/lib/seo";
+import { VideoToolPage } from "@/components/tools/video-tool-page";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("dividir-video");
+export async function generateMetadata() { return getToolMetadataAsync("dividir-video"); }
 
 export default function DividirVideoPage() {
-  return <VideoWorkbenchClient mode="split" />;
+  return <VideoToolPage mode="split" />;
 }

@@ -49,6 +49,17 @@ export type Media = {
   createdAt: string;
 };
 
+export type MediaUsage = {
+  mediaId: string;
+  count: number;
+  references: Array<{
+    postId: string;
+    title: string;
+    href: string;
+    location: "Capa" | "Conteúdo";
+  }>;
+};
+
 export type Post = {
   id: string;
   title: string;

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { getPublishedToolOverride } from "@/lib/site-cms/repository";
 
 export type ToolEditorialUseCase = {
   title: string;
@@ -23,6 +24,7 @@ export type ToolEditorialLink = {
 };
 
 type ToolEditorialLayoutProps = {
+  slug: string;
   overview: string[];
   useCases: ToolEditorialUseCase[];
   steps: string[];
@@ -36,7 +38,8 @@ type ToolEditorialLayoutProps = {
   afterFaq?: ReactNode;
 };
 
-export function ToolEditorialLayout({
+export async function ToolEditorialLayout({
+  slug,
   overview,
   useCases,
   steps,
@@ -49,6 +52,12 @@ export function ToolEditorialLayout({
   relatedArticles = [],
   afterFaq,
 }: ToolEditorialLayoutProps) {
+  const override = await getPublishedToolOverride(slug);
+
+  if (override?.contentHtml) {
+    return <section className="border-t border-border bg-muted/10 py-12 sm:py-16"><article className="cms-public-content mx-auto w-full max-w-6xl px-4 leading-7 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></section>;
+  }
+
   return (
     <section className="border-t border-border bg-muted/10 py-12 sm:py-16">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">

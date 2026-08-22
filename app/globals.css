@@ -183,6 +183,18 @@
 .cms-editor iframe, .blog-article iframe { aspect-ratio: 16 / 9; width: 100%; height: auto; margin: 1.5rem 0; border: 0; }
 .cms-editor > :first-child, .blog-article > :first-child { margin-top: 0; }
 
+.cms-public-content p { margin: 1.1rem 0; line-height: 1.85; color: var(--muted-foreground); }
+.cms-public-content h2 { margin: 2.25rem 0 0.8rem; font-size: 1.65rem; font-weight: 650; line-height: 1.25; }
+.cms-public-content h3 { margin: 1.75rem 0 0.65rem; font-size: 1.25rem; font-weight: 650; line-height: 1.35; }
+.cms-public-content ul, .cms-public-content ol { margin: 1rem 0; padding-left: 1.5rem; }
+.cms-public-content ul { list-style: disc; }
+.cms-public-content ol { list-style: decimal; }
+.cms-public-content li { margin: 0.45rem 0; line-height: 1.75; }
+.cms-public-content blockquote { margin: 1.5rem 0; border-left: 3px solid var(--primary); padding: 0.5rem 0 0.5rem 1.25rem; color: var(--muted-foreground); }
+.cms-public-content a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.cms-public-content img { margin: 1.5rem auto; max-width: 100%; height: auto; }
+.cms-public-content > :first-child { margin-top: 0; }
+
 .docx-preview-shell .docx-wrapper {
   background: transparent;
   padding: 0;

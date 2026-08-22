@@ -1,9 +1,9 @@
 import { PdfOfficeToolEditorialV2 } from "@/components/tools/pdf-office-tool-editorial-v2";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadataAsync } from "@/lib/seo";
 
 import ExcelParaPdfClient from "./excel-para-pdf-client";
 
-export const metadata = getToolMetadata("excel-para-pdf");
+export async function generateMetadata() { return getToolMetadataAsync("excel-para-pdf"); }
 
 export default function ExcelParaPdfPage() {
   return (

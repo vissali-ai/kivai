@@ -39,6 +39,7 @@ export function CalculatorToolEditorialV2({ slug }: { slug: CalculatorToolEditor
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
       />
       <ToolEditorialLayout
+        slug={slug}
         overview={content.overview}
         useCases={content.useCases}
         steps={content.steps}

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { getPageMetadata, SITE_URL } from "@/lib/seo";
+import { ManagedContentLinks } from "@/components/site-cms/managed-content-links";
 
 export const metadata = getPageMetadata({
   title: "Central de Ajuda",
@@ -184,6 +185,7 @@ export default function AjudaPage() {
           </article>
         </section>
       </div>
+      <ManagedContentLinks location="help" title="Outros conteúdos de ajuda" />
     </main>
   );
 }

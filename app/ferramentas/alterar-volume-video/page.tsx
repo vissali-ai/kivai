@@ -1,8 +1,8 @@
-import { VideoWorkbenchClient } from "@/components/tools/video-workbench-client";
-import { getToolMetadata } from "@/lib/seo";
+import { VideoToolPage } from "@/components/tools/video-tool-page";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("alterar-volume-video");
+export async function generateMetadata() { return getToolMetadataAsync("alterar-volume-video"); }
 
 export default function AlterarVolumeVideoPage() {
-  return <VideoWorkbenchClient mode="volume" />;
+  return <VideoToolPage mode="volume" />;
 }

@@ -13,6 +13,9 @@ import {
   Zap,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import { PublicServicePage } from "@/components/site-cms/public-service-page";
+import { getPublishedSiteService } from "@/lib/site-cms/service-repository";
+import { getManagedServiceMetadata } from "@/lib/site-cms/service-metadata";
 import {
   RelatedServiceArticles,
   ServiceFaqSection,
@@ -21,11 +24,12 @@ import {
   type ServiceFaq,
 } from "@/components/marketing/service-seo-content";
 
-export const metadata = getPageMetadata({
+const fallbackMetadata = getPageMetadata({
   title: "Gestão de Tráfego Pago para Empresas",
   description: "Gestão de tráfego pago para empresas com campanhas em Google Ads e Meta Ads, planejamento, configuração, análise e otimização contínua.",
   pathname: "/servicos/gestao-de-trafego",
 });
+export async function generateMetadata() { const item = await getPublishedSiteService("gestao-de-trafego"); return item ? getManagedServiceMetadata(item) : fallbackMetadata; }
 
 const whatsappUrl =
   "https://wa.me/5531996205058?text=fiquei%20interessado%28a%29%20em%20saber%20mais%20sobre%20os%20servi%C3%A7os%20de%20tr%C3%A1fego%20pago.";
@@ -130,7 +134,9 @@ const trafficSeoItems = [
   },
 ];
 
-export default function GestaoDeTrafegoPage() {
+export default async function GestaoDeTrafegoPage() {
+  const override = await getPublishedSiteService("gestao-de-trafego");
+  if (override) return <PublicServicePage service={override} />;
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <ServiceStructuredData

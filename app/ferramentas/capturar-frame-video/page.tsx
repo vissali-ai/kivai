@@ -1,8 +1,9 @@
 import { VideoFrameCaptureClient } from "@/components/tools/video-frame-capture-client";
-import { getToolMetadata } from "@/lib/seo";
+import { VideoToolSeoContent } from "@/components/tools/video-tool-seo-content";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("capturar-frame-video");
+export async function generateMetadata() { return getToolMetadataAsync("capturar-frame-video"); }
 
 export default function CapturarFrameVideoPage() {
-  return <VideoFrameCaptureClient />;
+  return <><VideoFrameCaptureClient /><VideoToolSeoContent variant="thumbnail" /></>;
 }

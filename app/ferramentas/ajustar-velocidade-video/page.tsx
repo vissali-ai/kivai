@@ -1,8 +1,8 @@
-import { VideoWorkbenchClient } from "@/components/tools/video-workbench-client";
-import { getToolMetadata } from "@/lib/seo";
+import { VideoToolPage } from "@/components/tools/video-tool-page";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("ajustar-velocidade-video");
+export async function generateMetadata() { return getToolMetadataAsync("ajustar-velocidade-video"); }
 
 export default function AjustarVelocidadeVideoPage() {
-  return <VideoWorkbenchClient mode="speed" />;
+  return <VideoToolPage mode="speed" />;
 }

@@ -1,9 +1,9 @@
 import { SocialToolEditorialV2 } from "@/components/tools/social-tool-editorial-v2";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadataAsync } from "@/lib/seo";
 
 import PlanejadorClient from "./planejador-client";
 
-export const metadata = getToolMetadata("planejador-de-conteudo-social-media");
+export async function generateMetadata() { return getToolMetadataAsync("planejador-de-conteudo-social-media"); }
 
 export default function Page() {
   return (

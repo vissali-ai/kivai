@@ -14,8 +14,10 @@ import {
   Sparkles,
   Store,
   Workflow,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import { listPublishedSiteServices } from "@/lib/site-cms/service-repository";
 
 export const metadata = getPageMetadata({
   title: "Serviços Digitais",
@@ -116,7 +118,13 @@ const services = [
   },
 ];
 
-export default function ServicosPage() {
+export default async function ServicosPage() {
+  const stored = await listPublishedSiteServices();
+  const overrides = new Map(stored.filter((item) => item.existingServiceSlug).map((item) => [item.existingServiceSlug, item]));
+  const visibleServices = [
+    ...services.flatMap((service, index) => { const slug = service.href.split("/").pop() ?? ""; const override = overrides.get(slug); if (override && !override.showInServicesIndex) return []; return [{ ...service, displayOrder: override?.displayOrder ?? index + 1, ...(override ? { title: override.title, description: override.shortDescription, href: override.path, badge: override.badge || undefined, action: override.ctaLabel } : {}) }]; }),
+    ...stored.filter((item) => !item.existingServiceSlug).map((item) => ({ icon: BriefcaseBusiness, title: item.title, description: item.shortDescription, href: item.path, action: item.ctaLabel, badge: item.badge || undefined, displayOrder: item.displayOrder })),
+  ].sort((a, b) => a.displayOrder - b.displayOrder || a.title.localeCompare(b.title, "pt-BR"));
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <section
@@ -157,7 +165,7 @@ export default function ServicosPage() {
           </div>
 
           <div className="mx-auto mt-12 grid max-w-7xl gap-5 md:grid-cols-2 lg:mt-14 lg:grid-cols-3">
-            {services.map((service) => {
+            {visibleServices.map((service) => {
               const Icon = service.icon;
 
               return (

@@ -19,6 +19,9 @@ import {
   Zap,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import { PublicServicePage } from "@/components/site-cms/public-service-page";
+import { getPublishedSiteService } from "@/lib/site-cms/service-repository";
+import { getManagedServiceMetadata } from "@/lib/site-cms/service-metadata";
 import {
   RelatedServiceArticles,
   ServiceFaqSection,
@@ -27,11 +30,12 @@ import {
   type ServiceFaq,
 } from "@/components/marketing/service-seo-content";
 
-export const metadata = getPageMetadata({
+const fallbackMetadata = getPageMetadata({
   title: "Criação de Landing Pages Profissionais",
   description: "Criação de landing pages profissionais, rápidas, responsivas e personalizadas para empresas, campanhas, produtos, serviços, eventos e projetos.",
   pathname: "/servicos/criacao-de-landing-pages",
 });
+export async function generateMetadata() { const item = await getPublishedSiteService("criacao-de-landing-pages"); return item ? getManagedServiceMetadata(item) : fallbackMetadata; }
 
 const whatsappUrl =
   "https://wa.me/5531996205058?text=Fiquei%20interessado%28a%29%20em%20saber%20mais%20sobre%20a%20cria%C3%A7%C3%A3o%20de%20Landing%20Pages.";
@@ -175,7 +179,9 @@ const landingPageSeoItems = [
   },
 ];
 
-export default function CriacaoDeLandingPagesPage() {
+export default async function CriacaoDeLandingPagesPage() {
+  const override = await getPublishedSiteService("criacao-de-landing-pages");
+  if (override) return <PublicServicePage service={override} />;
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <ServiceStructuredData

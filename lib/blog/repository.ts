@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Category, DashboardFilters, Media, Post, PostInput, Tag } from "@/lib/blog/types";
+import type { Category, DashboardFilters, Media, MediaUsage, Post, PostInput, Tag } from "@/lib/blog/types";
 import { isBlogDatabaseConfigured } from "@/lib/blog/config";
 import { sanitizePostHtml, plainText } from "@/lib/blog/sanitize";
 import { slugify } from "@/lib/blog/slug";
@@ -315,9 +315,20 @@ export async function updateMedia(id: string, input: Pick<Media, "alt" | "captio
 }
 
 export async function mediaUsageCount(id: string) {
-  const media = (await listMedia()).find((item) => item.id === id);
-  const rows = await supabaseRest<{ id: string; cover_media_id: string | null; content: string }[]>("blog_posts?select=id,cover_media_id,content");
-  return rows.filter((post) => post.cover_media_id === id || Boolean(media?.url && post.content.includes(media.url))).length;
+  return (await listMediaUsage()).find((item) => item.mediaId === id)?.count ?? 0;
+}
+
+export async function listMediaUsage(mediaItems?: Media[]): Promise<MediaUsage[]> {
+  const media = mediaItems ?? await listMedia();
+  const posts = await supabaseRest<Array<{ id: string; title: string; slug: string; cover_media_id: string | null; content: string }>>("blog_posts?select=id,title,slug,cover_media_id,content");
+  return media.map((item) => {
+    const references: MediaUsage["references"] = [];
+    for (const post of posts) {
+      if (post.cover_media_id === item.id) references.push({ postId: post.id, title: post.title, href: `/admin/blog/${post.id}`, location: "Capa" });
+      if (post.content.includes(item.url)) references.push({ postId: post.id, title: post.title, href: `/admin/blog/${post.id}`, location: "Conteúdo" });
+    }
+    return { mediaId: item.id, count: references.length, references };
+  });
 }
 
 export async function deleteMediaRecord(id: string) {

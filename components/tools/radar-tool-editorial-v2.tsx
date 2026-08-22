@@ -57,6 +57,7 @@ export function RadarToolEditorialV2() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
       />
       <ToolEditorialLayout
+        slug={slug}
         overview={[
           "O Radar foi criado para reduzir o tempo gasto abrindo vários sites. Em vez de reproduzir matérias, ele consulta fontes especializadas, remove resultados repetidos e leva você até a publicação original.",
           "A versão atual cobre Marketing, Inteligência Artificial e E-commerce. O Radar prioriza conteúdo recente e diversidade de fontes, sem transformar a seleção em uma avaliação editorial absoluta de importância ou popularidade.",

@@ -72,6 +72,7 @@ export function RemovedorMetadadosEditorial() {
       />
 
       <ToolEditorialLayout
+        slug={slug}
         overview={content.overview}
         useCases={content.useCases}
         steps={content.steps}

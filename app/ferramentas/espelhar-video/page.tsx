@@ -1,8 +1,9 @@
 import { VideoTransformClient } from "@/components/tools/video-transform-client";
-import { getToolMetadata } from "@/lib/seo";
+import { VideoToolSeoContent } from "@/components/tools/video-tool-seo-content";
+import { getToolMetadataAsync } from "@/lib/seo";
 
-export const metadata = getToolMetadata("espelhar-video");
+export async function generateMetadata() { return getToolMetadataAsync("espelhar-video"); }
 
 export default function EspelharVideoPage() {
-  return <VideoTransformClient mode="mirror" />;
+  return <><VideoTransformClient mode="mirror" /><VideoToolSeoContent variant="mirror" /></>;
 }

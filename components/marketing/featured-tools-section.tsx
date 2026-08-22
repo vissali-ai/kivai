@@ -1,20 +1,13 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Wrench } from "lucide-react";
 import { getToolHref, tools } from "@/lib/tools";
+import { listPublishedFeaturedTools } from "@/lib/site-cms/repository";
 
-const mostUsedTools = [
-  "removedor-de-fundo",
-  "calculadora-de-porcentagem",
-  "compressor-de-imagens",
-  "gerador-de-qr-code",
-  "pdf-para-imagens",
-  "montar-pdf-para-impressao",
-].flatMap((slug) => {
-  const tool = tools.find((item) => item.slug === slug);
-  return tool ? [tool] : [];
-});
-
-export function FeaturedToolsSection() {
+export async function FeaturedToolsSection() {
+  const mostUsedTools = (await listPublishedFeaturedTools()).map((content) => {
+    const tool = tools.find((item) => item.slug === content.slug);
+    return { slug: content.slug, name: content.title, description: content.shortDescription, badge: tool?.badge ?? "Ferramenta", available: content.technicalStatus === "ready", icon: tool?.icon ?? Wrench };
+  });
   return (
     <section className="border-t border-white/5 bg-background py-12 sm:py-14">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">

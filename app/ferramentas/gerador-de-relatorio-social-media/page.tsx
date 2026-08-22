@@ -1,9 +1,9 @@
 import { SocialToolEditorialV2 } from "@/components/tools/social-tool-editorial-v2";
-import { getToolMetadata } from "@/lib/seo";
+import { getToolMetadataAsync } from "@/lib/seo";
 
 import RelatorioSocialMediaClient from "./relatorio-client";
 
-export const metadata = getToolMetadata("gerador-de-relatorio-social-media");
+export async function generateMetadata() { return getToolMetadataAsync("gerador-de-relatorio-social-media"); }
 
 export default function GeradorRelatorioSocialMediaPage() {
   return (

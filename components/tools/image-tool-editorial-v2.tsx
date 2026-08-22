@@ -36,6 +36,7 @@ export function ImageToolEditorialV2({ slug }: { slug: ImageToolEditorialSlug })
       />
 
       <ToolEditorialLayout
+        slug={slug}
         overview={content.overview}
         useCases={content.useCases}
         steps={content.steps}

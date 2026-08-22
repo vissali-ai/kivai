@@ -9,7 +9,6 @@ import Link from "next/link";
 import { Download, ImageIcon, RotateCcw, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { VideoToolSeoContent } from "@/components/tools/video-tool-seo-content";
 
 type OutputFormat = "image/png" | "image/jpeg" | "image/webp";
 type OutputSize = "original" | "1280x720" | "1920x1080" | "1080x1080" | "1080x1350" | "1080x1920";
@@ -271,7 +270,6 @@ export function VideoFrameCaptureClient() {
           </CardContent>
         </Card></div>
         <section className="mx-auto mt-8 grid max-w-4xl overflow-hidden rounded-xl border border-border sm:grid-cols-3"><article className="border-b border-border p-5 sm:border-b-0 sm:border-r"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Formatos</p><p className="mt-3 font-semibold">MP4 e WebM</p></article><article className="border-b border-border p-5 sm:border-b-0 sm:border-r"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Limite</p><p className="mt-3 font-semibold">Até 200 MB por vídeo</p></article><article className="p-5"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Saída</p><p className="mt-3 font-semibold">PNG, JPG e WebP</p></article></section>
-        <VideoToolSeoContent variant="thumbnail" />
       </div>
     </main>
   );

@@ -7,9 +7,8 @@ import Link from "next/link";
 import { Download, RotateCcw, Scissors, Upload, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { VideoToolSeoContent } from "@/components/tools/video-tool-seo-content";
 
-type WorkbenchMode = "volume" | "speed" | "resize" | "split" | "audio";
+export type WorkbenchMode = "volume" | "speed" | "resize" | "split" | "audio";
 type Source = { file: File; url: string };
 type Result = { blob: Blob; url: string; label: string; extension: string };
 type Dimensions = { width: number; height: number };
@@ -296,6 +295,5 @@ export function VideoWorkbenchClient({ mode }: { mode: WorkbenchMode }) {
       <canvas ref={canvasRef} className="hidden"/><div className="flex flex-wrap gap-3"><Button onClick={process} disabled={isProcessing || !dimensions}>{mode === "split" ? <Scissors/> : <Video/>}{isProcessing ? `Processando ${Math.round(progress)}%` : label.action}</Button><Button variant="outline" onClick={clear}><RotateCcw/>Limpar</Button></div>{isProcessing && <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }}/></div>}</div></div>}
     {error && <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}{results.length > 0 && <section className="space-y-4">{results.map((result, index) => <article key={result.url} className="rounded-xl border border-border p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">{result.label}</h2><p className="mt-1 text-sm text-muted-foreground">{(result.blob.size / 1024 / 1024).toFixed(2)} MB · {result.label}</p></div><Button onClick={() => download(result,index)}><Download/>Baixar</Button></div>{mode === "audio" ? <audio className="mt-4 w-full" controls src={result.url}/> : <video className="mt-4 aspect-video w-full rounded-lg bg-black" controls playsInline src={result.url}/>}</article>)}</section>}</CardContent></Card></div>
     <section className="mx-auto mt-8 grid max-w-4xl overflow-hidden rounded-xl border border-border sm:grid-cols-3"><article className="border-b border-border p-5 sm:border-b-0 sm:border-r"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Formatos</p><p className="mt-3 font-semibold">MP4 e WebM</p></article><article className="border-b border-border p-5 sm:border-b-0 sm:border-r"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Limite</p><p className="mt-3 font-semibold">Até 200 MB por vídeo</p></article><article className="p-5"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Saída</p><p className="mt-3 font-semibold">{mode === "audio" ? "Áudio M4A ou WebM" : "Vídeo WebM"}</p></article></section>
-    <VideoToolSeoContent variant={mode} />
   </div></main>;
 }

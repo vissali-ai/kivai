@@ -23,6 +23,9 @@ import {
   Zap,
 } from "lucide-react";
 import { getPageMetadata } from "@/lib/seo";
+import { PublicServicePage } from "@/components/site-cms/public-service-page";
+import { getPublishedSiteService } from "@/lib/site-cms/service-repository";
+import { getManagedServiceMetadata } from "@/lib/site-cms/service-metadata";
 import {
   RelatedServiceArticles,
   ServiceFaqSection,
@@ -31,7 +34,7 @@ import {
   type ServiceFaq,
 } from "@/components/marketing/service-seo-content";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   ...getPageMetadata({
     title: "Social Media para Empresas",
     description:
@@ -44,6 +47,7 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true },
   },
 };
+export async function generateMetadata() { const item = await getPublishedSiteService("social-media"); return item ? getManagedServiceMetadata(item) : fallbackMetadata; }
 
 const whatsappUrl =
   "https://wa.me/5531996205058?text=Quero%20mais%20informa%C3%A7%C3%B5es%20sobre%20o%20servi%C3%A7o%20de%20Social%20Media.";
@@ -221,7 +225,9 @@ function TestimonialCard({
   );
 }
 
-export default function SocialMediaPage() {
+export default async function SocialMediaPage() {
+  const override = await getPublishedSiteService("social-media");
+  if (override) return <PublicServicePage service={override} />;
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <ServiceStructuredData
