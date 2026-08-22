@@ -4,6 +4,11 @@ import {
   generalToolEditorialContent,
   type GeneralToolEditorialSlug,
 } from "@/lib/general-tool-editorial-content";
+import {
+  socialAdvancedEditorialContent,
+  type SocialAdvancedEditorialContent,
+  type SocialAdvancedEditorialSlug,
+} from "@/lib/social-tool-editorial-content";
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
@@ -11,11 +16,13 @@ type SocialToolEditorialSlug =
   | "contador-de-caracteres-instagram"
   | "contador-de-hashtags-instagram"
   | "quebra-de-linha-instagram"
-  | "calculadora-de-engajamento";
+  | "calculadora-de-engajamento"
+  | SocialAdvancedEditorialSlug;
 
-type EditorialContent = (typeof generalToolEditorialContent)[GeneralToolEditorialSlug];
+type GeneralEditorialContent = (typeof generalToolEditorialContent)[GeneralToolEditorialSlug];
+type EditorialContent = GeneralEditorialContent | SocialAdvancedEditorialContent;
 
-const engagementContent: EditorialContent = {
+const engagementContent: GeneralEditorialContent = {
   categoryName: "Social Media",
   categoryHref: "/ferramentas/social-media",
   applicationCategory: "BusinessApplication",
@@ -104,8 +111,13 @@ const engagementContent: EditorialContent = {
   ],
 };
 
+function isAdvancedSlug(slug: SocialToolEditorialSlug): slug is SocialAdvancedEditorialSlug {
+  return slug in socialAdvancedEditorialContent;
+}
+
 function getContent(slug: SocialToolEditorialSlug): EditorialContent {
   if (slug === "calculadora-de-engajamento") return engagementContent;
+  if (isAdvancedSlug(slug)) return socialAdvancedEditorialContent[slug];
   return generalToolEditorialContent[slug];
 }
 
@@ -139,7 +151,7 @@ export function SocialToolEditorialV2({ slug }: { slug: SocialToolEditorialSlug 
         overview={content.overview}
         useCases={content.useCases}
         steps={content.steps}
-        specificationsTitle="Critérios, métricas e resultado"
+        specificationsTitle="Critérios, recursos e resultado"
         specifications={content.specifications}
         privacy={content.privacy}
         limitations={content.limitations}
