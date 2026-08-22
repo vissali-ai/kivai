@@ -9,7 +9,7 @@ export const blogConfig = {
 
 export const newsAgentConfig = {
   cronSecret: process.env.NEWS_AGENT_CRON_SECRET ?? "",
-  maxDrafts: 12,
+  maxDrafts: 15,
   maxAgeHours: Math.min(Math.max(Number(process.env.NEWS_AGENT_MAX_AGE_HOURS ?? 48), 4), 168),
 };
 

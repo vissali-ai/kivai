@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "audit:live": "node scripts/audit-live-site.mjs",
+    "audit:maintenance": "node scripts/audit-project-maintenance.mjs",
     "audit:tools": "node scripts/audit-tools.mjs",
     "prepare:unrar-assets": "node scripts/copy-unrar-assets.mjs",
     "verify:adsense": "node scripts/verify-adsense.mjs"

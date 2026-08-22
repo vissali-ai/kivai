@@ -24,12 +24,14 @@ function formatDate(value: string | null) {
 
 export default async function BlogAdmin({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; origin?: string; category?: string; page?: string }> }) {
   const params = await searchParams;
+  const requestedPage = Number(params.page || 1);
+  const visiblePage = Number.isFinite(requestedPage) ? Math.max(Math.floor(requestedPage), 1) : 1;
   const status = (["draft", "published", "scheduled", "archived", "all"].includes(params.status ?? "") ? params.status : "draft") as PostStatus | "all";
   const origin = (["manual", "rss-agent", "all"].includes(params.origin ?? "") ? params.origin : "all") as PostOrigin | "all";
   await publishDueScheduledPosts();
   const [allPosts, posts, categories] = await Promise.all([
     listAllPosts(),
-    listPosts({ query: params.q, status, origin, categoryId: params.category, page: Number(params.page || 1) }),
+    listPosts({ query: params.q, status, origin, categoryId: params.category, page: 1, pageSize: visiblePage * 10 }),
     listCategories(),
   ]);
   const stats = [
@@ -47,6 +49,13 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
     { label: "Arquivadas", value: "archived", count: allPosts.filter((post) => post.status === "archived").length },
     { label: "Todas", value: "all", count: allPosts.length },
   ];
+  const normalizedQuery = params.q?.trim().toLocaleLowerCase("pt-BR") ?? "";
+  const matchingPosts = allPosts.filter((post) =>
+    (!normalizedQuery || post.title.toLocaleLowerCase("pt-BR").includes(normalizedQuery))
+    && (status === "all" || post.status === status)
+    && (origin === "all" || post.origin === origin)
+    && (!params.category || post.categoryId === params.category),
+  );
   const statusHref = (nextStatus: PostStatus | "all") => {
     const query = new URLSearchParams({ status: nextStatus });
     if (params.q) query.set("q", params.q);
@@ -54,6 +63,10 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
     if (origin !== "all") query.set("origin", origin);
     return `/admin/blog?${query.toString()}`;
   };
+  const loadMoreQuery = new URLSearchParams({ status, page: String(visiblePage + 1) });
+  if (params.q) loadMoreQuery.set("q", params.q);
+  if (params.category) loadMoreQuery.set("category", params.category);
+  if (origin !== "all") loadMoreQuery.set("origin", origin);
   return <main>
     <header className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Blog</p><h1 className="mt-1 text-3xl font-semibold">Painel editorial</h1><p className="mt-2 text-sm text-muted-foreground">Crie, revise e publique conteúdo no Kivai.</p></div><Button asChild className="h-9"><Link href="/admin/blog/nova"><Plus />Nova matéria</Link></Button></header>
     {!isBlogDatabaseConfigured() ? <div className="mb-6 border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100"><strong>Configuração pendente.</strong> Aplique <code>supabase/migrations/001_blog_cms.sql</code> e configure as variáveis descritas em <code>.env.example</code>.</div> : null}
@@ -69,6 +82,7 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
         const titleUrl = post.sourceUrl || (post.status === "published" ? `/blog/${post.slug}` : `/admin/blog/${post.id}/preview`);
         return <tr key={post.id} className="border-b border-white/5"><td className="max-w-xs px-3 py-3 font-medium"><div className="flex items-start gap-2"><Link href={titleUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">{post.title}</Link>{post.origin === "rss-agent" ? <Badge variant="outline" className="shrink-0 border-primary/30 text-primary">RSS</Badge> : null}</div>{post.needsCover ? <p className="mt-1 text-[11px] font-normal text-amber-300">Aguardando foto</p> : null}</td><td className="px-3 py-3">{post.category?.name ?? "Sem categoria"}</td><td className="px-3 py-3"><Badge variant="outline">{statusLabels[post.status]}</Badge></td><td className="px-3 py-3 text-muted-foreground">{formatDate(post.createdAt)}</td><td className="px-3 py-3 text-muted-foreground">{formatDate(post.updatedAt)}</td><td className="px-3 py-3 text-muted-foreground">{formatDate(post.publishedAt)}</td><td className="px-3 py-3"><PostActions id={post.id} slug={post.slug} status={post.status} /></td></tr>;
       })}</tbody></table></div>{!posts.length ? <div className="py-12 text-center text-sm text-muted-foreground">Nenhuma matéria encontrada.</div> : null}
+      {posts.length ? <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4"><p className="text-xs text-muted-foreground">Exibindo {posts.length} de {matchingPosts.length} matéria(s)</p>{posts.length < matchingPosts.length ? <Button asChild variant="outline"><Link href={`/admin/blog?${loadMoreQuery.toString()}`}>Carregar mais</Link></Button> : null}</div> : null}
     </CardContent></Card>
   </main>;
 }

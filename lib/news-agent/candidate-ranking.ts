@@ -1,8 +1,8 @@
 import { slugify } from "@/lib/blog/slug";
 import type { NewsCandidate } from "@/lib/news-agent/types";
 
-const CORE_TERMS = /\b(pdf|imagem|imagens|foto|fotos|v[ií]deo|[aá]udio|arquivo|arquivos|zip|rar|metadados|qr code|favicon|instagram|whatsapp|social media|e-?commerce|loja virtual|seo|automa[cç][aã]o|marketing digital)\b/i;
-const SUPPORT_TERMS = /\b(formato|converter|convers[aã]o|compactar|compress[aã]o|redimensionar|editar|privacidade|seguran[cç]a|produtividade|conte[uú]do|campanha|analytics|tr[aá]fego|vendas?|cliente|intelig[eê]ncia artificial|\bia\b)\b/i;
+const CORE_TERMS = /\b(pdf|imagem|imagens|image|images|foto|fotos|photo|photos|v[ií]deo|video|[aá]udio|audio|arquivo|arquivos|file|files|zip|rar|metadados|metadata|qr code|favicon|instagram|whatsapp|social media|e-?commerce|loja virtual|online store|seo|automa[cç][aã]o|automation|marketing digital|digital marketing)\b/i;
+const SUPPORT_TERMS = /\b(formato|format|converter|conversion|convers[aã]o|compactar|compress[aã]o|compression|redimensionar|resize|editar|editing|privacidade|privacy|seguran[cç]a|security|produtividade|productivity|conte[uú]do|content|campanha|campaign|analytics|tr[aá]fego|traffic|vendas?|sales|cliente|customer|intelig[eê]ncia artificial|artificial intelligence|\bia\b|ai)\b/i;
 
 export function normalizedNewsTitle(value: string) {
   return slugify(value).replace(/-/g, " ");

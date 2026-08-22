@@ -32,6 +32,7 @@ const SITEMAP_RULES: Record<string, SitemapRule> = {
 const PAGE_RULES: Record<string, RegExp> = {
   "www.ecommercebrasil.com.br": /^\/(?:noticias|artigos)\//,
   "mundodomarketing.com.br": /^\/(?!todas-noticias\/?$|ultimas-noticias\/?$|noticias\/?$|artigos\/?$|feed-rss\/?$|dino\/?$)(?:(?:customer-engagement)\/)?[a-z0-9][a-z0-9-]+\/?$/i,
+  "www.shopify.com": /^\/br\/blog\/(?!topics\/?$)[a-z0-9][a-z0-9-]+\/?$/i,
 };
 
 const parser = new XMLParser({ ignoreAttributes: false, processEntities: false, trimValues: true });

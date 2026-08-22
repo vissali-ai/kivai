@@ -25,6 +25,8 @@ const ALLOWED_FEED_HOSTS = new Set([
   "www.yampi.com.br",
   "blog.vindi.com.br",
   "mercadoeconsumo.com.br",
+  "openai.com",
+  "blog.google",
 ]);
 
 const parser = new XMLParser({

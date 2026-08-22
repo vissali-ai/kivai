@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, BookOpen, FolderTree, Images, LayoutDashboard, LogOut, Plus } from "lucide-react";
+import { Bot, BookOpen, FolderTree, Images, LayoutDashboard, LogOut, Plus, Wrench } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +12,7 @@ const links = [
   { href: "/admin/blog/midias", label: "Biblioteca", icon: Images },
   { href: "/admin/blog/categorias", label: "Categorias", icon: FolderTree },
   { href: "/admin/blog/agente", label: "Agente", icon: Bot },
+  { href: "/admin/blog/manutencao", label: "Manutenção", icon: Wrench },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

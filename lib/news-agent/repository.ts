@@ -23,6 +23,7 @@ function sourceKind(feedUrl: string): NewsSourceKind {
   if (
     (url.hostname === "www.ecommercebrasil.com.br" && pathname === "/")
     || (url.hostname === "mundodomarketing.com.br" && pathname === "/")
+    || (url.hostname === "www.shopify.com" && pathname === "/br/blog")
   ) return "page";
   return "rss";
 }
