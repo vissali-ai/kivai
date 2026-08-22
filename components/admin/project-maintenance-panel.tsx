@@ -19,8 +19,16 @@ const LAST_LOCAL_MEASUREMENT = [
 const LARGE_FILES_COMMAND = "Get-ChildItem -LiteralPath . -File -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Length -ge 100MB } | Sort-Object Length -Descending | Select-Object FullName, @{Name='TamanhoMB'; Expression={[math]::Round($_.Length / 1MB, 1)}}";
 const MAINTENANCE_GUIDES = [
   {
+    id: "start-local",
+    title: "1. Abrir o Kivai na porta 3000",
+    risk: "Desenvolvimento local",
+    tone: "safe",
+    command: "npm run dev -- -p 3000",
+    description: "Inicia o Kivai no computador em http://localhost:3000, com atualização automática ao editar o código. Mantenha este terminal aberto enquanto usa o site local; pressione Ctrl+C para encerrar. É nesse modo local que a auditoria consegue medir os arquivos do seu computador.",
+  },
+  {
     id: "audit",
-    title: "1. Fazer o diagnóstico completo",
+    title: "2. Fazer o diagnóstico completo",
     risk: "Somente leitura",
     tone: "safe",
     command: "npm run audit:maintenance",
@@ -28,7 +36,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "large-files",
-    title: "2. Localizar arquivos acima de 100 MB",
+    title: "3. Localizar arquivos acima de 100 MB",
     risk: "Somente leitura",
     tone: "safe",
     command: LARGE_FILES_COMMAND,
@@ -36,7 +44,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "next-cache",
-    title: "3. Limpeza leve do cache do Next.js",
+    title: "4. Limpeza leve do cache do Next.js",
     risk: "Pode limpar",
     tone: "safe",
     command: "Remove-Item -LiteralPath \".next/cache\" -Recurse -Force",
@@ -44,7 +52,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "next-full",
-    title: "4. Limpeza completa do Next.js",
+    title: "5. Limpeza completa do Next.js",
     risk: "Pode limpar",
     tone: "safe",
     command: "Remove-Item -LiteralPath \".next\" -Recurse -Force",
@@ -52,7 +60,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "node-modules",
-    title: "5. Reinstalar dependências Node",
+    title: "6. Reinstalar dependências Node",
     risk: "Use somente para reparar",
     tone: "caution",
     command: "npm ci",
@@ -60,7 +68,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "python-venv",
-    title: "6. Reconstruir o ambiente Python",
+    title: "7. Reconstruir o ambiente Python",
     risk: "Recriável com cuidado",
     tone: "caution",
     command: "Remove-Item -LiteralPath \"backend/.venv\" -Recurse -Force\npy -m venv \"backend/.venv\"\n& \"backend/.venv/Scripts/python.exe\" -m pip install -r \"backend/requirements.txt\"",
@@ -68,7 +76,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "git",
-    title: "7. Verificar e otimizar o Git",
+    title: "8. Verificar e otimizar o Git",
     risk: "Não apague arquivos manualmente",
     tone: "caution",
     command: "git count-objects -vH\ngit gc",
