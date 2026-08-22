@@ -1,42 +1,15 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
+import { SocialToolEditorialV2 } from "@/components/tools/social-tool-editorial-v2";
+import { getToolMetadata } from "@/lib/seo";
+
 import PlanejadorClient from "./planejador-client";
 
-const url = "https://www.kivai.com.br/ferramentas/planejador-de-conteudo-social-media";
-const title = "Planejador de Conteúdo Social Media Grátis | Kivai";
-const description = "Organize objetivo, público, tema, formato, abordagem e briefing das suas publicações com o Planejador de Conteúdo Social Media do Kivai.";
-export const metadata: Metadata = { title: { absolute: title }, description, keywords: ["planejador de conteúdo social media", "planejador de conteúdo", "planejamento de conteúdo", "plano de conteúdo", "briefing para social media", "pilares de conteúdo"], alternates: { canonical: url }, robots: { index: true, follow: true }, openGraph: { title, description, url, type: "website", siteName: "Kivai", locale: "pt_BR", images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: "Kivai" }] }, twitter: { card: "summary_large_image", title, description, images: [DEFAULT_SOCIAL_IMAGE] } };
+export const metadata = getToolMetadata("planejador-de-conteudo-social-media");
 
-const faq = [
-  ["O que é um planejador de conteúdo?", "É uma ferramenta para estruturar o objetivo, público, tema, mensagem, formato e desenvolvimento de uma pauta antes da produção."],
-  ["Para que serve o Planejador de Conteúdo Social Media?", "Ele transforma uma ideia inicial em um briefing organizado que pode orientar redatores, designers, videomakers, social medias e clientes."],
-  ["Qual é a diferença entre planejamento de conteúdo e calendário editorial?", "O planejamento define o que será comunicado e como; o calendário editorial organiza em quais datas cada conteúdo será publicado."],
-  ["Preciso criar uma conta?", "Não. A ferramenta funciona diretamente no navegador, sem login ou cadastro."],
-  ["Meus dados ficam salvos?", "O planejamento atual é salvo no armazenamento local do navegador e permanece no dispositivo até que seja limpo."],
-  ["A ferramenta publica automaticamente nas redes sociais?", "Não. Ela prepara o plano e o briefing, mas não agenda nem publica conteúdo em plataformas externas."],
-  ["Posso usar o planejamento para clientes?", "Sim. O briefing pode apoiar alinhamentos entre agências, profissionais, equipes internas e clientes."],
-  ["O que são pilares de conteúdo?", "São categorias recorrentes que orientam a função de uma pauta, como educação, autoridade, relacionamento, bastidores ou promoção."],
-  ["O que é um hook?", "Hook, ou gancho, é a abertura usada para apresentar o assunto e incentivar a continuidade da leitura ou visualização, sem depender de promessas exageradas."],
-  ["O que é CTA?", "CTA é a chamada para ação que indica o próximo passo desejado, como salvar, comentar, visitar um site ou entrar em contato."],
-  ["Posso planejar conteúdo para Instagram e TikTok ao mesmo tempo?", "Sim. É possível selecionar mais de uma rede, lembrando que linguagem, duração e formato podem precisar de adaptações."],
-  ["Posso copiar o briefing?", "Sim. O resultado pode ser copiado como planejamento ou briefing, exportado em TXT e impresso."],
-  ["A ferramenta utiliza inteligência artificial?", "Não nesta versão. Ela organiza as informações fornecidas pelo próprio usuário por meio de formulários e regras locais."],
-];
-const schemas = [
-  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Planejador de Conteúdo Social Media", applicationCategory: "BusinessApplication", operatingSystem: "Navegador moderno", url, description, offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" }, featureList: ["Briefing de conteúdo", "Estrutura de pauta", "Tópicos reordenáveis", "Persistência local", "Exportação TXT", "Impressão"] },
-  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://www.kivai.com.br" }, { "@type": "ListItem", position: 2, name: "Social Media", item: "https://www.kivai.com.br/ferramentas/social-media" }, { "@type": "ListItem", position: 3, name: "Planejador de Conteúdo Social Media", item: url }] },
-  { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) },
-];
-
-export default function Page() { return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas).replace(/</g, "\\u003c") }} /><PlanejadorClient /><section className="border-t border-border bg-muted/10 py-12"><div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-  <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">O que é um planejamento de conteúdo para redes sociais?</h2><p className="mt-4 leading-7 text-muted-foreground">Planejar conteúdo é decidir com clareza o que comunicar, para quem, com qual objetivo e de que maneira a ideia será desenvolvida. Antes de abrir um editor de imagem ou começar um roteiro, o plano conecta o tema à necessidade do público, define uma mensagem central e orienta formato, abordagem, abertura e chamada para ação. O resultado é uma pauta mais compreensível para quem cria, revisa ou aprova.</p></article>
-  <div className="grid gap-6 lg:grid-cols-2"><article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Para que serve um planejador de conteúdo?</h2><p className="mt-4 leading-7 text-muted-foreground">Ele ajuda a reduzir improvisos e informações dispersas. Social medias podem estruturar pautas; agências conseguem alinhar entregas; designers e videomakers recebem uma direção mais objetiva; e negócios organizam ideias sem depender de uma plataforma de publicação. O plano não garante desempenho: ele melhora a clareza do processo de produção.</p></article><article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Estratégia, pauta e calendário editorial</h2><p className="mt-4 leading-7 text-muted-foreground"><strong className="text-foreground">Estratégia</strong> estabelece prioridades e públicos. <strong className="text-foreground">Pauta ou plano de conteúdo</strong> define tema, mensagem e estrutura de uma publicação. <strong className="text-foreground">Calendário editorial</strong> distribui as pautas em datas. São etapas complementares, mas com funções diferentes.</p></article></div>
-  <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Como usar o Planejador de Conteúdo Social Media</h2><ol className="mt-5 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2"><li>1. Defina o objetivo principal do conteúdo.</li><li>2. Escolha uma ou mais redes sociais.</li><li>3. Informe o público que deseja atingir.</li><li>4. Escreva o tema e a mensagem principal.</li><li>5. Escolha o pilar e o formato.</li><li>6. Selecione a abordagem da pauta.</li><li>7. Estruture o gancho e os tópicos principais.</li><li>8. Defina CTA, tom e status.</li><li>9. Revise o briefing gerado.</li><li>10. Copie, exporte ou imprima o planejamento.</li></ol></article>
-  <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Como tomar decisões melhores no briefing</h2><div className="mt-5 grid gap-5 text-sm leading-6 text-muted-foreground md:grid-cols-3"><p><strong className="block text-foreground">Objetivo e público</strong>Escolha um objetivo principal para manter o foco. Descreva um público específico o bastante para orientar exemplos, vocabulário e profundidade.</p><p><strong className="block text-foreground">Pilar e formato</strong>O pilar representa a função recorrente da pauta. O formato deve considerar o assunto, os recursos disponíveis e as características de cada plataforma.</p><p><strong className="block text-foreground">Hook e CTA</strong>O gancho apresenta o tema sem exageros. O CTA indica um próximo passo coerente e pode ser dispensado quando a publicação não exigir uma ação.</p></div></article>
-  <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Exemplos de planejamento</h2><div className="mt-5 grid gap-4 md:grid-cols-3"><Example title="Clínica odontológica" theme="Cuidados após clareamento dental" objective="Educação" format="Carrossel educacional" /><Example title="E-commerce" theme="Como escolher o tamanho correto de um produto" objective="Reduzir dúvidas" format="Vídeo curto" /><Example title="Profissional de serviços" theme="Erros comuns ao contratar um serviço" objective="Autoridade" format="Carrossel" /></div></article>
-  <article className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Perguntas frequentes</h2><div className="mt-5 space-y-3">{faq.map(([question, answer]) => <details key={question} className="border border-border p-4"><summary className="cursor-pointer font-medium">{question}</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">{answer}</p></details>)}</div></article>
-  <nav aria-label="Ferramentas relacionadas" className="border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2><div className="mt-4 flex flex-wrap gap-3"><Related href="/ferramentas/calendario-editorial-redes-sociais">Calendário Editorial</Related><Related href="/ferramentas/contador-de-caracteres-instagram">Contador de Caracteres</Related><Related href="/ferramentas/contador-de-hashtags-instagram">Contador de Hashtags</Related><Related href="/ferramentas/quebra-de-linha-instagram">Quebra de Linha para Instagram</Related></div></nav>
-</div></section></>; }
-function Example({ title, theme, objective, format }: { title: string; theme: string; objective: string; format: string }) { return <div className="border border-border p-4"><h3 className="font-semibold">{title}</h3><p className="mt-3 text-sm text-muted-foreground"><strong className="text-foreground">Tema:</strong> {theme}</p><p className="mt-2 text-sm text-muted-foreground"><strong className="text-foreground">Objetivo:</strong> {objective}</p><p className="mt-2 text-sm text-muted-foreground"><strong className="text-foreground">Formato:</strong> {format}</p></div>; }
-function Related({ href, children }: { href: string; children: React.ReactNode }) { return <Link href={href} className="border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-primary hover:text-primary">{children}</Link>; }
+export default function Page() {
+  return (
+    <>
+      <PlanejadorClient />
+      <SocialToolEditorialV2 slug="planejador-de-conteudo-social-media" />
+    </>
+  );
+}
