@@ -1,68 +1,104 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { Archive, ArrowLeft, ArrowRight } from "lucide-react";
 
-const tools = [
+import { AdSlot } from "@/components/ads/AdSlot";
+
+const filters = ["Todos", "Extrair", "Compactar", "Organizar"] as const;
+
+type Filter = (typeof filters)[number];
+
+type FileTool = {
+  name: string;
+  description: string;
+  badge: string;
+  href: string;
+  filter: Exclude<Filter, "Todos">;
+};
+
+const tools: FileTool[] = [
   {
     name: "Descompactar ZIP",
     description: "Abra arquivos ZIP e extraia o conteúdo para usar os arquivos normalmente.",
     badge: "ZIP",
     href: "/ferramentas/descompactar-zip",
+    filter: "Extrair",
   },
   {
     name: "Descompactar RAR",
     description: "Abra arquivos RAR e extraia os arquivos contidos no pacote.",
     badge: "RAR",
     href: "/ferramentas/descompactar-rar",
+    filter: "Extrair",
   },
   {
     name: "Compactar Arquivos em ZIP",
     description: "Reúna vários arquivos em um único pacote ZIP para organizar e compartilhar.",
     badge: "ZIP",
     href: "/ferramentas/compactar-arquivos-zip",
+    filter: "Compactar",
   },
   {
     name: "Renomear Arquivos em Lote",
     description: "Padronize vários nomes de arquivo com numeração automática e extensões preservadas.",
     badge: "LOTE",
     href: "/ferramentas/renomear-arquivos-em-lote",
+    filter: "Organizar",
   },
   {
     name: "Adicionar Prefixo ou Sufixo",
     description: "Acrescente texto antes ou depois do nome de vários arquivos sem apagar o nome atual.",
     badge: "LOTE",
     href: "/ferramentas/adicionar-prefixo-sufixo-arquivos",
+    filter: "Organizar",
   },
-] as const;
+];
 
 export default function ArquivosPage() {
+  const [filter, setFilter] = useState<Filter>("Todos");
+  const filteredTools = filter === "Todos" ? tools : tools.filter((tool) => tool.filter === filter);
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="relative overflow-hidden bg-background pb-12 pt-24 sm:pb-14 lg:pb-16">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ArrowLeft className="size-4" />
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+              <ArrowLeft className="size-4" aria-hidden="true" />
               Voltar para o início
             </Link>
           </div>
 
           <div className="max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">
-              Ferramentas para arquivos
-            </p>
-            <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-              Arquivos
-            </h1>
+            <p className="text-sm font-medium uppercase tracking-wider text-primary">Compactação, extração e organização</p>
+            <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Arquivos</h1>
             <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-              Ferramentas para compactar, descompactar, organizar e gerenciar arquivos diretamente no navegador.
+              Compacte, descompacte e organize arquivos no navegador com ferramentas para ZIP, RAR e renomeação em lote.
             </p>
+
+            <div className="mt-6 flex flex-wrap gap-2" aria-label="Filtrar ferramentas de arquivos">
+              {filters.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setFilter(item)}
+                  aria-pressed={filter === item}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                    filter === item
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {tools.map((tool) => (
+            {filteredTools.map((tool) => (
               <Link
                 key={tool.name}
                 href={tool.href}
@@ -71,24 +107,23 @@ export default function ArquivosPage() {
                 <div className="flex h-full flex-col">
                   <div className="flex items-start justify-between">
                     <span className="flex size-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-                      <Archive className="size-4" />
+                      <Archive className="size-4" aria-hidden="true" />
                     </span>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">
-                      {tool.badge}
-                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span>
                   </div>
-
                   <h2 className="mt-4 text-[15px] font-semibold">{tool.name}</h2>
-                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                    {tool.description}
-                  </p>
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
                   <div className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium group-hover:text-primary">
                     Explorar
-                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                   </div>
                 </div>
               </Link>
             ))}
+          </div>
+
+          <div className="mt-8">
+            <AdSlot placement="page-footer" />
           </div>
         </div>
       </section>
