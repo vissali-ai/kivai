@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { ArchiveToolEditorial } from "@/components/tools/archive-tool-editorial";
+import { ArchiveToolEditorialV2 } from "@/components/tools/archive-tool-editorial-v2";
 import { getPageMetadata } from "@/lib/seo";
 import DescompactarRarClient from "./descompactar-rar-client";
 
@@ -15,7 +15,7 @@ export default function Page() {
   return (
     <>
       <DescompactarRarClient />
-      <ArchiveToolEditorial slug="descompactar-rar" />
+      <ArchiveToolEditorialV2 slug="descompactar-rar" />
     </>
   );
 }
