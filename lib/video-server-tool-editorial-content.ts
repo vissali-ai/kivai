@@ -3,7 +3,8 @@ export type VideoServerToolEditorialSlug =
   | "mp4-para-hevc"
   | "mp4-para-mov"
   | "mov-para-mp4"
-  | "mp4-para-avi";
+  | "mp4-para-avi"
+  | "compressor-de-videos";
 
 export type VideoServerEditorialContent = {
   overview: string[];
@@ -27,7 +28,7 @@ const related = [
 ];
 
 const serverPrivacy =
-  "O vídeo é enviado por HTTPS ao serviço de conversão do Kivai para processamento com FFmpeg. O backend trabalha com arquivos temporários e executa a limpeza ao concluir ou interromper a operação. O arquivo original permanece inalterado no seu dispositivo.";
+  "O vídeo é enviado por HTTPS ao serviço de processamento do Kivai para execução com FFmpeg. O backend trabalha com arquivos temporários e executa a limpeza ao concluir ou interromper a operação. O arquivo original permanece inalterado no seu dispositivo.";
 
 function withRelated(
   slug: VideoServerToolEditorialSlug,
@@ -170,6 +171,44 @@ export const videoServerToolEditorialContent: Record<VideoServerToolEditorialSlu
       { question: "O áudio é mantido?", answer: "Sim. Quando existe áudio, ele é preservado; na recodificação padrão, é convertido para MP3." },
       { question: "A conversão perde qualidade?", answer: "Pode haver alguma alteração quando ocorre recodificação. Streams já compatíveis podem usar remux sem recompressão." },
       { question: "Por que o navegador pode não mostrar prévia?", answer: "A maioria dos navegadores não possui reprodução nativa de AVI, mesmo quando o arquivo é válido." },
+    ],
+  }),
+  "compressor-de-videos": withRelated("compressor-de-videos", {
+    overview: [
+      "O Compressor de Vídeos reduz o tamanho de arquivos por recodificação real com FFmpeg. Ele aceita MP4, MOV, WebM, AVI, MKV, MPEG e MPG compatíveis e gera um novo MP4, permitindo controlar intensidade da compressão, resolução, FPS, bitrate, codec e áudio.",
+      "A compressão é com perdas e pode alterar detalhes visuais, especialmente nos níveis mais fortes. A ferramenta oferece perfis prontos para WhatsApp, e-mail, redes sociais, sites e preservação de qualidade, além de configuração personalizada.",
+    ],
+    useCases: [
+      { title: "Envio e compartilhamento", description: "Reduza vídeos para facilitar envio por WhatsApp, e-mail e outros serviços com limites de arquivo." },
+      { title: "Publicação online", description: "Prepare arquivos menores para sites, redes sociais e sistemas de upload." },
+      { title: "Economia de armazenamento", description: "Crie uma cópia mais leve quando a resolução ou bitrate do original excedem a necessidade de uso." },
+    ],
+    steps: [
+      "Selecione um vídeo compatível e aguarde a análise do arquivo.",
+      "Escolha um modo de compressão, preset ou ajuste manualmente resolução, FPS, bitrate, codec e áudio.",
+      "Confira a estimativa de tamanho e inicie a compressão no servidor.",
+      "Compare o resultado e baixe o novo arquivo MP4.",
+    ],
+    specifications: [
+      { label: "Entrada", value: "MP4, MOV, WebM, AVI, MKV, MPEG ou MPG, um arquivo por vez e até 200 MB." },
+      { label: "Limites", value: "Duração máxima de 2 horas e maior dimensão de entrada de até 3840 pixels." },
+      { label: "Saída", value: "Arquivo MP4 com vídeo H.264 ou HEVC/H.265 e áudio AAC quando preservado." },
+      { label: "Controles", value: "Compressão leve, equilibrada ou máxima, resolução até 2160p, FPS, bitrate, codec e áudio." },
+    ],
+    privacy: serverPrivacy,
+    limitations: [
+      "O tamanho final estimado não é uma garantia exata, porque cenas, codec, áudio e comportamento do encoder influenciam o resultado.",
+      "Um vídeo que já esteja muito otimizado pode não apresentar redução relevante e determinadas configurações podem até gerar arquivo maior.",
+      "A compressão com perdas pode reduzir detalhes; recompressões sucessivas devem ser evitadas quando a fidelidade é importante.",
+      "A ferramenta depende de codecs que o FFmpeg do serviço consiga decodificar e processar.",
+    ],
+    faqs: [
+      { question: "Quais formatos são aceitos?", answer: "MP4, MOV, WebM, AVI, MKV, MPEG e MPG, desde que o container e os codecs internos possam ser processados pelo FFmpeg." },
+      { question: "Qual modo devo usar?", answer: "Compressão equilibrada é indicada para a maioria dos casos. Leve prioriza qualidade; máxima prioriza redução de tamanho." },
+      { question: "Como reduzir vídeo para WhatsApp?", answer: "Use o preset WhatsApp. Ele aplica compressão máxima, limita a resolução a no máximo 720p e reduz o áudio para 96 kbps." },
+      { question: "Posso escolher um tamanho aproximado em MB?", answer: "Sim. A ferramenta calcula um bitrate com base na duração, mas o resultado pode variar e não é garantido exatamente no valor informado." },
+      { question: "Posso remover o áudio?", answer: "Sim. A configuração de áudio permite preservar, reduzir ou remover a faixa sonora." },
+      { question: "O original é alterado?", answer: "Não. A ferramenta cria um novo MP4 e mantém o arquivo original inalterado no seu dispositivo." },
     ],
   }),
 };
