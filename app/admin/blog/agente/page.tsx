@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { AlertTriangle, CheckCircle2, Clock3, Rss } from "lucide-react";
 import { NewsAgentPanel } from "@/components/admin/news-agent-panel";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { newsAgentConfig } from "@/lib/blog/config";
 import { listNewsSources, listRecentAgentRuns } from "@/lib/news-agent/repository";
@@ -28,7 +26,7 @@ export default async function NewsAgentPage() {
   const canRun = migrationReady;
 
   return <main>
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Automação editorial</p><h1 className="mt-1 text-3xl font-semibold">Radar de pautas</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Monitora RSS, sitemaps e páginas editoriais brasileiras, elimina duplicados e coleta até 12 pautas relevantes. Nenhum artigo é escrito, aprovado ou publicado automaticamente.</p></div><Button asChild variant="outline"><Link href="/admin/blog?status=draft&origin=rss-agent">Revisar pautas coletadas</Link></Button></header>
+    <header className="mb-6"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Automação editorial</p><h1 className="mt-1 text-3xl font-semibold">Radar de pautas</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Monitora RSS, sitemaps e páginas editoriais brasileiras, elimina duplicados e coleta até 12 pautas relevantes. Nenhum artigo é escrito, aprovado ou publicado automaticamente.</p></header>
     {!migrationReady ? <div className="mb-5 border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100"><strong>Aplique a migração pendente:</strong> <code>supabase/migrations/003_news_agent.sql</code>.</div> : null}
     <div className="mb-5 grid gap-3 md:grid-cols-3">
       {[{ label: "Banco e fontes", ready: migrationReady }, { label: "Somente coleta de pautas", ready: true }, { label: "Agendamento protegido", ready: cronReady }].map((item) => <Card key={item.label}><CardContent className="flex items-center justify-between p-4"><span className="text-sm">{item.label}</span>{item.ready ? <CheckCircle2 className="size-5 text-emerald-400" /> : <AlertTriangle className="size-5 text-amber-400" />}</CardContent></Card>)}
