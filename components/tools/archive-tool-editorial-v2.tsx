@@ -29,6 +29,7 @@ export function ArchiveToolEditorialV2({ slug }: { slug: ArchiveToolEditorialSlu
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
       />
       <ToolEditorialLayout
+        slug={slug}
         overview={content.overview}
         useCases={content.useCases}
         steps={content.steps}
