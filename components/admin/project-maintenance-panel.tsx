@@ -20,7 +20,7 @@ const LARGE_FILES_COMMAND = "Get-ChildItem -LiteralPath . -File -Recurse -Force 
 const MAINTENANCE_GUIDES = [
   {
     id: "start-local",
-    title: "1. Abrir o Kivai na porta 3000",
+    title: "Abrir o Kivai na porta 3000",
     risk: "Desenvolvimento local",
     tone: "safe",
     command: "npm run dev",
@@ -28,7 +28,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "audit",
-    title: "2. Fazer o diagnóstico completo",
+    title: "Fazer o diagnóstico completo",
     risk: "Somente leitura",
     tone: "safe",
     command: "npm run audit:maintenance",
@@ -36,7 +36,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "large-files",
-    title: "3. Localizar arquivos acima de 100 MB",
+    title: "Localizar arquivos acima de 100 MB",
     risk: "Somente leitura",
     tone: "safe",
     command: LARGE_FILES_COMMAND,
@@ -44,7 +44,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "next-cache",
-    title: "4. Limpeza leve do cache do Next.js",
+    title: "Limpeza leve do cache do Next.js",
     risk: "Pode limpar",
     tone: "safe",
     command: "Remove-Item -LiteralPath \".next/cache\" -Recurse -Force",
@@ -52,7 +52,7 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "next-full",
-    title: "5. Limpeza completa do Next.js",
+    title: "Limpeza completa do Next.js",
     risk: "Pode limpar",
     tone: "safe",
     command: "Remove-Item -LiteralPath \".next\" -Recurse -Force",
@@ -60,23 +60,23 @@ const MAINTENANCE_GUIDES = [
   },
   {
     id: "node-modules",
-    title: "6. Reinstalar dependências Node",
-    risk: "Use somente para reparar",
+    title: "Reinstalar dependências Node",
+    risk: "Somente com orientação",
     tone: "caution",
     command: "npm ci",
-    description: "Apaga e recria node_modules exatamente conforme o package-lock.json. Pode demorar e baixar cerca de 1 GB novamente; não reduz permanentemente o projeto.",
+    description: "Não é uma limpeza de rotina. Antes de usar, encerre com Ctrl+C todos os servidores do Kivai, inclusive os abertos em outros terminais. O comando apaga e recria node_modules conforme o package-lock.json; se falhar, não rode npm run dev e peça ajuda com a mensagem exibida.",
   },
   {
     id: "python-venv",
-    title: "7. Reconstruir o ambiente Python",
-    risk: "Recriável com cuidado",
+    title: "Reconstruir o ambiente Python",
+    risk: "Somente com orientação",
     tone: "caution",
-    command: "Remove-Item -LiteralPath \"backend/.venv\" -Recurse -Force\npy -m venv \"backend/.venv\"\n& \"backend/.venv/Scripts/python.exe\" -m pip install -r \"backend/requirements.txt\"",
-    description: "Remove e recria toda a .venv usando requirements.txt. Use apenas se o ambiente estiver quebrado ou precisar ser reconstruído; não apague torch_cpu.dll isoladamente.",
+    command: "py --version\nif ($LASTEXITCODE -ne 0) { throw \"Python não está instalado. A .venv não será removida; peça ajuda.\" }\nRemove-Item -LiteralPath \"backend/.venv\" -Recurse -Force\npy -m venv \"backend/.venv\"\n& \"backend/.venv/Scripts/python.exe\" -m pip install -r \"backend/requirements.txt\"",
+    description: "Não é uma limpeza de rotina. Primeiro confirma que o Python está instalado e interrompe o procedimento antes de apagar qualquer coisa caso ele esteja ausente. Use apenas para reparar o backend com orientação; não apague arquivos isolados da .venv.",
   },
   {
     id: "git",
-    title: "8. Verificar e otimizar o Git",
+    title: "Verificar e otimizar o Git",
     risk: "Não apague arquivos manualmente",
     tone: "caution",
     command: "git count-objects -vH\ngit gc",
@@ -126,7 +126,7 @@ export function ProjectMaintenancePanel() {
       <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{folders.map((folder) => <div key={folder.path} className="border border-white/10 bg-black/10 p-3"><p className="font-mono text-xs text-primary">{folder.path}</p><p className="mt-1 text-lg font-semibold">{folder.available ? formatSize(folder.sizeBytes) : "Não existe aqui"}</p><p className="text-[11px] text-muted-foreground">{folder.available ? `${folder.fileCount.toLocaleString("pt-BR")} arquivo(s)` : "Ausente neste ambiente"}</p></div>)}</div>
       {snapshot ? <div className="mt-4 border border-white/10 p-3 text-sm"><p><strong>Total encontrado:</strong> {formatSize(snapshot.totalSizeBytes)} em {snapshot.totalFileCount.toLocaleString("pt-BR")} arquivos.</p>{snapshot.truncated ? <p className="mt-1 text-xs text-amber-300">A leitura atingiu o limite de segurança; execute o comando local abaixo para uma varredura completa.</p> : null}{snapshot.largestFiles.length ? <div className="mt-3"><p className="text-xs font-medium">Arquivos acima de 100 MB</p>{snapshot.largestFiles.map((file) => <p key={file.path} className="mt-1 break-all font-mono text-[11px] text-muted-foreground">{file.path} — {formatSize(file.sizeBytes)}</p>)}</div> : <p className="mt-1 text-xs text-emerald-300">Nenhum arquivo individual acima de 100 MB neste ambiente.</p>}</div> : null}
       {error ? <p className="mt-3 text-xs text-red-300" role="alert">{error}</p> : null}
-      <div className="mt-5 border-t border-white/10 pt-5"><h3 className="text-base font-semibold">Comandos para o PowerShell do VS Code</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">Abra o projeto no VS Code, acesse Terminal → Novo Terminal e confirme que o terminal está na pasta raiz do Kivai. Os comandos nunca são executados pelo painel.</p><div className="mt-4 space-y-3">{MAINTENANCE_GUIDES.map((guide) => <section key={guide.id} className="border border-white/10 bg-black/10 p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h4 className="text-sm font-medium">{guide.title}</h4><Badge variant="outline" className={guide.tone === "safe" ? "border-emerald-500/30 text-emerald-300" : "border-amber-500/30 text-amber-300"}>{guide.risk}</Badge></div><p className="mt-2 max-w-3xl text-xs leading-5 text-muted-foreground">{guide.description}</p></div><Button type="button" size="sm" variant="ghost" onClick={() => copyCommand(guide.id, guide.command)}>{copiedCommand === guide.id ? <Check /> : <Copy />}{copiedCommand === guide.id ? "Copiado" : "Copiar código"}</Button></div><code className="mt-3 block overflow-x-auto whitespace-pre-wrap break-all border border-white/10 bg-black/20 p-3 text-[11px] leading-5 text-primary">{guide.command}</code></section>)}</div><div className="mt-4 border border-red-500/25 bg-red-500/5 p-3 text-xs leading-5 text-red-200"><strong>Não apague arquivos isolados de node_modules, backend/.venv ou .git.</strong> Dependências grandes podem ser necessárias, e o histórico do Git pode ser danificado. Quando tiver dúvida, rode somente o diagnóstico e peça uma revisão do resultado antes de limpar.</div></div>
+      <div className="mt-5 border-t border-white/10 pt-5"><h3 className="text-base font-semibold">Comandos para o PowerShell do VS Code</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">Abra o projeto no VS Code, acesse Terminal → Novo Terminal e confirme que o terminal está na pasta raiz do Kivai. Os comandos nunca são executados pelo painel.</p><div className="mt-3 border border-amber-500/25 bg-amber-500/5 p-3 text-xs leading-5 text-amber-100"><strong>Esta lista não é uma sequência nem uma rotina para executar inteira.</strong> No uso normal, rode apenas os itens marcados como “Somente leitura”. Execute limpeza ou reparo somente quando a descrição indicar e após encerrar todos os servidores do Kivai com Ctrl+C.</div><div className="mt-4 space-y-3">{MAINTENANCE_GUIDES.map((guide) => <section key={guide.id} className="border border-white/10 bg-black/10 p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><h4 className="text-sm font-medium">{guide.title}</h4><Badge variant="outline" className={guide.tone === "safe" ? "border-emerald-500/30 text-emerald-300" : "border-amber-500/30 text-amber-300"}>{guide.risk}</Badge></div><p className="mt-2 max-w-3xl text-xs leading-5 text-muted-foreground">{guide.description}</p></div><Button type="button" size="sm" variant="ghost" onClick={() => copyCommand(guide.id, guide.command)}>{copiedCommand === guide.id ? <Check /> : <Copy />}{copiedCommand === guide.id ? "Copiado" : "Copiar código"}</Button></div><code className="mt-3 block overflow-x-auto whitespace-pre-wrap break-all border border-white/10 bg-black/20 p-3 text-[11px] leading-5 text-primary">{guide.command}</code></section>)}</div><div className="mt-4 border border-red-500/25 bg-red-500/5 p-3 text-xs leading-5 text-red-200"><strong>Não apague arquivos isolados de node_modules, backend/.venv ou .git.</strong> Dependências grandes podem ser necessárias, e o histórico do Git pode ser danificado. Quando tiver dúvida, rode somente o diagnóstico e peça uma revisão do resultado antes de limpar.</div></div>
     </CardContent>
   </Card>;
 }
