@@ -1,50 +1,14 @@
-import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { VideoServerToolEditorialV2 } from "@/components/tools/video-server-tool-editorial-v2";
 import { getToolMetadata } from "@/lib/seo";
 import CompressorDeVideosClient from "./compressor-de-videos-client";
 
 export const metadata = getToolMetadata("compressor-de-videos");
 
-const faq = [
-  ["Como comprimir um vídeo?", "Selecione o vídeo, aguarde a análise, escolha um modo ou preset, confira a estimativa, clique em Comprimir vídeo e baixe o MP4 resultante."],
-  ["Quais formatos são aceitos?", "A ferramenta aceita MP4, MOV, WebM, AVI, MKV, MPEG e MPG quando o container e os codecs puderem ser lidos pelo FFmpeg."],
-  ["Posso comprimir MP4?", "Sim. MP4 é aceito e o resultado principal também é MP4, usando H.264 por padrão."],
-  ["Posso comprimir MOV?", "Sim. Arquivos MOV compatíveis podem ser analisados e convertidos para MP4 comprimido."],
-  ["Posso comprimir AVI?", "Sim, desde que o codec de vídeo dentro do AVI seja suportado pela engine."],
-  ["Posso comprimir MKV?", "Sim. O container MKV é aceito e convertido para MP4 quando suas faixas podem ser processadas."],
-  ["A qualidade do vídeo diminui?", "Pode diminuir porque a compressão é com perdas. O modo leve reduz esse impacto; os modos equilibrado e máximo priorizam arquivos menores."],
-  ["Como reduzir vídeo para WhatsApp?", "Use o preset WhatsApp. Ele limita a resolução a no máximo 720p, aplica compressão máxima e reduz o áudio para 96 kbps."],
-  ["Como reduzir vídeo para e-mail?", "Use o preset E-mail. Ele limita a resolução a 480p, reduz o áudio e aplica compressão mais forte para facilitar anexos."],
-  ["Posso definir o tamanho em MB?", "Sim. Ative Definir tamanho aproximado e informe entre 1 e 200 MB."],
-  ["O tamanho final será exatamente o valor escolhido?", "Não. O bitrate é calculado com base na duração, mas o resultado pode variar conforme cenas, codec e áudio."],
-  ["Posso manter a resolução original?", "Sim. Escolha Manter original. A ferramenta nunca aumenta a resolução de um vídeo menor."],
-  ["O áudio também é comprimido?", "Sim. Quando preservado, o áudio é convertido para AAC com bitrate entre 64 e 192 kbps."],
-  ["Posso remover o áudio?", "Sim. Escolha Remover áudio nas configurações avançadas."],
-  ["O que é bitrate?", "É a quantidade de dados usada por segundo. Bitrate maior costuma preservar mais detalhes e gerar arquivo maior."],
-  ["Qual compressão devo escolher?", "Use Equilibrada na maioria dos casos, Leve quando a qualidade for prioridade e Máxima quando o limite de tamanho for mais importante."],
-  ["Por que um vídeo comprimido pode ficar maior?", "Isso pode ocorrer se o original já estiver muito otimizado ou se você escolher bitrate, áudio ou qualidade superiores aos do arquivo inicial."],
-  ["Quanto tempo demora?", "Depende do formato, duração, resolução, codec, preset e carga do serviço. Vídeos longos ou 4K exigem mais processamento."],
-  ["Posso usar pelo celular?", "Sim. A página é responsiva e o seletor de arquivos funciona em navegadores modernos de celulares e tablets."],
-  ["O arquivo original é alterado?", "Não. Um novo MP4 é criado e o vídeo original permanece intacto no dispositivo."],
-] as const;
-
-const schema = { "@context": "https://schema.org", "@graph": [
-  { "@type": "SoftwareApplication", name: "Compressor de Vídeos", applicationCategory: "MultimediaApplication", operatingSystem: "Qualquer sistema com navegador moderno", url: "https://www.kivai.com.br/ferramentas/compressor-de-videos", description: "Comprima vídeos multiformatos e gere um MP4 menor com controle de qualidade, resolução e áudio.", offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" } },
-  { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://www.kivai.com.br" }, { "@type": "ListItem", position: 2, name: "Vídeos", item: "https://www.kivai.com.br/ferramentas/videos" }, { "@type": "ListItem", position: 3, name: "Compressor de Vídeos", item: "https://www.kivai.com.br/ferramentas/compressor-de-videos" }] },
-  { "@type": "FAQPage", mainEntity: faq.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) },
-] };
-
 export default function CompressorDeVideosPage() {
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><CompressorDeVideosClient /><section className="border-t border-border bg-muted/10 py-12 sm:py-16"><div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-    <Info title="O que é um compressor de vídeos?"><p>Um compressor reduz o tamanho do arquivo ajustando parâmetros que influenciam a quantidade de dados utilizada: codec, bitrate, resolução, FPS e áudio. Nesta ferramenta, o conteúdo é realmente recodificado pelo FFmpeg e entregue em MP4, não apenas renomeado ou trocado de container.</p></Info>
-    <div className="grid gap-6 lg:grid-cols-2"><Info title="Para que serve?"><ul className="list-disc space-y-2 pl-5"><li>Enviar vídeos pelo WhatsApp ou por e-mail.</li><li>Publicar em redes sociais e sites.</li><li>Atender limites de upload em sistemas.</li><li>Reduzir espaço de armazenamento.</li><li>Compartilhar materiais com clientes.</li></ul></Info><Info title="Por que um vídeo ocupa tanto espaço?"><p>Resolução alta cria mais pixels em cada quadro. Duração longa, muitos quadros por segundo, bitrate elevado e áudio de alta qualidade também aumentam o tamanho. O codec define com quanta eficiência esses dados são representados.</p></Info></div>
-    <div className="grid gap-6 lg:grid-cols-2"><Info title="A qualidade diminui?"><p>Toda recompressão com perdas pode alterar detalhes. Configurações adequadas, porém, conseguem economizar bastante espaço mantendo boa aparência. Evite recomprimir várias vezes e use Compressão leve quando o material exige maior fidelidade.</p></Info><Info title="Qual nível escolher?"><ul className="space-y-2"><li><strong className="text-foreground">Leve:</strong> menor perda visual e redução moderada.</li><li><strong className="text-foreground">Equilibrada:</strong> indicada para a maioria dos vídeos.</li><li><strong className="text-foreground">Máxima:</strong> prioriza tamanho baixo para limites rigorosos.</li></ul></Info></div>
-    <div className="grid gap-6 lg:grid-cols-2"><Info title="Diminuir resolução ou bitrate?"><p>Reduzir bitrate mantém as dimensões, mas pode suavizar detalhes. Reduzir resolução remove pixels e costuma economizar mais quando o vídeo será visto em telas menores. Para um vídeo 4K que será enviado pelo celular, 1080p ou 720p pode ser suficiente.</p></Info><Info title="MP4 é sempre menor?"><p>Não. MP4 é um container. O tamanho depende principalmente do codec, bitrate, duração, resolução e áudio. Dois MP4 com a mesma duração podem ter tamanhos muito diferentes.</p></Info></div>
-    <Info title="Exemplo prático"><p>Imagine um vídeo de 150 MB que precisa ser enviado para uma plataforma com limite de 50 MB. Envie o arquivo, selecione Compressão equilibrada, escolha 720p se necessário, confira o tamanho aproximado, comprima e compare o resultado real antes de baixar. Outro caso comum é reduzir uma gravação 4K para 1080p quando essa resolução extra não será aproveitada.</p><ol className="mt-4 list-none grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{["Envie e analise o vídeo.", "Escolha modo ou preset.", "Confira a estimativa e comprima.", "Compare e baixe o MP4."].map((step, index) => <li key={step} className="rounded-lg border border-border p-4 text-sm"><span className="mb-3 flex size-7 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">{index + 1}</span>{step}</li>)}</ol></Info>
-    <Info title="Recursos e limites"><ul className="grid gap-2 sm:grid-cols-2">{["MP4, MOV, WebM, AVI, MKV, MPEG e MPG", "Um arquivo por vez, até 200 MB", "Duração máxima de 2 horas", "Resolução máxima de entrada 4K", "Saída MP4 com H.264 ou HEVC", "Áudio AAC, reduzido ou removido", "Presets com parâmetros reais", "Cancelamento e limpeza de temporários"].map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="mt-1 size-4 shrink-0 text-primary" />{item}</li>)}</ul></Info>
-    <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Perguntas frequentes</h2><div className="mt-5 space-y-3">{faq.map(([question, answer]) => <details key={question} className="rounded-lg border border-border p-4"><summary className="cursor-pointer font-medium">{question}</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">{answer}</p></details>)}</div></article>
-    <nav aria-label="Ferramentas relacionadas" className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2><div className="mt-4 flex flex-wrap gap-3"><Related href="/ferramentas/hevc-para-mp4">HEVC para MP4</Related><Related href="/ferramentas/video-para-audio">Vídeo para Áudio</Related><Related href="/ferramentas/redimensionar-video">Redimensionar Vídeo</Related><Related href="/ferramentas/ajustar-velocidade-video">Ajustar Velocidade</Related><Related href="/ferramentas/alterar-volume-video">Alterar Volume</Related><Related href="/ferramentas/remover-audio-video">Remover Áudio</Related><Related href="/ferramentas/dividir-video">Dividir Vídeo</Related><Related href="/ferramentas/girar-video">Girar Vídeo</Related><Related href="/ferramentas/espelhar-video">Espelhar Vídeo</Related></div></nav>
-  </div></section></>;
+  return (
+    <>
+      <CompressorDeVideosClient />
+      <VideoServerToolEditorialV2 slug="compressor-de-videos" />
+    </>
+  );
 }
-function Info({ title, children }: { title: string; children: React.ReactNode }) { return <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">{title}</h2><div className="mt-4 leading-7 text-muted-foreground">{children}</div></article>; }
-function Related({ href, children }: { href: string; children: React.ReactNode }) { return <Link href={href} className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-primary hover:text-primary">{children}</Link>; }
