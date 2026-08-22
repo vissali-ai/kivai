@@ -1,48 +1,14 @@
-import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
-
+import { VideoServerToolEditorialV2 } from "@/components/tools/video-server-tool-editorial-v2";
 import { getToolMetadata } from "@/lib/seo";
 import MovParaMp4Client from "./mov-para-mp4-client";
 
 export const metadata = getToolMetadata("mov-para-mp4");
 
-const faq = [
-  ["Como converter MOV para MP4?", "Selecione um MOV válido, confira os dados detectados, mantenha ou ajuste qualidade, resolução e FPS, clique em Converter para MP4 e baixe o resultado."],
-  ["MOV e MP4 são codecs?", "Não. MOV e MP4 são containers. H.264, HEVC/H.265, MPEG-4 e AAC são exemplos de codecs que podem existir dentro deles."],
-  ["Por que arquivos de iPhone costumam ser MOV?", "O ecossistema Apple utiliza o container QuickTime MOV em muitos fluxos de captura. O codec interno pode variar, inclusive entre H.264 e HEVC."],
-  ["MP4 funciona em mais dispositivos?", "Em geral, MP4 possui ampla aceitação em navegadores, celulares, televisores e plataformas. A compatibilidade final também depende dos codecs internos."],
-  ["Converter MOV para MP4 perde qualidade?", "Quando vídeo e áudio podem ser copiados por remux, não ocorre recompressão. Quando a recodificação é necessária ou solicitada, pode existir alguma diferença visual."],
-  ["O áudio será mantido?", "Sim. Áudio AAC ou MP3 pode ser copiado no remux; outros codecs são convertidos para AAC quando o arquivo precisa ser recodificado."],
-  ["A resolução será preservada?", "Sim, por padrão. Uma resolução menor só é aplicada quando você a escolhe, e a ferramenta nunca aumenta automaticamente as dimensões."],
-  ["O vídeo vertical continuará vertical?", "Sim. A proporção e a orientação detectada pelo FFmpeg são preservadas. O resultado é verificado antes de ser liberado."],
-  ["Posso converter vídeo 4K?", "Sim, desde que a maior dimensão não ultrapasse 3840 pixels e o arquivo respeite os limites de tamanho e duração. O processamento pode levar mais tempo."],
-  ["Arquivos HEVC podem ser convertidos?", "Sim. HEVC pode ser mantido em um MP4 válido quando os demais streams são compatíveis. Dispositivos antigos podem não reproduzi-lo; ao escolher outra qualidade, o vídeo é recodificado em H.264."],
-  ["O que é remux?", "É a troca do container sem recomprimir os streams compatíveis de vídeo e áudio. Essa estratégia é mais rápida e preserva a qualidade original."],
-  ["Quando é necessário recodificar?", "Quando os codecs não são adequados ao MP4 ou quando você escolhe outra qualidade, resolução ou FPS."],
-  ["O tamanho do arquivo vai diminuir?", "Não necessariamente. O tamanho depende principalmente de codec, bitrate, duração, resolução, FPS, áudio e complexidade das cenas."],
-  ["O FPS será mantido?", "O padrão mantém o FPS original. Uma opção menor só reduz a taxa quando o vídeo possui FPS superior; nunca ocorre aumento automático."],
-  ["Existe limite de tamanho?", "A ferramenta aceita um arquivo MOV por vez com até 200 MB, duração máxima de 2 horas e resolução de entrada de até 4K."],
-  ["Posso visualizar o MP4 antes de baixar?", "Sim. O resultado possui player sempre que o navegador conseguir reproduzir os codecs presentes no MP4."],
-] as const;
-
-const schema = { "@context": "https://schema.org", "@graph": [
-  { "@type": "SoftwareApplication", name: "MOV para MP4", applicationCategory: "MultimediaApplication", operatingSystem: "Qualquer sistema com navegador moderno", url: "https://www.kivai.com.br/ferramentas/mov-para-mp4", description: "Converta vídeos MOV para MP4 preservando resolução, orientação, áudio e qualidade sempre que possível.", offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" } },
-  { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Início", item: "https://www.kivai.com.br" }, { "@type": "ListItem", position: 2, name: "Vídeos", item: "https://www.kivai.com.br/ferramentas/videos" }, { "@type": "ListItem", position: 3, name: "MOV para MP4", item: "https://www.kivai.com.br/ferramentas/mov-para-mp4" }] },
-  { "@type": "FAQPage", mainEntity: faq.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) },
-] };
-
 export default function MovParaMp4Page() {
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><MovParaMp4Client /><section className="border-t border-border bg-muted/10 py-12 sm:py-16"><div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-    <div className="grid gap-6 lg:grid-cols-2"><Info title="O que é MOV?"><p>MOV é um container de mídia amplamente usado em dispositivos, câmeras e programas de edição. Ele é comum no ecossistema Apple e QuickTime, mas não pertence exclusivamente a esses dispositivos. Um MOV pode armazenar vídeo, áudio e metadados usando diferentes codecs.</p></Info><Info title="O que é MP4?"><p>MP4 também é um container. Ele é amplamente aceito por navegadores, celulares, televisores, aplicativos, redes sociais e sistemas de publicação. A extensão MP4 não determina sozinha a compatibilidade: os codecs internos continuam importantes.</p></Info></div>
-    <Info title="Por que converter MOV para MP4?"><p>A conversão é útil quando um vídeo de celular, câmera ou editor não abre no dispositivo de destino ou quando uma plataforma prefere MP4. Ela também facilita compartilhamento, publicação em sites e entrega de arquivos a clientes.</p><ul className="mt-4 grid gap-2 sm:grid-cols-2"><li className="flex gap-2"><CheckCircle2 className="mt-1 size-4 shrink-0 text-primary" />Publicação em sites e plataformas.</li><li className="flex gap-2"><CheckCircle2 className="mt-1 size-4 shrink-0 text-primary" />Compartilhamento entre dispositivos.</li><li className="flex gap-2"><CheckCircle2 className="mt-1 size-4 shrink-0 text-primary" />Envio por aplicativos e e-mail.</li><li className="flex gap-2"><CheckCircle2 className="mt-1 size-4 shrink-0 text-primary" />Importação em sistemas que solicitam MP4.</li></ul></Info>
-    <div className="grid gap-6 lg:grid-cols-2"><Info title="MOV para MP4 perde qualidade?"><p>Se o vídeo e o áudio forem compatíveis e as configurações permanecerem no padrão, o servidor usa remux: os streams são copiados para um container MP4 novo sem recompressão.</p><p className="mt-3">Quando o codec precisa mudar ou você solicita outra qualidade, resolução ou FPS, o vídeo é recodificado em H.264 e o áudio em AAC quando presente. Nesse caso pode existir alguma diferença visual.</p></Info><Info title="E os vídeos MOV de iPhone?"><p>Arquivos de iPhone podem usar H.264 ou HEVC, além de metadados de orientação e perfis de cor. A ferramenta detecta o codec e preserva orientação e proporção. HEVC pode permanecer no MP4 durante o remux, mas aparelhos antigos podem não oferecer suporte.</p><p className="mt-3">Não é feita conversão automática de HDR ou Dolby Vision para SDR, portanto não prometemos preservar recursos avançados de cor que não possam ser confirmados.</p></Info></div>
-    <div className="grid gap-6 lg:grid-cols-2"><Info title="MOV e MP4 têm tamanhos diferentes?"><p>O container sozinho raramente é o principal responsável pelo tamanho. Codec, bitrate, duração, resolução, FPS, áudio e complexidade das cenas exercem influência maior. Em um remux, a diferença tende a ser pequena.</p></Info><Info title="Como a estratégia é escolhida?"><p>O servidor valida o container QuickTime e analisa os streams com FFmpeg. H.264, HEVC, MPEG-4 ou AV1 com áudio AAC ou MP3 podem usar remux quando nenhuma transformação foi pedida. Nos demais casos, o vídeo é convertido para H.264 e o áudio para AAC.</p></Info></div>
-    <Info title="Como converter MOV para MP4"><p>Imagine que você gravou um vídeo no celular e recebeu um MOV que a plataforma de destino não aceita. A ferramenta analisa o arquivo, escolhe a estratégia compatível e gera um MP4 real — não apenas um arquivo com a extensão alterada.</p><ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{["Selecione o arquivo MOV.", "Confira duração, resolução e codecs.", "Mantenha ou ajuste qualidade, resolução e FPS.", "Clique em Converter para MP4.", "Aguarde o processamento real.", "Visualize e baixe o MP4."].map((step, index) => <li key={step} className="rounded-lg border border-border p-4 text-sm"><span className="mb-3 flex size-7 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">{index + 1}</span>{step}</li>)}</ol></Info>
-    <Info title="Recursos e limites"><ul className="grid gap-2 sm:grid-cols-2">{["Entrada validada: container QuickTime MOV", "Saída válida em container MP4", "Um arquivo por vez, até 200 MB", "Duração máxima de 2 horas", "Resolução máxima de entrada 4K", "Resolução e FPS nunca aumentados", "Remux preferencial sem recompressão", "Fallback em H.264 e AAC", "Áudio preservado por padrão", "Orientação e proporção preservadas", "MP4 otimizado para início rápido", "Cancelamento e limpeza de temporários"].map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="mt-1 size-4 shrink-0 text-primary" />{item}</li>)}</ul></Info>
-    <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Perguntas frequentes</h2><div className="mt-5 space-y-3">{faq.map(([question, answer]) => <details key={question} className="rounded-lg border border-border p-4"><summary className="cursor-pointer font-medium">{question}</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">{answer}</p></details>)}</div></article>
-    <nav aria-label="Ferramentas relacionadas" className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2><div className="mt-4 flex flex-wrap gap-3"><Related href="/ferramentas/mp4-para-mov">MP4 para MOV</Related><Related href="/ferramentas/hevc-para-mp4">HEVC para MP4</Related><Related href="/ferramentas/compressor-de-videos">Compressor de Vídeos</Related><Related href="/ferramentas/video-para-audio">Vídeo para Áudio</Related><Related href="/ferramentas/redimensionar-video">Redimensionar Vídeo</Related><Related href="/ferramentas/recortar-video">Recortar Vídeo</Related><Related href="/ferramentas/dividir-video">Dividir Vídeo</Related><Related href="/ferramentas/capturar-frame-video">Capturar Frame</Related></div></nav>
-  </div></section></>;
+  return (
+    <>
+      <MovParaMp4Client />
+      <VideoServerToolEditorialV2 slug="mov-para-mp4" />
+    </>
+  );
 }
-
-function Info({ title, children }: { title: string; children: React.ReactNode }) { return <article className="rounded-xl border border-border bg-background p-5 sm:p-6"><h2 className="text-2xl font-semibold">{title}</h2><div className="mt-4 leading-7 text-muted-foreground">{children}</div></article>; }
-function Related({ href, children }: { href: string; children: React.ReactNode }) { return <Link href={href} className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-primary hover:text-primary">{children}</Link>; }
