@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { getToolHref, getToolsByCategory } from "@/lib/tools";
 
-const filters = ["Todos", "Edição", "Converter", "Otimizar"];
+const filters = ["Todos", "Baixar", "Edição", "Converter", "Otimizar"];
 const tools = getToolsByCategory("video");
 
 export default function VideosPage() {
@@ -32,7 +32,7 @@ export default function VideosPage() {
             <p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramentas de vídeo</p>
             <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Vídeos</h1>
             <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-              Converta, edite e otimize vídeos com ferramentas online para tarefas rápidas de compatibilidade, compressão e edição.
+              Baixe mídias públicas autorizadas, converta, edite e otimize vídeos com ferramentas online para tarefas rápidas.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2" aria-label="Filtrar ferramentas de vídeo">

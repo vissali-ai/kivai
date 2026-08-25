@@ -1,4 +1,5 @@
 export type VideoServerToolEditorialSlug =
+  | "baixar-video-instagram"
   | "hevc-para-mp4"
   | "mp4-para-hevc"
   | "mp4-para-mov"
@@ -18,6 +19,7 @@ export type VideoServerEditorialContent = {
 };
 
 const related = [
+  { href: "/ferramentas/baixar-video-instagram", label: "Baixar Vídeo e Foto do Instagram" },
   { href: "/ferramentas/hevc-para-mp4", label: "HEVC para MP4" },
   { href: "/ferramentas/mp4-para-hevc", label: "MP4 para HEVC" },
   { href: "/ferramentas/mp4-para-mov", label: "MP4 para MOV" },
@@ -38,6 +40,48 @@ function withRelated(
 }
 
 export const videoServerToolEditorialContent: Record<VideoServerToolEditorialSlug, VideoServerEditorialContent> = {
+  "baixar-video-instagram": withRelated("baixar-video-instagram", {
+    overview: [
+      "A ferramenta localiza o vídeo ou a foto disponível em um Reel ou publicação pública a partir do link colado pelo usuário. Ela não exige conexão com uma conta do Instagram e não tenta acessar perfis privados.",
+      "A disponibilidade depende da página pública e dos endereços temporários fornecidos pela plataforma. Use a ferramenta somente para conteúdo próprio, licenciado ou cuja utilização tenha sido autorizada pelo titular.",
+    ],
+    useCases: [
+      { title: "Guardar conteúdo próprio", description: "Salve no dispositivo uma cópia de um Reel, vídeo ou foto publicado por você em uma conta pública." },
+      { title: "Material autorizado", description: "Baixe uma mídia pública quando o criador ou titular concedeu permissão para o uso pretendido." },
+      { title: "Fluxo de edição", description: "Obtenha uma cópia autorizada para arquivamento, revisão ou edição em outro programa." },
+    ],
+    steps: [
+      "Abra o Reel ou a publicação pública no Instagram e copie o link.",
+      "Cole o endereço no campo da ferramenta.",
+      "Confirme que o conteúdo é seu ou que você possui autorização para baixá-lo.",
+      "Analise o link e aguarde a identificação do vídeo ou da foto.",
+      "Confira os dados disponíveis e baixe o arquivo antes de o link temporário expirar.",
+    ],
+    specifications: [
+      { label: "Links aceitos", value: "Reels e publicações públicas do Instagram que contenham vídeo ou foto." },
+      { label: "Saída", value: "Vídeo ou imagem no formato disponibilizado pela publicação, normalmente MP4 ou JPG." },
+      { label: "Limite", value: "Até 200 MB por vídeo e 25 MB por foto nesta primeira versão." },
+      { label: "Privacidade", value: "Não solicita usuário, senha nem acesso à sua conta do Instagram." },
+      { label: "Disponibilidade", value: "O botão de download fica disponível por alguns minutos após a análise." },
+    ],
+    privacy: "Usamos o link apenas para encontrar o arquivo. Você não precisa informar login ou senha, e o conteúdo não fica salvo no Kivai.",
+    limitations: [
+      "Contas privadas, Stories, conteúdos removidos, restritos por idade ou região e páginas que exigem login não são compatíveis.",
+      "Mudanças técnicas ou bloqueios temporários do Instagram podem interromper a localização de vídeos públicos.",
+      "A ferramenta não concede direitos sobre o conteúdo; autorização, finalidade e cumprimento das regras aplicáveis são responsabilidade do usuário.",
+      "Alguns vídeos que exigem juntar imagem e áudio separadamente podem não estar disponíveis nesta primeira versão.",
+      "Em publicações com várias fotos, esta primeira versão pode encontrar somente a imagem principal.",
+    ],
+    faqs: [
+      { question: "É possível baixar vídeos de contas privadas?", answer: "Não. A ferramenta aceita somente páginas públicas acessíveis sem login e não tenta contornar configurações de privacidade." },
+      { question: "Preciso conectar minha conta do Instagram?", answer: "Não. O Kivai não solicita usuário, senha nem acesso à sua conta." },
+      { question: "Posso baixar qualquer vídeo público?", answer: "Use somente conteúdo próprio ou material para o qual você tenha autorização e respeite direitos autorais, de imagem e as regras aplicáveis." },
+      { question: "O Kivai guarda o vídeo?", answer: "Não. O Kivai usa o link apenas para encontrar o arquivo e enviá-lo ao seu navegador durante o download." },
+      { question: "A ferramenta baixa fotos?", answer: "Sim. Ela baixa a imagem disponível em publicações públicas. Em carrosséis, esta primeira versão pode encontrar somente a foto principal." },
+      { question: "Por que um link público pode não funcionar?", answer: "A publicação pode estar removida, restrita, exigir login ou ter sido afetada por uma mudança do Instagram." },
+      { question: "A ferramenta baixa Stories?", answer: "Não nesta primeira versão. O suporte inicial é para Reels e publicações públicas com vídeo ou foto." },
+    ],
+  }),
   "hevc-para-mp4": withRelated("hevc-para-mp4", {
     overview: [
       "O conversor HEVC para MP4 transforma vídeos codificados em HEVC/H.265 em um MP4 com vídeo H.264 e áudio AAC quando existe faixa de áudio. A finalidade é ampliar a compatibilidade com navegadores, editores, sistemas de upload e dispositivos que não reproduzem HEVC de forma nativa.",
