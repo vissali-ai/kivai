@@ -266,12 +266,12 @@ export function InstagramFollowAnalyzer() {
             <div className="border border-white/10 bg-card p-4">
               <p className="text-xs text-muted-foreground">Seguidores encontrados na exportação</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums">{result.followers.length.toLocaleString("pt-BR")}</p>
-              {verification?.currentFollowers !== null ? <p className="mt-1 text-xs text-muted-foreground">Perfil informado: {verification.currentFollowers.toLocaleString("pt-BR")}</p> : null}
+              {verification && verification.currentFollowers !== null ? <p className="mt-1 text-xs text-muted-foreground">Perfil informado: {verification.currentFollowers.toLocaleString("pt-BR")}</p> : null}
             </div>
             <div className="border border-white/10 bg-card p-4">
               <p className="text-xs text-muted-foreground">Registros de seguindo na exportação</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums">{result.following.length.toLocaleString("pt-BR")}</p>
-              {verification?.currentFollowing !== null ? <p className="mt-1 text-xs text-muted-foreground">Perfil informado: {verification.currentFollowing.toLocaleString("pt-BR")}</p> : null}
+              {verification && verification.currentFollowing !== null ? <p className="mt-1 text-xs text-muted-foreground">Perfil informado: {verification.currentFollowing.toLocaleString("pt-BR")}</p> : null}
             </div>
           </div>
 
