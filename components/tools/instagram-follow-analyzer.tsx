@@ -137,7 +137,6 @@ export function InstagramFollowAnalyzer() {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [fileName, setFileName] = useState("");
-  const [visibleFollowers, setVisibleFollowers] = useState("");
   const [visibleFollowing, setVisibleFollowing] = useState("");
 
   const currentList = result?.[activeTab] ?? [];
@@ -149,20 +148,16 @@ export function InstagramFollowAnalyzer() {
 
   const verification = useMemo(() => {
     if (!result) return null;
-    const currentFollowers = parseVisibleCount(visibleFollowers);
     const currentFollowing = parseVisibleCount(visibleFollowing);
-    const followersMatch = currentFollowers === null ? null : currentFollowers === result.followers.length;
     const followingMatch = currentFollowing === null ? null : currentFollowing === result.following.length;
 
     return {
-      currentFollowers,
       currentFollowing,
-      followersMatch,
       followingMatch,
-      hasMismatch: followersMatch === false || followingMatch === false,
-      fullyChecked: followersMatch !== null && followingMatch !== null,
+      hasMismatch: followingMatch === false,
+      fullyChecked: followingMatch !== null,
     };
-  }, [result, visibleFollowers, visibleFollowing]);
+  }, [result, visibleFollowing]);
 
   async function handleFile(file?: File) {
     if (!file) return;
@@ -198,27 +193,20 @@ export function InstagramFollowAnalyzer() {
           <div>
             <h2 className="text-xl font-semibold">Importe seus dados da Meta</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Envie o ZIP exportado pela Meta. Para aumentar a confiabilidade, informe também os números que aparecem hoje no seu perfil do Instagram. O Kivai compara os contadores visíveis com a exportação antes de classificar o relatório.
+              Envie o arquivo importado do instagram e aguarde a análise completa. Informe também abaixo os números exatos atuais da sua Rede, para classificarmos o relatório com mais precisão.
             </p>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <div>
-            <label htmlFor="visible-followers" className="text-sm font-medium">Seguidores visíveis no Instagram</label>
-            <Input id="visible-followers" inputMode="numeric" value={visibleFollowers} onChange={(event) => setVisibleFollowers(event.target.value)} placeholder="Ex.: 675" className="mt-2" />
-          </div>
-          <div>
-            <label htmlFor="visible-following" className="text-sm font-medium">Seguindo visível no Instagram</label>
-            <Input id="visible-following" inputMode="numeric" value={visibleFollowing} onChange={(event) => setVisibleFollowing(event.target.value)} placeholder="Ex.: 592" className="mt-2" />
-          </div>
+        <div className="mt-6 max-w-md">
+          <label htmlFor="visible-following" className="text-sm font-medium">Quantas pessoas você segue no instagram?</label>
+          <Input id="visible-following" inputMode="numeric" value={visibleFollowing} onChange={(event) => setVisibleFollowing(event.target.value)} placeholder="Ex.: 592" className="mt-2" />
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Opcional, mas recomendado. Esses números servem apenas para validar a consistência da exportação.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Opcional, mas recomendado. Esse número serve apenas para validar a consistência da exportação.</p>
 
         <label className="mt-6 flex cursor-pointer flex-col items-center justify-center border border-dashed border-white/15 bg-white/[0.02] px-6 py-10 text-center transition hover:border-primary/40 hover:bg-primary/[0.03]">
           <Upload className="mb-3 size-6 text-primary" />
-          <span className="font-medium">Selecionar arquivo ZIP ou JSON</span>
-          <span className="mt-1 text-xs text-muted-foreground">Plano grátis: até 50 mil seguidores</span>
+          <span className="font-medium">Selecione o arquivo ZIP ou JSON</span>
           <input type="file" accept=".zip,.json,application/zip,application/json" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} />
         </label>
 
@@ -233,9 +221,9 @@ export function InstagramFollowAnalyzer() {
             <div className="flex gap-3 border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
               <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-400" />
               <div>
-                <p className="font-semibold text-amber-200">A exportação diverge do perfil atual</p>
+                <p className="font-semibold text-amber-200">Os dados dos seguidores exportados podem divergir do perfil atual</p>
                 <p className="mt-1 leading-6 text-amber-100/80">
-                  A Meta pode manter registros históricos ou indisponíveis no arquivo. O Kivai mostra o cruzamento encontrado, mas não considera este relatório totalmente confirmado enquanto houver diferença nos contadores.
+                  A Meta pode manter registros históricos ou indisponíveis no arquivo. Mostraremos o cruzamento encontrado quando a análise for carregada.
                 </p>
               </div>
             </div>
@@ -244,12 +232,12 @@ export function InstagramFollowAnalyzer() {
               <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-400" />
               <div>
                 <p className="font-semibold text-emerald-200">Exportação consistente com o perfil</p>
-                <p className="mt-1 text-emerald-100/80">Os totais informados no Instagram coincidem com os registros encontrados na exportação.</p>
+                <p className="mt-1 text-emerald-100/80">O total informado de contas que você segue coincide com os registros encontrados na exportação.</p>
               </div>
             </div>
           ) : (
             <div className="border border-white/10 bg-white/[0.02] p-4 text-sm text-muted-foreground">
-              Relatório não verificado pelos contadores do perfil. Informe os números visíveis de seguidores e seguindo acima para validar a exportação.
+              Relatório não verificado pelo contador do perfil. Informe quantas pessoas você segue no Instagram acima para validar a exportação.
             </div>
           )}
 
@@ -260,19 +248,6 @@ export function InstagramFollowAnalyzer() {
                 <span className="text-sm tabular-nums">{tab.count.toLocaleString("pt-BR")}</span>
               </Button>
             ))}
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="border border-white/10 bg-card p-4">
-              <p className="text-xs text-muted-foreground">Seguidores encontrados na exportação</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums">{result.followers.length.toLocaleString("pt-BR")}</p>
-              {verification && verification.currentFollowers !== null ? <p className="mt-1 text-xs text-muted-foreground">Perfil informado: {verification.currentFollowers.toLocaleString("pt-BR")}</p> : null}
-            </div>
-            <div className="border border-white/10 bg-card p-4">
-              <p className="text-xs text-muted-foreground">Registros de seguindo na exportação</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums">{result.following.length.toLocaleString("pt-BR")}</p>
-              {verification && verification.currentFollowing !== null ? <p className="mt-1 text-xs text-muted-foreground">Perfil informado: {verification.currentFollowing.toLocaleString("pt-BR")}</p> : null}
-            </div>
           </div>
 
           <div className="border border-white/10 bg-card">
