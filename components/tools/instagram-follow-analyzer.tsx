@@ -15,6 +15,7 @@ type AnalyzerResult = {
 };
 
 type TabKey = "notFollowingBack" | "youDoNotFollow" | "mutuals";
+type FileKind = "followers" | "following" | null;
 
 const FREE_FOLLOWER_LIMIT = 50000;
 
@@ -25,48 +26,64 @@ function normalizeUsername(value: unknown) {
   return clean.toLowerCase();
 }
 
-function extractUsernames(node: unknown, output = new Set<string>()) {
-  if (!node) return output;
-  if (Array.isArray(node)) {
-    for (const item of node) extractUsernames(item, output);
-    return output;
-  }
-  if (typeof node !== "object") return output;
+function getBaseName(path: string) {
+  return path.split("/").pop()?.toLowerCase() ?? "";
+}
 
-  const record = node as Record<string, unknown>;
-  const direct = normalizeUsername(record.value);
-  if (direct) output.add(direct);
+function classifyFile(path: string): FileKind {
+  const base = getBaseName(path);
 
-  if (Array.isArray(record.string_list_data)) {
-    for (const item of record.string_list_data) {
-      if (item && typeof item === "object") {
-        const username = normalizeUsername((item as Record<string, unknown>).value);
-        if (username) output.add(username);
-      }
+  if (/^(followers|seguidores)(?:_\d+)?\.json$/.test(base)) return "followers";
+  if (/^(following|seguindo)\.json$/.test(base)) return "following";
+
+  return null;
+}
+
+function extractFollowers(parsed: unknown) {
+  const output = new Set<string>();
+  if (!Array.isArray(parsed)) return output;
+
+  for (const item of parsed) {
+    if (!item || typeof item !== "object") continue;
+    const record = item as Record<string, unknown>;
+    const list = Array.isArray(record.string_list_data) ? record.string_list_data : [];
+
+    for (const entry of list) {
+      if (!entry || typeof entry !== "object") continue;
+      const username = normalizeUsername((entry as Record<string, unknown>).value);
+      if (username) output.add(username);
     }
   }
 
-  for (const value of Object.values(record)) extractUsernames(value, output);
   return output;
 }
 
-function classifyFile(path: string) {
-  const p = path.toLowerCase();
-  const followerSignals = ["followers", "seguidores"];
-  const followingSignals = ["following", "seguindo"];
-  const isFollowers = followerSignals.some((signal) => p.includes(signal)) && !followingSignals.some((signal) => p.includes(signal));
-  const isFollowing = followingSignals.some((signal) => p.includes(signal));
-  return { isFollowers, isFollowing };
+function extractFollowing(parsed: unknown) {
+  const output = new Set<string>();
+  if (!parsed || typeof parsed !== "object") return output;
+
+  const relationships = (parsed as Record<string, unknown>).relationships_following;
+  if (!Array.isArray(relationships)) return output;
+
+  for (const item of relationships) {
+    if (!item || typeof item !== "object") continue;
+    const username = normalizeUsername((item as Record<string, unknown>).title);
+    if (username) output.add(username);
+  }
+
+  return output;
 }
 
 async function parseJsonFile(name: string, text: string, followers: Set<string>, following: Set<string>) {
-  const { isFollowers, isFollowing } = classifyFile(name);
-  if (!isFollowers && !isFollowing) return;
+  const kind = classifyFile(name);
+  if (!kind) return;
+
   const parsed = JSON.parse(text) as unknown;
-  const usernames = extractUsernames(parsed);
+  const usernames = kind === "followers" ? extractFollowers(parsed) : extractFollowing(parsed);
+
   for (const username of usernames) {
-    if (isFollowers) followers.add(username);
-    if (isFollowing) following.add(username);
+    if (kind === "followers") followers.add(username);
+    else following.add(username);
   }
 }
 
@@ -76,10 +93,9 @@ async function analyzeFile(file: File): Promise<AnalyzerResult> {
 
   if (file.name.toLowerCase().endsWith(".zip")) {
     const zip = await JSZip.loadAsync(file);
-    const jsonEntries = Object.values(zip.files).filter((entry) => !entry.dir && entry.name.toLowerCase().endsWith(".json"));
+    const jsonEntries = Object.values(zip.files).filter((entry) => !entry.dir && classifyFile(entry.name));
+
     for (const entry of jsonEntries) {
-      const { isFollowers, isFollowing } = classifyFile(entry.name);
-      if (!isFollowers && !isFollowing) continue;
       const text = await entry.async("text");
       await parseJsonFile(entry.name, text, followers, following);
     }
@@ -89,8 +105,8 @@ async function analyzeFile(file: File): Promise<AnalyzerResult> {
     throw new Error("Envie o arquivo ZIP da Meta ou um arquivo JSON de seguidores/seguindo.");
   }
 
-  if (!followers.size && !following.size) {
-    throw new Error("Não localizamos os arquivos de seguidores e seguindo nesta exportação. Vamos validar o formato da Meta com um arquivo real.");
+  if (!followers.size || !following.size) {
+    throw new Error("Não localizamos os dois arquivos necessários: seguidores e seguindo. Gere uma exportação da Meta incluindo 'Seguidores e Seguindo' em JSON.");
   }
 
   if (followers.size > FREE_FOLLOWER_LIMIT) {
@@ -131,6 +147,7 @@ export function InstagramFollowAnalyzer() {
     setError("");
     setResult(null);
     setFileName(file.name);
+
     try {
       setResult(await analyzeFile(file));
       setActiveTab("notFollowingBack");
@@ -152,10 +169,14 @@ export function InstagramFollowAnalyzer() {
     <div className="space-y-8">
       <section className="border border-white/10 bg-card p-6 sm:p-8">
         <div className="flex items-start gap-4">
-          <div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><Users className="size-5" /></div>
+          <div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary">
+            <Users className="size-5" />
+          </div>
           <div>
             <h2 className="text-xl font-semibold">Importe seus dados da Meta</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Envie o ZIP exportado pela Meta. A análise gratuita cruza seguidores e seguindo diretamente no navegador e mostra os @ exatos em poucos segundos ou minutos, conforme o tamanho da conta.</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+              Envie o ZIP exportado pela Meta. A análise gratuita cruza seguidores e seguindo diretamente no navegador e mostra os @ exatos em poucos segundos ou minutos, conforme o tamanho da conta.
+            </p>
           </div>
         </div>
 
@@ -176,9 +197,21 @@ export function InstagramFollowAnalyzer() {
           <div className="grid gap-3 sm:grid-cols-3">
             {tabs.map((tab) => (
               <Button key={tab.key} type="button" variant={activeTab === tab.key ? "default" : "outline"} className="h-auto justify-between px-4 py-4" onClick={() => setActiveTab(tab.key)}>
-                <span>{tab.label}</span><span className="text-sm tabular-nums">{tab.count.toLocaleString("pt-BR")}</span>
+                <span>{tab.label}</span>
+                <span className="text-sm tabular-nums">{tab.count.toLocaleString("pt-BR")}</span>
               </Button>
             ))}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="border border-white/10 bg-card p-4">
+              <p className="text-xs text-muted-foreground">Seguidores encontrados</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums">{result.followers.length.toLocaleString("pt-BR")}</p>
+            </div>
+            <div className="border border-white/10 bg-card p-4">
+              <p className="text-xs text-muted-foreground">Contas que você segue</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums">{result.following.length.toLocaleString("pt-BR")}</p>
+            </div>
           </div>
 
           <div className="border border-white/10 bg-card">
@@ -194,12 +227,18 @@ export function InstagramFollowAnalyzer() {
             </div>
 
             <div className="max-h-[520px] overflow-auto">
-              {filtered.length ? filtered.map((username) => (
-                <div key={username} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-b-0">
-                  <span className="text-sm font-medium">@{username}</span>
-                  <a href={`https://www.instagram.com/${encodeURIComponent(username)}/`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Abrir Instagram</a>
-                </div>
-              )) : <p className="p-6 text-sm text-muted-foreground">Nenhum perfil encontrado.</p>}
+              {filtered.length ? (
+                filtered.map((username) => (
+                  <div key={username} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-b-0">
+                    <span className="text-sm font-medium">@{username}</span>
+                    <a href={`https://www.instagram.com/${encodeURIComponent(username)}/`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                      Abrir Instagram
+                    </a>
+                  </div>
+                ))
+              ) : (
+                <p className="p-6 text-sm text-muted-foreground">Nenhum perfil encontrado.</p>
+              )}
             </div>
           </div>
         </section>
