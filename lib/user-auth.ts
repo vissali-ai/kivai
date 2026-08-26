@@ -77,10 +77,9 @@ export async function signUpWithPassword(name: string, email: string, password: 
   return payload as KivaiAuthSession;
 }
 
-export function signInWithGoogle(next = "/conta") {
+export function signInWithGoogle(_next = "/conta") {
   if (typeof window === "undefined") return;
   const callback = new URL("/conta/callback", window.location.origin);
-  callback.searchParams.set("next", next.startsWith("/") ? next : "/conta");
   const authorize = new URL(`${SUPABASE_URL}/auth/v1/authorize`);
   authorize.searchParams.set("provider", "google");
   authorize.searchParams.set("redirect_to", callback.toString());
