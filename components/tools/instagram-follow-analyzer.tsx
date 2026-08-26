@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import JSZip from "jszip";
-import { AlertTriangle, CheckCircle2, Search, Upload, Users } from "lucide-react";
+import { Search, Upload, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -124,12 +124,6 @@ async function analyzeFile(file: File): Promise<AnalyzerResult> {
   };
 }
 
-function parseVisibleCount(value: string) {
-  if (!value.trim()) return null;
-  const parsed = Number(value.replace(/\D/g, ""));
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
-}
-
 export function InstagramFollowAnalyzer() {
   const [result, setResult] = useState<AnalyzerResult | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("notFollowingBack");
@@ -137,7 +131,6 @@ export function InstagramFollowAnalyzer() {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [fileName, setFileName] = useState("");
-  const [visibleFollowing, setVisibleFollowing] = useState("");
 
   const currentList = result?.[activeTab] ?? [];
   const filtered = useMemo(() => {
@@ -145,19 +138,6 @@ export function InstagramFollowAnalyzer() {
     if (!term) return currentList;
     return currentList.filter((username) => username.includes(term));
   }, [currentList, search]);
-
-  const verification = useMemo(() => {
-    if (!result) return null;
-    const currentFollowing = parseVisibleCount(visibleFollowing);
-    const followingMatch = currentFollowing === null ? null : currentFollowing === result.following.length;
-
-    return {
-      currentFollowing,
-      followingMatch,
-      hasMismatch: followingMatch === false,
-      fullyChecked: followingMatch !== null,
-    };
-  }, [result, visibleFollowing]);
 
   async function handleFile(file?: File) {
     if (!file) return;
@@ -193,16 +173,10 @@ export function InstagramFollowAnalyzer() {
           <div>
             <h2 className="text-xl font-semibold">Importe seus dados da Meta</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Envie o arquivo importado do instagram e aguarde a análise completa. Informe também abaixo os números exatos atuais da sua Rede, para classificarmos o relatório com mais precisão.
+              Envie o arquivo importado do Instagram e aguarde a análise completa.
             </p>
           </div>
         </div>
-
-        <div className="mt-6 max-w-md">
-          <label htmlFor="visible-following" className="text-sm font-medium">Quantas pessoas você segue no instagram?</label>
-          <Input id="visible-following" inputMode="numeric" value={visibleFollowing} onChange={(event) => setVisibleFollowing(event.target.value)} placeholder="Ex.: 592" className="mt-2" />
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">Opcional, mas recomendado. Esse número serve apenas para validar a consistência da exportação.</p>
 
         <label className="mt-6 flex cursor-pointer flex-col items-center justify-center border border-dashed border-white/15 bg-white/[0.02] px-6 py-10 text-center transition hover:border-primary/40 hover:bg-primary/[0.03]">
           <Upload className="mb-3 size-6 text-primary" />
@@ -217,30 +191,6 @@ export function InstagramFollowAnalyzer() {
 
       {result ? (
         <section className="space-y-5">
-          {verification?.hasMismatch ? (
-            <div className="flex gap-3 border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
-              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-400" />
-              <div>
-                <p className="font-semibold text-amber-200">Os dados dos seguidores exportados podem divergir do perfil atual</p>
-                <p className="mt-1 leading-6 text-amber-100/80">
-                  A Meta pode manter registros históricos ou indisponíveis no arquivo. Mostraremos o cruzamento encontrado quando a análise for carregada.
-                </p>
-              </div>
-            </div>
-          ) : verification?.fullyChecked ? (
-            <div className="flex gap-3 border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">
-              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-400" />
-              <div>
-                <p className="font-semibold text-emerald-200">Exportação consistente com o perfil</p>
-                <p className="mt-1 text-emerald-100/80">O total informado de contas que você segue coincide com os registros encontrados na exportação.</p>
-              </div>
-            </div>
-          ) : (
-            <div className="border border-white/10 bg-white/[0.02] p-4 text-sm text-muted-foreground">
-              Relatório não verificado pelo contador do perfil. Informe quantas pessoas você segue no Instagram acima para validar a exportação.
-            </div>
-          )}
-
           <div className="grid gap-3 sm:grid-cols-3">
             {tabs.map((tab) => (
               <Button key={tab.key} type="button" variant={activeTab === tab.key ? "default" : "outline"} className="h-auto justify-between px-4 py-4" onClick={() => setActiveTab(tab.key)}>
