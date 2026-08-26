@@ -20,7 +20,7 @@ export default function InstagramFollowAnalyzerPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Kivai Social Intelligence</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">Instagram Follow Analyzer</h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
-          Descubra rapidamente quem não segue você de volta, quem você não segue e quais seguidores são mútuos. A versão gratuita analisa até 50 mil seguidores.
+          Descubra rapidamente de forma gratuita quem não te segue de volta no instagram e limpe seu perfil.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3 text-xs text-muted-foreground">
@@ -33,7 +33,7 @@ export default function InstagramFollowAnalyzerPage() {
 
       <section className="mt-12 grid gap-4 md:grid-cols-3">
         <div className="border border-white/10 bg-card p-5"><h2 className="font-semibold">Grátis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Até 50 mil seguidores, com as três análises essenciais.</p></div>
-        <div className="border border-primary/25 bg-primary/[0.04] p-5"><h2 className="font-semibold">Pro</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Histórico, novos seguidores, unfollows, comparações e análises avançadas.</p></div>
+        <div className="border border-primary/25 bg-primary/[0.04] p-5"><h2 className="font-semibold">Pro</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Com histórico que você vai poder acompanhar quem deixou de seguir, acompanhamento rotineiro do perfil, novos seguidores, comparações e análises avançadas.</p></div>
         <div className="border border-white/10 bg-card p-5"><h2 className="font-semibold">Agency</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Múltiplas contas, clientes, relatórios e operação para agências.</p></div>
       </section>
     </main>
