@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import JSZip from "jszip";
-import { Search, Upload, Users } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Search, Upload, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -32,10 +32,8 @@ function getBaseName(path: string) {
 
 function classifyFile(path: string): FileKind {
   const base = getBaseName(path);
-
   if (/^(followers|seguidores)(?:_\d+)?\.json$/.test(base)) return "followers";
   if (/^(following|seguindo)\.json$/.test(base)) return "following";
-
   return null;
 }
 
@@ -126,6 +124,12 @@ async function analyzeFile(file: File): Promise<AnalyzerResult> {
   };
 }
 
+function parseVisibleCount(value: string) {
+  if (!value.trim()) return null;
+  const parsed = Number(value.replace(/\D/g, ""));
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
 export function InstagramFollowAnalyzer() {
   const [result, setResult] = useState<AnalyzerResult | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("notFollowingBack");
@@ -133,6 +137,8 @@ export function InstagramFollowAnalyzer() {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [visibleFollowers, setVisibleFollowers] = useState("");
+  const [visibleFollowing, setVisibleFollowing] = useState("");
 
   const currentList = result?.[activeTab] ?? [];
   const filtered = useMemo(() => {
@@ -140,6 +146,23 @@ export function InstagramFollowAnalyzer() {
     if (!term) return currentList;
     return currentList.filter((username) => username.includes(term));
   }, [currentList, search]);
+
+  const verification = useMemo(() => {
+    if (!result) return null;
+    const currentFollowers = parseVisibleCount(visibleFollowers);
+    const currentFollowing = parseVisibleCount(visibleFollowing);
+    const followersMatch = currentFollowers === null ? null : currentFollowers === result.followers.length;
+    const followingMatch = currentFollowing === null ? null : currentFollowing === result.following.length;
+
+    return {
+      currentFollowers,
+      currentFollowing,
+      followersMatch,
+      followingMatch,
+      hasMismatch: followersMatch === false || followingMatch === false,
+      fullyChecked: followersMatch !== null && followingMatch !== null,
+    };
+  }, [result, visibleFollowers, visibleFollowing]);
 
   async function handleFile(file?: File) {
     if (!file) return;
@@ -175,10 +198,22 @@ export function InstagramFollowAnalyzer() {
           <div>
             <h2 className="text-xl font-semibold">Importe seus dados da Meta</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Envie o ZIP exportado pela Meta. A análise gratuita cruza seguidores e seguindo diretamente no navegador e mostra os @ exatos em poucos segundos ou minutos, conforme o tamanho da conta.
+              Envie o ZIP exportado pela Meta. Para aumentar a confiabilidade, informe também os números que aparecem hoje no seu perfil do Instagram. O Kivai compara os contadores visíveis com a exportação antes de classificar o relatório.
             </p>
           </div>
         </div>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor="visible-followers" className="text-sm font-medium">Seguidores visíveis no Instagram</label>
+            <Input id="visible-followers" inputMode="numeric" value={visibleFollowers} onChange={(event) => setVisibleFollowers(event.target.value)} placeholder="Ex.: 675" className="mt-2" />
+          </div>
+          <div>
+            <label htmlFor="visible-following" className="text-sm font-medium">Seguindo visível no Instagram</label>
+            <Input id="visible-following" inputMode="numeric" value={visibleFollowing} onChange={(event) => setVisibleFollowing(event.target.value)} placeholder="Ex.: 592" className="mt-2" />
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">Opcional, mas recomendado. Esses números servem apenas para validar a consistência da exportação.</p>
 
         <label className="mt-6 flex cursor-pointer flex-col items-center justify-center border border-dashed border-white/15 bg-white/[0.02] px-6 py-10 text-center transition hover:border-primary/40 hover:bg-primary/[0.03]">
           <Upload className="mb-3 size-6 text-primary" />
@@ -194,6 +229,30 @@ export function InstagramFollowAnalyzer() {
 
       {result ? (
         <section className="space-y-5">
+          {verification?.hasMismatch ? (
+            <div className="flex gap-3 border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-400" />
+              <div>
+                <p className="font-semibold text-amber-200">A exportação diverge do perfil atual</p>
+                <p className="mt-1 leading-6 text-amber-100/80">
+                  A Meta pode manter registros históricos ou indisponíveis no arquivo. O Kivai mostra o cruzamento encontrado, mas não considera este relatório totalmente confirmado enquanto houver diferença nos contadores.
+                </p>
+              </div>
+            </div>
+          ) : verification?.fullyChecked ? (
+            <div className="flex gap-3 border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">
+              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-400" />
+              <div>
+                <p className="font-semibold text-emerald-200">Exportação consistente com o perfil</p>
+                <p className="mt-1 text-emerald-100/80">Os totais informados no Instagram coincidem com os registros encontrados na exportação.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="border border-white/10 bg-white/[0.02] p-4 text-sm text-muted-foreground">
+              Relatório não verificado pelos contadores do perfil. Informe os números visíveis de seguidores e seguindo acima para validar a exportação.
+            </div>
+          )}
+
           <div className="grid gap-3 sm:grid-cols-3">
             {tabs.map((tab) => (
               <Button key={tab.key} type="button" variant={activeTab === tab.key ? "default" : "outline"} className="h-auto justify-between px-4 py-4" onClick={() => setActiveTab(tab.key)}>
@@ -205,12 +264,14 @@ export function InstagramFollowAnalyzer() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="border border-white/10 bg-card p-4">
-              <p className="text-xs text-muted-foreground">Seguidores encontrados</p>
+              <p className="text-xs text-muted-foreground">Seguidores encontrados na exportação</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums">{result.followers.length.toLocaleString("pt-BR")}</p>
+              {verification?.currentFollowers !== null ? <p className="mt-1 text-xs text-muted-foreground">Perfil informado: {verification.currentFollowers.toLocaleString("pt-BR")}</p> : null}
             </div>
             <div className="border border-white/10 bg-card p-4">
-              <p className="text-xs text-muted-foreground">Contas que você segue</p>
+              <p className="text-xs text-muted-foreground">Registros de seguindo na exportação</p>
               <p className="mt-1 text-2xl font-semibold tabular-nums">{result.following.length.toLocaleString("pt-BR")}</p>
+              {verification?.currentFollowing !== null ? <p className="mt-1 text-xs text-muted-foreground">Perfil informado: {verification.currentFollowing.toLocaleString("pt-BR")}</p> : null}
             </div>
           </div>
 
@@ -218,7 +279,7 @@ export function InstagramFollowAnalyzer() {
             <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="font-semibold">{tabs.find((tab) => tab.key === activeTab)?.label}</h3>
-                <p className="mt-1 text-xs text-muted-foreground">Mostrando os @ encontrados na exportação da Meta.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Cruzamento dos @ presentes nos arquivos oficiais da Meta.</p>
               </div>
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -231,9 +292,7 @@ export function InstagramFollowAnalyzer() {
                 filtered.map((username) => (
                   <div key={username} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-b-0">
                     <span className="text-sm font-medium">@{username}</span>
-                    <a href={`https://www.instagram.com/${encodeURIComponent(username)}/`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                      Abrir Instagram
-                    </a>
+                    <a href={`https://www.instagram.com/${encodeURIComponent(username)}/`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Abrir Instagram</a>
                   </div>
                 ))
               ) : (
