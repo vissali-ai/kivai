@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { isToolIndexable, tools } from "@/lib/tools";
-import { getPublishedSiteContentByPath, getToolOverride } from "@/lib/site-cms/repository";
+import { getPublishedSiteContentByPath, getPublishedToolOverride } from "@/lib/site-cms/repository";
 import { getSiteHubBySlug } from "@/lib/site-cms/repository";
 
 export const SITE_URL = "https://www.kivai.com.br";
@@ -114,11 +114,9 @@ export function getToolMetadata(slug: string): Metadata {
 
 export async function getToolMetadataAsync(slug: string): Promise<Metadata> {
   const base = getToolMetadata(slug);
-  const override = await getToolOverride(slug)
+  const override = await getPublishedToolOverride(slug)
     ?? await getPublishedSiteContentByPath(`/ferramentas/${slug}`);
   if (!override) return base;
-  if (override.status === "draft") return base;
-  if (override.status === "archived") return { ...base, robots: noIndexRobots };
 
   const title = override.seoTitle || override.title;
   const description = override.seoDescription || override.shortDescription || base.description || "Ferramentas online gratuitas do Kivai.";
@@ -144,10 +142,8 @@ export async function getCmsPageMetadata(pathname: string): Promise<Metadata> {
 }
 
 export async function getCmsHubMetadata(slug: string, fallback?: Metadata): Promise<Metadata> {
-  const hub = await getSiteHubBySlug(slug);
+  const hub = await getSiteHubBySlug(slug, true);
   if (!hub) return fallback ?? { title: { absolute: "Hub não encontrado | Kivai" }, robots: noIndexRobots };
-  if (hub.status === "draft") return fallback ?? { title: { absolute: `${hub.name} | Kivai` }, robots: noIndexRobots };
-  if (hub.status === "archived") return { ...(fallback ?? {}), robots: noIndexRobots };
   const fallbackTitle = typeof fallback?.title === "object" && fallback.title && "absolute" in fallback.title ? String(fallback.title.absolute) : hub.name;
   const metadata = getPageMetadata({ title: hub.seoTitle || fallbackTitle, description: hub.seoDescription || fallback?.description || hub.description, pathname: hub.path });
   return { ...metadata, robots: hub.indexable ? undefined : noIndexRobots };
