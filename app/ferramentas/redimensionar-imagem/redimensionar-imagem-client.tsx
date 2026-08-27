@@ -49,9 +49,10 @@ export default function RedimensionarImagemClient() {
   const [modo, setModo] = useState<"pixels" | "porcentagem">("pixels");
   const [largura, setLargura] = useState(1080);
   const [altura, setAltura] = useState(1080);
+  const [dimensaoBase, setDimensaoBase] = useState<"largura" | "altura">("largura");
   const [porcentagem, setPorcentagem] = useState(50);
   const [manterProporcao, setManterProporcao] = useState(true);
-  const [naoAmpliar, setNaoAmpliar] = useState(true);
+  const [naoAmpliar, setNaoAmpliar] = useState(false);
   const [formato, setFormato] = useState<FormatoSaida>("jpeg");
   const [qualidade, setQualidade] = useState(90);
   const [arrastando, setArrastando] = useState(false);
@@ -70,8 +71,8 @@ export default function RedimensionarImagemClient() {
   const dimensoesPrevistas = useMemo(() => itens.map((item) => {
     try {
       return calcularDimensoes(item.original, {
-        largura: modo === "pixels" ? largura : undefined,
-        altura: modo === "pixels" ? altura : undefined,
+        largura: modo === "pixels" && (!manterProporcao || dimensaoBase === "largura") ? largura : undefined,
+        altura: modo === "pixels" && (!manterProporcao || dimensaoBase === "altura") ? altura : undefined,
         porcentagem: modo === "porcentagem" ? porcentagem : undefined,
         manterProporcao,
         naoAmpliar,
@@ -79,7 +80,7 @@ export default function RedimensionarImagemClient() {
     } catch {
       return null;
     }
-  }), [altura, itens, largura, manterProporcao, modo, naoAmpliar, porcentagem]);
+  }), [altura, dimensaoBase, itens, largura, manterProporcao, modo, naoAmpliar, porcentagem]);
 
   function limparResultados() {
     resultados.forEach((item) => URL.revokeObjectURL(item.url));
@@ -113,7 +114,49 @@ export default function RedimensionarImagemClient() {
       }
     }
 
+    if (!itens.length && novos.length) {
+      setLargura(novos[0].original.largura);
+      setAltura(novos[0].original.altura);
+      setDimensaoBase("largura");
+    }
+
     setItens((atuais) => [...atuais, ...novos]);
+  }
+
+  function alterarLargura(novaLargura: number) {
+    setLargura(novaLargura);
+    setDimensaoBase("largura");
+
+    const referencia = itens[0]?.original;
+    if (manterProporcao && referencia && novaLargura > 0) {
+      setAltura(Math.max(1, Math.round(novaLargura * referencia.altura / referencia.largura)));
+    }
+
+    limparResultados();
+  }
+
+  function alterarAltura(novaAltura: number) {
+    setAltura(novaAltura);
+    setDimensaoBase("altura");
+
+    const referencia = itens[0]?.original;
+    if (manterProporcao && referencia && novaAltura > 0) {
+      setLargura(Math.max(1, Math.round(novaAltura * referencia.largura / referencia.altura)));
+    }
+
+    limparResultados();
+  }
+
+  function alterarManterProporcao(ativo: boolean) {
+    setManterProporcao(ativo);
+
+    const referencia = itens[0]?.original;
+    if (ativo && referencia && largura > 0) {
+      setDimensaoBase("largura");
+      setAltura(Math.max(1, Math.round(largura * referencia.altura / referencia.largura)));
+    }
+
+    limparResultados();
   }
 
   function removerItem(id: string) {
@@ -142,8 +185,8 @@ export default function RedimensionarImagemClient() {
     try {
       for (const item of itens) {
         const resultado = await redimensionarImagem(item.arquivo, {
-          largura: modo === "pixels" ? largura : undefined,
-          altura: modo === "pixels" ? altura : undefined,
+          largura: modo === "pixels" && (!manterProporcao || dimensaoBase === "largura") ? largura : undefined,
+          altura: modo === "pixels" && (!manterProporcao || dimensaoBase === "altura") ? altura : undefined,
           porcentagem: modo === "porcentagem" ? porcentagem : undefined,
           manterProporcao,
           naoAmpliar,
@@ -241,11 +284,11 @@ export default function RedimensionarImagemClient() {
                 </div>
 
                 {modo === "pixels" ? <div className="mt-5 grid grid-cols-2 gap-3">
-                  <label className="text-xs font-medium">Largura (px)<input inputMode="numeric" type="number" min={1} value={largura} onChange={(event) => { setLargura(Number(event.target.value)); limparResultados(); }} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base" /></label>
-                  <label className="text-xs font-medium">Altura (px)<input inputMode="numeric" type="number" min={1} value={altura} onChange={(event) => { setAltura(Number(event.target.value)); limparResultados(); }} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base" /></label>
+                  <label className="text-xs font-medium">Largura (px)<input inputMode="numeric" type="number" min={1} value={largura} onChange={(event) => alterarLargura(Number(event.target.value))} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base" /></label>
+                  <label className="text-xs font-medium">Altura (px)<input inputMode="numeric" type="number" min={1} value={altura} onChange={(event) => alterarAltura(Number(event.target.value))} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base" /></label>
                 </div> : <div className="mt-5 grid grid-cols-3 gap-2">{[25, 50, 75].map((valor) => <Button key={valor} type="button" variant={porcentagem === valor ? "default" : "outline"} className="min-h-11" onClick={() => { setPorcentagem(valor); limparResultados(); }}>{valor}% menor</Button>)}</div>}
 
-                {modo === "pixels" && <label className="mt-5 flex min-h-11 cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={manterProporcao} onChange={(event) => { setManterProporcao(event.target.checked); limparResultados(); }} className="size-5 accent-[var(--primary)]" />Manter proporção</label>}
+                {modo === "pixels" && <label className="mt-5 flex min-h-11 cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={manterProporcao} onChange={(event) => alterarManterProporcao(event.target.checked)} className="size-5 accent-[var(--primary)]" />Manter proporção</label>}
                 <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={naoAmpliar} onChange={(event) => { setNaoAmpliar(event.target.checked); limparResultados(); }} className="size-5 accent-[var(--primary)]" />Não ampliar imagens menores</label>
 
                 <label className="mt-4 block text-xs font-medium">Formato de saída<select value={formato} onChange={(event) => { setFormato(event.target.value as FormatoSaida); limparResultados(); }} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base"><option value="jpeg">JPG</option><option value="png">PNG</option><option value="webp">WebP</option></select></label>
