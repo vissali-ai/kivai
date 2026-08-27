@@ -799,9 +799,10 @@ const svg = await QRCode.toString(conteudoQr, {
           </h1>
 
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Crie QR Codes personalizados para sites, textos,
-            WhatsApp, telefone, e-mail e redes Wi-Fi diretamente
-            no navegador.
+            Crie QR Codes para links, textos, Wi-Fi, e-mail,
+            telefone e WhatsApp. Nos números brasileiros, o +55
+            é aplicado automaticamente. Personalize a aparência
+            ou escolha um dos modelos prontos.
           </p>
         </div>
 
@@ -810,8 +811,9 @@ const svg = await QRCode.toString(conteudoQr, {
             <CardTitle>Crie seu QR Code</CardTitle>
 
             <CardDescription>
-              Escolha o tipo de conteúdo, personalize a aparência
-              e baixe em PNG ou SVG.
+              Escolha o conteúdo, confira a prévia, use um modelo
+              pronto ou personalize as configurações e baixe em
+              PNG ou SVG.
             </CardDescription>
           </CardHeader>
 
