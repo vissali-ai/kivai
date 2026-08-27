@@ -27,7 +27,7 @@ export default function ImagensPage() {
             Voltar para o início
           </Link>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">Imagens</h1>
-          <p className="mt-2 text-muted-foreground">Ferramentas para editar, converter e otimizar imagens.</p>
+          <p className="mt-2 text-muted-foreground">Ferramentas para editar, converter, otimizar e preparar imagens para diferentes usos. Reduza arquivos, altere formatos e dimensões, remova fundos, recorte, gire, aplique marca d’água e utilize recursos para sites, e-commerce, redes sociais e projetos digitais.</p>
           <div className="mt-6 flex flex-wrap gap-2">
             {filters.map((item) => (
               <button key={item} onClick={() => setFilter(item)} className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${filter === item ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:border-primary hover:text-primary"}`}>
