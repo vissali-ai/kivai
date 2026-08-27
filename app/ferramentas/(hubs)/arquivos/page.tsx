@@ -75,7 +75,7 @@ export default function ArquivosPage() {
             <p className="text-sm font-medium uppercase tracking-wider text-primary">Compactação, extração e organização</p>
             <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Arquivos</h1>
             <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-              Compacte, descompacte e organize arquivos no navegador com ferramentas para ZIP, RAR e renomeação em lote.
+              Compacte, extraia e organize arquivos com ferramentas para ZIP, RAR e tarefas em lote, incluindo renomeação e adição de prefixos ou sufixos.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2" aria-label="Filtrar ferramentas de arquivos">
