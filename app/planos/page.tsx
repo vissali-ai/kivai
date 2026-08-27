@@ -37,10 +37,10 @@ const plans = [
     features: [
       "Até 5 contas",
       "Até 500 mil seguidores por perfil",
-      "Histórico de análises",
-      "Comparação entre exportações",
-      "Novos seguidores e unfollows por período",
-      "Indicadores avançados e processamento em servidor",
+      "Histórico privado de análises",
+      "Comparação automática entre exportações",
+      "Novos seguidores e quem deixou de seguir por período",
+      "Curtidas, comentários e interações com stories quando incluídos na exportação",
     ],
     highlighted: true,
   },
@@ -56,16 +56,15 @@ const plans = [
       "Históricos separados por conta",
       "Comparações e acompanhamento contínuo",
       "Relatórios organizados por cliente",
-      "Recursos avançados de análise",
-      "Processamento em servidor para maior volume",
+      "Análise ampliada da exportação oficial da Meta",
+      "Estrutura para operações com maior volume",
     ],
     highlighted: false,
   },
 ] as const;
 
-function loginHref(plan: string, billing: "monthly" | "annual") {
-  const next = `/planos?plan=${plan}&billing=${billing}`;
-  return `/conta/login?next=${encodeURIComponent(next)}`;
+function checkoutHref(plan: string, billing: "monthly" | "annual") {
+  return `/conta/checkout?plan=${encodeURIComponent(plan)}&billing=${billing}`;
 }
 
 export default function PlansPage() {
@@ -75,7 +74,7 @@ export default function PlansPage() {
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Planos Kivai</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Escolha o plano ideal para sua análise</h1>
-          <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg">Comece gratuitamente ou escolha um plano com histórico, múltiplas contas e recursos avançados. Para contratar um plano pago, primeiro você entra na sua conta Kivai e depois continua para o pagamento.</p>
+          <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg">Comece gratuitamente ou escolha um plano com histórico, múltiplas contas e recursos avançados. Na contratação de um plano pago, o Kivai confirma sua conta antes de abrir o pagamento seguro.</p>
         </div>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-3">
@@ -99,8 +98,8 @@ export default function PlansPage() {
                   <Link href="/conta/cadastro?next=%2Fconta" className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">Criar conta grátis<ArrowRight className="size-4" /></Link>
                 ) : (
                   <>
-                    <Link href={loginHref(plan.code, "monthly")} className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">Assinar mensal<ArrowRight className="size-4" /></Link>
-                    <Link href={loginHref(plan.code, "annual")} className="inline-flex w-full items-center justify-center gap-2 border border-primary/30 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5">Assinar anual</Link>
+                    <Link href={checkoutHref(plan.code, "monthly")} className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">Assinar mensal<ArrowRight className="size-4" /></Link>
+                    <Link href={checkoutHref(plan.code, "annual")} className="inline-flex w-full items-center justify-center gap-2 border border-primary/30 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5">Assinar anual</Link>
                   </>
                 )}
               </div>
@@ -110,8 +109,8 @@ export default function PlansPage() {
 
         <section className="mt-14 grid gap-4 md:grid-cols-3">
           <div className="border border-white/10 bg-card p-5"><Zap className="size-5 text-primary" /><h2 className="mt-3 font-semibold">1. Escolha o plano</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Compare limites, recursos e periodicidade antes de continuar.</p></div>
-          <div className="border border-white/10 bg-card p-5"><UsersRound className="size-5 text-primary" /><h2 className="mt-3 font-semibold">2. Entre na sua conta</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">O login identifica quem está contratando e permite vincular corretamente assinatura, histórico e contas.</p></div>
-          <div className="border border-white/10 bg-card p-5"><ShieldCheck className="size-5 text-primary" /><h2 className="mt-3 font-semibold">3. Finalize o pagamento</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Após o login, a contratação continua com o plano e a periodicidade escolhidos, sem precisar selecionar tudo novamente.</p></div>
+          <div className="border border-white/10 bg-card p-5"><UsersRound className="size-5 text-primary" /><h2 className="mt-3 font-semibold">2. Confirme sua conta</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Se ainda não estiver conectado, o Kivai solicita o login e retorna automaticamente para o plano escolhido.</p></div>
+          <div className="border border-white/10 bg-card p-5"><ShieldCheck className="size-5 text-primary" /><h2 className="mt-3 font-semibold">3. Finalize o pagamento</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">O pagamento é processado com segurança pela SumUp e o plano é ativado após a confirmação.</p></div>
         </section>
       </section>
     </main>
