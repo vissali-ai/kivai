@@ -22,10 +22,11 @@ export async function PUT(request: Request, { params }: Context) {
     const id = (await params).id;
     const post = await getPostById(id);
     if (!post) return NextResponse.json({ error: "Matéria não encontrada." }, { status: 404 });
-    const body = await request.json() as { indexable?: boolean; includeInSitemap?: boolean };
+    const body = await request.json() as { indexable?: boolean; includeInSitemap?: boolean; blockVisibility?: Record<string, boolean> };
     const controls = await updateBlogPublicationControls(id, {
       indexable: Boolean(body.indexable),
       includeInSitemap: Boolean(body.includeInSitemap),
+      blockVisibility: body.blockVisibility ?? {},
     });
     revalidatePath("/blog");
     revalidatePath(`/blog/${post.slug}`);
