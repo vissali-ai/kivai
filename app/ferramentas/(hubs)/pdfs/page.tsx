@@ -19,7 +19,7 @@ export default function PdfsPage() {
         <div className="mb-8">
           <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"><ArrowLeft className="size-4" />Voltar para o início</Link>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">PDFs</h1>
-          <p className="mt-2 text-muted-foreground">Ferramentas para converter, organizar e editar documentos PDF.</p>
+          <p className="mt-2 text-muted-foreground">Ferramentas para converter, editar, organizar, compactar e preparar arquivos PDF para diferentes usos. Transforme documentos em Word, Excel, PowerPoint, HTML ou imagens, reúna e divida páginas, ajuste tamanho e orientação e prepare arquivos para compartilhamento ou impressão.</p>
           <div className="mt-6 flex flex-wrap gap-2">{filters.map((item) => <button key={item} onClick={() => setFilter(item)} className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${filter === item ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:border-primary hover:text-primary"}`}>{item}</button>)}</div>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
