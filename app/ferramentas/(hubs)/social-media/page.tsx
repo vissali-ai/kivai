@@ -37,10 +37,10 @@ export default function SocialMediaPage() {
               Voltar para o início
             </Link>
 
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">Planejamento, conteúdo e análise</p>
+            <p className="text-sm font-medium uppercase tracking-wider text-primary">Planejamento, conteúdo, análise e tendências</p>
             <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Social Media</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Planeje conteúdos, revise publicações, acompanhe métricas e organize sua rotina de redes sociais com ferramentas online do Kivai.
+              Planeje conteúdos, organize calendários, visualize publicações, acompanhe métricas, analise seguidores e pesquise tendências com ferramentas para uma rotina de social media mais estruturada.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2" aria-label="Filtrar ferramentas de social media">
