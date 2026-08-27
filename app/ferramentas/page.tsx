@@ -159,6 +159,7 @@ export default function FerramentasPage() {
               <Link
                 key={tool.slug}
                 href={standaloneSlugs.has(tool.slug) ? `/ferramentas/${tool.slug}` : getToolHref(tool.slug)}
+                prefetch={false}
                 className="group rounded-xl border border-border bg-background p-5 transition hover:border-primary/40"
               >
                 <div className="flex items-start justify-between gap-4">
