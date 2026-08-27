@@ -40,7 +40,7 @@ export default function ImagensPage() {
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             return (
-              <Link key={tool.slug} href={tool.href} className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4">
+              <Link key={tool.slug} href={tool.href} prefetch={false} className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4">
                 <div className="flex h-full flex-col">
                   <div className="flex items-start justify-between"><span className="flex size-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary"><Icon className="size-4" /></span><span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span></div>
                   <h2 className="mt-4 text-[15px] font-semibold">{tool.name}</h2>
