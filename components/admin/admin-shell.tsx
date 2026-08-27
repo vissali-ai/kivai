@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Bot, BookOpen, FolderTree, Images, LayoutDashboard, LogOut, Plus, PanelsTopLeft, Wrench } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
@@ -27,8 +28,67 @@ const navigation = [
   },
 ];
 
+const originPanels = new Set([
+  "/admin/blog",
+  "/admin/blog/midias",
+  "/admin/blog/categorias",
+  "/admin/blog/agente",
+  "/admin/site",
+  "/admin/blog/manutencao",
+]);
+
+function isAdminSaveRequest(input: RequestInfo | URL, init?: RequestInit) {
+  const method = String(init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+  if (!["POST", "PUT", "PATCH"].includes(method)) return false;
+  const rawUrl = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+  try {
+    const url = new URL(rawUrl, window.location.origin);
+    if (url.origin !== window.location.origin || !url.pathname.startsWith("/api/admin/")) return false;
+    if (url.pathname.startsWith("/api/admin/media")) return false;
+    return [
+      "/api/admin/posts",
+      "/api/admin/site-content",
+      "/api/admin/site-services",
+      "/api/admin/site-hubs",
+      "/api/admin/categories",
+      "/api/admin/instagram-follow-analyzer-config",
+    ].some((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`));
+  } catch {
+    return false;
+  }
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!originPanels.has(pathname)) return;
+    sessionStorage.setItem("kivai-admin-origin", `${window.location.pathname}${window.location.search}`);
+  }, [pathname]);
+
+  useEffect(() => {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const shouldReturn = isAdminSaveRequest(input, init);
+      const response = await originalFetch(input, init);
+      if (shouldReturn && response.ok) {
+        const origin = sessionStorage.getItem("kivai-admin-origin");
+        const current = `${window.location.pathname}${window.location.search}`;
+        if (origin && origin.startsWith("/admin/") && origin !== current) {
+          window.setTimeout(() => {
+            router.replace(origin);
+            router.refresh();
+          }, 150);
+        }
+      }
+      return response;
+    };
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [router]);
+
   if (pathname.endsWith("/preview")) return <>{children}</>;
   return (
     <div className="mx-auto grid w-full max-w-[1500px] flex-1 gap-6 px-4 pb-6 pt-24 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-6">
