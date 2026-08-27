@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import JSZip from "jszip";
-import { ArrowDown, ChevronDown, ExternalLink, Search, Upload, Users, X } from "lucide-react";
+import { ArrowDown, ChevronDown, Crown, ExternalLink, History, Search, Upload, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { InstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
+import { getAuthenticatedPlan, saveProAnalysis, type KivaiPlanCode, type ProHistoryComparison } from "@/lib/instagram-pro-client";
 
 type AnalyzerResult = {
   followers: string[];
@@ -13,12 +14,21 @@ type AnalyzerResult = {
   notFollowingBack: string[];
   youDoNotFollow: string[];
   mutuals: string[];
+  interactions: InteractionStats;
+};
+
+type InteractionStats = {
+  likes: number;
+  comments: number;
+  storyInteractions: number;
+  topAccounts: Array<{ username: string; count: number }>;
 };
 
 type TabKey = "notFollowingBack" | "youDoNotFollow" | "mutuals";
 type FileKind = "followers" | "following" | null;
 
 const FREE_FOLLOWER_LIMIT = 50000;
+const PRO_FOLLOWER_LIMIT = 500000;
 
 function normalizeUsername(value: unknown) {
   if (typeof value !== "string") return null;
@@ -35,6 +45,14 @@ function classifyFile(path: string): FileKind {
   const base = getBaseName(path);
   if (/^(followers|seguidores)(?:_\d+)?\.json$/.test(base)) return "followers";
   if (/^(following|seguindo)\.json$/.test(base)) return "following";
+  return null;
+}
+
+function interactionKind(path: string): "likes" | "comments" | "storyInteractions" | null {
+  const base = getBaseName(path);
+  if (["liked_posts.json", "liked_comments.json"].includes(base)) return "likes";
+  if (/^(post_comments(?:_\d+)?|reels_comments)\.json$/.test(base)) return "comments";
+  if (base === "story_likes.json" || path.toLowerCase().includes("story_interactions")) return "storyInteractions";
   return null;
 }
 
@@ -66,37 +84,70 @@ function extractFollowing(parsed: unknown) {
   return output;
 }
 
-async function parseJsonFile(name: string, text: string, followers: Set<string>, following: Set<string>) {
-  const kind = classifyFile(name);
-  if (!kind) return;
-  const parsed = JSON.parse(text) as unknown;
-  const usernames = kind === "followers" ? extractFollowers(parsed) : extractFollowing(parsed);
-  for (const username of usernames) {
-    if (kind === "followers") followers.add(username);
-    else following.add(username);
-  }
+function collectInteractionObjects(value: unknown, usernames: Map<string, number>) {
+  let count = 0;
+  const visit = (node: unknown) => {
+    if (Array.isArray(node)) {
+      for (const item of node) visit(item);
+      return;
+    }
+    if (!node || typeof node !== "object") return;
+    const item = node as Record<string, unknown>;
+    const hasInteractionData = Array.isArray(item.string_list_data) || (item.string_map_data && typeof item.string_map_data === "object");
+    if (hasInteractionData) {
+      count += 1;
+      const username = normalizeUsername(item.title);
+      if (username) usernames.set(username, (usernames.get(username) ?? 0) + 1);
+    }
+    for (const child of Object.values(item)) visit(child);
+  };
+  visit(value);
+  return count;
 }
 
-async function analyzeFile(file: File): Promise<AnalyzerResult> {
+async function parseJsonFile(name: string, text: string, followers: Set<string>, following: Set<string>, interactionTotals: { likes: number; comments: number; storyInteractions: number }, usernames: Map<string, number>) {
+  const parsed = JSON.parse(text) as unknown;
+  const kind = classifyFile(name);
+  if (kind) {
+    const values = kind === "followers" ? extractFollowers(parsed) : extractFollowing(parsed);
+    for (const username of values) {
+      if (kind === "followers") followers.add(username);
+      else following.add(username);
+    }
+  }
+  const interaction = interactionKind(name);
+  if (interaction) interactionTotals[interaction] += collectInteractionObjects(parsed, usernames);
+}
+
+async function analyzeFile(file: File, followerLimit: number | null): Promise<AnalyzerResult> {
   const followers = new Set<string>();
   const following = new Set<string>();
+  const interactionTotals = { likes: 0, comments: 0, storyInteractions: 0 };
+  const usernames = new Map<string, number>();
+
   if (file.name.toLowerCase().endsWith(".zip")) {
     const zip = await JSZip.loadAsync(file);
-    const entries = Object.values(zip.files).filter((entry) => !entry.dir && classifyFile(entry.name));
-    for (const entry of entries) await parseJsonFile(entry.name, await entry.async("text"), followers, following);
+    const entries = Object.values(zip.files).filter((entry) => !entry.dir && (classifyFile(entry.name) || interactionKind(entry.name)));
+    for (const entry of entries) await parseJsonFile(entry.name, await entry.async("text"), followers, following, interactionTotals, usernames);
   } else if (file.name.toLowerCase().endsWith(".json")) {
-    await parseJsonFile(file.name, await file.text(), followers, following);
+    await parseJsonFile(file.name, await file.text(), followers, following, interactionTotals, usernames);
   } else {
-    throw new Error("Envie o arquivo ZIP da Meta ou um arquivo JSON de seguidores/seguindo.");
+    throw new Error("Envie o arquivo ZIP da Meta ou um arquivo JSON compatível.");
   }
+
   if (!followers.size || !following.size) throw new Error("Não localizamos os dois arquivos necessários: seguidores e seguindo. Gere uma exportação da Meta incluindo 'Seguidores e Seguindo' em JSON.");
-  if (followers.size > FREE_FOLLOWER_LIMIT) throw new Error(`O plano gratuito analisa até ${FREE_FOLLOWER_LIMIT.toLocaleString("pt-BR")} seguidores. Esta exportação possui ${followers.size.toLocaleString("pt-BR")}.`);
+  if (followerLimit && followers.size > followerLimit) throw new Error(`Seu plano analisa até ${followerLimit.toLocaleString("pt-BR")} seguidores por perfil. Esta exportação possui ${followers.size.toLocaleString("pt-BR")}.`);
+
   return {
     followers: [...followers].sort(),
     following: [...following].sort(),
     notFollowingBack: [...following].filter((username) => !followers.has(username)).sort(),
     youDoNotFollow: [...followers].filter((username) => !following.has(username)).sort(),
     mutuals: [...followers].filter((username) => following.has(username)).sort(),
+    interactions: {
+      ...interactionTotals,
+      topAccounts: [...usernames.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([username, count]) => ({ username, count })),
+    },
   };
 }
 
@@ -109,7 +160,21 @@ export function InstagramFollowAnalyzer({ config }: { config: InstagramAnalyzerC
   const [fileName, setFileName] = useState("");
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [expandedScreenshot, setExpandedScreenshot] = useState<number | null>(null);
+  const [plan, setPlan] = useState<KivaiPlanCode>("free");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [instagramUsername, setInstagramUsername] = useState("");
+  const [history, setHistory] = useState<ProHistoryComparison | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const show = (key: string) => config.sectionVisibility[key] !== false;
+  const paid = plan === "pro" || plan === "agency";
+
+  useEffect(() => {
+    getAuthenticatedPlan().then((auth) => {
+      setUserId(auth?.userId ?? null);
+      setPlan(auth?.plan ?? "free");
+      setAuthLoaded(true);
+    }).catch(() => setAuthLoaded(true));
+  }, []);
 
   const currentList = result?.[activeTab] ?? [];
   const filtered = useMemo(() => {
@@ -119,11 +184,38 @@ export function InstagramFollowAnalyzer({ config }: { config: InstagramAnalyzerC
 
   async function handleFile(file?: File) {
     if (!file) return;
-    setPending(true); setError(""); setResult(null); setFileName(file.name);
+    if (paid && !instagramUsername.trim()) {
+      setError("Informe o @ do perfil que você quer acompanhar antes de importar o arquivo.");
+      return;
+    }
+    setPending(true); setError(""); setResult(null); setHistory(null); setFileName(file.name);
     try {
-      setResult(await analyzeFile(file));
+      const limit = plan === "agency" ? null : plan === "pro" ? PRO_FOLLOWER_LIMIT : FREE_FOLLOWER_LIMIT;
+      const analyzed = await analyzeFile(file, limit);
+      setResult(analyzed);
       setActiveTab("notFollowingBack");
       setSearch("");
+
+      if (paid && userId) {
+        const saved = await saveProAnalysis({
+          userId,
+          plan,
+          instagramUsername,
+          sourceFilename: file.name,
+          followers: analyzed.followers,
+          following: analyzed.following,
+          mutualCount: analyzed.mutuals.length,
+          notFollowingBackCount: analyzed.notFollowingBack.length,
+          notFollowedBackCount: analyzed.youDoNotFollow.length,
+          interactionSummary: {
+            interactionLikes: analyzed.interactions.likes,
+            interactionComments: analyzed.interactions.comments,
+            interactionStory: analyzed.interactions.storyInteractions,
+            topInteractionAccounts: analyzed.interactions.topAccounts,
+          },
+        });
+        setHistory(saved);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível analisar o arquivo.");
     } finally {
@@ -144,15 +236,20 @@ export function InstagramFollowAnalyzer({ config }: { config: InstagramAnalyzerC
         <ChevronDown className={`size-5 shrink-0 text-primary transition ${tutorialOpen ? "rotate-180" : ""}`} />
       </button>
       {tutorialOpen ? <div className="border-t border-white/10 px-6 pb-8 pt-6 sm:px-8">
+        {paid ? <div className="mb-6 border border-primary/25 bg-primary/[0.04] p-4"><div className="flex items-center gap-2"><Crown className="size-4 text-primary" /><strong className="text-sm">Exportação recomendada para o plano {plan === "pro" ? "Pro" : "Agency"}</strong></div>{plan === "pro" ? <p className="mt-2 text-sm leading-6 text-muted-foreground">Na opção “Algumas das suas informações”, selecione <strong>Seguidores e seguindo</strong>, <strong>Curtidas</strong>, <strong>Comentários</strong> e <strong>Interações com stories</strong>. Use JSON e intervalo “Desde o início”.</p> : <p className="mt-2 text-sm leading-6 text-muted-foreground">Para a análise Agency completa, selecione todas as informações disponíveis que deseja analisar, use JSON e intervalo “Desde o início”.</p>}</div> : null}
         <div className="flex flex-col gap-3 border border-white/10 bg-card p-4 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm leading-6 text-muted-foreground">O botão abaixo leva diretamente à página oficial usada para gerar a exportação.</p><a href={config.metaUrl} target="_blank" rel="noopener noreferrer" className="inline-flex shrink-0 items-center justify-center gap-2 bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">{config.metaButtonLabel}<ExternalLink className="size-4" /></a></div>
         <div className="mt-8 space-y-8">{config.tutorialSteps.map((step, index) => <article key={`${index}-${step.title}`} className={`grid gap-5 border-b border-white/10 pb-8 last:border-b-0 last:pb-0 ${step.imageUrl ? "md:grid-cols-[minmax(0,1fr)_300px]" : ""} md:items-start`}><div className="md:pt-3"><span className="inline-flex border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Passo {index + 1} de {config.tutorialSteps.length}</span><h3 className="mt-3 text-lg font-semibold">{step.title}</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{step.description}</p></div>{step.imageUrl ? <button type="button" onClick={() => setExpandedScreenshot(index)} className="group relative mx-auto block w-full max-w-[300px] overflow-hidden border border-white/10 bg-black text-left transition hover:border-primary/40" aria-label={`Ampliar imagem do passo ${index + 1}`}><img src={step.imageUrl} alt={`Passo ${index + 1}: ${step.title}`} className="block h-auto w-full" /><span className="absolute inset-x-0 bottom-0 bg-black/75 px-3 py-2 text-center text-xs text-white opacity-0 transition group-hover:opacity-100">Clique para ampliar</span></button> : null}</article>)}</div>
         <div className="mt-8 flex flex-col items-center text-center"><p className="text-lg font-semibold">{config.finalCta}</p><ArrowDown className="mt-3 size-7 text-primary" aria-hidden="true" /></div>
       </div> : null}
     </section> : null}
 
-    {show("upload") ? <section id="instagram-analyzer-upload" className="scroll-mt-24 border border-white/10 bg-card p-6 sm:p-8"><div className="flex items-start gap-4"><div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><Users className="size-5" /></div><div><h2 className="text-xl font-semibold">{config.uploadTitle}</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{config.uploadDescription}</p></div></div><label className="mt-6 flex cursor-pointer flex-col items-center justify-center border border-dashed border-white/15 bg-white/[0.02] px-6 py-10 text-center transition hover:border-primary/40 hover:bg-primary/[0.03]"><Upload className="mb-3 size-6 text-primary" /><span className="font-medium">{config.uploadLabel}</span><input type="file" accept=".zip,.json,application/zip,application/json" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} /></label>{fileName ? <p className="mt-3 text-xs text-muted-foreground">Arquivo: {fileName}</p> : null}{pending ? <p className="mt-4 text-sm text-primary">Analisando dados...</p> : null}{error ? <p className="mt-4 border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</p> : null}</section> : null}
+    {show("upload") ? <section id="instagram-analyzer-upload" className="scroll-mt-24 border border-white/10 bg-card p-6 sm:p-8"><div className="flex items-start gap-4"><div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><Users className="size-5" /></div><div><h2 className="text-xl font-semibold">{config.uploadTitle}</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{config.uploadDescription}</p></div></div>
+      {authLoaded && paid ? <div className="mt-6 border border-primary/20 bg-primary/[0.025] p-4"><label className="block max-w-md space-y-2 text-sm"><span className="font-medium">@ do perfil que será acompanhado</span><Input value={instagramUsername} onChange={(event) => setInstagramUsername(event.target.value.replace(/^@/, ""))} placeholder="exemplo: kivai_br" autoCapitalize="none" autoCorrect="off" /><small className="block text-muted-foreground">Usamos este identificador somente para organizar o histórico da sua conta no Kivai.</small></label><p className="mt-3 text-xs text-primary">Plano {plan === "pro" ? "Pro" : "Agency"} ativo. Esta análise será salva no seu histórico privado.</p></div> : null}
+      <label className="mt-6 flex cursor-pointer flex-col items-center justify-center border border-dashed border-white/15 bg-white/[0.02] px-6 py-10 text-center transition hover:border-primary/40 hover:bg-primary/[0.03]"><Upload className="mb-3 size-6 text-primary" /><span className="font-medium">{config.uploadLabel}</span><input type="file" accept=".zip,.json,application/zip,application/json" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} /></label>{fileName ? <p className="mt-3 text-xs text-muted-foreground">Arquivo: {fileName}</p> : null}{pending ? <p className="mt-4 text-sm text-primary">{paid ? "Analisando e salvando seu histórico..." : "Analisando dados..."}</p> : null}{error ? <p className="mt-4 border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</p> : null}</section> : null}
 
-    {result ? <section className="space-y-5"><div className="grid gap-3 sm:grid-cols-3">{tabs.map((tab) => <Button key={tab.key} type="button" variant={activeTab === tab.key ? "default" : "outline"} className="h-auto justify-between px-4 py-4" onClick={() => setActiveTab(tab.key)}><span>{tab.label}</span><span className="text-sm tabular-nums">{tab.count.toLocaleString("pt-BR")}</span></Button>)}</div><div className="border border-white/10 bg-card"><div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="font-semibold">{tabs.find((tab) => tab.key === activeTab)?.label}</h3><p className="mt-1 text-xs text-muted-foreground">Cruzamento dos @ presentes nos arquivos oficiais da Meta.</p></div><div className="relative w-full sm:w-72"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Pesquisar @" className="h-10 pl-9" /></div></div><div className="max-h-[520px] overflow-auto">{filtered.length ? filtered.map((username) => <div key={username} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-b-0"><span className="text-sm font-medium">@{username}</span><a href={`https://www.instagram.com/${encodeURIComponent(username)}/`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Abrir Instagram</a></div>) : <p className="p-6 text-sm text-muted-foreground">Nenhum perfil encontrado.</p>}</div></div></section> : null}
+    {history ? <section className="border border-primary/25 bg-primary/[0.03] p-5 sm:p-6"><div className="flex items-center gap-3"><History className="size-5 text-primary" /><div><h2 className="font-semibold">Histórico Pro</h2><p className="mt-1 text-sm text-muted-foreground">{history.firstSnapshot ? "Primeiro snapshot salvo. Na próxima importação o Kivai mostrará quem entrou e quem deixou de seguir." : "Comparação automática com a análise anterior concluída."}</p></div></div>{!history.firstSnapshot ? <div className="mt-5 grid gap-4 sm:grid-cols-2"><div className="border border-white/10 bg-card p-4"><p className="text-xs uppercase tracking-wide text-muted-foreground">Novos seguidores</p><p className="mt-2 text-3xl font-semibold">{history.newFollowers.length.toLocaleString("pt-BR")}</p>{history.newFollowers.length ? <div className="mt-3 max-h-40 overflow-auto text-sm text-muted-foreground">{history.newFollowers.slice(0, 200).map((username) => <p key={username}>@{username}</p>)}</div> : null}</div><div className="border border-white/10 bg-card p-4"><p className="text-xs uppercase tracking-wide text-muted-foreground">Deixaram de seguir</p><p className="mt-2 text-3xl font-semibold">{history.unfollowers.length.toLocaleString("pt-BR")}</p>{history.unfollowers.length ? <div className="mt-3 max-h-40 overflow-auto text-sm text-muted-foreground">{history.unfollowers.slice(0, 200).map((username) => <p key={username}>@{username}</p>)}</div> : null}</div></div> : null}</section> : null}
+
+    {result ? <section className="space-y-5">{paid && (result.interactions.likes || result.interactions.comments || result.interactions.storyInteractions) ? <div className="grid gap-3 sm:grid-cols-3"><div className="border border-white/10 bg-card p-4"><p className="text-xs text-muted-foreground">Curtidas analisadas</p><p className="mt-1 text-2xl font-semibold">{result.interactions.likes.toLocaleString("pt-BR")}</p></div><div className="border border-white/10 bg-card p-4"><p className="text-xs text-muted-foreground">Comentários analisados</p><p className="mt-1 text-2xl font-semibold">{result.interactions.comments.toLocaleString("pt-BR")}</p></div><div className="border border-white/10 bg-card p-4"><p className="text-xs text-muted-foreground">Interações com stories</p><p className="mt-1 text-2xl font-semibold">{result.interactions.storyInteractions.toLocaleString("pt-BR")}</p></div></div> : null}<div className="grid gap-3 sm:grid-cols-3">{tabs.map((tab) => <Button key={tab.key} type="button" variant={activeTab === tab.key ? "default" : "outline"} className="h-auto justify-between px-4 py-4" onClick={() => setActiveTab(tab.key)}><span>{tab.label}</span><span className="text-sm tabular-nums">{tab.count.toLocaleString("pt-BR")}</span></Button>)}</div><div className="border border-white/10 bg-card"><div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="font-semibold">{tabs.find((tab) => tab.key === activeTab)?.label}</h3><p className="mt-1 text-xs text-muted-foreground">Cruzamento dos @ presentes nos arquivos oficiais da Meta.</p></div><div className="relative w-full sm:w-72"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Pesquisar @" className="h-10 pl-9" /></div></div><div className="max-h-[520px] overflow-auto">{filtered.length ? filtered.map((username) => <div key={username} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-b-0"><span className="text-sm font-medium">@{username}</span><a href={`https://www.instagram.com/${encodeURIComponent(username)}/`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Abrir Instagram</a></div>) : <p className="p-6 text-sm text-muted-foreground">Nenhum perfil encontrado.</p>}</div></div></section> : null}
 
     {expandedScreenshot !== null && config.tutorialSteps[expandedScreenshot]?.imageUrl ? <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4" role="dialog" aria-modal="true" onClick={() => setExpandedScreenshot(null)}><div className="relative max-h-[92vh] w-full max-w-[760px] overflow-auto bg-black" onClick={(event) => event.stopPropagation()}><button type="button" onClick={() => setExpandedScreenshot(null)} className="sticky right-3 top-3 z-10 ml-auto mr-3 mt-3 flex size-10 items-center justify-center bg-black/80 text-white" aria-label="Fechar imagem"><X className="size-5" /></button><img src={config.tutorialSteps[expandedScreenshot].imageUrl} alt={`Passo ${expandedScreenshot + 1}`} className="mx-auto block h-auto max-h-[85vh] w-auto max-w-full" /></div></div> : null}
   </div>;
