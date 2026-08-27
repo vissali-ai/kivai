@@ -14,7 +14,6 @@ import { getToolBySlug } from "@/lib/tools";
 
 type SocialToolEditorialSlug =
   | "contador-de-caracteres-instagram"
-  | "contador-de-hashtags-instagram"
   | "quebra-de-linha-instagram"
   | "calculadora-de-engajamento"
   | SocialAdvancedEditorialSlug;
@@ -106,7 +105,6 @@ const engagementContent: GeneralEditorialContent = {
     { href: "/ferramentas/calendario-editorial-redes-sociais", label: "Calendário Editorial" },
     { href: "/ferramentas/preview-de-post-redes-sociais", label: "Preview de Post" },
     { href: "/ferramentas/contador-de-caracteres-instagram", label: "Contador de Caracteres" },
-    { href: "/ferramentas/contador-de-hashtags-instagram", label: "Contador de Hashtags" },
     { href: "/ferramentas/calculadora-de-roas", label: "Calculadora de ROAS" },
   ],
 };
