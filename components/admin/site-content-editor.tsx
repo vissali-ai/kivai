@@ -14,20 +14,49 @@ import { formatSiteEditDate } from "@/lib/site-cms/date";
 type Draft = Omit<ManagedSiteContent, "createdAt" | "updatedAt" | "publishedAt">;
 const fieldClass = "block space-y-1.5 text-sm";
 const textareaClass = "min-h-28 w-full rounded-md border border-input bg-background p-3 text-sm";
+const publicBlocks = [
+  ["hero", "Topo e título público"],
+  ["summary", "Resumo público"],
+  ["originalFields", "Campos específicos"],
+  ["content", "Conteúdo editorial"],
+] as const;
 
 export function SiteContentEditor({ initialContent, hubs }: { initialContent: ManagedSiteContent; hubs: SiteHub[] }) {
   const router = useRouter();
-  const [draft, setDraft] = useState<Draft>({ ...initialContent });
+  const [draft, setDraft] = useState<Draft>({ ...initialContent, customData: { ...initialContent.customData, blockVisibility: initialContent.customData.blockVisibility ?? {} } });
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const creating = draft.id === "new";
   const awaitingImplementation = draft.contentType === "tool" && draft.technicalStatus === "pending";
   const pathFor = (type: SiteContentType, slug: string) => type === "tool" ? `/ferramentas/${slug}` : type === "resource" ? `/recursos/${slug}` : `/paginas/${slug}`;
+  const visibility = draft.customData.blockVisibility ?? {};
+  const isVisible = (key: string) => visibility[key] !== false;
+  const isDeleted = (key: string) => visibility[`__deleted_${key}`] === true;
+  const setVisible = (key: string, visible: boolean) => setDraft((current) => ({ ...current, customData: { ...current.customData, blockVisibility: { ...(current.customData.blockVisibility ?? {}), [key]: visible } } }));
+
+  function deleteBlock(key: string, label: string) {
+    if (!window.confirm(`Excluir definitivamente o bloco “${label}”? O conteúdo exclusivo deste bloco será apagado e não poderá ser reativado.`)) return;
+    setDraft((current) => {
+      const next: Draft = {
+        ...current,
+        customData: {
+          ...current.customData,
+          blockVisibility: { ...(current.customData.blockVisibility ?? {}), [key]: false, [`__deleted_${key}`]: true },
+        },
+      };
+      if (key === "summary") next.shortDescription = "";
+      if (key === "content") next.contentHtml = "";
+      if (key === "originalFields") next.customData = { ...next.customData, originalFields: [] };
+      return next;
+    });
+    setMessage(`Bloco “${label}” marcado para exclusão definitiva. Clique em Salvar para concluir.`);
+  }
+
   const completeness = useMemo(() => [
-    [Boolean(draft.title), "Título"], [Boolean(draft.shortDescription), "Resumo"], [draft.contentHtml.length > 300, "Conteúdo editorial"],
+    [Boolean(draft.title), "Título"], [isDeleted("summary") || Boolean(draft.shortDescription), "Resumo"], [isDeleted("content") || draft.contentHtml.length > 300, "Conteúdo editorial"],
     [Boolean(draft.seoTitle), "Título SEO"], [Boolean(draft.seoDescription), "Descrição SEO"], [draft.contentType !== "tool" || Boolean(draft.hubId), "Hub"],
-  ] as Array<[boolean, string]>, [draft]);
+  ] as Array<[boolean, string]>, [draft, visibility]);
 
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setMessage("Salvando...");
@@ -35,7 +64,7 @@ export function SiteContentEditor({ initialContent, hubs }: { initialContent: Ma
     const response = await fetch(endpoint, { method: creating ? "POST" : "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) });
     const data = await response.json(); setBusy(false);
     if (!response.ok) return setMessage(data.error ?? "Não foi possível salvar.");
-    setMessage(awaitingImplementation ? "Solicitação salva como rascunho. Termine a implementação técnica no Codex ou no ChatGPT antes de publicar." : "Conteúdo salvo. A página pública e o sitemap foram atualizados.");
+    setMessage(awaitingImplementation ? "Solicitação salva como rascunho. Termine a implementação técnica antes de publicar." : "Conteúdo salvo. Blocos ocultos podem voltar; blocos excluídos tiveram os dados exclusivos removidos.");
     router.replace(`/admin/site/conteudos/${encodeURIComponent(data.id)}`); router.refresh();
   }
 
@@ -56,24 +85,26 @@ export function SiteContentEditor({ initialContent, hubs }: { initialContent: Ma
   }
 
   return <form onSubmit={save} className="mx-auto max-w-6xl space-y-6">
-    <header className="flex flex-wrap items-start justify-between gap-4"><div><Button asChild type="button" variant="ghost" className="-ml-3 mb-2"><Link href="/admin/site"><ArrowLeft />Voltar para conteúdos</Link></Button><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">{creating ? "Novo conteúdo" : "Edição completa"}</p><h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{draft.title || "Nova ferramenta, página ou recurso"}</h1><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Todos os campos ficam nesta tela. Em ferramentas atuais, o editor já traz o conteúdo editorial que está no código.</p><p className="mt-2 text-xs text-muted-foreground"><strong>Última edição:</strong> {creating ? "Conteúdo ainda não salvo" : formatSiteEditDate(initialContent.updatedAt)}</p></div><div className="flex w-full flex-wrap gap-2 sm:w-auto">{draft.path ? <Button asChild type="button" variant="outline"><a href={draft.path} target="_blank" rel="noreferrer"><ExternalLink />Abrir página</a></Button> : null}<Button type="submit" disabled={busy}><Save />{busy ? "Salvando..." : "Salvar"}</Button></div></header>
+    <header className="flex flex-wrap items-start justify-between gap-4"><div><Button asChild type="button" variant="ghost" className="-ml-3 mb-2"><Link href="/admin/site"><ArrowLeft />Voltar para conteúdos</Link></Button><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">{creating ? "Novo conteúdo" : "Edição completa"}</p><h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{draft.title || "Nova ferramenta, página ou recurso"}</h1><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Ocultar preserva o bloco. Excluir remove definitivamente seus dados exclusivos da publicação.</p><p className="mt-2 text-xs text-muted-foreground"><strong>Última edição:</strong> {creating ? "Conteúdo ainda não salvo" : formatSiteEditDate(initialContent.updatedAt)}</p></div><div className="flex w-full flex-wrap gap-2 sm:w-auto">{draft.path ? <Button asChild type="button" variant="outline"><a href={draft.path} target="_blank" rel="noreferrer"><ExternalLink />Abrir página</a></Button> : null}<Button type="submit" disabled={busy}><Save />{busy ? "Salvando..." : "Salvar"}</Button></div></header>
     {message ? <p role="status" className="border border-white/10 bg-muted/10 p-3 text-sm">{message}</p> : null}
 
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0 space-y-6">
-        <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6"><div className="sm:col-span-2"><h2 className="font-semibold">Identificação e endereço</h2><p className="mt-1 text-xs text-muted-foreground">Dados principais exibidos no painel e na página pública.</p></div>
+        <fieldset className="space-y-3 rounded-xl border border-primary/20 bg-card p-4 sm:p-6"><legend className="px-1 font-semibold">Blocos disponíveis no site público</legend><p className="text-xs leading-5 text-muted-foreground">Desmarque para ocultar sem apagar. Use Excluir para remover definitivamente.</p><div className="grid gap-3 sm:grid-cols-2">{publicBlocks.filter(([key]) => !isDeleted(key)).map(([key, label]) => <div key={key} className="flex items-center justify-between gap-3 border border-white/10 p-3 text-sm"><label className="flex min-w-0 flex-1 items-center justify-between gap-3"><span>{label}</span><input type="checkbox" className="size-4" checked={isVisible(key)} onChange={(e) => setVisible(key, e.target.checked)} /></label><Button type="button" variant="ghost" size="sm" className="shrink-0 text-destructive hover:text-destructive" onClick={() => deleteBlock(key, label)}><Trash2 className="size-4" />Excluir</Button></div>)}</div></fieldset>
+
+        <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6"><div className="sm:col-span-2"><h2 className="font-semibold">Identificação e endereço</h2><p className="mt-1 text-xs text-muted-foreground">Título e slug continuam como metadados administrativos mesmo se o topo público for excluído.</p></div>
           <label className={fieldClass}><span>Tipo *</span><select disabled={Boolean(draft.existingToolSlug)} value={draft.contentType} onChange={(e) => { const contentType = e.target.value as SiteContentType; setDraft({ ...draft, contentType, path: pathFor(contentType, draft.slug), hubId: contentType === "tool" ? draft.hubId : null, toolMode: contentType === "tool" ? "auto" : "informational", technicalStatus: contentType === "tool" ? draft.technicalStatus === "ready" ? "ready" : "pending" : "not_applicable", displayLocation: contentType === "resource" ? "resource_library" : "direct", showInMostUsed: contentType === "tool" ? draft.showInMostUsed : false }); }} className="h-10 w-full rounded-md border border-input bg-background px-3"><option value="tool">Ferramenta</option><option value="resource">Material ou guia</option><option value="page">Página</option></select></label>
           <label className={fieldClass}><span>Hub {draft.contentType === "tool" ? "*" : ""}</span><select disabled={draft.contentType !== "tool"} value={draft.hubId ?? ""} onChange={(e) => setDraft({ ...draft, hubId: e.target.value || null })} className="h-10 w-full rounded-md border border-input bg-background px-3"><option value="">Sem hub</option>{hubs.map((hub) => <option key={hub.id} value={hub.id}>{hub.name}</option>)}</select></label>
           <label className={fieldClass}><span>Título *</span><Input required value={draft.title} onChange={(e) => { const title = e.target.value; const slug = creating ? slugify(title) : draft.slug; setDraft({ ...draft, title, slug, path: pathFor(draft.contentType, slug) }); }} /></label>
           <label className={fieldClass}><span>Slug *</span><Input required disabled={Boolean(draft.existingToolSlug)} value={draft.slug} onChange={(e) => { const slug = slugify(e.target.value); setDraft({ ...draft, slug, path: pathFor(draft.contentType, slug) }); }} /><small className="break-all text-muted-foreground">URL: {pathFor(draft.contentType, draft.slug || "slug")}</small></label>
-          <label className={`${fieldClass} sm:col-span-2`}><span>Resumo *</span><textarea required className={textareaClass} value={draft.shortDescription} onChange={(e) => setDraft({ ...draft, shortDescription: e.target.value })} /></label>
+          {!isDeleted("summary") ? <label className={`${fieldClass} sm:col-span-2`}><span>Resumo *</span><textarea required className={textareaClass} value={draft.shortDescription} onChange={(e) => setDraft({ ...draft, shortDescription: e.target.value })} /></label> : null}
           {draft.contentType !== "tool" ? <label className={fieldClass}><span>Onde este conteúdo será exibido</span><select value={draft.displayLocation} onChange={(e) => setDraft({ ...draft, displayLocation: e.target.value as SiteDisplayLocation })} className="h-10 w-full rounded-md border border-input bg-background px-3"><option value="direct">Somente pela URL</option><option value="home">Página inicial</option><option value="help">Central de ajuda</option>{draft.contentType === "resource" ? <option value="resource_library">Biblioteca de materiais</option> : null}</select><small className="text-muted-foreground">Define exatamente onde o link será mostrado; a página continua acessível pela própria URL.</small></label> : null}
           {draft.contentType === "tool" ? <div className="space-y-3 rounded-lg border border-white/10 bg-muted/10 p-4 sm:col-span-2"><label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-4" checked={draft.showInMostUsed} onChange={(e) => setDraft({ ...draft, showInMostUsed: e.target.checked })} /><span><strong>Exibir em “Mais Usadas”</strong><small className="block text-muted-foreground">A página inicial mostra até seis ferramentas, pela ordem abaixo. Ferramentas pendentes só aparecem depois de implementadas e publicadas.</small></span></label><label className={fieldClass}><span>Ordem de exibição</span><Input type="number" min="0" max="9999" value={draft.displayOrder} onChange={(e) => setDraft({ ...draft, displayOrder: Number(e.target.value) || 100 })} /></label></div> : null}
         </section>
 
         {awaitingImplementation ? <section className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-6"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-300" /><div><h2 className="font-semibold text-amber-100">Próxima etapa: implementar a ferramenta</h2><p className="mt-1 text-xs leading-5 text-amber-100/80">O painel cria somente o caminho e o briefing. A arquitetura será escolhida e registrada conforme a implementação real no projeto; ela não pode ser alterada por esta tela.</p></div></div><Button type="button" variant="outline" size="sm" className="mt-4" onClick={copyImplementationRequest}>{copied ? <Check /> : <Copy />}{copied ? "Pedido copiado" : "Copiar pedido para Codex/ChatGPT"}</Button></section> : null}
 
-        <section className="min-w-0 rounded-xl border border-white/10 bg-card p-3 sm:p-6"><h2 className="font-semibold">Conteúdo editorial completo</h2><p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">O modelo inclui sobre, como usar, casos de uso, formatos, privacidade, limitações, perguntas frequentes e ferramentas relacionadas. Revise todos os trechos antes de publicar.</p><RichTextEditor value={draft.contentHtml} onChange={(contentHtml) => setDraft((current) => ({ ...current, contentHtml }))} /></section>
+        {!isDeleted("content") ? <section className="min-w-0 rounded-xl border border-white/10 bg-card p-3 sm:p-6"><h2 className="font-semibold">Conteúdo editorial completo</h2><p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">O modelo inclui sobre, como usar, casos de uso, formatos, privacidade, limitações, perguntas frequentes e ferramentas relacionadas.</p><RichTextEditor value={draft.contentHtml} onChange={(contentHtml) => setDraft((current) => ({ ...current, contentHtml }))} /></section> : null}
 
         <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6"><div className="sm:col-span-2"><h2 className="font-semibold">SEO e compartilhamento</h2><p className="mt-1 text-xs text-muted-foreground">Campos usados pelo Google e por redes sociais.</p></div><label className={fieldClass}><span>Título SEO *</span><Input required value={draft.seoTitle} onChange={(e) => setDraft({ ...draft, seoTitle: e.target.value })} /></label><label className={fieldClass}><span>URL canônica personalizada</span><Input type="url" value={draft.canonicalUrl} onChange={(e) => setDraft({ ...draft, canonicalUrl: e.target.value })} placeholder="Deixe vazio para usar a URL do Kivai" /></label><label className={`${fieldClass} sm:col-span-2`}><span>Descrição SEO *</span><textarea required className={textareaClass} value={draft.seoDescription} onChange={(e) => setDraft({ ...draft, seoDescription: e.target.value })} /></label></section>
       </div>
