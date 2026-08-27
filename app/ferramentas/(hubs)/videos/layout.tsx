@@ -4,7 +4,7 @@ import { getCmsHubMetadata, getPageMetadata } from "@/lib/seo";
 const baseMetadata = getPageMetadata({
   title: "Ferramentas de Vídeo Online",
   description:
-    "Converta, comprima, redimensione, recorte, gire, extraia áudio e faça outros ajustes em vídeos com ferramentas online gratuitas do Kivai.",
+    "Converta, comprima, redimensione, recorte, gire, espelhe e divida vídeos, ajuste velocidade e volume, remova ou extraia áudio, capture frames e trabalhe com formatos como MP4, MOV, AVI e HEVC.",
   pathname: "/ferramentas/videos",
 });
 export async function generateMetadata() { return getCmsHubMetadata("videos", baseMetadata); }
