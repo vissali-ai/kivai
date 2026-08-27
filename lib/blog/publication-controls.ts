@@ -27,9 +27,19 @@ const DEFAULT_BLOCK_VISIBILITY = {
   share: true,
 };
 
+const BLOCK_KEYS = Object.keys(DEFAULT_BLOCK_VISIBILITY);
+
 function normalizeBlockVisibility(value: unknown) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-  return Object.fromEntries(Object.keys(DEFAULT_BLOCK_VISIBILITY).map((key) => [key, source[key] !== false]));
+  const normalized = Object.fromEntries(BLOCK_KEYS.map((key) => [key, source[key] !== false]));
+  for (const key of BLOCK_KEYS) {
+    const deletedKey = `__deleted_${key}`;
+    if (source[deletedKey] === true) {
+      normalized[key] = false;
+      normalized[deletedKey] = true;
+    }
+  }
+  return normalized;
 }
 
 export async function getBlogPublicationControlsById(id: string): Promise<BlogPublicationControls> {
