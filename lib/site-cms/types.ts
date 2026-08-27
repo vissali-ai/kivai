@@ -4,6 +4,21 @@ export type ToolImplementationMode = "auto" | "browser" | "server" | "informatio
 export type ToolTechnicalStatus = "not_applicable" | "pending" | "ready";
 export type SiteDisplayLocation = "direct" | "home" | "help" | "main_nav" | "footer" | "resource_library";
 
+export type SiteOriginalFieldType = "text" | "textarea" | "url" | "image" | "number" | "boolean";
+
+export type SiteOriginalField = {
+  key: string;
+  label: string;
+  type: SiteOriginalFieldType;
+  value: string | number | boolean;
+  helpText?: string;
+};
+
+export type SiteCustomData = {
+  originalFields?: SiteOriginalField[];
+  [key: string]: unknown;
+};
+
 export type SiteHub = {
   id: string;
   slug: string;
@@ -42,6 +57,7 @@ export type SiteContent = {
   status: SitePublicationStatus;
   indexable: boolean;
   includeInSitemap: boolean;
+  customData: SiteCustomData;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
