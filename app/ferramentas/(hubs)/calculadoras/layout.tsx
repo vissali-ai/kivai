@@ -3,7 +3,7 @@ import { getCmsHubMetadata, getPageMetadata } from "@/lib/seo";
 
 const baseMetadata = getPageMetadata({
   title: "Calculadoras Online para Marketing, Vendas e Negócios",
-  description: "Use calculadoras online de ROAS, ROI, markup, margem, desconto e porcentagem para analisar campanhas, preços, vendas e decisões financeiras.",
+  description: "Calcule ROAS, ROI, markup, margem, desconto e porcentagem para analisar campanhas, preços, vendas, investimentos e decisões de negócio com mais clareza.",
   pathname: "/ferramentas/calculadoras",
 });
 export async function generateMetadata() { return getCmsHubMetadata("calculadoras", baseMetadata); }
