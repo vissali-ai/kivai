@@ -11,7 +11,7 @@ type ServiceRow = {
   seo_title: string; seo_description: string; canonical_url: string; badge: string; service_type: string;
   audience: string; cta_label: string; cta_url: string; cover_image_url: string; existing_service_slug: string | null;
   status: SitePublicationStatus; indexable: boolean; include_in_sitemap: boolean; show_in_services_index: boolean;
-  display_order: number; published_at: string | null; created_at: string; updated_at: string;
+  display_order: number; block_visibility: Record<string, boolean> | null; published_at: string | null; created_at: string; updated_at: string;
 };
 
 const specialServices = [
@@ -34,13 +34,18 @@ const serviceSources = [
   })),
 ];
 
+function cleanVisibility(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, visible]) => [key, visible !== false]));
+}
+
 function fromRow(row: ServiceRow): SiteService {
   return { id: row.id, slug: row.slug, path: row.path, title: row.title, shortDescription: row.short_description,
     contentHtml: row.content_html, seoTitle: row.seo_title, seoDescription: row.seo_description, canonicalUrl: row.canonical_url,
     badge: row.badge, serviceType: row.service_type, audience: row.audience, ctaLabel: row.cta_label, ctaUrl: row.cta_url,
     coverImageUrl: row.cover_image_url, existingServiceSlug: row.existing_service_slug, status: row.status, indexable: row.indexable,
     includeInSitemap: row.include_in_sitemap, showInServicesIndex: row.show_in_services_index, displayOrder: row.display_order,
-    publishedAt: row.published_at, createdAt: row.created_at, updatedAt: row.updated_at };
+    blockVisibility: row.block_visibility ?? {}, publishedAt: row.published_at, createdAt: row.created_at, updatedAt: row.updated_at };
 }
 
 function clean(value: Partial<SiteServiceInput>): SiteServiceInput {
@@ -57,7 +62,8 @@ function clean(value: Partial<SiteServiceInput>): SiteServiceInput {
     ctaUrl: plainText(String(value.ctaUrl ?? "/contato")).slice(0, 500), coverImageUrl: plainText(String(value.coverImageUrl ?? "")).slice(0, 500),
     existingServiceSlug: value.existingServiceSlug ? slugify(value.existingServiceSlug) : null, status,
     indexable: published && Boolean(value.indexable), includeInSitemap: published && Boolean(value.indexable) && Boolean(value.includeInSitemap),
-    showInServicesIndex: Boolean(value.showInServicesIndex), displayOrder: Math.max(0, Math.min(9999, Number(value.displayOrder) || 100)) };
+    showInServicesIndex: Boolean(value.showInServicesIndex), displayOrder: Math.max(0, Math.min(9999, Number(value.displayOrder) || 100)),
+    blockVisibility: cleanVisibility(value.blockVisibility) };
 }
 
 function payload(input: SiteServiceInput) {
@@ -66,11 +72,11 @@ function payload(input: SiteServiceInput) {
     service_type: input.serviceType, audience: input.audience, cta_label: input.ctaLabel, cta_url: input.ctaUrl,
     cover_image_url: input.coverImageUrl, existing_service_slug: input.existingServiceSlug, status: input.status,
     indexable: input.indexable, include_in_sitemap: input.includeInSitemap, show_in_services_index: input.showInServicesIndex,
-    display_order: input.displayOrder, published_at: input.status === "published" ? new Date().toISOString() : null };
+    display_order: input.displayOrder, block_visibility: input.blockVisibility ?? {}, published_at: input.status === "published" ? new Date().toISOString() : null };
 }
 
 export async function listStoredSiteServices() {
-  const rows = await supabaseRest<ServiceRow[]>("site_services?select=*&order=display_order.asc,title.asc", { allowMissingConfig: true });
+  const rows = await supabaseRest<ServiceRow[]>("site_services?select=*&order=updated_at.desc,created_at.desc", { allowMissingConfig: true });
   return rows.map(fromRow);
 }
 
@@ -82,9 +88,10 @@ export async function listManagedSiteServices(): Promise<ManagedSiteService[]> {
     contentHtml: item.html, seoTitle: item.title, seoDescription: item.description, canonicalUrl: "", badge: item.badge,
     serviceType: item.type, audience: item.audience, ctaLabel: "Solicitar orçamento", ctaUrl: "/contato", coverImageUrl: "",
     existingServiceSlug: item.slug, status: "published", indexable: true, includeInSitemap: true, showInServicesIndex: true,
-    displayOrder: index + 1, publishedAt: null, createdAt: "", updatedAt: "", virtual: true,
+    displayOrder: index + 1, blockVisibility: {}, publishedAt: null, createdAt: "", updatedAt: "", virtual: true,
   }));
-  return [...stored, ...virtual].sort((a, b) => a.displayOrder - b.displayOrder || a.title.localeCompare(b.title, "pt-BR"));
+  const activity = (item: ManagedSiteService) => item.updatedAt || item.createdAt || "";
+  return [...stored, ...virtual].sort((a, b) => activity(b).localeCompare(activity(a)) || a.title.localeCompare(b.title, "pt-BR"));
 }
 
 export async function getSiteServiceById(id: string) {
