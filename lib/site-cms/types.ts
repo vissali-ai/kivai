@@ -18,6 +18,7 @@ export type SiteOriginalField = {
 
 export type SiteCustomData = {
   originalFields?: SiteOriginalField[];
+  blockVisibility?: PublicationBlockVisibility;
   [key: string]: unknown;
 };
 
@@ -33,7 +34,7 @@ export type SiteHub = {
   status: SitePublicationStatus;
   indexable: boolean;
   includeInSitemap: boolean;
-  blockVisibility: PublicationBlockVisibility;
+  blockVisibility?: PublicationBlockVisibility;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -60,7 +61,7 @@ export type SiteContent = {
   status: SitePublicationStatus;
   indexable: boolean;
   includeInSitemap: boolean;
-  blockVisibility: PublicationBlockVisibility;
+  blockVisibility?: PublicationBlockVisibility;
   customData: SiteCustomData;
   publishedAt: string | null;
   createdAt: string;
@@ -94,7 +95,7 @@ export type SiteService = {
   includeInSitemap: boolean;
   showInServicesIndex: boolean;
   displayOrder: number;
-  blockVisibility: PublicationBlockVisibility;
+  blockVisibility?: PublicationBlockVisibility;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
