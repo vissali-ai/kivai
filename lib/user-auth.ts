@@ -3,6 +3,7 @@
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://fphphknegwlgydwulehl.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_KDt8whhimaeknpeeT0Emjg_DvvwA33Z";
 const STORAGE_KEY = "kivai_user_session";
+const OAUTH_NEXT_KEY = "kivai_oauth_next";
 
 export type KivaiAuthSession = {
   access_token: string;
@@ -53,6 +54,13 @@ export function clearSession() {
   if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
 }
 
+export function consumeOAuthNext() {
+  if (typeof window === "undefined") return "/conta";
+  const value = sessionStorage.getItem(OAUTH_NEXT_KEY);
+  sessionStorage.removeItem(OAUTH_NEXT_KEY);
+  return value?.startsWith("/") ? value : "/conta";
+}
+
 export async function signInWithPassword(email: string, password: string) {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: "POST",
@@ -77,8 +85,9 @@ export async function signUpWithPassword(name: string, email: string, password: 
   return payload as KivaiAuthSession;
 }
 
-export function signInWithGoogle(_next = "/conta") {
+export function signInWithGoogle(next = "/conta") {
   if (typeof window === "undefined") return;
+  sessionStorage.setItem(OAUTH_NEXT_KEY, next.startsWith("/") ? next : "/conta");
   const callback = new URL("/conta/callback", window.location.origin);
   const authorize = new URL(`${SUPABASE_URL}/auth/v1/authorize`);
   authorize.searchParams.set("provider", "google");
