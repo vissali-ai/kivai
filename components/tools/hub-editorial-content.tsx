@@ -130,25 +130,25 @@ const hubContent: Record<HubKey, HubContent> = {
   },
   videos: {
     eyebrow: "Guia de processamento de vídeo",
-    title: "Planeje a edição conforme formato, duração e dispositivo",
+    title: "Escolha a operação de acordo com o destino e a condição do vídeo",
     introduction: [
-      "Vídeos exigem mais memória e processamento que imagens. A compatibilidade depende do navegador, dos codecs presentes no arquivo e dos recursos disponíveis no celular ou computador.",
-      "Recortar altera a área visível; redimensionar muda as dimensões; dividir separa trechos; ajustar velocidade muda a duração; remover áudio elimina a faixa sonora. Definir a operação correta reduz conversões desnecessárias.",
+      "Trabalhar com vídeo envolve mais do que cortar um trecho ou trocar a extensão do arquivo. Conversão pode melhorar compatibilidade entre formatos e codecs; compressão reduz o tamanho; redimensionamento altera a resolução; recorte muda a área visível; divisão separa partes; rotação e espelhamento corrigem orientação; ajustes de velocidade e volume modificam a reprodução. Também é possível capturar frames, remover a faixa sonora ou extrair o áudio para outro uso.",
+      "O resultado depende do arquivo de origem, do codec, do navegador e da capacidade do dispositivo. Dois vídeos com a mesma extensão podem usar codificações diferentes e exigir tratamentos distintos. Formatos como MP4, MOV, AVI e HEVC atendem a necessidades diferentes, por isso a conversão deve ser escolhida pelo destino do arquivo e não apenas pelo nome da extensão.",
     ],
     guides: [
-      { title: "Compatibilidade", text: "Arquivos com a mesma extensão podem utilizar codecs diferentes. Se o navegador não conseguir decodificar o vídeo, converter o arquivo em um aplicativo compatível pode ser necessário." },
-      { title: "Qualidade e tamanho", text: "Resolução, taxa de quadros, duração e compressão influenciam o resultado. Ampliar um vídeo pequeno não cria detalhes que não existem no original." },
-      { title: "Desempenho", text: "Feche abas pesadas, mantenha espaço livre e processe arquivos longos em um computador quando possível. Não atualize a página enquanto a exportação estiver em andamento." },
+      { title: "Para editar e preparar", text: "Defina primeiro duração, enquadramento, orientação e dimensões. Depois ajuste velocidade, volume ou remova o áudio quando necessário. Fazer alterações estruturais antes da compressão evita repetir etapas e reduz perdas acumuladas de qualidade." },
+      { title: "Para converter e compartilhar", text: "Use conversores quando o formato ou codec original dificultar reprodução, edição ou envio. HEVC pode reduzir tamanho com boa eficiência, enquanto MP4 costuma ter ampla compatibilidade, mas o suporte final depende do codec, do navegador e do aplicativo de destino." },
+      { title: "Para reduzir tamanho e extrair conteúdo", text: "A compressão pode diminuir o peso do vídeo alterando qualidade, resolução ou codificação. Quando apenas uma imagem ou o som forem necessários, capture um frame ou extraia o áudio em vez de manter todo o arquivo de vídeo." },
     ],
-    workflowTitle: "Ordem eficiente de edição",
+    workflowTitle: "Fluxo recomendado para editar e exportar vídeos",
     workflow: [
-      "Guarde o vídeo original antes de qualquer alteração.",
-      "Recorte duração e enquadramento primeiro.",
-      "Ajuste orientação, dimensões, velocidade e áudio.",
-      "Exporte, assista ao arquivo inteiro e confira sincronização e qualidade.",
+      "Guarde o arquivo original e defina onde o vídeo será reproduzido, publicado ou enviado.",
+      "Faça cortes, divisão, recorte de área, rotação ou espelhamento antes das etapas de redução e conversão final.",
+      "Ajuste dimensões, velocidade e áudio de acordo com o objetivo e com as limitações do canal de destino.",
+      "Converta ou comprima na etapa final, assista ao arquivo exportado por completo e confira imagem, áudio, duração, sincronização e tamanho.",
     ],
-    noteTitle: "Processamento local",
-    note: "Quando executado no navegador, o processamento evita o envio do vídeo ao Kivai, mas utiliza recursos do dispositivo. Arquivos grandes podem falhar por limite de memória; mantenha o original e confirme o download antes de sair.",
+    noteTitle: "Compatibilidade, desempenho e uso responsável",
+    note: "Ferramentas de vídeo podem processar arquivos de formas diferentes. Quando a página informar processamento local, o trabalho ocorre no dispositivo e utiliza memória e capacidade de processamento do navegador. Arquivos grandes, codecs pouco suportados ou dispositivos com poucos recursos podem causar lentidão ou falhas. Em ferramentas de download, utilize apenas mídias públicas que possam ser baixadas de forma autorizada e respeite direitos autorais, privacidade e regras da plataforma de origem.",
   },
 };
 
