@@ -18,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function InstagramFollowAnalyzerPage() {
   const config = await getInstagramAnalyzerConfig();
+  const show = (key: string) => config.sectionVisibility[key] !== false;
   const plans = [
     { title: config.freeTitle, summary: config.freeDescription, items: config.freePlanDetail, highlight: false },
     { title: config.proTitle, summary: config.proDescription, items: config.proPlanDetail, highlight: true },
@@ -30,7 +31,7 @@ export default async function InstagramFollowAnalyzerPage() {
         <ArrowLeft className="size-4" /> Voltar para Social Media
       </Link>
 
-      <section className="mt-8 max-w-4xl">
+      {show("hero") ? <section className="mt-8 max-w-4xl">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">{config.eyebrow}</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">{config.pageTitle}</h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{config.heroDescription}</p>
@@ -38,24 +39,24 @@ export default async function InstagramFollowAnalyzerPage() {
           <span className="inline-flex items-center gap-2 border border-white/10 px-3 py-2"><Zap className="size-4 text-primary" /> {config.badgeOne}</span>
           <span className="inline-flex items-center gap-2 border border-white/10 px-3 py-2"><ShieldCheck className="size-4 text-primary" /> {config.badgeTwo}</span>
         </div>
-      </section>
+      </section> : null}
 
-      <div className="mt-10"><InstagramFollowAnalyzer config={config} /></div>
+      <div className={show("hero") ? "mt-10" : "mt-8"}><InstagramFollowAnalyzer config={config} /></div>
 
-      <section className="mt-12 grid gap-4 md:grid-cols-3">
+      {show("summaryPlans") ? <section className="mt-12 grid gap-4 md:grid-cols-3">
         <div className="border border-white/10 bg-card p-5"><h2 className="font-semibold">{config.freeTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.freeDescription}</p></div>
         <div className="border border-primary/25 bg-primary/[0.04] p-5"><h2 className="font-semibold">{config.proTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.proDescription}</p></div>
         <div className="border border-white/10 bg-card p-5"><h2 className="font-semibold">{config.agencyTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.agencyDescription}</p></div>
-      </section>
+      </section> : null}
 
-      <section className="mt-16 border-t border-white/10 pt-12">
+      {show("audience") ? <section className="mt-16 border-t border-white/10 pt-12">
         <div className="max-w-3xl">
           <div className="flex items-center gap-3"><UsersRound className="size-5 text-primary" /><h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.audienceTitle}</h2></div>
           <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">{config.audienceDescription}</p>
         </div>
-      </section>
+      </section> : null}
 
-      <section className="mt-12">
+      {show("plans") ? <section className="mt-12">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.plansTitle}</h2>
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
           {plans.map((plan) => <article key={plan.title} className={`border p-5 sm:p-6 ${plan.highlight ? "border-primary/30 bg-primary/[0.04]" : "border-white/10 bg-card"}`}>
@@ -73,9 +74,9 @@ export default async function InstagramFollowAnalyzerPage() {
           </div>
           <Link href="/planos" className="inline-flex shrink-0 items-center justify-center bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">Ver planos e assinar</Link>
         </div>
-      </section>
+      </section> : null}
 
-      <section className="mt-14">
+      {show("faq") ? <section className="mt-14">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.faqTitle}</h2>
         <div className="mt-6 divide-y divide-white/10 border-y border-white/10">
           {config.faqItems.map((item) => <details key={item.question} className="group py-4">
@@ -83,9 +84,9 @@ export default async function InstagramFollowAnalyzerPage() {
             <p className="mt-3 max-w-4xl text-sm leading-7 text-muted-foreground">{item.answer}</p>
           </details>)}
         </div>
-      </section>
+      </section> : null}
 
-      <section className="mt-14 border border-primary/20 bg-primary/[0.025] p-6 sm:p-8">
+      {show("privacy") ? <section className="mt-14 border border-primary/20 bg-primary/[0.025] p-6 sm:p-8">
         <div className="flex items-start gap-4">
           <div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><LockKeyhole className="size-5" /></div>
           <div className="max-w-4xl">
@@ -97,7 +98,7 @@ export default async function InstagramFollowAnalyzerPage() {
           {config.privacyItems.map((item) => <li key={item} className="flex gap-3 border border-white/10 bg-card/60 p-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" /><span>{item}</span></li>)}
         </ul>
         <Link href="/privacidade" className="mt-6 inline-flex text-sm font-medium text-primary hover:underline">{config.privacyLinkLabel}</Link>
-      </section>
+      </section> : null}
     </main>
   );
 }
