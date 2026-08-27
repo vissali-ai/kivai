@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { InstagramFollowAnalyzerEditor } from "@/components/admin/instagram-follow-analyzer-editor";
-import { SiteContentEditor } from "@/components/admin/site-content-editor";
+import { SiteContentEditorV2 } from "@/components/admin/site-content-editor-v2";
 import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
 import { getSiteContentById, listSiteHubs } from "@/lib/site-cms/repository";
 
@@ -13,5 +13,5 @@ export default async function EditSiteContentPage({ params }: { params: Promise<
     return <InstagramFollowAnalyzerEditor initialConfig={await getInstagramAnalyzerConfig()} initialContent={content} hubs={hubs} />;
   }
 
-  return <SiteContentEditor initialContent={content} hubs={hubs} />;
+  return <SiteContentEditorV2 initialContent={content} hubs={hubs} />;
 }
