@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { saveSession, type KivaiAuthSession } from "@/lib/user-auth";
+import { consumeOAuthNext, saveSession, type KivaiAuthSession } from "@/lib/user-auth";
 
 export default function UserAuthCallbackPage() {
   const [message, setMessage] = useState("Concluindo seu acesso...");
@@ -14,7 +14,8 @@ export default function UserAuthCallbackPage() {
     const tokenType = hash.get("token_type") ?? undefined;
     const errorDescription = hash.get("error_description") ?? hash.get("error");
     const query = new URLSearchParams(window.location.search);
-    const next = query.get("next")?.startsWith("/") ? query.get("next")! : "/conta";
+    const queryNext = query.get("next");
+    const next = queryNext?.startsWith("/") ? queryNext : consumeOAuthNext();
 
     if (errorDescription) {
       setMessage(`Não foi possível entrar: ${errorDescription}`);
@@ -33,7 +34,7 @@ export default function UserAuthCallbackPage() {
       token_type: tokenType,
     };
     saveSession(session);
-    window.history.replaceState({}, "", window.location.pathname + window.location.search);
+    window.history.replaceState({}, "", window.location.pathname);
     window.location.replace(next);
   }, []);
 
