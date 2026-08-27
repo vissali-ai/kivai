@@ -40,14 +40,12 @@ type TipoQrCode =
 
 type NivelCorrecao = "L" | "M" | "Q" | "H";
 
+type ModeloVisual = "padrao" | "topo" | "lateral" | "marca" | "selo";
+
 type ModeloQrCode = {
+  id: ModeloVisual;
   titulo: string;
   descricao: string;
-  corQr: string;
-  corFundo: string;
-  tamanho: number;
-  margem: number;
-  nivelCorrecao: NivelCorrecao;
 };
 
 type TipoConfig = {
@@ -125,51 +123,89 @@ const NIVEIS_CORRECAO: Array<{
 
 const MODELOS_QR_CODE: ModeloQrCode[] = [
   {
-    titulo: "E-commerce",
-    descricao: "Para embalagens, pedidos e páginas de produtos.",
-    corQr: "#0f172a",
-    corFundo: "#ffffff",
-    tamanho: 480,
-    margem: 4,
-    nivelCorrecao: "Q",
+    id: "padrao",
+    titulo: "Padrão",
+    descricao: "Somente o QR Code, sem elementos adicionais.",
   },
   {
-    titulo: "Loja física",
-    descricao: "Alto contraste para balcões, vitrines e cartazes.",
-    corQr: "#000000",
-    corFundo: "#ffffff",
-    tamanho: 600,
-    margem: 4,
-    nivelCorrecao: "H",
+    id: "topo",
+    titulo: "Chamada superior",
+    descricao: "Título destacado acima do código para cartazes e vitrines.",
   },
   {
-    titulo: "Cartão de visita",
-    descricao: "Visual profissional para materiais de contato.",
-    corQr: "#1d4ed8",
-    corFundo: "#ffffff",
-    tamanho: 360,
-    margem: 3,
-    nivelCorrecao: "Q",
+    id: "lateral",
+    titulo: "Etiqueta lateral",
+    descricao: "QR Code e chamada lado a lado para embalagens e balcões.",
   },
   {
-    titulo: "WhatsApp",
-    descricao: "Destaque em verde para atendimento e vendas.",
-    corQr: "#128c7e",
-    corFundo: "#ffffff",
-    tamanho: 420,
-    margem: 4,
-    nivelCorrecao: "Q",
+    id: "marca",
+    titulo: "Cartão de marca",
+    descricao: "Inclui nome, logo e chamada em uma peça completa.",
   },
   {
-    titulo: "Minimalista",
-    descricao: "Opção compacta e neutra para uso digital.",
-    corQr: "#111827",
-    corFundo: "#ffffff",
-    tamanho: 320,
-    margem: 2,
-    nivelCorrecao: "M",
+    id: "selo",
+    titulo: "Selo promocional",
+    descricao: "Moldura marcante com chamada inferior para campanhas.",
   },
 ];
+
+function escaparXml(valor: string) {
+  return valor.replace(/[<>&"']/g, (caractere) => ({
+    "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;",
+  })[caractere] ?? caractere);
+}
+
+function criarArteSvg({
+  qrDataUrl,
+  modelo,
+  tamanho,
+  corQr,
+  corFundo,
+  chamada,
+  nomeMarca,
+  logoDataUrl,
+}: {
+  qrDataUrl: string;
+  modelo: ModeloVisual;
+  tamanho: number;
+  corQr: string;
+  corFundo: string;
+  chamada: string;
+  nomeMarca: string;
+  logoDataUrl: string;
+}) {
+  if (!qrDataUrl) return "";
+  const texto = escaparXml(chamada.trim() || "ESCANEIE AQUI");
+  const marca = escaparXml(nomeMarca.trim() || "SUA MARCA");
+  const fonte = "Arial, Helvetica, sans-serif";
+  const logo = logoDataUrl
+    ? `<image href="${logoDataUrl}" x="${tamanho * 0.08}" y="${tamanho * 0.055}" width="${tamanho * 0.16}" height="${tamanho * 0.16}" preserveAspectRatio="xMidYMid meet"/>`
+    : "";
+
+  if (modelo === "padrao") {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${tamanho}" height="${tamanho}" viewBox="0 0 ${tamanho} ${tamanho}"><image href="${qrDataUrl}" width="${tamanho}" height="${tamanho}"/></svg>`;
+  }
+
+  if (modelo === "topo") {
+    const cabecalho = Math.round(tamanho * 0.25);
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${tamanho}" height="${tamanho + cabecalho}" viewBox="0 0 ${tamanho} ${tamanho + cabecalho}"><rect width="100%" height="100%" rx="${tamanho * 0.035}" fill="${corFundo}"/><rect width="100%" height="${cabecalho}" rx="${tamanho * 0.035}" fill="${corQr}"/><rect y="${cabecalho * 0.75}" width="100%" height="${cabecalho * 0.25}" fill="${corQr}"/><text x="50%" y="${cabecalho * 0.62}" text-anchor="middle" font-family="${fonte}" font-size="${tamanho * 0.085}" font-weight="800" fill="${corFundo}">${texto}</text><image href="${qrDataUrl}" y="${cabecalho}" width="${tamanho}" height="${tamanho}"/></svg>`;
+  }
+
+  if (modelo === "lateral") {
+    const largura = Math.round(tamanho * 1.58);
+    const painelX = tamanho;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${largura}" height="${tamanho}" viewBox="0 0 ${largura} ${tamanho}"><rect width="100%" height="100%" rx="${tamanho * 0.09}" fill="${corQr}"/><image href="${qrDataUrl}" width="${tamanho}" height="${tamanho}"/><text x="${painelX + (largura - painelX) / 2}" y="${tamanho * 0.43}" text-anchor="middle" font-family="${fonte}" font-size="${tamanho * 0.075}" font-weight="800" fill="${corFundo}">${texto}</text><text x="${painelX + (largura - painelX) / 2}" y="${tamanho * 0.58}" text-anchor="middle" font-family="${fonte}" font-size="${tamanho * 0.042}" font-weight="600" fill="${corFundo}">${marca}</text></svg>`;
+  }
+
+  if (modelo === "marca") {
+    const altura = Math.round(tamanho * 1.36);
+    const topo = Math.round(tamanho * 0.24);
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${tamanho}" height="${altura}" viewBox="0 0 ${tamanho} ${altura}"><rect width="100%" height="100%" rx="${tamanho * 0.045}" fill="${corFundo}" stroke="${corQr}" stroke-width="${tamanho * 0.025}"/>${logo}<text x="${logoDataUrl ? tamanho * 0.28 : tamanho * 0.08}" y="${topo * 0.56}" font-family="${fonte}" font-size="${tamanho * 0.065}" font-weight="800" fill="${corQr}">${marca}</text><image href="${qrDataUrl}" y="${topo}" width="${tamanho}" height="${tamanho}"/><rect x="${tamanho * 0.08}" y="${tamanho * 1.245}" width="${tamanho * 0.84}" height="${tamanho * 0.08}" rx="${tamanho * 0.04}" fill="${corQr}"/><text x="50%" y="${tamanho * 1.302}" text-anchor="middle" font-family="${fonte}" font-size="${tamanho * 0.04}" font-weight="700" fill="${corFundo}">${texto}</text></svg>`;
+  }
+
+  const altura = Math.round(tamanho * 1.2);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${tamanho}" height="${altura}" viewBox="0 0 ${tamanho} ${altura}"><rect x="${tamanho * 0.02}" y="${tamanho * 0.02}" width="${tamanho * 0.96}" height="${altura - tamanho * 0.04}" rx="${tamanho * 0.12}" fill="${corFundo}" stroke="${corQr}" stroke-width="${tamanho * 0.035}"/><image href="${qrDataUrl}" x="${tamanho * 0.05}" y="${tamanho * 0.03}" width="${tamanho * 0.9}" height="${tamanho * 0.9}"/><path d="M ${tamanho * 0.17} ${tamanho * 0.94} H ${tamanho * 0.83} Q ${tamanho * 0.9} ${tamanho * 0.94} ${tamanho * 0.9} ${tamanho * 1.01} V ${tamanho * 1.1} H ${tamanho * 0.1} V ${tamanho * 1.01} Q ${tamanho * 0.1} ${tamanho * 0.94} ${tamanho * 0.17} ${tamanho * 0.94}" fill="${corQr}"/><text x="50%" y="${tamanho * 1.055}" text-anchor="middle" font-family="${fonte}" font-size="${tamanho * 0.055}" font-weight="800" fill="${corFundo}">${texto}</text></svg>`;
+}
 
 function escaparWifi(valor: string) {
   return valor.replace(/([\\;,":])/g, "\\$1");
@@ -240,11 +276,31 @@ export default function GeradorDeQrCodeClient() {
   const [margem, setMargem] = useState(2);
   const [nivelCorrecao, setNivelCorrecao] =
     useState<NivelCorrecao>("M");
+  const [modeloVisual, setModeloVisual] = useState<ModeloVisual>("padrao");
+  const [chamada, setChamada] = useState("ESCANEIE AQUI");
+  const [nomeMarca, setNomeMarca] = useState("");
+  const [logoDataUrl, setLogoDataUrl] = useState("");
 
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [gerando, setGerando] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [erro, setErro] = useState("");
+
+  const arteSvg = useMemo(() => criarArteSvg({
+    qrDataUrl,
+    modelo: modeloVisual,
+    tamanho,
+    corQr,
+    corFundo,
+    chamada,
+    nomeMarca,
+    logoDataUrl,
+  }), [qrDataUrl, modeloVisual, tamanho, corQr, corFundo, chamada, nomeMarca, logoDataUrl]);
+
+  const arteDataUrl = useMemo(
+    () => arteSvg ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(arteSvg)}` : "",
+    [arteSvg]
+  );
 
   const conteudoQr = useMemo(() => {
     switch (tipo) {
@@ -397,12 +453,23 @@ const dataUrl = await QRCode.toDataURL(conteudoQr, {
   }
 
   function aplicarModelo(modelo: ModeloQrCode) {
-    setCorQr(modelo.corQr);
-    setCorFundo(modelo.corFundo);
-    setTamanho(modelo.tamanho);
-    setMargem(modelo.margem);
-    setNivelCorrecao(modelo.nivelCorrecao);
+    setModeloVisual(modelo.id);
     setErro("");
+  }
+
+  function carregarLogo(arquivo?: File) {
+    if (!arquivo) return;
+    if (!arquivo.type.startsWith("image/")) {
+      setErro("Escolha uma imagem válida para a logo.");
+      return;
+    }
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      setLogoDataUrl(typeof leitor.result === "string" ? leitor.result : "");
+      setErro("");
+    };
+    leitor.onerror = () => setErro("Não foi possível carregar a logo.");
+    leitor.readAsDataURL(arquivo);
   }
 
   async function copiarConteudo() {
@@ -425,14 +492,23 @@ const dataUrl = await QRCode.toDataURL(conteudoQr, {
   }
 
   async function baixarPng() {
-    if (!qrDataUrl) {
+    if (!arteDataUrl) {
       setErro("Preencha os dados antes de baixar o QR Code.");
       return;
     }
 
     try {
-      const resposta = await fetch(qrDataUrl);
-      const blob = await resposta.blob();
+      const imagem = new Image();
+      imagem.src = arteDataUrl;
+      await imagem.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = imagem.naturalWidth;
+      canvas.height = imagem.naturalHeight;
+      const contexto = canvas.getContext("2d");
+      if (!contexto) throw new Error("Canvas indisponível");
+      contexto.drawImage(imagem, 0, 0);
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("PNG indisponível");
       downloadBlob(blob, `kivai-qrcode-${tipo}.png`);
       setErro("");
     } catch {
@@ -441,26 +517,13 @@ const dataUrl = await QRCode.toDataURL(conteudoQr, {
   }
 
   async function baixarSvg() {
-    if (!conteudoQr) {
+    if (!arteSvg) {
       setErro("Preencha os dados antes de baixar o QR Code.");
       return;
     }
 
     try {
-     const QRCode = await import("qrcode");
-
-const svg = await QRCode.toString(conteudoQr, {
-        type: "svg",
-        width: tamanho,
-        margin: margem,
-        errorCorrectionLevel: nivelCorrecao,
-        color: {
-          dark: corQr,
-          light: corFundo,
-        },
-      });
-
-      const blob = new Blob([svg], {
+      const blob = new Blob([arteSvg], {
         type: "image/svg+xml;charset=utf-8",
       });
 
@@ -802,7 +865,8 @@ const svg = await QRCode.toString(conteudoQr, {
             Crie QR Codes para links, textos, Wi-Fi, e-mail,
             telefone e WhatsApp. Nos números brasileiros, o +55
             é aplicado automaticamente. Personalize a aparência
-            ou escolha um dos modelos prontos.
+            ou transforme o código em uma peça visual com texto,
+            marca e logo.
           </p>
         </div>
 
@@ -811,9 +875,8 @@ const svg = await QRCode.toString(conteudoQr, {
             <CardTitle>Crie seu QR Code</CardTitle>
 
             <CardDescription>
-              Escolha o conteúdo, confira a prévia, use um modelo
-              pronto ou personalize as configurações e baixe em
-              PNG ou SVG.
+              Escolha o conteúdo, confira a prévia, personalize a
+              composição visual e baixe a arte completa em PNG ou SVG.
             </CardDescription>
           </CardHeader>
 
@@ -995,6 +1058,61 @@ const svg = await QRCode.toString(conteudoQr, {
                       />
                     </div>
                   </div>
+
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="qr-chamada" className="text-sm font-medium">
+                        Texto exibido na arte
+                      </label>
+                      <input
+                        id="qr-chamada"
+                        type="text"
+                        maxLength={28}
+                        value={chamada}
+                        onChange={(event) => setChamada(event.target.value)}
+                        placeholder="Ex.: Aponte a câmera"
+                        className="mt-2 h-11 w-full border border-border bg-background px-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="qr-marca" className="text-sm font-medium">
+                        Nome da marca
+                      </label>
+                      <input
+                        id="qr-marca"
+                        type="text"
+                        maxLength={24}
+                        value={nomeMarca}
+                        onChange={(event) => setNomeMarca(event.target.value)}
+                        placeholder="Ex.: Minha Loja"
+                        className="mt-2 h-11 w-full border border-border bg-background px-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label htmlFor="qr-logo" className="text-sm font-medium">
+                      Logo opcional
+                    </label>
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      <input
+                        id="qr-logo"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                        onChange={(event) => carregarLogo(event.target.files?.[0])}
+                        className="min-w-0 flex-1 border border-border bg-background p-2 text-xs file:mr-3 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-medium file:text-primary-foreground"
+                      />
+                      {logoDataUrl && (
+                        <Button type="button" variant="outline" onClick={() => setLogoDataUrl("")}>
+                          Remover logo
+                        </Button>
+                      )}
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      A logo aparece no modelo Cartão de marca, sem cobrir a área de leitura do QR Code.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="border border-border bg-muted/20 p-4 sm:p-5">
@@ -1073,8 +1191,8 @@ const svg = await QRCode.toString(conteudoQr, {
                     <>
                       <div className="flex w-full max-w-sm items-center justify-center border border-border bg-background p-5">
                         <img
-                          src={qrDataUrl}
-                          alt="Pré-visualização do QR Code gerado"
+                          src={arteDataUrl}
+                          alt="Pré-visualização da arte com QR Code"
                           className="h-auto max-h-80 w-full object-contain"
                         />
                       </div>
@@ -1110,7 +1228,7 @@ const svg = await QRCode.toString(conteudoQr, {
                     type="button"
                     size="lg"
                     onClick={baixarPng}
-                    disabled={!qrDataUrl || gerando}
+                    disabled={!arteDataUrl || gerando}
                   >
                     <Download
                       className="size-4"
@@ -1124,7 +1242,7 @@ const svg = await QRCode.toString(conteudoQr, {
                     variant="outline"
                     size="lg"
                     onClick={baixarSvg}
-                    disabled={!conteudoQr || gerando}
+                    disabled={!arteSvg || gerando}
                   >
                     <Download
                       className="size-4"
@@ -1164,20 +1282,15 @@ const svg = await QRCode.toString(conteudoQr, {
                 {qrDataUrl && (
                   <div className="mt-5 border border-border bg-muted/20 p-4">
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Modelos sugeridos
+                      Composições criativas
                     </p>
                     <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                      Escolha um modelo pronto e ajuste as configurações depois, se desejar.
+                      Escolha uma composição. O texto, a marca, a logo e as cores podem ser personalizados.
                     </p>
 
                     <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                       {MODELOS_QR_CODE.map((modelo) => {
-                        const selecionado =
-                          corQr.toLowerCase() === modelo.corQr &&
-                          corFundo.toLowerCase() === modelo.corFundo &&
-                          tamanho === modelo.tamanho &&
-                          margem === modelo.margem &&
-                          nivelCorrecao === modelo.nivelCorrecao;
+                        const selecionado = modeloVisual === modelo.id;
 
                         return (
                           <button
@@ -1192,11 +1305,9 @@ const svg = await QRCode.toString(conteudoQr, {
                                 : "border-border bg-background hover:bg-muted/40",
                             ].join(" ")}
                           >
-                            <span
-                              className="mt-0.5 size-7 shrink-0 border border-border"
-                              style={{ backgroundColor: modelo.corQr }}
-                              aria-hidden="true"
-                            />
+                            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center border border-border bg-muted/30 text-[10px] font-bold text-primary" aria-hidden="true">
+                              {modelo.id === "padrao" ? "QR" : modelo.id === "topo" ? "↑" : modelo.id === "lateral" ? "→" : modelo.id === "marca" ? "M" : "●"}
+                            </span>
                             <span>
                               <span className="block text-sm font-medium">{modelo.titulo}</span>
                               <span className="mt-1 block text-xs leading-4 text-muted-foreground">{modelo.descricao}</span>
