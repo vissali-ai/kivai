@@ -273,7 +273,7 @@ export const tools: Tool[] = [
     slug: "gerador-de-qr-code",
     name: "Gerador de QR Code",
     description:
-      "Crie QR Codes para links, textos, Wi-Fi, e-mail, ligações e WhatsApp com +55 automático e modelos prontos.",
+      "Crie QR Codes para links, textos, Wi-Fi, e-mail, ligações e WhatsApp, com +55 automático, composições gráficas, texto e logo.",
     category: "imagens",
     hubFilter: "Converter",
     badge: "Utilidades",
@@ -281,8 +281,8 @@ export const tools: Tool[] = [
     featured: true,
     available: true,
     seoTitle: "Gerador de QR Code para Link, Wi-Fi, Telefone e WhatsApp | Kivai",
-    seoDescription: "Crie QR Codes para URL, texto, Wi-Fi, e-mail, telefone e WhatsApp. Use +55 automático, modelos prontos, cores personalizadas e baixe em PNG ou SVG.",
-    keywords: ["gerador de qr code", "criar qr code", "qr code wifi", "qr code whatsapp", "qr code telefone", "qr code para link", "qr code com modelos"],
+    seoDescription: "Crie QR Codes para URL, texto, Wi-Fi, e-mail, telefone e WhatsApp. Personalize com chamadas, marca, logo e composições gráficas em PNG ou SVG.",
+    keywords: ["gerador de qr code", "criar qr code", "qr code wifi", "qr code whatsapp", "qr code telefone", "qr code para link", "qr code personalizado", "qr code com logo"],
   },
   {
     slug: "gerador-de-favicon",
