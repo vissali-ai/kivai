@@ -91,8 +91,6 @@ export type Post = {
   relatedToolSlugs: string[];
   featured: boolean;
   featuredOrder: number | null;
-  indexable: boolean;
-  includeInSitemap: boolean;
   origin: PostOrigin;
   reviewStatus: ReviewStatus;
   generationModel: string;
