@@ -169,6 +169,21 @@ async function analyzeFile(file: File): Promise<AnalyzerResult> {
   };
 }
 
+function SpriteSlice({ index }: { index: number }) {
+  return (
+    <span className="relative block w-full overflow-hidden" style={{ aspectRatio: "300 / 533" }}>
+      <img
+        src={TUTORIAL_SPRITE}
+        alt=""
+        aria-hidden="true"
+        className="absolute left-0 w-full max-w-none select-none"
+        style={{ top: `-${index * 100}%` }}
+        draggable={false}
+      />
+    </span>
+  );
+}
+
 function TutorialScreenshot({ index, onOpen }: { index: number; onOpen: () => void }) {
   return (
     <button
@@ -177,16 +192,7 @@ function TutorialScreenshot({ index, onOpen }: { index: number; onOpen: () => vo
       className="group relative mx-auto block w-full max-w-[300px] overflow-hidden border border-white/10 bg-black text-left transition hover:border-primary/40"
       aria-label={`Ampliar imagem do passo ${index + 1}`}
     >
-      <span
-        className="block w-full"
-        style={{
-          aspectRatio: "300 / 533",
-          backgroundImage: `url(${TUTORIAL_SPRITE})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "100% 900%",
-          backgroundPosition: `center ${index * 12.5}%`,
-        }}
-      />
+      <SpriteSlice index={index} />
       <span className="absolute inset-x-0 bottom-0 bg-black/75 px-3 py-2 text-center text-xs text-white opacity-0 transition group-hover:opacity-100">
         Clique para ampliar
       </span>
@@ -367,16 +373,9 @@ export function InstagramFollowAnalyzer() {
             <button type="button" onClick={() => setExpandedScreenshot(null)} className="sticky right-3 top-3 z-10 ml-auto mr-3 mt-3 flex size-10 items-center justify-center bg-black/80 text-white" aria-label="Fechar imagem">
               <X className="size-5" />
             </button>
-            <div
-              className="mx-auto w-full max-w-[600px]"
-              style={{
-                aspectRatio: "300 / 533",
-                backgroundImage: `url(${TUTORIAL_SPRITE})`,
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "100% 900%",
-                backgroundPosition: `center ${expandedScreenshot * 12.5}%`,
-              }}
-            />
+            <div className="mx-auto w-full max-w-[600px] overflow-hidden">
+              <SpriteSlice index={expandedScreenshot} />
+            </div>
           </div>
         </div>
       ) : null}
