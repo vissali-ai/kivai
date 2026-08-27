@@ -3,6 +3,7 @@ export type SitePublicationStatus = "draft" | "published" | "archived";
 export type ToolImplementationMode = "auto" | "browser" | "server" | "informational";
 export type ToolTechnicalStatus = "not_applicable" | "pending" | "ready";
 export type SiteDisplayLocation = "direct" | "home" | "help" | "main_nav" | "footer" | "resource_library";
+export type PublicationBlockVisibility = Record<string, boolean>;
 
 export type SiteOriginalFieldType = "text" | "textarea" | "url" | "image" | "number" | "boolean";
 
@@ -12,6 +13,7 @@ export type SiteOriginalField = {
   type: SiteOriginalFieldType;
   value: string | number | boolean;
   helpText?: string;
+  visible?: boolean;
 };
 
 export type SiteCustomData = {
@@ -31,6 +33,7 @@ export type SiteHub = {
   status: SitePublicationStatus;
   indexable: boolean;
   includeInSitemap: boolean;
+  blockVisibility: PublicationBlockVisibility;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -57,6 +60,7 @@ export type SiteContent = {
   status: SitePublicationStatus;
   indexable: boolean;
   includeInSitemap: boolean;
+  blockVisibility: PublicationBlockVisibility;
   customData: SiteCustomData;
   publishedAt: string | null;
   createdAt: string;
@@ -90,6 +94,7 @@ export type SiteService = {
   includeInSitemap: boolean;
   showInServicesIndex: boolean;
   displayOrder: number;
+  blockVisibility: PublicationBlockVisibility;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
