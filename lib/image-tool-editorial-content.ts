@@ -22,7 +22,6 @@ export type ImageToolEditorialSlug =
   | "redimensionar-imagem"
   | "gerador-de-qr-code"
   | "gerador-de-favicon"
-  | "imagem-para-favicon"
   | "adicionar-marca-dagua"
   | "conversor-svg-png"
   | "espelhar-e-girar-imagem"
@@ -248,40 +247,49 @@ export const imageToolEditorialContent = {
   },
   "gerador-de-qr-code": {
     overview: [
-      "O Gerador de QR Code transforma informações em uma matriz bidimensional que pode ser lida pela câmera de celulares e aplicativos compatíveis. É possível preparar códigos para endereço web, texto, WhatsApp, e-mail, telefone ou rede Wi-Fi e personalizar tamanho, cores e correção de erro.",
-      "Um QR Code não hospeda o conteúdo: ele codifica os dados informados. Por isso, links e telefones devem ser conferidos antes da publicação. Contraste adequado, margem livre e tamanho de impressão são essenciais para que leitores diferentes reconheçam o símbolo com confiabilidade.",
+      "O Gerador de QR Code transforma links, textos, dados de contato e configurações de Wi-Fi em um código que pode ser lido pela câmera de celulares e aplicativos compatíveis. A ferramenta cria QR Codes para URL, texto, WhatsApp, telefone, e-mail e redes Wi-Fi, com pré-visualização automática e download em PNG ou SVG.",
+      "Nos formatos Telefone e WhatsApp, basta informar o DDD e o número brasileiro. O código do país +55 é incorporado automaticamente no destino, reduzindo erros de configuração em ligações e conversas. Números fixos com 10 dígitos e celulares com 11 dígitos são aceitos.",
+      "Depois da geração, é possível escolher entre os modelos E-commerce, Loja física, Cartão de visita, WhatsApp e Minimalista. Cada modelo combina cor, tamanho, margem e correção de erro para uma finalidade, mas todas as configurações continuam disponíveis para ajuste manual.",
+      "Um QR Code estático registra exatamente o conteúdo informado e não permite trocar o destino depois do download. Antes de publicar ou imprimir, é importante revisar os dados, manter bom contraste entre o código e o fundo e testar a leitura com mais de um celular.",
     ],
     useCases: [
-      { title: "Materiais impressos", description: "Leve visitantes de cartões, embalagens, cartazes e cardápios até uma página específica." },
-      { title: "Contato rápido", description: "Prepare atalhos para conversa no WhatsApp, ligação telefônica ou composição de e-mail." },
-      { title: "Acesso a Wi-Fi", description: "Codifique nome da rede, tipo de segurança e senha para facilitar a conexão de convidados." },
-      { title: "Informações curtas", description: "Compartilhe textos e instruções que possam ser lidos mesmo sem abrir um navegador." },
+      { title: "E-commerce e embalagens", description: "Direcione clientes para produtos, pedidos, páginas de suporte, avaliações ou atendimento pelo WhatsApp." },
+      { title: "Lojas e materiais impressos", description: "Use em balcões, vitrines, cartazes, cardápios e etiquetas com configurações de maior contraste e resistência de leitura." },
+      { title: "Contato profissional", description: "Crie atalhos para ligação, conversa no WhatsApp ou e-mail em cartões de visita, portfólios e apresentações." },
+      { title: "Acesso a redes e informações", description: "Facilite a conexão de convidados ao Wi-Fi ou compartilhe textos e instruções sem exigir a digitação manual." },
     ],
     steps: [
-      "Escolha o tipo de conteúdo que será codificado.",
-      "Preencha os campos e revise cuidadosamente links, números, mensagens ou credenciais.",
-      "Ajuste tamanho, cores e nível de correção mantendo bom contraste.",
-      "Teste a leitura na prévia e baixe o resultado em PNG ou SVG.",
+      "Escolha entre URL, texto, WhatsApp, telefone, e-mail ou Wi-Fi.",
+      "Preencha os dados solicitados. Para telefone e WhatsApp, informe somente DDD e número; o +55 será acrescentado automaticamente.",
+      "Confira o QR Code gerado na pré-visualização.",
+      "Escolha um dos cinco modelos sugeridos ou ajuste cor, fundo, tamanho, margem e correção de erro manualmente.",
+      "Teste a leitura com a câmera do celular e baixe o resultado em PNG ou SVG.",
     ],
     specifications: [
-      { label: "Conteúdos", value: "URL, texto, WhatsApp, e-mail, telefone e configuração de Wi-Fi." },
-      { label: "Saída", value: "PNG para uso comum ou SVG para redimensionamento vetorial." },
-      { label: "Personalização", value: "Tamanho, cores e nível de correção de erro." },
-      { label: "Validação", value: "Prévia visual; o usuário deve testar o código final antes de divulgar." },
+      { label: "Conteúdos", value: "URL, texto, WhatsApp, telefone, e-mail e configuração de Wi-Fi." },
+      { label: "Telefones brasileiros", value: "DDD e número com 10 ou 11 dígitos; +55 incorporado automaticamente para ligação e WhatsApp." },
+      { label: "Modelos", value: "E-commerce, Loja física, Cartão de visita, WhatsApp e Minimalista." },
+      { label: "Personalização", value: "Cor do código, cor de fundo, tamanho de 200 a 1.000 px, margem e quatro níveis de correção de erro." },
+      { label: "Saídas", value: "PNG para uso cotidiano e SVG vetorial para impressão ou redimensionamento." },
+      { label: "Prévia", value: "Atualização automática conforme o conteúdo e as configurações escolhidas." },
     ],
-    privacy: "Os dados digitados são convertidos em QR Code no navegador e não precisam ser enviados ao Kivai. Ainda assim, qualquer pessoa que escanear o código poderá ler o conteúdo codificado. Evite inserir senhas ou informações pessoais em materiais que ficarão públicos.",
+    privacy: "A geração acontece no navegador e os dados digitados não precisam ser enviados ao Kivai para criar a imagem. O QR Code, porém, torna o conteúdo acessível a qualquer pessoa que consiga escaneá-lo. Evite publicar senhas de Wi-Fi, mensagens privadas ou dados pessoais em materiais expostos ao público.",
     limitations: [
-      "Cores com pouco contraste, deformações e margens insuficientes podem impedir a leitura.",
-      "O QR Code gerado é estático; mudar o destino exige criar e substituir o código.",
-      "Códigos impressos muito pequenos podem falhar, principalmente quando armazenam bastante texto.",
-      "A ferramenta não verifica se uma URL existe, é segura ou continuará disponível no futuro.",
+      "A inclusão automática do +55 nos formatos Telefone e WhatsApp é destinada a números brasileiros com DDD.",
+      "O QR Code é estático; alterar um link, telefone, mensagem ou senha exige gerar e substituir o código.",
+      "Cores com pouco contraste, margem insuficiente, deformação ou impressão muito pequena podem impedir a leitura.",
+      "A ferramenta não confirma se URLs, e-mails, telefones, redes ou senhas informados existem ou estão corretos.",
+      "Logotipos não são inseridos dentro do QR Code, pois podem reduzir a confiabilidade da leitura sem tratamento específico.",
     ],
     faqs: [
-      { question: "O QR Code expira?", answer: "O símbolo estático não possui prazo próprio. Ele deixa de ser útil se o conteúdo codificado, como uma página, for removido ou alterado." },
-      { question: "PNG ou SVG: qual escolher?", answer: "PNG é prático para telas e documentos. SVG é indicado quando o código será ampliado em impressão ou editado em software vetorial." },
-      { question: "Posso mudar o link depois?", answer: "Não em um código estático. Para alterar o destino, gere um novo QR Code e substitua a arte anterior." },
-      { question: "É seguro colocar senha de Wi-Fi?", answer: "O código facilita a conexão, mas qualquer pessoa com acesso visual pode extrair as credenciais. Use somente em ambientes controlados." },
-      { question: "Os dados informados são enviados ao servidor?", answer: "Não. A geração ocorre localmente no navegador." },
+      { question: "Preciso digitar +55 no telefone ou WhatsApp?", answer: "Não. Informe somente o DDD e o número brasileiro. A ferramenta acrescenta o código 55 automaticamente no destino do QR Code." },
+      { question: "Telefone fixo também funciona?", answer: "Sim. A ferramenta aceita números brasileiros com 10 dígitos, usados normalmente em telefones fixos, e com 11 dígitos, comuns em celulares." },
+      { question: "O que os modelos sugeridos alteram?", answer: "Eles aplicam combinações prontas de cor, fundo, tamanho, margem e correção de erro. Depois da escolha, qualquer configuração pode ser modificada manualmente." },
+      { question: "O QR Code expira?", answer: "O código estático não possui prazo próprio. Ele deixa de funcionar como esperado se o destino for removido, alterado ou ficar indisponível." },
+      { question: "PNG ou SVG: qual escolher?", answer: "PNG é prático para redes sociais, documentos e telas. SVG mantém a nitidez ao ampliar e é mais indicado para impressão e edição vetorial." },
+      { question: "Posso mudar o conteúdo depois de baixar?", answer: "Não. Para trocar link, telefone, mensagem, e-mail ou dados da rede, crie um novo QR Code e substitua o anterior." },
+      { question: "É seguro colocar senha de Wi-Fi?", answer: "Qualquer pessoa que escanear o QR Code poderá recuperar os dados da rede. Use essa opção somente em ambientes e materiais controlados." },
+      { question: "Os dados informados são enviados ao servidor?", answer: "Não. A criação da imagem acontece localmente no navegador." },
     ],
     related: [
       { href: "/ferramentas/gerador-de-favicon", label: "Gerar favicon" },
@@ -327,52 +335,8 @@ export const imageToolEditorialContent = {
       { question: "A marca enviada fica armazenada?", answer: "Não durante o processamento normal. A geração acontece localmente no navegador." },
     ],
     related: [
-      { href: "/ferramentas/imagem-para-favicon", label: "Imagem para favicon" },
       { href: "/ferramentas/conversor-svg-png", label: "Converter SVG e PNG" },
       { href: "/ferramentas/redimensionar-imagem", label: "Redimensionar imagem" },
-    ],
-  },
-  "imagem-para-favicon": {
-    overview: [
-      "Imagem para Favicon é uma versão direta do gerador voltada a transformar uma arte existente nos principais ícones usados por navegadores e dispositivos. Ela cria favicon.ico e PNGs para aba, favoritos, Apple Touch Icon e atalhos Android sem exigir edição manual de cada dimensão.",
-      "A conversão preserva o conteúdo da imagem, mas a redução pode ocultar detalhes. Antes de publicar, observe especialmente as versões de 16 e 32 pixels: se o símbolo não puder ser reconhecido nelas, vale preparar uma variação simplificada da marca.",
-    ],
-    useCases: [
-      { title: "Conversão rápida de logotipo", description: "Transforme um arquivo visual já aprovado em um conjunto básico de favicons." },
-      { title: "Portfólio e landing page", description: "Substitua o ícone genérico do navegador por uma identidade própria." },
-      { title: "Aplicação instalável", description: "Prepare imagens maiores para atalhos móveis e configurações de manifesto." },
-      { title: "Correção de implementação", description: "Recrie arquivos ausentes ou com dimensões inadequadas em um projeto existente." },
-    ],
-    steps: [
-      "Escolha a imagem da marca em PNG, JPG ou WebP.",
-      "Gere automaticamente os tamanhos configurados.",
-      "Analise as prévias e confirme que o símbolo permanece legível.",
-      "Baixe os arquivos e configure as referências no site ou aplicativo.",
-    ],
-    specifications: [
-      { label: "Entrada", value: "Uma imagem PNG, JPG ou WebP." },
-      { label: "Saídas", value: "favicon.ico e PNGs de 16, 32, 180, 192 e 512 pixels." },
-      { label: "Processo", value: "Redimensionamento e empacotamento executados no navegador." },
-      { label: "Uso posterior", value: "Os arquivos devem ser publicados e declarados pelo responsável pelo site." },
-    ],
-    privacy: "A arte escolhida permanece no dispositivo durante a criação dos ícones. A ferramenta não precisa transferir a identidade visual para um serviço externo. O download é iniciado somente por ação do usuário.",
-    limitations: [
-      "A conversão não redesenha automaticamente um logotipo complexo para tamanhos pequenos.",
-      "Fundos e margens presentes no arquivo original aparecem nas versões geradas.",
-      "A atualização pode demorar a aparecer por causa do cache do navegador ou de uma CDN.",
-      "Cada plataforma pode exigir declarações adicionais no HTML ou manifesto além dos arquivos de imagem.",
-    ],
-    faqs: [
-      { question: "Esta ferramenta é diferente do Gerador de Favicon?", answer: "Ela oferece um fluxo mais direto e um conjunto essencial de tamanhos. O gerador completo apresenta mais versões e opções de download." },
-      { question: "Posso usar uma foto?", answer: "Pode, mas fotografias tendem a perder reconhecimento em dimensões pequenas. Símbolos simples costumam funcionar melhor." },
-      { question: "Preciso manter todos os arquivos?", answer: "Use os tamanhos solicitados pela configuração do seu site. O conjunto completo oferece compatibilidade mais ampla." },
-      { question: "Por que o favicon antigo ainda aparece?", answer: "Favicons são armazenados em cache com frequência. Confirme os caminhos, limpe o cache e aguarde a atualização da CDN ou do navegador." },
-      { question: "A imagem é enviada ao Kivai?", answer: "Não. A transformação ocorre localmente no navegador." },
-    ],
-    related: [
-      { href: "/ferramentas/gerador-de-favicon", label: "Gerador de favicon completo" },
-      { href: "/ferramentas/redimensionar-imagem", label: "Redimensionar imagem" },
-      { href: "/ferramentas/conversor-de-imagens", label: "Converter imagens" },
     ],
   },
   "adicionar-marca-dagua": {
