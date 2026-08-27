@@ -19,16 +19,23 @@ type SumUpCheckout = {
   payment_instrument?: { token?: string };
   transactions?: Array<{ status?: string }>;
 };
+type SumUpPaymentInstrument = { token: string; active?: boolean; mandate?: { status?: string; type?: string } };
 
 type SubscriptionRow = {
   id: string;
   user_id: string;
   plan_code: PaidPlanCode;
+  status?: string;
   billing_cycle: BillingCycle | null;
   provider_customer_id: string | null;
   provider_subscription_id: string | null;
   provider_checkout_reference: string | null;
+  current_period_start?: string | null;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
 };
+
+type BillingAttemptRow = { id: string; status: "processing" | "successful" | "failed" };
 
 function apiKey() { return process.env.SUMUP_API_KEY ?? ""; }
 function merchantCode() { return process.env.SUMUP_MERCHANT_CODE ?? ""; }
@@ -121,7 +128,6 @@ async function savePendingSubscription(params: {
 }) {
   await supabaseRest("user_subscriptions", {
     method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
     body: JSON.stringify({
       user_id: params.user.id,
       plan_code: params.plan,
@@ -184,7 +190,7 @@ export async function retrieveCheckout(checkoutId: string) {
   return sumupFetch<SumUpCheckout>(`/checkouts/${encodeURIComponent(checkoutId)}`);
 }
 
-async function createAndChargeSavedCard(params: { plan: PlanRow; cycle: BillingCycle; customerId: string; token: string; userId: string }) {
+async function createAndChargeSavedCard(params: { plan: PlanRow; cycle: BillingCycle; customerId: string; token: string }) {
   const reference = `kivai-charge-${params.plan.code}-${params.cycle}-${crypto.randomUUID()}`.slice(0, 90);
   const checkout = await sumupFetch<SumUpCheckout>("/checkouts", {
     method: "POST",
@@ -216,7 +222,7 @@ export async function completeRecurringSetup(user: AuthUser, setupReference: str
   const token = setup.payment_instrument?.token;
   if (!token) throw new Error("TOKEN_NOT_READY");
   const plan = await getPaidPlan(subscription.plan_code);
-  const charged = await createAndChargeSavedCard({ plan, cycle: subscription.billing_cycle, customerId: subscription.provider_customer_id, token, userId: user.id });
+  const charged = await createAndChargeSavedCard({ plan, cycle: subscription.billing_cycle, customerId: subscription.provider_customer_id, token });
   if (!isSuccessful(charged.checkout)) throw new Error("PAYMENT_NOT_CONFIRMED");
   await activateSubscription({ subscriptionId: subscription.id, userId: user.id, plan: subscription.plan_code, cycle: subscription.billing_cycle, checkoutReference: charged.reference, checkoutId: charged.checkout.id });
   return { active: true, plan: subscription.plan_code };
@@ -245,4 +251,80 @@ async function activateSubscription(params: { subscriptionId: string; userId: st
     method: "PATCH",
     body: JSON.stringify({ plan_code: params.plan, updated_at: now.toISOString() }),
   });
+}
+
+async function downgradeUser(userId: string, subscriptionId: string, status: "past_due" | "canceled", error?: string) {
+  const now = new Date().toISOString();
+  await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(subscriptionId)}`, { method: "PATCH", body: JSON.stringify({ status, updated_at: now }) });
+  await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: "free", updated_at: now }) });
+  if (error) console.error("subscription_downgraded", subscriptionId, error);
+}
+
+export async function runDueSubscriptionRenewals() {
+  if (!isSumUpConfigured()) throw new Error("PAYMENT_UNAVAILABLE");
+  const now = new Date();
+  const rows = await supabaseRest<SubscriptionRow[]>(`user_subscriptions?select=*&provider=eq.sumup&status=eq.active&billing_cycle=eq.monthly&current_period_end=lte.${encodeURIComponent(now.toISOString())}&order=current_period_end.asc&limit=100`);
+  const results: Array<{ id: string; status: string }> = [];
+
+  for (const subscription of rows) {
+    const due = subscription.current_period_end;
+    if (!due) continue;
+    if (subscription.cancel_at_period_end) {
+      await downgradeUser(subscription.user_id, subscription.id, "canceled");
+      results.push({ id: subscription.id, status: "canceled" });
+      continue;
+    }
+    if (!subscription.provider_customer_id) {
+      await downgradeUser(subscription.user_id, subscription.id, "past_due", "missing_customer");
+      results.push({ id: subscription.id, status: "past_due" });
+      continue;
+    }
+
+    const existing = await supabaseRest<BillingAttemptRow[]>(`subscription_billing_attempts?select=id,status&subscription_id=eq.${encodeURIComponent(subscription.id)}&due_period_end=eq.${encodeURIComponent(due)}&limit=1`);
+    if (existing[0]?.status === "successful" || existing[0]?.status === "processing") {
+      results.push({ id: subscription.id, status: existing[0].status });
+      continue;
+    }
+
+    let attemptId = existing[0]?.id;
+    if (!attemptId) {
+      const created = await supabaseRest<Array<{ id: string }>>("subscription_billing_attempts", {
+        method: "POST",
+        body: JSON.stringify({ subscription_id: subscription.id, due_period_end: due, status: "processing" }),
+      });
+      attemptId = created[0]?.id;
+    } else {
+      await supabaseRest(`subscription_billing_attempts?id=eq.${encodeURIComponent(attemptId)}`, { method: "PATCH", body: JSON.stringify({ status: "processing", error: null, updated_at: now.toISOString() }) });
+    }
+    if (!attemptId) continue;
+
+    try {
+      const instruments = await sumupFetch<SumUpPaymentInstrument[]>(`/customers/${encodeURIComponent(subscription.provider_customer_id)}/payment-instruments`);
+      const instrument = instruments.find((item) => item.active !== false && item.mandate?.status !== "inactive" && item.token);
+      if (!instrument) throw new Error("NO_ACTIVE_PAYMENT_INSTRUMENT");
+      const plan = await getPaidPlan(subscription.plan_code);
+      const charged = await createAndChargeSavedCard({ plan, cycle: "monthly", customerId: subscription.provider_customer_id, token: instrument.token });
+      if (!isSuccessful(charged.checkout)) throw new Error("PAYMENT_NOT_CONFIRMED");
+
+      const periodStart = new Date(due);
+      const periodEnd = new Date(periodStart);
+      periodEnd.setUTCMonth(periodEnd.getUTCMonth() + 1);
+      await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(subscription.id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ provider_checkout_reference: charged.reference, provider_subscription_id: charged.checkout.id, current_period_start: periodStart.toISOString(), current_period_end: periodEnd.toISOString(), status: "active", updated_at: new Date().toISOString() }),
+      });
+      await supabaseRest(`subscription_billing_attempts?id=eq.${encodeURIComponent(attemptId)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "successful", checkout_reference: charged.reference, checkout_id: charged.checkout.id, updated_at: new Date().toISOString() }),
+      });
+      results.push({ id: subscription.id, status: "successful" });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message.slice(0, 800) : "renewal_failed";
+      await supabaseRest(`subscription_billing_attempts?id=eq.${encodeURIComponent(attemptId)}`, { method: "PATCH", body: JSON.stringify({ status: "failed", error: reason, updated_at: new Date().toISOString() }) });
+      await downgradeUser(subscription.user_id, subscription.id, "past_due", reason);
+      results.push({ id: subscription.id, status: "failed" });
+    }
+  }
+
+  return { checked: rows.length, results };
 }
