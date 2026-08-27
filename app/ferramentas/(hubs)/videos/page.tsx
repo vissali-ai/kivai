@@ -29,10 +29,10 @@ export default function VideosPage() {
           </div>
 
           <div className="max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramentas de vídeo</p>
+            <p className="text-sm font-medium uppercase tracking-wider text-primary">Conversão, edição e otimização</p>
             <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Vídeos</h1>
             <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-              Baixe mídias públicas autorizadas, converta, edite e otimize vídeos com ferramentas online para tarefas rápidas.
+              Ferramentas para converter, editar, comprimir e preparar vídeos para diferentes usos. Ajuste formato, dimensões, enquadramento, orientação, velocidade e áudio, capture frames e trabalhe com mídias públicas autorizadas em tarefas compatíveis com o navegador e o dispositivo.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2" aria-label="Filtrar ferramentas de vídeo">
