@@ -20,6 +20,12 @@ const originalFieldTypes: Array<{ value: SiteOriginalFieldType; label: string }>
   { value: "number", label: "Número" },
   { value: "boolean", label: "Sim/Não" },
 ];
+const publicBlocks = [
+  { key: "hero", label: "Topo / título da publicação" },
+  { key: "summary", label: "Resumo / descrição curta" },
+  { key: "originalFields", label: "Campos específicos da publicação" },
+  { key: "content", label: "Conteúdo principal" },
+] as const;
 
 type Draft = Omit<ManagedSiteContent, "createdAt" | "updatedAt" | "publishedAt">;
 
@@ -42,8 +48,14 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
   const creating = draft.id === "new";
   const awaitingImplementation = draft.contentType === "tool" && draft.technicalStatus === "pending";
   const originalFields = draft.customData.originalFields ?? [];
+  const blockVisibility = draft.customData.blockVisibility ?? {};
 
   const pathFor = (type: SiteContentType, slug: string) => type === "tool" ? `/ferramentas/${slug}` : type === "resource" ? `/recursos/${slug}` : `/paginas/${slug}`;
+  const isBlockVisible = (key: string) => blockVisibility[key] !== false;
+
+  function setBlockVisible(key: string, visible: boolean) {
+    setDraft((current) => ({ ...current, customData: { ...current.customData, blockVisibility: { ...(current.customData.blockVisibility ?? {}), [key]: visible } } }));
+  }
 
   function setOriginalFields(fields: SiteOriginalField[]) {
     setDraft((current) => ({ ...current, customData: { ...current.customData, originalFields: fields } }));
@@ -112,7 +124,7 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
           <Button asChild type="button" variant="ghost" className="-ml-3 mb-2"><Link href="/admin/site"><ArrowLeft />Voltar para conteúdos</Link></Button>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Edição completa</p>
           <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{draft.title || "Novo conteúdo"}</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Edite os campos que pertencem à publicação. O painel não cria seções, FAQs ou textos adicionais automaticamente.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Edite os campos que pertencem à publicação e escolha quais blocos ficam visíveis no site público.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {draft.path ? <Button asChild type="button" variant="outline"><a href={draft.path} target="_blank" rel="noreferrer"><ExternalLink />Abrir página</a></Button> : null}
@@ -133,14 +145,21 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
             <label className={`${fieldClass} sm:col-span-2`}><span>Resumo / descrição curta</span><textarea className={textareaClass} value={draft.shortDescription} onChange={(e) => setDraft({ ...draft, shortDescription: e.target.value })} /></label>
           </section>
 
+          <fieldset className="space-y-3 rounded-xl border border-primary/20 bg-card p-4 sm:p-6">
+            <legend className="px-1 font-semibold">Visibilidade dos blocos no site público</legend>
+            <p className="text-xs leading-5 text-muted-foreground">Desative um bloco para mantê-lo salvo no Admin sem exibi-lo na página pública.</p>
+            <div className="grid gap-3 sm:grid-cols-2">{publicBlocks.map((block) => <label key={block.key} className="flex items-center justify-between gap-4 border border-white/10 p-3 text-sm"><span>{block.label}</span><input type="checkbox" className="size-4" checked={isBlockVisible(block.key)} onChange={(e) => setBlockVisible(block.key, e.target.checked)} /></label>)}</div>
+          </fieldset>
+
           <section className="space-y-5 rounded-xl border border-primary/20 bg-card p-4 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div><h2 className="font-semibold">Campos originais da publicação</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Use esta área para os campos específicos que realmente existem nesta publicação, como subtítulos, chamadas, botões, textos auxiliares, imagens, avisos e configurações visuais.</p></div>
+              <div><h2 className="font-semibold">Campos originais da publicação</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Use esta área para os campos específicos que realmente existem nesta publicação.</p></div>
               <Button type="button" size="sm" variant="outline" onClick={addOriginalField}><Plus />Adicionar campo</Button>
             </div>
 
             {originalFields.length ? <div className="space-y-4">{originalFields.map((item, index) => (
               <article key={`${item.key}-${index}`} className="grid gap-3 rounded-lg border border-white/10 bg-muted/5 p-4 sm:grid-cols-2">
+                <div className="sm:col-span-2 flex items-center justify-between gap-4 border-b border-white/10 pb-3"><span className="text-sm font-medium">Exibir este campo no site público</span><input type="checkbox" className="size-4" checked={isBlockVisible(`field:${item.key}`)} onChange={(e) => setBlockVisible(`field:${item.key}`, e.target.checked)} /></div>
                 <label className={fieldClass}><span>Nome do campo</span><Input value={item.label} onChange={(e) => updateOriginalField(index, { label: e.target.value })} /></label>
                 <label className={fieldClass}><span>Identificador</span><Input value={item.key} onChange={(e) => updateOriginalField(index, { key: slugify(e.target.value) })} /></label>
                 <label className={fieldClass}><span>Tipo</span><select value={item.type} onChange={(e) => updateOriginalField(index, { type: e.target.value as SiteOriginalFieldType })} className="h-10 w-full rounded-md border border-input bg-background px-3">{originalFieldTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label>
@@ -157,7 +176,7 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
             ))}</div> : <p className="border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">Esta publicação ainda não possui campos específicos cadastrados.</p>}
           </section>
 
-          <section className="min-w-0 rounded-xl border border-white/10 bg-card p-3 sm:p-6"><h2 className="font-semibold">Conteúdo original da publicação</h2><p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">Edite somente o conteúdo que realmente pertence à página. O sistema não acrescenta estrutura editorial automaticamente.</p><RichTextEditor value={draft.contentHtml} onChange={(contentHtml) => setDraft((current) => ({ ...current, contentHtml }))} /></section>
+          <section className="min-w-0 rounded-xl border border-white/10 bg-card p-3 sm:p-6"><h2 className="font-semibold">Conteúdo original da publicação</h2><p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">Edite somente o conteúdo que realmente pertence à página.</p><RichTextEditor value={draft.contentHtml} onChange={(contentHtml) => setDraft((current) => ({ ...current, contentHtml }))} /></section>
 
           <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
             <div className="sm:col-span-2"><h2 className="font-semibold">SEO</h2></div>
