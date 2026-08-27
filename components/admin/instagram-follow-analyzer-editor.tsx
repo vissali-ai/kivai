@@ -1,0 +1,163 @@
+"use client";
+
+import { useState } from "react";
+import { ExternalLink, Save, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import type { InstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
+
+const fieldClass = "block space-y-1.5 text-sm";
+const textareaClass = "min-h-24 w-full rounded-md border border-input bg-background p-3 text-sm";
+
+async function imageDimensions(file: File) {
+  return new Promise<{ width: number; height: number }>((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    };
+    image.onerror = reject;
+    image.src = objectUrl;
+  });
+}
+
+export function InstagramFollowAnalyzerEditor({ initialConfig }: { initialConfig: InstagramAnalyzerConfig }) {
+  const [draft, setDraft] = useState(initialConfig);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [uploadingStep, setUploadingStep] = useState<number | null>(null);
+
+  function setField<K extends keyof InstagramAnalyzerConfig>(key: K, value: InstagramAnalyzerConfig[K]) {
+    setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function setStep(index: number, field: "title" | "description" | "imageUrl", value: string) {
+    setDraft((current) => ({
+      ...current,
+      tutorialSteps: current.tutorialSteps.map((step, stepIndex) => stepIndex === index ? { ...step, [field]: value } : step),
+    }));
+  }
+
+  async function uploadStepImage(index: number, file?: File) {
+    if (!file) return;
+    setUploadingStep(index);
+    setMessage("");
+    try {
+      const dimensions = await imageDimensions(file);
+      const data = new FormData();
+      data.set("file", file);
+      data.set("width", String(dimensions.width));
+      data.set("height", String(dimensions.height));
+      data.set("alt", `Tutorial Instagram Follow Analyzer - passo ${index + 1}`);
+      data.set("source", "own");
+      const response = await fetch("/api/admin/media", { method: "POST", body: data });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Não foi possível enviar a imagem.");
+      setStep(index, "imageUrl", result.url);
+      setMessage(`Imagem do passo ${index + 1} enviada. Clique em Salvar alterações para publicar.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível enviar a imagem.");
+    } finally {
+      setUploadingStep(null);
+    }
+  }
+
+  async function save() {
+    setBusy(true);
+    setMessage("Salvando...");
+    try {
+      const response = await fetch("/api/admin/instagram-follow-analyzer-config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Não foi possível salvar.");
+      setDraft(result);
+      setMessage("Alterações salvas. A página pública já usa estes campos.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <main className="mx-auto max-w-6xl space-y-6">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Edição completa da ferramenta</p>
+          <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">Instagram Follow Analyzer</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Edite abaixo exatamente os campos exibidos na publicação. Não há conteúdo editorial automático nesta tela.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild type="button" variant="outline"><a href="/ferramentas/instagram-follow-analyzer" target="_blank" rel="noreferrer"><ExternalLink />Abrir página</a></Button>
+          <Button type="button" onClick={save} disabled={busy}><Save />{busy ? "Salvando..." : "Salvar alterações"}</Button>
+        </div>
+      </header>
+
+      {message ? <p role="status" className="border border-white/10 bg-muted/10 p-3 text-sm">{message}</p> : null}
+
+      <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+        <div className="sm:col-span-2"><h2 className="font-semibold">Topo da página</h2><p className="mt-1 text-xs text-muted-foreground">Campos exatamente como aparecem acima da ferramenta.</p></div>
+        <label className={fieldClass}><span>Texto superior</span><Input value={draft.eyebrow} onChange={(e) => setField("eyebrow", e.target.value)} /></label>
+        <label className={fieldClass}><span>Título principal</span><Input value={draft.pageTitle} onChange={(e) => setField("pageTitle", e.target.value)} /></label>
+        <label className={`${fieldClass} sm:col-span-2`}><span>Descrição principal</span><textarea className={textareaClass} value={draft.heroDescription} onChange={(e) => setField("heroDescription", e.target.value)} /></label>
+        <label className={fieldClass}><span>Badge 1</span><Input value={draft.badgeOne} onChange={(e) => setField("badgeOne", e.target.value)} /></label>
+        <label className={fieldClass}><span>Badge 2</span><Input value={draft.badgeTwo} onChange={(e) => setField("badgeTwo", e.target.value)} /></label>
+      </section>
+
+      <section className="space-y-5 rounded-xl border border-primary/20 bg-card p-4 sm:p-6">
+        <div><h2 className="font-semibold">Bloco do passo a passo</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Aqui você edita integralmente o tutorial que aparece antes do upload, inclusive cada imagem.</p></div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className={fieldClass}><span>Chamada pequena</span><Input value={draft.tutorialKicker} onChange={(e) => setField("tutorialKicker", e.target.value)} /></label>
+          <label className={fieldClass}><span>Título do tutorial</span><Input value={draft.tutorialTitle} onChange={(e) => setField("tutorialTitle", e.target.value)} /></label>
+          <label className={`${fieldClass} sm:col-span-2`}><span>Descrição do tutorial</span><textarea className={textareaClass} value={draft.tutorialDescription} onChange={(e) => setField("tutorialDescription", e.target.value)} /></label>
+          <label className={fieldClass}><span>Texto do botão da Meta</span><Input value={draft.metaButtonLabel} onChange={(e) => setField("metaButtonLabel", e.target.value)} /></label>
+          <label className={fieldClass}><span>Link da Meta</span><Input type="url" value={draft.metaUrl} onChange={(e) => setField("metaUrl", e.target.value)} /></label>
+        </div>
+
+        <div className="space-y-5">
+          {draft.tutorialSteps.map((step, index) => (
+            <article key={index} className="grid gap-4 rounded-lg border border-white/10 bg-muted/5 p-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Passo {index + 1}</p>
+                <label className={fieldClass}><span>Título</span><Input value={step.title} onChange={(e) => setStep(index, "title", e.target.value)} /></label>
+                <label className={fieldClass}><span>Descrição</span><textarea className={textareaClass} value={step.description} onChange={(e) => setStep(index, "description", e.target.value)} /></label>
+                <label className={fieldClass}><span>URL da imagem</span><Input value={step.imageUrl} onChange={(e) => setStep(index, "imageUrl", e.target.value)} placeholder="Envie uma imagem ou cole uma URL" /></label>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:bg-muted/20">
+                  <Upload className="size-4" /> {uploadingStep === index ? "Enviando..." : "Enviar/substituir imagem"}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingStep === index} onChange={(e) => uploadStepImage(index, e.target.files?.[0])} />
+                </label>
+              </div>
+              <div className="flex min-h-52 items-center justify-center border border-white/10 bg-black/20 p-3">
+                {step.imageUrl ? <img src={step.imageUrl} alt={`Prévia passo ${index + 1}`} className="max-h-96 w-auto max-w-full object-contain" /> : <p className="text-center text-xs text-muted-foreground">Nenhuma imagem configurada para este passo.</p>}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <label className={fieldClass}><span>Texto final abaixo do tutorial</span><Input value={draft.finalCta} onChange={(e) => setField("finalCta", e.target.value)} /></label>
+      </section>
+
+      <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+        <div className="sm:col-span-2"><h2 className="font-semibold">Área de upload</h2></div>
+        <label className={fieldClass}><span>Título</span><Input value={draft.uploadTitle} onChange={(e) => setField("uploadTitle", e.target.value)} /></label>
+        <label className={fieldClass}><span>Texto do seletor de arquivo</span><Input value={draft.uploadLabel} onChange={(e) => setField("uploadLabel", e.target.value)} /></label>
+        <label className={`${fieldClass} sm:col-span-2`}><span>Descrição</span><textarea className={textareaClass} value={draft.uploadDescription} onChange={(e) => setField("uploadDescription", e.target.value)} /></label>
+      </section>
+
+      <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-3 sm:p-6">
+        <div className="sm:col-span-3"><h2 className="font-semibold">Cards de planos</h2></div>
+        {(["free", "pro", "agency"] as const).map((plan) => {
+          const titleKey = `${plan}Title` as "freeTitle" | "proTitle" | "agencyTitle";
+          const descriptionKey = `${plan}Description` as "freeDescription" | "proDescription" | "agencyDescription";
+          return <div key={plan} className="space-y-3 border border-white/10 p-4"><label className={fieldClass}><span>Título</span><Input value={draft[titleKey]} onChange={(e) => setField(titleKey, e.target.value)} /></label><label className={fieldClass}><span>Descrição</span><textarea className={textareaClass} value={draft[descriptionKey]} onChange={(e) => setField(descriptionKey, e.target.value)} /></label></div>;
+        })}
+      </section>
+
+      <div className="flex justify-end"><Button type="button" onClick={save} disabled={busy}><Save />{busy ? "Salvando..." : "Salvar alterações"}</Button></div>
+    </main>
+  );
+}
