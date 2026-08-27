@@ -59,12 +59,12 @@ function restoreScrollPosition(key: string) {
       y === 0 || document.documentElement.scrollHeight >= y + window.innerHeight;
 
     if (pageCanReachTarget) {
-      window.scrollTo({ left: x, top: y, behavior: "instant" });
+      window.scrollTo({ left: x, top: y, behavior: "auto" });
 
       if (Math.abs(window.scrollY - y) <= 2) return;
     }
 
-    if (attempts < 30) window.requestAnimationFrame(tryRestore);
+    if (attempts < 60) window.requestAnimationFrame(tryRestore);
   };
 
   window.requestAnimationFrame(tryRestore);
@@ -92,18 +92,23 @@ export function NavigationStateManager() {
       window.history.scrollRestoration = "manual";
     }
 
-    writeDepth(readDepth());
+    const initialStateDepth = window.history.state?.[HISTORY_DEPTH_KEY];
+    writeDepth(typeof initialStateDepth === "number" ? initialStateDepth : 0);
     previousRouteRef.current = getRouteKey();
 
     let scrollFrame: number | null = null;
 
     const handleScroll = () => {
-      if (scrollFrame !== null) return;
+      if (restoringFromHistoryRef.current || scrollFrame !== null) return;
 
       scrollFrame = window.requestAnimationFrame(() => {
         saveScrollPosition();
         scrollFrame = null;
       });
+    };
+
+    const handlePageHide = () => {
+      saveScrollPosition();
     };
 
     const handlePopState = (event: PopStateEvent) => {
@@ -115,8 +120,7 @@ export function NavigationStateManager() {
         window.sessionStorage.setItem(DEPTH_KEY, String(Math.max(0, stateDepth)));
       }
 
-      const destinationKey = getRouteKey();
-      restoreScrollPosition(destinationKey);
+      restoreScrollPosition(getRouteKey());
     };
 
     const handleDocumentClick = (event: MouseEvent) => {
@@ -155,11 +159,13 @@ export function NavigationStateManager() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("pagehide", handlePageHide);
     window.addEventListener("popstate", handlePopState);
     document.addEventListener("click", handleDocumentClick, true);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("pagehide", handlePageHide);
       window.removeEventListener("popstate", handlePopState);
       document.removeEventListener("click", handleDocumentClick, true);
       if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame);
