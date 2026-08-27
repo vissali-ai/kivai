@@ -7,7 +7,7 @@ export async function generateMetadata() { return getToolMetadataAsync("contador
 export default function Page() {
   return (
     <>
-      <InstagramTextClient mode="characters" />
+      <InstagramTextClient />
       <SocialToolEditorialV2 slug="contador-de-caracteres-instagram" />
     </>
   );
