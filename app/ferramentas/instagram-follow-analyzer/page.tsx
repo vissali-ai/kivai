@@ -7,8 +7,9 @@ import { getToolOverride } from "@/lib/site-cms/repository";
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getToolOverride("instagram-follow-analyzer");
+  const seoTitle = content?.seoTitle || "Instagram Follow Analyzer | Kivai";
   return {
-    title: content?.seoTitle || "Instagram Follow Analyzer | Kivai",
+    title: { absolute: seoTitle },
     description: content?.seoDescription || "Analise quem não segue você de volta, quem você não segue e seus seguidores mútuos usando a exportação oficial da Meta.",
     alternates: { canonical: content?.canonicalUrl || "/ferramentas/instagram-follow-analyzer" },
     robots: content?.status === "published" && content.indexable ? { index: true, follow: true } : { index: false, follow: false },
