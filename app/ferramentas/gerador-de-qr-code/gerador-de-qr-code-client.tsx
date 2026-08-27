@@ -597,7 +597,7 @@ const svg = await QRCode.toString(conteudoQr, {
                 maxLength={11}
                 value={telefone}
                 onChange={(event) => setTelefone(normalizarEntradaTelefoneBrasil(event.target.value))}
-                placeholder="3132610874"
+                placeholder="(71) 99999-0000"
                 className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
               />
             </div>
