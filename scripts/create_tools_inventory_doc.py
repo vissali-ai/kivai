@@ -18,7 +18,7 @@ groups = {
 ("Conversor de Imagens","conversor-de-imagens","Converte entre PNG, JPG e WebP."),
 ("Conversor HEIC","conversor-heic","Converte HEIC/HEIF para JPG."),
 ("Redimensionar Imagem","redimensionar-imagem","Altera largura e altura, com preservação de proporção."),
-("Gerador de QR Code","gerador-de-qr-code","Cria QR Codes para links, texto, Wi-Fi, e-mail, telefone e WhatsApp com +55 automático, modelos prontos e exportação em PNG ou SVG."),
+("Gerador de QR Code","gerador-de-qr-code","Cria QR Codes para links, texto, Wi-Fi, e-mail, telefone e WhatsApp com +55 automático, composições gráficas, texto, logo e exportação em PNG ou SVG."),
 ("Gerador de Favicon","gerador-de-favicon","Gera favicon.ico e ícones PNG em tamanhos comuns."),
 ("Gerador de Mockups","gerador-de-mockups","Aplica artes a mockups de dispositivos, camiseta, cartão, outdoor e redes sociais."),
 ("Recortar Imagem","recortar-imagem","Recorta uma área selecionada da imagem."),
