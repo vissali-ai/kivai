@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { archiveSearchItems } from "@/lib/archive-search-items";
 import { filterIndexablePosts } from "@/lib/blog/indexing";
+import { listBlogSitemapSlugs } from "@/lib/blog/publication-controls";
 import { listCategories, listPublishedPosts } from "@/lib/blog/repository";
 import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { SITE_URL } from "@/lib/seo";
@@ -11,16 +12,17 @@ import { listSitemapSiteServices, listStoredSiteServices } from "@/lib/site-cms/
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [blogPosts, categories, managedSitemap, storedSiteContents, allHubs, managedServices, storedServices] = await Promise.all([
+  const [blogPosts, categories, blogSitemapSlugs, managedSitemap, storedSiteContents, allHubs, managedServices, storedServices] = await Promise.all([
     listPublishedPosts(),
     listCategories(),
+    listBlogSitemapSlugs(),
     listSitemapSiteContent(),
     listStoredSiteContents(),
     listSiteHubs(),
     listSitemapSiteServices(),
     listStoredSiteServices(),
   ]);
-  const indexableBlogPosts = filterIndexablePosts(blogPosts);
+  const indexableBlogPosts = filterIndexablePosts(blogPosts).filter((post) => blogSitemapSlugs.has(post.slug));
   const hubSettings = new Map(allHubs.map((hub) => [hub.slug, hub]));
 
   const pages: MetadataRoute.Sitemap = [
@@ -187,6 +189,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...managedServices.map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "monthly" as const, priority: 0.8 })),
   ];
   const serviceOverrides = new Map(storedServices.filter((item) => item.existingServiceSlug).map((item) => [item.existingServiceSlug, item]));
-  const allowedPages = pages.filter((item) => { const match = item.url.match(/\/servicos\/([^/]+)$/); if (!match) return true; const override = serviceOverrides.get(match[1]); return !override || (override.status === "published" && override.indexable && override.includeInSitemap); });
+  const allowedPages = pages.filter((item) => {
+    const match = item.url.match(/\/servicos\/([^/]+)$/);
+    if (!match) return true;
+    const override = serviceOverrides.get(match[1]);
+    return !override || (override.status === "published" && override.indexable && override.includeInSitemap);
+  });
   return [...new Map([...allowedPages, ...toolPages, ...managedPages].map((item) => [item.url, item])).values()];
 }
