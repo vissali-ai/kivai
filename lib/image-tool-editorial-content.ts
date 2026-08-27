@@ -249,7 +249,7 @@ export const imageToolEditorialContent = {
     overview: [
       "O Gerador de QR Code transforma links, textos, dados de contato e configurações de Wi-Fi em um código que pode ser lido pela câmera de celulares e aplicativos compatíveis. A ferramenta cria QR Codes para URL, texto, WhatsApp, telefone, e-mail e redes Wi-Fi, com pré-visualização automática e download em PNG ou SVG.",
       "Nos formatos Telefone e WhatsApp, basta informar o DDD e o número brasileiro. O código do país +55 é incorporado automaticamente no destino, reduzindo erros de configuração em ligações e conversas. Números fixos com 10 dígitos e celulares com 11 dígitos são aceitos.",
-      "Depois da geração, é possível escolher entre os modelos E-commerce, Loja física, Cartão de visita, WhatsApp e Minimalista. Cada modelo combina cor, tamanho, margem e correção de erro para uma finalidade, mas todas as configurações continuam disponíveis para ajuste manual.",
+      "Depois da geração, é possível manter o QR Code padrão ou aplicar composições gráficas com chamada superior, etiqueta lateral, cartão de marca ou selo promocional. O texto exibido, o nome da marca, as cores e uma logo opcional podem fazer parte da arte final.",
       "Um QR Code estático registra exatamente o conteúdo informado e não permite trocar o destino depois do download. Antes de publicar ou imprimir, é importante revisar os dados, manter bom contraste entre o código e o fundo e testar a leitura com mais de um celular.",
     ],
     useCases: [
@@ -262,13 +262,14 @@ export const imageToolEditorialContent = {
       "Escolha entre URL, texto, WhatsApp, telefone, e-mail ou Wi-Fi.",
       "Preencha os dados solicitados. Para telefone e WhatsApp, informe somente DDD e número; o +55 será acrescentado automaticamente.",
       "Confira o QR Code gerado na pré-visualização.",
-      "Escolha um dos cinco modelos sugeridos ou ajuste cor, fundo, tamanho, margem e correção de erro manualmente.",
+      "Escolha a composição visual, escreva a chamada que será exibida e, se desejar, acrescente o nome e a logo da marca.",
       "Teste a leitura com a câmera do celular e baixe o resultado em PNG ou SVG.",
     ],
     specifications: [
       { label: "Conteúdos", value: "URL, texto, WhatsApp, telefone, e-mail e configuração de Wi-Fi." },
       { label: "Telefones brasileiros", value: "DDD e número com 10 ou 11 dígitos; +55 incorporado automaticamente para ligação e WhatsApp." },
-      { label: "Modelos", value: "E-commerce, Loja física, Cartão de visita, WhatsApp e Minimalista." },
+      { label: "Composições", value: "Padrão, Chamada superior, Etiqueta lateral, Cartão de marca e Selo promocional." },
+      { label: "Identidade visual", value: "Texto editável, nome da marca, logo opcional e cores personalizadas, sempre fora da área de leitura do código." },
       { label: "Personalização", value: "Cor do código, cor de fundo, tamanho de 200 a 1.000 px, margem e quatro níveis de correção de erro." },
       { label: "Saídas", value: "PNG para uso cotidiano e SVG vetorial para impressão ou redimensionamento." },
       { label: "Prévia", value: "Atualização automática conforme o conteúdo e as configurações escolhidas." },
@@ -284,7 +285,7 @@ export const imageToolEditorialContent = {
     faqs: [
       { question: "Preciso digitar +55 no telefone ou WhatsApp?", answer: "Não. Informe somente o DDD e o número brasileiro. A ferramenta acrescenta o código 55 automaticamente no destino do QR Code." },
       { question: "Telefone fixo também funciona?", answer: "Sim. A ferramenta aceita números brasileiros com 10 dígitos, usados normalmente em telefones fixos, e com 11 dígitos, comuns em celulares." },
-      { question: "O que os modelos sugeridos alteram?", answer: "Eles aplicam combinações prontas de cor, fundo, tamanho, margem e correção de erro. Depois da escolha, qualquer configuração pode ser modificada manualmente." },
+      { question: "O que os modelos visuais alteram?", answer: "Eles transformam o QR Code em uma peça gráfica com moldura e áreas próprias para chamada, nome e logo. O conteúdo codificado permanece igual e a personalização não cobre a área de leitura." },
       { question: "O QR Code expira?", answer: "O código estático não possui prazo próprio. Ele deixa de funcionar como esperado se o destino for removido, alterado ou ficar indisponível." },
       { question: "PNG ou SVG: qual escolher?", answer: "PNG é prático para redes sociais, documentos e telas. SVG mantém a nitidez ao ampliar e é mais indicado para impressão e edição vetorial." },
       { question: "Posso mudar o conteúdo depois de baixar?", answer: "Não. Para trocar link, telefone, mensagem, e-mail ou dados da rede, crie um novo QR Code e substitua o anterior." },
