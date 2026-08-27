@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import JSZip from "jszip";
-import { ChevronDown, ExternalLink, Search, Upload, Users, X } from "lucide-react";
+import { ArrowDown, ChevronDown, ExternalLink, Search, Upload, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { INSTAGRAM_TUTORIAL_SPRITE_1 } from "@/lib/instagram-tutorial-sprite-1";
@@ -229,10 +229,6 @@ export function InstagramFollowAnalyzer() {
     }
   }
 
-  function scrollToUpload() {
-    document.getElementById("instagram-analyzer-upload")?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
   const tabs: Array<{ key: TabKey; label: string; count: number }> = [
     { key: "notFollowingBack", label: "Não seguem você", count: result?.notFollowingBack.length ?? 0 },
     { key: "youDoNotFollow", label: "Você não segue", count: result?.youDoNotFollow.length ?? 0 },
@@ -294,12 +290,9 @@ export function InstagramFollowAnalyzer() {
               ))}
             </div>
 
-            <div className="mt-8 border border-primary/20 bg-primary/[0.04] p-5 text-center sm:p-6">
-              <h3 className="text-lg font-semibold">Pronto para analisar?</h3>
-              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Depois de baixar o arquivo do Instagram, envie o arquivo ZIP ou JSON abaixo para começar sua análise.
-              </p>
-              <Button type="button" className="mt-4" onClick={scrollToUpload}>Enviar arquivo agora</Button>
+            <div className="mt-8 flex flex-col items-center text-center">
+              <p className="text-lg font-semibold">Pronto para exportar? Clique no botão abaixo</p>
+              <ArrowDown className="mt-3 size-7 text-primary" aria-hidden="true" />
             </div>
           </div>
         ) : null}
