@@ -2,16 +2,43 @@ import "server-only";
 
 import { assertBlogDatabaseConfigured, blogConfig } from "@/lib/blog/config";
 
-type RequestOptions = RequestInit & { allowMissingConfig?: boolean };
+type RequestOptions = RequestInit & {
+  allowMissingConfig?: boolean;
+  next?: {
+    revalidate?: number | false;
+    tags?: string[];
+  };
+};
+
+const PUBLIC_REVALIDATE_SECONDS = 300;
+
+function getPublicReadCache(path: string, options: RequestOptions) {
+  const method = (options.method ?? "GET").toUpperCase();
+  const isPublishedRead = method === "GET" && path.includes("status=eq.published");
+
+  if (!isPublishedRead) {
+    return {
+      cache: "no-store" as const,
+      next: undefined,
+    };
+  }
+
+  return {
+    cache: "force-cache" as const,
+    next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
+  };
+}
 
 export async function supabaseRest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   if (options.allowMissingConfig && !blogConfig.supabaseUrl) return [] as T;
   assertBlogDatabaseConfigured();
   let response: Response;
+  const cacheOptions = getPublicReadCache(path, options);
+
   try {
     response = await fetch(`${blogConfig.supabaseUrl}/rest/v1/${path}`, {
       ...options,
-      cache: "no-store",
+      ...cacheOptions,
       headers: {
         apikey: blogConfig.serviceRoleKey,
         Authorization: `Bearer ${blogConfig.serviceRoleKey}`,
