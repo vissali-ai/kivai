@@ -7,7 +7,6 @@ import "./mobile-file-inputs.css";
 
 import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/marketing/navbar";
-import { NavigationStateManager } from "@/components/navigation/navigation-state-manager";
 import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provider";
 import StructuredData from "@/components/seo/structured-data";
 import { adsConfig } from "@/lib/ads/config";
@@ -140,7 +139,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <StructuredData />
-        <NavigationStateManager />
 
         <Script id="google-consent-default" strategy="beforeInteractive">{`
           window.dataLayer = window.dataLayer || [];
