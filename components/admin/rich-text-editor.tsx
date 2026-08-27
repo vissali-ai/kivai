@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import LinkExtension from "@tiptap/extension-link";
@@ -18,6 +19,12 @@ export function RichTextEditor({ value, onChange }: { value: string; onChange: (
     editorProps: { attributes: { class: "cms-editor min-h-[420px] px-5 py-4 outline-none" } },
     onUpdate: ({ editor: current }) => onChange(current.getHTML()),
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    if (editor.getHTML() !== value) editor.commands.setContent(value || "", { emitUpdate: false });
+  }, [editor, value]);
+
   if (!editor) return <div className="min-h-[460px] border border-white/10 p-4 text-sm text-muted-foreground">Carregando editor...</div>;
   const link = () => { const href = window.prompt("URL do link", editor.getAttributes("link").href || "https://"); if (href === null) return; if (!href) editor.chain().focus().unsetLink().run(); else editor.chain().focus().extendMarkRange("link").setLink({ href, target: "_blank" }).run(); };
   const youtube = () => { const src = window.prompt("URL do vídeo no YouTube"); if (src) editor.commands.setYoutubeVideo({ src, width: 1280, height: 720 }); };
