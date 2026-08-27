@@ -53,7 +53,6 @@ export const textToolEditorialContent: Record<TextToolEditorialSlug, TextToolEdi
     ],
     related: [
       { href: "/ferramentas/contador-de-caracteres-instagram", label: "Contador de Caracteres para Instagram" },
-      { href: "/ferramentas/contador-de-hashtags-instagram", label: "Contador de Hashtags para Instagram" },
       { href: "/ferramentas/quebra-de-linha-instagram", label: "Quebra de Linha para Instagram" },
     ],
   },
