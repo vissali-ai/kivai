@@ -48,7 +48,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ArticlePage({ params }: Props) {
-  const post = await getPublishedPostBySlug((await params).slug);
+  const slug = (await params).slug;
+  const [post, controls] = await Promise.all([
+    getPublishedPostBySlug(slug),
+    getBlogPublicationControlsBySlug(slug),
+  ]);
   if (!post) notFound();
   const url = post.canonicalUrl || `${SITE_URL}/blog/${post.slug}`;
   const schema = {
@@ -63,5 +67,5 @@ export default async function ArticlePage({ params }: Props) {
     publisher: { "@type": "Organization", name: "Kivai", url: SITE_URL },
     ...(post.cover ? { image: [post.ogImage || post.cover.url] } : {}),
   };
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><ArticleView post={post} /></>;
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><ArticleView post={post} blockVisibility={controls.blockVisibility} /></>;
 }
