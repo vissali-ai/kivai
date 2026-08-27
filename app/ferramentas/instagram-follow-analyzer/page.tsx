@@ -68,8 +68,8 @@ export default async function InstagramFollowAnalyzerPage() {
         </div>
         <div className="mt-6 flex flex-col items-start justify-between gap-4 border border-primary/25 bg-primary/[0.04] p-5 sm:flex-row sm:items-center sm:p-6">
           <div>
-            <h3 className="text-lg font-semibold">Quer acompanhar os planos Pro e Agency?</h3>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Entre na sua conta Kivai para acompanhar a evolução dos recursos e ficar preparado para quando os planos pagos forem liberados.</p>
+            <h3 className="text-lg font-semibold">Acesse sua conta Kivai</h3>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Faça login para acessar sua conta, acompanhar suas análises e gerenciar seu plano.</p>
           </div>
           <Link href="/conta/login" className="inline-flex shrink-0 items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"><LogIn className="size-4" />Fazer login</Link>
         </div>
