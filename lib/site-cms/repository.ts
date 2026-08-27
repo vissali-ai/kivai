@@ -9,6 +9,7 @@ import type {
   SiteContent,
   SiteContentInput,
   SiteContentType,
+  SiteCustomData,
   SiteHub,
   SiteHubInput,
   SitePublicationStatus,
@@ -33,6 +34,7 @@ type ContentRow = {
   technical_status: ToolTechnicalStatus;
   display_location: SiteDisplayLocation; show_in_most_used: boolean; display_order: number;
   status: SitePublicationStatus; indexable: boolean; include_in_sitemap: boolean;
+  custom_data: SiteCustomData | null;
   published_at: string | null; created_at: string; updated_at: string;
 };
 
@@ -53,7 +55,7 @@ function contentFromRow(row: ContentRow): SiteContent {
     existingToolSlug: row.existing_tool_slug, status: row.status, indexable: row.indexable,
     toolMode: row.tool_mode, technicalStatus: row.technical_status,
     displayLocation: row.display_location, showInMostUsed: row.show_in_most_used, displayOrder: row.display_order,
-    includeInSitemap: row.include_in_sitemap, publishedAt: row.published_at,
+    includeInSitemap: row.include_in_sitemap, customData: row.custom_data ?? {}, publishedAt: row.published_at,
     createdAt: row.created_at, updatedAt: row.updated_at };
 }
 
@@ -63,6 +65,23 @@ function cleanStatus(value: unknown): SitePublicationStatus {
 
 function expectedPath(type: SiteContentType, slug: string) {
   return type === "tool" ? `/ferramentas/${slug}` : type === "resource" ? `/recursos/${slug}` : `/paginas/${slug}`;
+}
+
+function cleanCustomData(value: unknown): SiteCustomData {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const source = value as SiteCustomData;
+  const originalFields = Array.isArray(source.originalFields)
+    ? source.originalFields
+      .filter((field) => field && typeof field === "object")
+      .map((field) => ({
+        key: slugify(String(field.key ?? "field")) || "field",
+        label: plainText(String(field.label ?? "Campo")).slice(0, 120),
+        type: ["text", "textarea", "url", "image", "number", "boolean"].includes(String(field.type)) ? field.type : "text",
+        value: typeof field.value === "boolean" || typeof field.value === "number" ? field.value : String(field.value ?? "").slice(0, 10000),
+        helpText: plainText(String(field.helpText ?? "")).slice(0, 300),
+      }))
+    : [];
+  return { ...source, originalFields } as SiteCustomData;
 }
 
 function cleanContentInput(value: Partial<SiteContentInput>): SiteContentInput {
@@ -91,6 +110,7 @@ function cleanContentInput(value: Partial<SiteContentInput>): SiteContentInput {
     status,
     indexable: published && Boolean(value.indexable),
     includeInSitemap: published && Boolean(value.indexable) && Boolean(value.includeInSitemap),
+    customData: cleanCustomData(value.customData),
   };
 }
 
@@ -118,7 +138,7 @@ function contentPayload(input: SiteContentInput) {
     existing_tool_slug: input.existingToolSlug, status: input.status, indexable: input.indexable,
     tool_mode: input.toolMode, technical_status: input.technicalStatus,
     display_location: input.displayLocation, show_in_most_used: input.showInMostUsed, display_order: input.displayOrder,
-    include_in_sitemap: input.includeInSitemap,
+    include_in_sitemap: input.includeInSitemap, custom_data: input.customData,
     published_at: input.status === "published" ? new Date().toISOString() : null };
 }
 
@@ -176,7 +196,10 @@ export async function listManagedSiteContents(): Promise<ManagedSiteContent[]> {
     seoDescription: tool.seoDescription ?? tool.description, canonicalUrl: "", hubId: hubBySlug.get(categoryHub[tool.category]) ?? null,
     existingToolSlug: tool.slug, toolMode: inferToolMode(tool.slug), technicalStatus: "ready", status: "published", indexable: isToolIndexable(tool.slug),
     displayLocation: "direct", showInMostUsed: defaultMostUsed.has(tool.slug), displayOrder: defaultMostUsed.get(tool.slug) ?? 100,
-    includeInSitemap: isToolIndexable(tool.slug), publishedAt: null, createdAt: "", updatedAt: "", virtual: true,
+    includeInSitemap: isToolIndexable(tool.slug), customData: { originalFields: [
+      { key: "badge", label: "Selo / badge", type: "text", value: tool.badge },
+      { key: "hub-filter", label: "Filtro do hub", type: "text", value: tool.hubFilter },
+    ] }, publishedAt: null, createdAt: "", updatedAt: "", virtual: true,
   }));
   return [...stored, ...virtual].sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
 }
@@ -251,7 +274,7 @@ export async function listPublishedFeaturedTools() {
     return managed.filter((item) => item.contentType === "tool" && item.status === "published" && item.technicalStatus === "ready" && item.showInMostUsed).sort((a, b) => a.displayOrder - b.displayOrder).slice(0, 6);
   } catch {
     const slugs = ["removedor-de-fundo", "calculadora-de-porcentagem", "compressor-de-imagens", "gerador-de-qr-code", "pdf-para-imagens", "montar-pdf-para-impressao"];
-    return slugs.flatMap((slug, index) => { const tool = tools.find((item) => item.slug === slug); return tool ? [{ id: `existing:${slug}`, contentType: "tool" as const, slug, path: `/ferramentas/${slug}`, title: tool.name, shortDescription: tool.description, contentHtml: "", seoTitle: tool.seoTitle ?? "", seoDescription: tool.seoDescription ?? tool.description, canonicalUrl: "", hubId: null, existingToolSlug: slug, toolMode: inferToolMode(slug), technicalStatus: "ready" as const, displayLocation: "direct" as const, showInMostUsed: true, displayOrder: index + 1, status: "published" as const, indexable: isToolIndexable(slug), includeInSitemap: isToolIndexable(slug), publishedAt: null, createdAt: "", updatedAt: "", virtual: true }] : []; });
+    return slugs.flatMap((slug, index) => { const tool = tools.find((item) => item.slug === slug); return tool ? [{ id: `existing:${slug}`, contentType: "tool" as const, slug, path: `/ferramentas/${slug}`, title: tool.name, shortDescription: tool.description, contentHtml: "", seoTitle: tool.seoTitle ?? "", seoDescription: tool.seoDescription ?? tool.description, canonicalUrl: "", hubId: null, existingToolSlug: slug, toolMode: inferToolMode(slug), technicalStatus: "ready" as const, displayLocation: "direct" as const, showInMostUsed: true, displayOrder: index + 1, status: "published" as const, indexable: isToolIndexable(slug), includeInSitemap: isToolIndexable(slug), customData: {}, publishedAt: null, createdAt: "", updatedAt: "", virtual: true }] : []; });
   }
 }
 
