@@ -2,9 +2,9 @@ import { ArquivosHubEditorial } from "@/components/tools/arquivos-hub-editorial"
 import { getCmsHubMetadata, getPageMetadata } from "@/lib/seo";
 
 const baseMetadata = getPageMetadata({
-  title: "Ferramentas para Arquivos: ZIP, RAR e Renomeação em Lote",
+  title: "Ferramentas para Arquivos: ZIP, RAR e Organização em Lote",
   description:
-    "Compacte arquivos em ZIP, abra ZIP e RAR e organize nomes em lote com ferramentas online para extração, compactação e gerenciamento de arquivos.",
+    "Compacte arquivos em ZIP, extraia ZIP e RAR, renomeie arquivos em lote e adicione prefixos ou sufixos para organizar arquivos com mais rapidez.",
   pathname: "/ferramentas/arquivos",
 });
 
