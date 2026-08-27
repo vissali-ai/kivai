@@ -12,6 +12,8 @@ type ControlsRow = {
   include_in_sitemap: boolean | null;
 };
 
+type SitemapControlsRow = ControlsRow & { slug: string };
+
 export async function getBlogPublicationControlsById(id: string): Promise<BlogPublicationControls> {
   try {
     const rows = await supabaseRest<ControlsRow[]>(
@@ -39,6 +41,18 @@ export async function getBlogPublicationControlsBySlug(slug: string): Promise<Bl
     };
   } catch {
     return { indexable: true, includeInSitemap: true };
+  }
+}
+
+export async function listBlogSitemapSlugs() {
+  try {
+    const rows = await supabaseRest<SitemapControlsRow[]>(
+      "blog_posts?select=slug,indexable,include_in_sitemap&indexable=eq.true&include_in_sitemap=eq.true",
+      { allowMissingConfig: true },
+    );
+    return new Set(rows.map((row) => row.slug));
+  } catch {
+    return new Set<string>();
   }
 }
 
