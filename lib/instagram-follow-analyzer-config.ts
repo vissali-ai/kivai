@@ -49,6 +49,7 @@ export type InstagramAnalyzerConfig = {
   privacyItems: string[];
   privacyLinkLabel: string;
   sectionVisibility: Record<string, boolean>;
+  deletedSections: string[];
 };
 
 const DEFAULT_VISIBILITY = {
@@ -61,6 +62,8 @@ const DEFAULT_VISIBILITY = {
   faq: true,
   privacy: true,
 };
+
+const SECTION_KEYS = Object.keys(DEFAULT_VISIBILITY);
 
 export const DEFAULT_INSTAGRAM_ANALYZER_CONFIG: InstagramAnalyzerConfig = {
   eyebrow: "Kivai Social Intelligence",
@@ -140,6 +143,7 @@ export const DEFAULT_INSTAGRAM_ANALYZER_CONFIG: InstagramAnalyzerConfig = {
   ],
   privacyLinkLabel: "Leia a Política de Privacidade completa",
   sectionVisibility: DEFAULT_VISIBILITY,
+  deletedSections: [],
 };
 
 type ConfigRow = { custom_data: unknown };
@@ -178,15 +182,22 @@ function faqList(value: unknown, fallback: InstagramFaqItem[]) {
   return normalized.length ? normalized : fallback;
 }
 
-function visibility(value: unknown) {
+function deletedSections(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => typeof item === "string" ? item : "").filter((item) => SECTION_KEYS.includes(item));
+}
+
+function visibility(value: unknown, deleted: Set<string>) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-  return Object.fromEntries(Object.keys(DEFAULT_VISIBILITY).map((key) => [key, source[key] !== false]));
+  return Object.fromEntries(SECTION_KEYS.map((key) => [key, !deleted.has(key) && source[key] !== false]));
 }
 
 export function normalizeInstagramAnalyzerConfig(value: unknown): InstagramAnalyzerConfig {
   const source = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const removed = deletedSections(source.deletedSections);
+  const deleted = new Set(removed);
   const rawSteps = Array.isArray(source.tutorialSteps) ? source.tutorialSteps : [];
-  const tutorialSteps = DEFAULT_INSTAGRAM_ANALYZER_CONFIG.tutorialSteps.map((fallback, index) => {
+  const tutorialSteps = deleted.has("tutorial") ? [] : DEFAULT_INSTAGRAM_ANALYZER_CONFIG.tutorialSteps.map((fallback, index) => {
     const item = rawSteps[index] && typeof rawSteps[index] === "object" ? rawSteps[index] as Record<string, unknown> : {};
     return {
       title: text(item.title, fallback.title, 180),
@@ -196,40 +207,41 @@ export function normalizeInstagramAnalyzerConfig(value: unknown): InstagramAnaly
   });
 
   return {
-    eyebrow: text(source.eyebrow, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.eyebrow, 180),
+    eyebrow: deleted.has("hero") ? "" : text(source.eyebrow, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.eyebrow, 180),
     pageTitle: text(source.pageTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.pageTitle, 180),
-    heroDescription: text(source.heroDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.heroDescription, 800),
-    badgeOne: text(source.badgeOne, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.badgeOne, 120),
-    badgeTwo: text(source.badgeTwo, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.badgeTwo, 120),
-    tutorialKicker: text(source.tutorialKicker, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.tutorialKicker, 120),
-    tutorialTitle: text(source.tutorialTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.tutorialTitle, 220),
-    tutorialDescription: text(source.tutorialDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.tutorialDescription, 1000),
-    metaButtonLabel: text(source.metaButtonLabel, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.metaButtonLabel, 160),
-    metaUrl: url(source.metaUrl, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.metaUrl),
+    heroDescription: deleted.has("hero") ? "" : text(source.heroDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.heroDescription, 800),
+    badgeOne: deleted.has("hero") ? "" : text(source.badgeOne, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.badgeOne, 120),
+    badgeTwo: deleted.has("hero") ? "" : text(source.badgeTwo, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.badgeTwo, 120),
+    tutorialKicker: deleted.has("tutorial") ? "" : text(source.tutorialKicker, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.tutorialKicker, 120),
+    tutorialTitle: deleted.has("tutorial") ? "" : text(source.tutorialTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.tutorialTitle, 220),
+    tutorialDescription: deleted.has("tutorial") ? "" : text(source.tutorialDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.tutorialDescription, 1000),
+    metaButtonLabel: deleted.has("tutorial") ? "" : text(source.metaButtonLabel, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.metaButtonLabel, 160),
+    metaUrl: deleted.has("tutorial") ? "" : url(source.metaUrl, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.metaUrl),
     tutorialSteps,
-    finalCta: text(source.finalCta, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.finalCta, 220),
-    uploadTitle: text(source.uploadTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.uploadTitle, 220),
-    uploadDescription: text(source.uploadDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.uploadDescription, 800),
-    uploadLabel: text(source.uploadLabel, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.uploadLabel, 180),
+    finalCta: deleted.has("tutorial") ? "" : text(source.finalCta, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.finalCta, 220),
+    uploadTitle: deleted.has("upload") ? "" : text(source.uploadTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.uploadTitle, 220),
+    uploadDescription: deleted.has("upload") ? "" : text(source.uploadDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.uploadDescription, 800),
+    uploadLabel: deleted.has("upload") ? "" : text(source.uploadLabel, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.uploadLabel, 180),
     freeTitle: text(source.freeTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.freeTitle, 120),
-    freeDescription: text(source.freeDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.freeDescription, 700),
+    freeDescription: deleted.has("summaryPlans") ? "" : text(source.freeDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.freeDescription, 700),
     proTitle: text(source.proTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.proTitle, 120),
-    proDescription: text(source.proDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.proDescription, 900),
+    proDescription: deleted.has("summaryPlans") ? "" : text(source.proDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.proDescription, 900),
     agencyTitle: text(source.agencyTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.agencyTitle, 120),
-    agencyDescription: text(source.agencyDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.agencyDescription, 700),
-    audienceTitle: text(source.audienceTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.audienceTitle, 220),
-    audienceDescription: text(source.audienceDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.audienceDescription, 1400),
-    plansTitle: text(source.plansTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.plansTitle, 220),
-    freePlanDetail: stringList(source.freePlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.freePlanDetail),
-    proPlanDetail: stringList(source.proPlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.proPlanDetail),
-    agencyPlanDetail: stringList(source.agencyPlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.agencyPlanDetail),
-    faqTitle: text(source.faqTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.faqTitle, 220),
-    faqItems: faqList(source.faqItems, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.faqItems),
-    privacyTitle: text(source.privacyTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyTitle, 220),
-    privacyDescription: text(source.privacyDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyDescription, 1400),
-    privacyItems: stringList(source.privacyItems, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyItems, 10, 1200),
-    privacyLinkLabel: text(source.privacyLinkLabel, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyLinkLabel, 220),
-    sectionVisibility: visibility(source.sectionVisibility),
+    agencyDescription: deleted.has("summaryPlans") ? "" : text(source.agencyDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.agencyDescription, 700),
+    audienceTitle: deleted.has("audience") ? "" : text(source.audienceTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.audienceTitle, 220),
+    audienceDescription: deleted.has("audience") ? "" : text(source.audienceDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.audienceDescription, 1400),
+    plansTitle: deleted.has("plans") ? "" : text(source.plansTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.plansTitle, 220),
+    freePlanDetail: deleted.has("plans") ? [] : stringList(source.freePlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.freePlanDetail),
+    proPlanDetail: deleted.has("plans") ? [] : stringList(source.proPlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.proPlanDetail),
+    agencyPlanDetail: deleted.has("plans") ? [] : stringList(source.agencyPlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.agencyPlanDetail),
+    faqTitle: deleted.has("faq") ? "" : text(source.faqTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.faqTitle, 220),
+    faqItems: deleted.has("faq") ? [] : faqList(source.faqItems, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.faqItems),
+    privacyTitle: deleted.has("privacy") ? "" : text(source.privacyTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyTitle, 220),
+    privacyDescription: deleted.has("privacy") ? "" : text(source.privacyDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyDescription, 1400),
+    privacyItems: deleted.has("privacy") ? [] : stringList(source.privacyItems, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyItems, 10, 1200),
+    privacyLinkLabel: deleted.has("privacy") ? "" : text(source.privacyLinkLabel, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyLinkLabel, 220),
+    sectionVisibility: visibility(source.sectionVisibility, deleted),
+    deletedSections: removed,
   };
 }
 
