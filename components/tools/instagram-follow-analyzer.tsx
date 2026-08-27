@@ -5,10 +5,7 @@ import JSZip from "jszip";
 import { ArrowDown, ChevronDown, ExternalLink, Search, Upload, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { INSTAGRAM_TUTORIAL_SPRITE_1 } from "@/lib/instagram-tutorial-sprite-1";
-import { INSTAGRAM_TUTORIAL_SPRITE_2 } from "@/lib/instagram-tutorial-sprite-2";
-import { INSTAGRAM_TUTORIAL_SPRITE_3 } from "@/lib/instagram-tutorial-sprite-3";
-import { INSTAGRAM_TUTORIAL_SPRITE_4 } from "@/lib/instagram-tutorial-sprite-4";
+import { INSTAGRAM_TUTORIAL_SPRITE_FIXED } from "@/lib/instagram-tutorial-sprite-fixed";
 
 type AnalyzerResult = {
   followers: string[];
@@ -23,7 +20,7 @@ type FileKind = "followers" | "following" | null;
 
 const FREE_FOLLOWER_LIMIT = 50000;
 const META_EXPORT_URL = "https://accountscenter.instagram.com/info_and_permissions/dyi/?theme=dark";
-const TUTORIAL_SPRITE = `data:image/webp;base64,${INSTAGRAM_TUTORIAL_SPRITE_1}${INSTAGRAM_TUTORIAL_SPRITE_2}${INSTAGRAM_TUTORIAL_SPRITE_3}${INSTAGRAM_TUTORIAL_SPRITE_4}`;
+const TUTORIAL_SPRITE = `data:image/webp;base64,${INSTAGRAM_TUTORIAL_SPRITE_FIXED}`;
 
 const tutorialSteps = [
   {
@@ -171,7 +168,7 @@ async function analyzeFile(file: File): Promise<AnalyzerResult> {
 
 function SpriteSlice({ index }: { index: number }) {
   return (
-    <span className="relative block w-full overflow-hidden" style={{ aspectRatio: "300 / 533" }}>
+    <span className="relative block w-full overflow-hidden" style={{ aspectRatio: "9 / 16" }}>
       <img
         src={TUTORIAL_SPRITE}
         alt=""
