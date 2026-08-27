@@ -206,6 +206,7 @@ export const imageToolEditorialContent = {
     overview: [
       "Redimensionar uma imagem altera a quantidade de pixels de largura e altura. A ferramenta permite informar dimensões próprias, manter a proporção original e exportar em PNG, JPG ou WebP, sendo útil para adequar fotografias e artes aos limites de sites, documentos e redes sociais.",
       "Ao reduzir, vários pixels são combinados e o arquivo geralmente fica mais leve. Ao ampliar, o navegador precisa estimar pixels novos, sem criar detalhes que não estavam no original. Por isso, ampliações muito grandes podem produzir suavização ou serrilhado mesmo quando a qualidade de exportação está alta.",
+      "A opção “Não ampliar imagens menores” impede que uma imagem seja aumentada além das dimensões originais. Quando ativada, o tamanho original funciona como limite máximo, ajudando a evitar perda de nitidez causada pela ampliação de pixels.",
     ],
     useCases: [
       { title: "Publicação em plataformas", description: "Ajuste largura e altura exigidas por um formulário, marketplace, perfil ou gerenciador de conteúdo." },
