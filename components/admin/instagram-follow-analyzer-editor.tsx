@@ -9,6 +9,16 @@ import type { ManagedSiteContent, SiteHub, SitePublicationStatus } from "@/lib/s
 
 const fieldClass = "block space-y-1.5 text-sm";
 const textareaClass = "min-h-24 w-full rounded-md border border-input bg-background p-3 text-sm";
+const visibleSections = [
+  ["hero", "Topo da página"],
+  ["tutorial", "Passo a passo"],
+  ["upload", "Área de upload/análise"],
+  ["summaryPlans", "Cards resumidos de planos"],
+  ["audience", "Para quem é"],
+  ["plans", "Explicação detalhada dos planos + CTA"],
+  ["faq", "Dúvidas frequentes"],
+  ["privacy", "Privacidade e uso dos dados"],
+] as const;
 
 async function imageDimensions(file: File) {
   return new Promise<{ width: number; height: number }>((resolve, reject) => {
@@ -37,6 +47,10 @@ export function InstagramFollowAnalyzerEditor({ initialConfig, initialContent, h
 
   function setField<K extends keyof InstagramAnalyzerConfig>(key: K, value: InstagramAnalyzerConfig[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function setSectionVisible(key: string, visible: boolean) {
+    setDraft((current) => ({ ...current, sectionVisibility: { ...current.sectionVisibility, [key]: visible } }));
   }
 
   function setStep(index: number, field: "title" | "description" | "imageUrl", value: string) {
@@ -94,15 +108,21 @@ export function InstagramFollowAnalyzerEditor({ initialConfig, initialContent, h
       const configResult = await configResponse.json();
       if (!configResponse.ok) throw new Error(configResult.error || "Não foi possível salvar o conteúdo da ferramenta.");
       setDraft(configResult);
-      setMessage("Alterações salvas. A página pública usa exatamente estes campos.");
+      setMessage("Alterações salvas. A página pública usa exatamente estes campos e seletores de visibilidade.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally { setBusy(false); }
   }
 
   return <main className="mx-auto max-w-6xl space-y-6">
-    <header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Edição completa da ferramenta</p><h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{draft.pageTitle}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Cada campo abaixo corresponde diretamente ao que aparece na publicação. Não existe texto automático de “Como usar” nesta edição.</p></div><div className="flex flex-wrap gap-2"><Button asChild type="button" variant="outline"><a href="/ferramentas/instagram-follow-analyzer" target="_blank" rel="noreferrer"><ExternalLink />Abrir página</a></Button><Button type="button" onClick={save} disabled={busy}><Save />{busy ? "Salvando..." : "Salvar alterações"}</Button></div></header>
+    <header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Edição completa da ferramenta</p><h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{draft.pageTitle}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Cada campo abaixo corresponde diretamente ao que aparece na publicação. Você também pode ocultar qualquer bloco sem apagar seu conteúdo.</p></div><div className="flex flex-wrap gap-2"><Button asChild type="button" variant="outline"><a href="/ferramentas/instagram-follow-analyzer" target="_blank" rel="noreferrer"><ExternalLink />Abrir página</a></Button><Button type="button" onClick={save} disabled={busy}><Save />{busy ? "Salvando..." : "Salvar alterações"}</Button></div></header>
     {message ? <p role="status" className="border border-white/10 bg-muted/10 p-3 text-sm">{message}</p> : null}
+
+    <fieldset className="space-y-4 rounded-xl border border-primary/25 bg-primary/[0.025] p-4 sm:p-6">
+      <legend className="px-1 font-semibold">Blocos disponíveis no site público</legend>
+      <p className="text-xs leading-5 text-muted-foreground">Desmarque um bloco para escondê-lo da página pública. O conteúdo continua salvo aqui e pode ser reativado depois.</p>
+      <div className="grid gap-3 sm:grid-cols-2">{visibleSections.map(([key, label]) => <label key={key} className="flex items-center justify-between gap-4 border border-white/10 bg-card p-3 text-sm"><span>{label}</span><input type="checkbox" className="size-4" checked={draft.sectionVisibility[key] !== false} onChange={(e) => setSectionVisible(key, e.target.checked)} /></label>)}</div>
+    </fieldset>
 
     <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6"><div className="sm:col-span-2"><h2 className="font-semibold">Topo da página</h2></div><label className={fieldClass}><span>Texto superior</span><Input value={draft.eyebrow} onChange={(e) => setField("eyebrow", e.target.value)} /></label><label className={fieldClass}><span>Título principal</span><Input value={draft.pageTitle} onChange={(e) => setField("pageTitle", e.target.value)} /></label><label className={`${fieldClass} sm:col-span-2`}><span>Descrição principal</span><textarea className={textareaClass} value={draft.heroDescription} onChange={(e) => setField("heroDescription", e.target.value)} /></label><label className={fieldClass}><span>Badge 1</span><Input value={draft.badgeOne} onChange={(e) => setField("badgeOne", e.target.value)} /></label><label className={fieldClass}><span>Badge 2</span><Input value={draft.badgeTwo} onChange={(e) => setField("badgeTwo", e.target.value)} /></label></section>
 
