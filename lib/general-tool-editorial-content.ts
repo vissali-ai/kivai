@@ -7,7 +7,6 @@ export type GeneralToolEditorialSlug =
   | "calculadora-de-porcentagem"
   | "contador-de-palavras"
   | "contador-de-caracteres-instagram"
-  | "contador-de-hashtags-instagram"
   | "quebra-de-linha-instagram";
 
 type EditorialContent = {
@@ -46,7 +45,6 @@ function calculator(input: Omit<EditorialContent, "categoryName" | "categoryHref
 
 const instagramRelated = [
   { href: "/ferramentas/contador-de-caracteres-instagram", label: "Contador de caracteres" },
-  { href: "/ferramentas/contador-de-hashtags-instagram", label: "Contador de hashtags" },
   { href: "/ferramentas/quebra-de-linha-instagram", label: "Quebra de linha" },
   { href: "/ferramentas/contador-de-palavras", label: "Contador de palavras" },
 ];
@@ -126,7 +124,7 @@ export const generalToolEditorialContent: Record<GeneralToolEditorialSlug, Edito
     privacy: "A análise acontece localmente no navegador. O texto não é enviado ao Kivai; ainda assim, evite colar senhas, dados bancários ou informações pessoais desnecessárias.",
     limitations: ["Hífens, URLs, emojis e abreviações podem ser tratados de modo diferente por outros editores.", "A estimativa de leitura varia conforme complexidade, idioma e leitor.", "A ferramenta mede estrutura e extensão, não qualidade, autoria ou correção gramatical."],
     faqs: [{ question: "Espaços contam como caracteres?", answer: "A ferramenta diferencia métricas com e sem espaços quando ambas são apresentadas." }, { question: "A contagem funciona para textos em português?", answer: "Sim. Ela também aceita outros idiomas, embora regras linguísticas específicas possam alterar frases e palavras compostas." }, { question: "Meu texto é armazenado?", answer: "Não pelo contador. O processamento ocorre na página durante a sessão." }, { question: "O tempo de leitura é exato?", answer: "Não. É uma estimativa baseada em velocidade média." }],
-    related: [{ href: "/ferramentas/contador-de-caracteres-instagram", label: "Caracteres para Instagram" }, { href: "/ferramentas/contador-de-hashtags-instagram", label: "Hashtags para Instagram" }, { href: "/ferramentas/quebra-de-linha-instagram", label: "Quebra de linha para Instagram" }],
+    related: [{ href: "/ferramentas/contador-de-caracteres-instagram", label: "Caracteres para Instagram" }, { href: "/ferramentas/quebra-de-linha-instagram", label: "Quebra de linha para Instagram" }],
   },
   "contador-de-caracteres-instagram": {
     categoryName: "Social Media", categoryHref: "/ferramentas/social-media", applicationCategory: "BusinessApplication",
@@ -137,16 +135,6 @@ export const generalToolEditorialContent: Record<GeneralToolEditorialSlug, Edito
     privacy: "O texto permanece no navegador durante o uso e não é enviado ao Kivai. Evite incluir credenciais ou dados pessoais desnecessários em rascunhos.",
     limitations: ["A ferramenta não publica nem acessa sua conta do Instagram.", "Limites e regras da plataforma podem mudar sem aviso.", "Caracteres visuais podem ocupar mais de uma unidade técnica em alguns sistemas."],
     faqs: [{ question: "Espaços entram na contagem?", answer: "Sim. Espaços e quebras de linha são caracteres do texto." }, { question: "A ferramenta garante que a legenda será aceita?", answer: "Não. A validação final depende das regras atuais do Instagram." }, { question: "O texto é enviado ao Instagram?", answer: "Não. Você precisa copiá-lo e publicar manualmente." }, { question: "Hashtags também contam como caracteres?", answer: "Sim. O símbolo # e as letras da hashtag fazem parte da contagem total." }], related: instagramRelated,
-  },
-  "contador-de-hashtags-instagram": {
-    categoryName: "Social Media", categoryHref: "/ferramentas/social-media", applicationCategory: "BusinessApplication",
-    overview: ["O contador identifica termos iniciados por # e apresenta a quantidade encontrada na legenda. Ele também mostra palavras e caracteres para que a revisão seja feita no contexto do texto completo.", "A quantidade de hashtags não determina distribuição ou engajamento. Relevância, clareza, público e políticas da plataforma continuam sendo fatores externos à ferramenta."],
-    useCases: [{ title: "Revisão de legendas", description: "Localize a quantidade de hashtags antes de publicar." }, { title: "Organização editorial", description: "Compare conjuntos temáticos sem contar manualmente." }, { title: "Controle de duplicações", description: "Leia o texto completo e revise termos repetidos ou pouco relacionados." }],
-    steps: ["Cole a legenda com as hashtags.", "Confira o indicador de hashtags encontradas.", "Revise se cada termo tem relação com o conteúdo.", "Copie a versão final e valide no aplicativo."],
-    specifications: [{ label: "Identificação", value: "Reconhece sequências iniciadas por # com letras, números ou sublinhado." }, { label: "Contagem", value: "Cada ocorrência identificada é contabilizada, inclusive repetições." }, { label: "Contexto", value: "Também exibe palavras e caracteres do texto completo." }, { label: "Processamento", value: "Análise instantânea no navegador, sem consultar tendências externas." }],
-    privacy: "A legenda é processada localmente e não é enviada ao Kivai ou ao Instagram.",
-    limitations: ["A ferramenta não avalia popularidade, relevância ou restrições de uma hashtag.", "Repetições são contadas como novas ocorrências.", "As regras e limites do Instagram podem mudar; confirme-os antes da publicação."],
-    faqs: [{ question: "Hashtags repetidas contam mais de uma vez?", answer: "Sim. O contador mede ocorrências; revise manualmente se deseja termos únicos." }, { question: "A ferramenta recomenda hashtags?", answer: "Não. Ela apenas identifica e conta as que você escreveu." }, { question: "Usar mais hashtags aumenta o alcance?", answer: "Não há garantia. Quantidade isolada não determina distribuição." }, { question: "O texto fica salvo?", answer: "Não pelo Kivai; ele permanece somente na sessão do navegador." }], related: instagramRelated,
   },
   "quebra-de-linha-instagram": {
     categoryName: "Social Media", categoryHref: "/ferramentas/social-media", applicationCategory: "BusinessApplication",
