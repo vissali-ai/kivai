@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Check, LockKeyhole, LogIn, ShieldCheck, UsersRound, Zap } from "lucide-react";
+import { ArrowLeft, Check, LockKeyhole, ShieldCheck, UsersRound, Zap } from "lucide-react";
 import { InstagramFollowAnalyzer } from "@/components/tools/instagram-follow-analyzer";
 import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
 import { getToolOverride } from "@/lib/site-cms/repository";
@@ -68,10 +68,10 @@ export default async function InstagramFollowAnalyzerPage() {
         </div>
         <div className="mt-6 flex flex-col items-start justify-between gap-4 border border-primary/25 bg-primary/[0.04] p-5 sm:flex-row sm:items-center sm:p-6">
           <div>
-            <h3 className="text-lg font-semibold">Acesse sua conta Kivai</h3>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Faça login para acessar sua conta, acompanhar suas análises e gerenciar seu plano.</p>
+            <h3 className="text-lg font-semibold">Quer mais recursos para acompanhar seu Instagram?</h3>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Compare os planos Grátis, Pro e Agency, escolha a melhor opção para seu uso e entre na sua conta para continuar a contratação.</p>
           </div>
-          <Link href="/conta/login" className="inline-flex shrink-0 items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"><LogIn className="size-4" />Fazer login</Link>
+          <Link href="/planos" className="inline-flex shrink-0 items-center justify-center bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">Ver planos e assinar</Link>
         </div>
       </section>
 
