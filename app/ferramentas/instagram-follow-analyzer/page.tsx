@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck, Zap } from "lucide-react";
-import { InstagramFollowAnalyzer } from "@/components/tools/instagram-follow-analyzer";
+import { InstagramFollowAnalyzerV2 } from "@/components/tools/instagram-follow-analyzer-v2";
 
 export const metadata: Metadata = {
   title: "Instagram Follow Analyzer | Kivai",
@@ -29,7 +29,7 @@ export default function InstagramFollowAnalyzerPage() {
         </div>
       </section>
 
-      <div className="mt-10"><InstagramFollowAnalyzer /></div>
+      <div className="mt-10"><InstagramFollowAnalyzerV2 /></div>
 
       <section className="mt-12 grid gap-4 md:grid-cols-3">
         <div className="border border-white/10 bg-card p-5"><h2 className="font-semibold">Grátis</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Até 50 mil seguidores, com as três análises essenciais.</p></div>
