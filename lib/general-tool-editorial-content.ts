@@ -6,8 +6,7 @@ export type GeneralToolEditorialSlug =
   | "calculadora-de-desconto"
   | "calculadora-de-porcentagem"
   | "contador-de-palavras"
-  | "contador-de-caracteres-instagram"
-  | "quebra-de-linha-instagram";
+  | "contador-de-caracteres-instagram";
 
 type EditorialContent = {
   categoryName: string;
@@ -45,7 +44,6 @@ function calculator(input: Omit<EditorialContent, "categoryName" | "categoryHref
 
 const instagramRelated = [
   { href: "/ferramentas/contador-de-caracteres-instagram", label: "Contador de caracteres" },
-  { href: "/ferramentas/quebra-de-linha-instagram", label: "Quebra de linha" },
   { href: "/ferramentas/contador-de-palavras", label: "Contador de palavras" },
 ];
 
@@ -124,7 +122,7 @@ export const generalToolEditorialContent: Record<GeneralToolEditorialSlug, Edito
     privacy: "A análise acontece localmente no navegador. O texto não é enviado ao Kivai; ainda assim, evite colar senhas, dados bancários ou informações pessoais desnecessárias.",
     limitations: ["Hífens, URLs, emojis e abreviações podem ser tratados de modo diferente por outros editores.", "A estimativa de leitura varia conforme complexidade, idioma e leitor.", "A ferramenta mede estrutura e extensão, não qualidade, autoria ou correção gramatical."],
     faqs: [{ question: "Espaços contam como caracteres?", answer: "A ferramenta diferencia métricas com e sem espaços quando ambas são apresentadas." }, { question: "A contagem funciona para textos em português?", answer: "Sim. Ela também aceita outros idiomas, embora regras linguísticas específicas possam alterar frases e palavras compostas." }, { question: "Meu texto é armazenado?", answer: "Não pelo contador. O processamento ocorre na página durante a sessão." }, { question: "O tempo de leitura é exato?", answer: "Não. É uma estimativa baseada em velocidade média." }],
-    related: [{ href: "/ferramentas/contador-de-caracteres-instagram", label: "Caracteres para Instagram" }, { href: "/ferramentas/quebra-de-linha-instagram", label: "Quebra de linha para Instagram" }],
+    related: [{ href: "/ferramentas/contador-de-caracteres-instagram", label: "Caracteres para Instagram" }],
   },
   "contador-de-caracteres-instagram": {
     categoryName: "Social Media", categoryHref: "/ferramentas/social-media", applicationCategory: "BusinessApplication",
@@ -135,15 +133,5 @@ export const generalToolEditorialContent: Record<GeneralToolEditorialSlug, Edito
     privacy: "O texto permanece no navegador durante o uso e não é enviado ao Kivai. Evite incluir credenciais ou dados pessoais desnecessários em rascunhos.",
     limitations: ["A ferramenta não publica nem acessa sua conta do Instagram.", "Limites e regras da plataforma podem mudar sem aviso.", "Caracteres visuais podem ocupar mais de uma unidade técnica em alguns sistemas."],
     faqs: [{ question: "Espaços entram na contagem?", answer: "Sim. Espaços e quebras de linha são caracteres do texto." }, { question: "A ferramenta garante que a legenda será aceita?", answer: "Não. A validação final depende das regras atuais do Instagram." }, { question: "O texto é enviado ao Instagram?", answer: "Não. Você precisa copiá-lo e publicar manualmente." }, { question: "Hashtags também contam como caracteres?", answer: "Sim. O símbolo # e as letras da hashtag fazem parte da contagem total." }], related: instagramRelated,
-  },
-  "quebra-de-linha-instagram": {
-    categoryName: "Social Media", categoryHref: "/ferramentas/social-media", applicationCategory: "BusinessApplication",
-    overview: ["A ferramenta prepara separações visuais entre parágrafos inserindo um caractere invisível nas linhas vazias. Isso ajuda a preservar blocos quando uma plataforma remove linhas completamente vazias.", "O resultado é uma versão formatada para copiar. Como o comportamento de aplicativos muda entre versões e dispositivos, sempre confira a prévia antes da publicação definitiva."],
-    useCases: [{ title: "Legendas longas", description: "Separe introdução, desenvolvimento e chamada para ação." }, { title: "Listas e avisos", description: "Crie respiro visual entre blocos de informação." }, { title: "Padronização", description: "Prepare rascunhos com uma estrutura consistente para copiar." }],
-    steps: ["Digite a legenda usando quebras normais.", "Confira a prévia formatada.", "Copie o resultado gerado.", "Cole no Instagram e valide a aparência antes de publicar."],
-    specifications: [{ label: "Método", value: "Insere um caractere invisível entre quebras para preservar linhas visualmente vazias." }, { label: "Entrada", value: "Texto simples com parágrafos definidos pelo usuário." }, { label: "Saída", value: "Texto pronto para copiar, mantendo o conteúdo original e acrescentando separadores." }, { label: "Compatibilidade", value: "Pode variar conforme aplicativo, sistema, fonte e futuras atualizações da plataforma." }],
-    privacy: "A formatação acontece no navegador. O texto não é enviado ao Kivai nem publicado automaticamente.",
-    limitations: ["O caractere invisível pode ser removido por outros editores ou aplicativos.", "A aparência final depende da versão do Instagram e do dispositivo.", "A ferramenta não corrige ortografia nem verifica limites da plataforma."],
-    faqs: [{ question: "A ferramenta publica a legenda?", answer: "Não. Ela prepara o texto para você copiar e colar manualmente." }, { question: "Por que existe um caractere invisível?", answer: "Ele ocupa a linha que seria completamente vazia e pode ajudar a preservar o espaçamento." }, { question: "A formatação sempre funciona?", answer: "Não é possível garantir, pois aplicativos podem alterar o tratamento de espaços e quebras." }, { question: "O conteúdo da legenda é alterado?", answer: "As palavras permanecem iguais; são acrescentados apenas separadores nas quebras." }], related: instagramRelated,
   },
 };
