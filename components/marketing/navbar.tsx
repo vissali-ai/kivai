@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, UserRound } from "lucide-react";
 
 import { GlobalSearch } from "@/components/marketing/global-search";
 import { Button } from "@/components/ui/button";
@@ -17,57 +17,24 @@ import {
 } from "@/components/ui/sheet";
 
 const navItems = [
-  {
-    label: "Ferramentas",
-    href: "/ferramentas",
-  },
-  {
-    label: "Serviços",
-    href: "/servicos",
-  },
-  {
-    label: "Blog",
-    href: "/blog",
-  },
-  {
-    label: "Sobre",
-    href: "/sobre",
-  },
+  { label: "Ferramentas", href: "/ferramentas" },
+  { label: "Serviços", href: "/servicos" },
+  { label: "Blog", href: "/blog" },
+  { label: "Sobre", href: "/sobre" },
 ];
 
 export function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/8 bg-background/75 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="group flex shrink-0 items-center gap-2"
-          aria-label="Kivai — Página inicial"
-        >
-          <Image
-            src="/logo.png"
-            alt="Kivai"
-            width={25}
-            height={25}
-            priority
-            className="transition-transform duration-300 group-hover:scale-105"
-          />
-
-          <span className="hidden text-lg font-semibold tracking-tight text-foreground sm:inline">
-            Kivai
-          </span>
+        <Link href="/" className="group flex shrink-0 items-center gap-2" aria-label="Kivai — Página inicial">
+          <Image src="/logo.png" alt="Kivai" width={25} height={25} priority className="transition-transform duration-300 group-hover:scale-105" />
+          <span className="hidden text-lg font-semibold tracking-tight text-foreground sm:inline">Kivai</span>
         </Link>
 
-        <nav
-          className="ml-auto hidden items-center gap-7 lg:flex"
-          aria-label="Navegação principal"
-        >
+        <nav className="ml-auto hidden items-center gap-7 lg:flex" aria-label="Navegação principal">
           {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
+            <Link key={item.label} href={item.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
               {item.label}
             </Link>
           ))}
@@ -77,78 +44,51 @@ export function Navbar() {
           <GlobalSearch />
         </div>
 
+        <Button asChild variant="outline" className="hidden h-9 lg:inline-flex">
+          <Link href="/conta/login"><UserRound /> Entrar</Link>
+        </Button>
+
         <div className="lg:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-xl border-white/10 bg-white/[0.03]"
-                aria-label="Abrir menu"
-              >
+              <Button variant="outline" size="icon" className="rounded-xl border-white/10 bg-white/[0.03]" aria-label="Abrir menu">
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
 
-            <SheetContent
-              side="right"
-              className="w-[88%] border-white/10 bg-background/95 p-0 backdrop-blur-2xl sm:max-w-sm"
-            >
+            <SheetContent side="right" className="w-[88%] border-white/10 bg-background/95 p-0 backdrop-blur-2xl sm:max-w-sm">
               <SheetHeader className="border-b border-white/8 px-6 py-5 text-left">
                 <SheetTitle className="flex items-center gap-3">
-                  <Image
-                    src="/logo.png"
-                    alt="Kivai"
-                    width={25}
-                    height={25}
-                    priority
-                  />
-
+                  <Image src="/logo.png" alt="Kivai" width={25} height={25} priority />
                   <span className="text-lg font-semibold">Kivai</span>
                 </SheetTitle>
-
-                <SheetDescription>
-                  Ferramentas inteligentes para resultados reais.
-                </SheetDescription>
+                <SheetDescription>Ferramentas inteligentes para resultados reais.</SheetDescription>
               </SheetHeader>
 
               <div className="flex flex-col px-4 py-5">
-                <nav
-                  className="flex flex-col gap-1"
-                  aria-label="Navegação mobile"
-                >
+                <nav className="flex flex-col gap-1" aria-label="Navegação mobile">
                   {navItems.map((item) => (
                     <SheetClose asChild key={item.label}>
-                      <Link
-                        href={item.href}
-                        className="rounded-xl px-3 py-3 text-base font-medium text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
-                      >
+                      <Link href={item.href} className="rounded-xl px-3 py-3 text-base font-medium text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground">
                         {item.label}
                       </Link>
                     </SheetClose>
                   ))}
+                  <SheetClose asChild>
+                    <Link href="/conta/login" className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-white/[0.04]">
+                      <UserRound className="size-4" /> Entrar na conta
+                    </Link>
+                  </SheetClose>
                 </nav>
 
                 <div className="mt-5 border-t border-white/8 pt-5">
-                  <p className="px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
-                    Suporte e transparência
-                  </p>
+                  <p className="px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">Suporte e transparência</p>
                   <div className="mt-2 flex flex-col gap-1">
                     <SheetClose asChild>
-                      <Link
-                        href="/ajuda"
-                        className="rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
-                      >
-                        Central de Ajuda
-                      </Link>
+                      <Link href="/ajuda" className="rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground">Central de Ajuda</Link>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Link
-                        href="/contato"
-                        className="rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground"
-                      >
-                        Entre em contato
-                      </Link>
+                      <Link href="/contato" className="rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground">Entre em contato</Link>
                     </SheetClose>
                   </div>
                 </div>
