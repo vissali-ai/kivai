@@ -14,7 +14,6 @@ import { getToolBySlug } from "@/lib/tools";
 
 type SocialToolEditorialSlug =
   | "contador-de-caracteres-instagram"
-  | "quebra-de-linha-instagram"
   | "calculadora-de-engajamento"
   | SocialAdvancedEditorialSlug;
 
