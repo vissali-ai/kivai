@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Check, LockKeyhole, ShieldCheck, UsersRound, Zap } from "lucide-react";
+import { ArrowLeft, Check, LockKeyhole, LogIn, ShieldCheck, UsersRound, Zap } from "lucide-react";
 import { InstagramFollowAnalyzer } from "@/components/tools/instagram-follow-analyzer";
 import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
 import { getToolOverride } from "@/lib/site-cms/repository";
@@ -65,6 +65,13 @@ export default async function InstagramFollowAnalyzerPage() {
               {plan.items.map((item) => <li key={item} className="flex gap-3 text-sm leading-6 text-muted-foreground"><Check className="mt-1 size-4 shrink-0 text-primary" /><span>{item}</span></li>)}
             </ul>
           </article>)}
+        </div>
+        <div className="mt-6 flex flex-col items-start justify-between gap-4 border border-primary/25 bg-primary/[0.04] p-5 sm:flex-row sm:items-center sm:p-6">
+          <div>
+            <h3 className="text-lg font-semibold">Quer acompanhar os planos Pro e Agency?</h3>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Entre na sua conta Kivai para acompanhar a evolução dos recursos e ficar preparado para quando os planos pagos forem liberados.</p>
+          </div>
+          <Link href="/conta/login" className="inline-flex shrink-0 items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"><LogIn className="size-4" />Fazer login</Link>
         </div>
       </section>
 
