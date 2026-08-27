@@ -48,6 +48,18 @@ export type InstagramAnalyzerConfig = {
   privacyDescription: string;
   privacyItems: string[];
   privacyLinkLabel: string;
+  sectionVisibility: Record<string, boolean>;
+};
+
+const DEFAULT_VISIBILITY = {
+  hero: true,
+  tutorial: true,
+  upload: true,
+  summaryPlans: true,
+  audience: true,
+  plans: true,
+  faq: true,
+  privacy: true,
 };
 
 export const DEFAULT_INSTAGRAM_ANALYZER_CONFIG: InstagramAnalyzerConfig = {
@@ -127,6 +139,7 @@ export const DEFAULT_INSTAGRAM_ANALYZER_CONFIG: InstagramAnalyzerConfig = {
     "Você mantém o controle sobre o arquivo e pode encerrar a página ou recarregá-la para limpar a análise exibida localmente.",
   ],
   privacyLinkLabel: "Leia a Política de Privacidade completa",
+  sectionVisibility: DEFAULT_VISIBILITY,
 };
 
 type ConfigRow = { custom_data: unknown };
@@ -163,6 +176,11 @@ function faqList(value: unknown, fallback: InstagramFaqItem[]) {
     return question && answer ? [{ question, answer }] : [];
   }).slice(0, 12);
   return normalized.length ? normalized : fallback;
+}
+
+function visibility(value: unknown) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  return Object.fromEntries(Object.keys(DEFAULT_VISIBILITY).map((key) => [key, source[key] !== false]));
 }
 
 export function normalizeInstagramAnalyzerConfig(value: unknown): InstagramAnalyzerConfig {
@@ -211,6 +229,7 @@ export function normalizeInstagramAnalyzerConfig(value: unknown): InstagramAnaly
     privacyDescription: text(source.privacyDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyDescription, 1400),
     privacyItems: stringList(source.privacyItems, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyItems, 10, 1200),
     privacyLinkLabel: text(source.privacyLinkLabel, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyLinkLabel, 220),
+    sectionVisibility: visibility(source.sectionVisibility),
   };
 }
 
