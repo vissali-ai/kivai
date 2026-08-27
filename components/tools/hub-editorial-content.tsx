@@ -20,25 +20,25 @@ type HubContent = {
 const hubContent: Record<HubKey, HubContent> = {
   imagens: {
     eyebrow: "Guia de imagens digitais",
-    title: "Como escolher a operação certa para sua imagem",
+    title: "Escolha a ferramenta de acordo com o resultado que a imagem precisa entregar",
     introduction: [
-      "Editar uma imagem não significa sempre reduzir seu tamanho. Conversão altera o formato; compressão diminui o peso do arquivo; redimensionamento muda largura e altura; recorte remove partes da área visível. Identificar o objetivo antes de começar evita perda desnecessária de qualidade.",
-      "Para sites e lojas virtuais, WebP costuma oferecer boa relação entre nitidez e tamanho. PNG é útil quando há transparência ou elementos gráficos, enquanto JPG é adequado para fotografias sem fundo transparente. Preserve sempre uma cópia do arquivo original.",
+      "Imagens digitais podem exigir ajustes diferentes antes de serem publicadas, enviadas ou reutilizadas. Converter muda o formato; comprimir reduz o peso do arquivo; redimensionar altera largura e altura; recortar redefine o enquadramento; girar ou espelhar corrige a orientação. Outras operações resolvem necessidades específicas, como remover o fundo, aplicar marca-d'água, criar favicons, gerar placeholders ou retirar metadados incorporados ao arquivo.",
+      "A escolha do formato também interfere no resultado. JPG costuma funcionar bem para fotografias; PNG é útil quando transparência ou elementos gráficos precisam ser preservados; WebP pode reduzir o tamanho de imagens destinadas à web. Arquivos HEIC e SVG podem exigir conversão conforme o sistema, navegador ou plataforma de destino. Sempre que possível, preserve uma cópia do arquivo original antes das alterações.",
     ],
     guides: [
-      { title: "Para publicar na web", text: "Redimensione para as dimensões reais de exibição e depois comprima. Arquivos maiores que o espaço ocupado na página consomem dados sem melhorar a visualização." },
-      { title: "Para trocar o formato", text: "Use o conversor quando um sistema não aceitar o arquivo original. Verifique transparência, cores e qualidade antes de apagar a versão anterior." },
-      { title: "Para ajustar a composição", text: "Recorte, gire ou espelhe antes de redimensionar. Assim, o enquadramento é definido com a maior quantidade possível de informação." },
+      { title: "Para sites e e-commerce", text: "Ajuste as dimensões para o espaço real de exibição, comprima sem comprometer a leitura visual e escolha um formato adequado ao canal. Remoção de fundo, placeholders e favicons também ajudam a preparar imagens para páginas, catálogos e lojas virtuais." },
+      { title: "Para editar e padronizar", text: "Recorte, gire, espelhe, redimensione ou aplique marca-d'água conforme a finalidade. Quando a imagem fizer parte de um conjunto, mantenha proporções, enquadramento e padrão visual consistentes antes da exportação final." },
+      { title: "Para converter e compartilhar", text: "Use a conversão quando o arquivo original não for aceito ou quando outro formato atender melhor ao uso pretendido. Antes do download final, confira transparência, nitidez, dimensões e possíveis diferenças de qualidade." },
     ],
     workflowTitle: "Fluxo recomendado para imagens de produto",
     workflow: [
-      "Comece pela imagem original com a melhor resolução disponível.",
-      "Ajuste enquadramento, orientação e fundo conforme a finalidade.",
-      "Redimensione para o canal em que a imagem será publicada.",
-      "Converta e comprima por último, comparando o resultado visual.",
+      "Comece pela imagem original com a melhor resolução disponível e defina onde ela será utilizada.",
+      "Ajuste fundo, enquadramento e orientação antes de reduzir as dimensões.",
+      "Padronize tamanho e proporção de acordo com a loja, marketplace, site ou rede social de destino.",
+      "Converta e comprima na etapa final, revise o resultado visual e remova metadados quando houver necessidade de reduzir informações incorporadas ao arquivo.",
     ],
-    noteTitle: "Qualidade e privacidade",
-    note: "Ferramentas que processam arquivos no navegador mantêm o trabalho no dispositivo durante a sessão. Mesmo assim, revise o resultado e evite fechar a página antes do download. Para materiais importantes, guarde o original em local seguro.",
+    noteTitle: "Qualidade, original e privacidade",
+    note: "Nem todas as operações usam necessariamente o mesmo tipo de processamento. Quando uma ferramenta informar que o processamento ocorre localmente, o arquivo permanece no dispositivo durante aquela tarefa. Para imagens com dados de localização ou outras informações incorporadas, o Removedor de Metadados pode gerar uma nova cópia sem esses registros quando presentes. Em qualquer fluxo, mantenha o original em local seguro e revise o arquivo gerado antes de substituir ou publicar a versão anterior.",
   },
   pdfs: {
     eyebrow: "Guia de documentos PDF",
