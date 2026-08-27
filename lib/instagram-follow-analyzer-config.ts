@@ -9,6 +9,11 @@ export type InstagramTutorialStep = {
   imageUrl: string;
 };
 
+export type InstagramFaqItem = {
+  question: string;
+  answer: string;
+};
+
 export type InstagramAnalyzerConfig = {
   eyebrow: string;
   pageTitle: string;
@@ -31,12 +36,24 @@ export type InstagramAnalyzerConfig = {
   proDescription: string;
   agencyTitle: string;
   agencyDescription: string;
+  audienceTitle: string;
+  audienceDescription: string;
+  plansTitle: string;
+  freePlanDetail: string[];
+  proPlanDetail: string[];
+  agencyPlanDetail: string[];
+  faqTitle: string;
+  faqItems: InstagramFaqItem[];
+  privacyTitle: string;
+  privacyDescription: string;
+  privacyItems: string[];
+  privacyLinkLabel: string;
 };
 
 export const DEFAULT_INSTAGRAM_ANALYZER_CONFIG: InstagramAnalyzerConfig = {
   eyebrow: "Kivai Social Intelligence",
-  pageTitle: "Instagram Follow Analyzer",
-  heroDescription: "Descubra rapidamente de forma gratuita quem não te segue de volta no instagram e limpe seu perfil.",
+  pageTitle: "Quem deixou de seguir no Instagram",
+  heroDescription: "Descubra rapidamente de forma gratuita quem não te segue de volta no Instagram e limpe seu perfil.",
   badgeOne: "Análise rápida",
   badgeTwo: "Exportação oficial da Meta",
   tutorialKicker: "Precisa de ajuda?",
@@ -62,9 +79,54 @@ export const DEFAULT_INSTAGRAM_ANALYZER_CONFIG: InstagramAnalyzerConfig = {
   freeTitle: "Grátis",
   freeDescription: "Até 50 mil seguidores, com as três análises essenciais.",
   proTitle: "Pro",
-  proDescription: "Com histórico que você vai poder acompanhar quem deixou de seguir, acompanhamento rotineiro do perfil, novos seguidores, comparações e análises avançadas.",
+  proDescription: "Histórico, comparações e acompanhamento recorrente do perfil.",
   agencyTitle: "Agency",
-  agencyDescription: "Múltiplas contas, clientes, relatórios e operação para agências.",
+  agencyDescription: "Operação para múltiplas contas, clientes e relatórios.",
+  audienceTitle: "Para quem é esta ferramenta?",
+  audienceDescription: "Para usuários, criadores de conteúdo, influenciadores, marcas, social medias e agências que querem entender melhor sua própria rede no Instagram usando os dados exportados oficialmente pela Meta, sem informar a senha da conta.",
+  plansTitle: "Entenda cada plano",
+  freePlanDetail: [
+    "Disponível gratuitamente para uma conta por análise.",
+    "Analisa exportações com até 50 mil seguidores.",
+    "Mostra quem não segue você de volta, quem você não segue e seguidores mútuos.",
+    "O processamento acontece no navegador e o arquivo não é enviado ao Kivai para gerar o resultado.",
+    "Não inclui histórico automático entre análises nem monitoramento recorrente.",
+  ],
+  proPlanDetail: [
+    "Plano em preparação para quem precisa acompanhar a evolução do perfil ao longo do tempo.",
+    "Prevê histórico de análises e comparação entre exportações.",
+    "Permitirá identificar novos seguidores e perfis que deixaram de seguir entre períodos analisados.",
+    "Prevê acompanhamento recorrente, comparações e indicadores avançados do perfil.",
+    "Os limites finais e recursos comerciais serão informados antes da contratação.",
+  ],
+  agencyPlanDetail: [
+    "Plano em preparação para agências, social medias e profissionais que administram várias contas.",
+    "Prevê gestão de múltiplos perfis e clientes em um único ambiente.",
+    "Permitirá organizar históricos, comparações e relatórios por conta.",
+    "Será voltado a operações com maior volume e necessidade de acompanhamento contínuo.",
+    "Os limites finais e recursos comerciais serão informados antes da contratação.",
+  ],
+  faqTitle: "Dúvidas frequentes",
+  faqItems: [
+    { question: "Preciso informar minha senha do Instagram?", answer: "Não. A ferramenta usa somente o arquivo de dados que você mesmo exporta pela Central de Contas da Meta." },
+    { question: "Funciona em perfil privado?", answer: "Sim. A análise funciona normalmente quando o arquivo pertence à própria conta do usuário, mesmo que o perfil seja privado." },
+    { question: "O Kivai salva meu arquivo no plano gratuito?", answer: "Não para gerar esta análise gratuita. O processamento do arquivo acontece localmente no navegador e o resultado é calculado no seu dispositivo." },
+    { question: "Por que preciso exportar os dados pela Meta?", answer: "Porque essa é a forma mais segura de trabalhar com os dados da sua própria conta sem pedir senha nem depender de técnicas de acesso não autorizadas." },
+    { question: "O resultado é em tempo real?", answer: "Não. O resultado representa os dados existentes no arquivo exportado pela Meta. Para uma análise mais atual, gere uma nova exportação." },
+    { question: "É melhor enviar ZIP ou JSON?", answer: "O ZIP exportado pela Meta é a opção mais simples porque normalmente reúne os arquivos necessários de seguidores e seguindo em uma única seleção." },
+    { question: "A ferramenta deixa de seguir pessoas automaticamente?", answer: "Não. O Kivai apenas analisa e organiza os perfis encontrados no arquivo. Qualquer ação dentro do Instagram continua sob seu controle." },
+  ],
+  privacyTitle: "Privacidade e uso dos dados",
+  privacyDescription: "A ferramenta foi estruturada para usar somente os dados necessários à análise, com finalidade clara, transparência e separação entre o conteúdo do arquivo do Instagram e os dados usados para publicidade no site.",
+  privacyItems: [
+    "O Kivai não solicita sua senha do Instagram para realizar a análise.",
+    "No plano gratuito, o arquivo selecionado é processado localmente no navegador para gerar o resultado.",
+    "Os dados contidos na exportação do Instagram não são vendidos nem usados pelo Kivai para criar públicos ou personalizar anúncios.",
+    "Cookies, métricas e publicidade do site são tratados separadamente e seguem as preferências de consentimento e a Política de Privacidade do Kivai.",
+    "O site utiliza conexão HTTPS e procura aplicar medidas de segurança compatíveis com os dados processados.",
+    "Você mantém o controle sobre o arquivo e pode encerrar a página ou recarregá-la para limpar a análise exibida localmente.",
+  ],
+  privacyLinkLabel: "Leia a Política de Privacidade completa",
 };
 
 type ConfigRow = { custom_data: unknown };
@@ -80,6 +142,27 @@ function url(value: unknown, fallback = "") {
   if (!clean) return fallback;
   if (clean.startsWith("/") || /^https?:\/\//i.test(clean)) return clean;
   return fallback;
+}
+
+function stringList(value: unknown, fallback: string[], maxItems = 10, maxLength = 1000) {
+  if (!Array.isArray(value)) return fallback;
+  const normalized = value
+    .map((item) => plainText(typeof item === "string" ? item : "").slice(0, maxLength))
+    .filter(Boolean)
+    .slice(0, maxItems);
+  return normalized.length ? normalized : fallback;
+}
+
+function faqList(value: unknown, fallback: InstagramFaqItem[]) {
+  if (!Array.isArray(value)) return fallback;
+  const normalized = value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const source = item as Record<string, unknown>;
+    const question = plainText(typeof source.question === "string" ? source.question : "").slice(0, 300);
+    const answer = plainText(typeof source.answer === "string" ? source.answer : "").slice(0, 1600);
+    return question && answer ? [{ question, answer }] : [];
+  }).slice(0, 12);
+  return normalized.length ? normalized : fallback;
 }
 
 export function normalizeInstagramAnalyzerConfig(value: unknown): InstagramAnalyzerConfig {
@@ -116,6 +199,18 @@ export function normalizeInstagramAnalyzerConfig(value: unknown): InstagramAnaly
     proDescription: text(source.proDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.proDescription, 900),
     agencyTitle: text(source.agencyTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.agencyTitle, 120),
     agencyDescription: text(source.agencyDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.agencyDescription, 700),
+    audienceTitle: text(source.audienceTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.audienceTitle, 220),
+    audienceDescription: text(source.audienceDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.audienceDescription, 1400),
+    plansTitle: text(source.plansTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.plansTitle, 220),
+    freePlanDetail: stringList(source.freePlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.freePlanDetail),
+    proPlanDetail: stringList(source.proPlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.proPlanDetail),
+    agencyPlanDetail: stringList(source.agencyPlanDetail, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.agencyPlanDetail),
+    faqTitle: text(source.faqTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.faqTitle, 220),
+    faqItems: faqList(source.faqItems, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.faqItems),
+    privacyTitle: text(source.privacyTitle, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyTitle, 220),
+    privacyDescription: text(source.privacyDescription, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyDescription, 1400),
+    privacyItems: stringList(source.privacyItems, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyItems, 10, 1200),
+    privacyLinkLabel: text(source.privacyLinkLabel, DEFAULT_INSTAGRAM_ANALYZER_CONFIG.privacyLinkLabel, 220),
   };
 }
 
