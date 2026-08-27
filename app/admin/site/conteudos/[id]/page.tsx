@@ -10,7 +10,7 @@ export default async function EditSiteContentPage({ params }: { params: Promise<
   if (!content) notFound();
 
   if (content.slug === "instagram-follow-analyzer") {
-    return <InstagramFollowAnalyzerEditor initialConfig={await getInstagramAnalyzerConfig()} />;
+    return <InstagramFollowAnalyzerEditor initialConfig={await getInstagramAnalyzerConfig()} initialContent={content} hubs={hubs} />;
   }
 
   return <SiteContentEditor initialContent={content} hubs={hubs} />;
