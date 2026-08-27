@@ -40,6 +40,16 @@ type TipoQrCode =
 
 type NivelCorrecao = "L" | "M" | "Q" | "H";
 
+type ModeloQrCode = {
+  titulo: string;
+  descricao: string;
+  corQr: string;
+  corFundo: string;
+  tamanho: number;
+  margem: number;
+  nivelCorrecao: NivelCorrecao;
+};
+
 type TipoConfig = {
   valor: TipoQrCode;
   titulo: string;
@@ -113,6 +123,54 @@ const NIVEIS_CORRECAO: Array<{
   },
 ];
 
+const MODELOS_QR_CODE: ModeloQrCode[] = [
+  {
+    titulo: "E-commerce",
+    descricao: "Para embalagens, pedidos e páginas de produtos.",
+    corQr: "#0f172a",
+    corFundo: "#ffffff",
+    tamanho: 480,
+    margem: 4,
+    nivelCorrecao: "Q",
+  },
+  {
+    titulo: "Loja física",
+    descricao: "Alto contraste para balcões, vitrines e cartazes.",
+    corQr: "#000000",
+    corFundo: "#ffffff",
+    tamanho: 600,
+    margem: 4,
+    nivelCorrecao: "H",
+  },
+  {
+    titulo: "Cartão de visita",
+    descricao: "Visual profissional para materiais de contato.",
+    corQr: "#1d4ed8",
+    corFundo: "#ffffff",
+    tamanho: 360,
+    margem: 3,
+    nivelCorrecao: "Q",
+  },
+  {
+    titulo: "WhatsApp",
+    descricao: "Destaque em verde para atendimento e vendas.",
+    corQr: "#128c7e",
+    corFundo: "#ffffff",
+    tamanho: 420,
+    margem: 4,
+    nivelCorrecao: "Q",
+  },
+  {
+    titulo: "Minimalista",
+    descricao: "Opção compacta e neutra para uso digital.",
+    corQr: "#111827",
+    corFundo: "#ffffff",
+    tamanho: 320,
+    margem: 2,
+    nivelCorrecao: "M",
+  },
+];
+
 function escaparWifi(valor: string) {
   return valor.replace(/([\\;,":])/g, "\\$1");
 }
@@ -133,6 +191,25 @@ function normalizarUrl(valor: string) {
 
 function somenteDigitos(valor: string) {
   return valor.replace(/\D/g, "");
+}
+
+function normalizarEntradaTelefoneBrasil(valor: string) {
+  const digitos = somenteDigitos(valor);
+  const numeroNacional = digitos.length > 11 && digitos.startsWith("55")
+    ? digitos.slice(2)
+    : digitos;
+
+  return numeroNacional.slice(0, 11);
+}
+
+function numeroTelefoneBrasil(valor: string) {
+  const numeroNacional = normalizarEntradaTelefoneBrasil(valor);
+
+  if (!/^\d{10,11}$/.test(numeroNacional)) {
+    return "";
+  }
+
+  return `55${numeroNacional}`;
 }
 
 export default function GeradorDeQrCodeClient() {
@@ -178,7 +255,7 @@ export default function GeradorDeQrCodeClient() {
         return texto.trim();
 
       case "whatsapp": {
-        const numero = somenteDigitos(whatsappNumero);
+        const numero = numeroTelefoneBrasil(whatsappNumero);
 
         if (!numero) {
           return "";
@@ -194,9 +271,9 @@ export default function GeradorDeQrCodeClient() {
       }
 
       case "telefone": {
-        const numero = telefone.trim();
+        const numero = numeroTelefoneBrasil(telefone);
 
-        return numero ? `tel:${numero}` : "";
+        return numero ? `tel:+${numero}` : "";
       }
 
       case "email": {
@@ -317,6 +394,15 @@ const dataUrl = await QRCode.toDataURL(conteudoQr, {
     setTipo(novoTipo);
     setErro("");
     setCopiado(false);
+  }
+
+  function aplicarModelo(modelo: ModeloQrCode) {
+    setCorQr(modelo.corQr);
+    setCorFundo(modelo.corFundo);
+    setTamanho(modelo.tamanho);
+    setMargem(modelo.margem);
+    setNivelCorrecao(modelo.nivelCorrecao);
+    setErro("");
   }
 
   async function copiarConteudo() {
@@ -447,19 +533,27 @@ const svg = await QRCode.toString(conteudoQr, {
                 htmlFor="qr-whatsapp-numero"
                 className="text-sm font-medium"
               >
-                Número com DDI e DDD
+                Número com DDD
               </label>
 
-              <input
-                id="qr-whatsapp-numero"
-                type="tel"
-                value={whatsappNumero}
-                onChange={(event) =>
-                  setWhatsappNumero(event.target.value)
-                }
-                placeholder="5511999999999"
-                className={`${inputClassName} mt-2`}
-              />
+              <div className="mt-2 flex h-11 border border-border bg-background focus-within:border-primary">
+                <span className="flex items-center border-r border-border px-3 text-sm font-medium text-foreground">+55</span>
+                <input
+                  id="qr-whatsapp-numero"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  maxLength={11}
+                  value={whatsappNumero}
+                  onChange={(event) => setWhatsappNumero(normalizarEntradaTelefoneBrasil(event.target.value))}
+                  placeholder="31999999999"
+                  className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Digite apenas DDD e número. O código do Brasil (+55) será incluído automaticamente.
+              </p>
             </div>
 
             <div>
@@ -493,16 +587,24 @@ const svg = await QRCode.toString(conteudoQr, {
               Número de telefone
             </label>
 
-            <input
-              id="qr-telefone"
-              type="tel"
-              value={telefone}
-              onChange={(event) =>
-                setTelefone(event.target.value)
-              }
-              placeholder="+55 11 99999-9999"
-              className={`${inputClassName} mt-2`}
-            />
+            <div className="mt-2 flex h-11 border border-border bg-background focus-within:border-primary">
+              <span className="flex items-center border-r border-border px-3 text-sm font-medium text-foreground">+55</span>
+              <input
+                id="qr-telefone"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                maxLength={11}
+                value={telefone}
+                onChange={(event) => setTelefone(normalizarEntradaTelefoneBrasil(event.target.value))}
+                placeholder="3132610874"
+                className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+              Digite apenas DDD e número. O código do Brasil (+55) será incluído automaticamente.
+            </p>
           </div>
         );
 
@@ -1056,6 +1158,53 @@ const svg = await QRCode.toString(conteudoQr, {
                     </>
                   )}
                 </Button>
+
+                {qrDataUrl && (
+                  <div className="mt-5 border border-border bg-muted/20 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Modelos sugeridos
+                    </p>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      Escolha um modelo pronto e ajuste as configurações depois, se desejar.
+                    </p>
+
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                      {MODELOS_QR_CODE.map((modelo) => {
+                        const selecionado =
+                          corQr.toLowerCase() === modelo.corQr &&
+                          corFundo.toLowerCase() === modelo.corFundo &&
+                          tamanho === modelo.tamanho &&
+                          margem === modelo.margem &&
+                          nivelCorrecao === modelo.nivelCorrecao;
+
+                        return (
+                          <button
+                            key={modelo.titulo}
+                            type="button"
+                            onClick={() => aplicarModelo(modelo)}
+                            aria-pressed={selecionado}
+                            className={[
+                              "flex min-h-20 items-start gap-3 border p-3 text-left transition-colors",
+                              selecionado
+                                ? "border-primary bg-primary/5"
+                                : "border-border bg-background hover:bg-muted/40",
+                            ].join(" ")}
+                          >
+                            <span
+                              className="mt-0.5 size-7 shrink-0 border border-border"
+                              style={{ backgroundColor: modelo.corQr }}
+                              aria-hidden="true"
+                            />
+                            <span>
+                              <span className="block text-sm font-medium">{modelo.titulo}</span>
+                              <span className="mt-1 block text-xs leading-4 text-muted-foreground">{modelo.descricao}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-4 border border-border bg-muted/20 p-4">
                   <p className="text-xs leading-5 text-muted-foreground">
