@@ -22,9 +22,61 @@ type Plan = {
 };
 
 const plans: readonly Plan[] = [
-  { code: "free", name: "Grátis", monthly: "R$ 0", annual: "Grátis", description: "Para análises essenciais de uma conta do Instagram.", features: ["1 conta por análise", "Até 50 mil seguidores", "Quem não segue você de volta", "Quem você não segue de volta", "Seguidores mútuos", "Processamento local no navegador"], highlighted: false },
-  { code: "pro", name: "Pro", monthly: "R$ 19,90/mês", annual: "R$ 199/ano", annualNote: "Economize R$ 39,80 no plano anual", description: "Para quem acompanha a evolução de perfis e precisa de histórico entre análises.", features: ["Até 5 contas", "Até 500 mil seguidores por perfil", "Histórico privado de análises", "Comparação automática entre exportações", "Novos seguidores e quem deixou de seguir por período", "Curtidas, comentários e interações com stories quando incluídos na exportação"], highlighted: true },
-  { code: "agency", name: "Agency", monthly: "R$ 59,90/mês", annual: "R$ 599/ano", annualNote: "Economize R$ 119,80 no plano anual", description: "Para agências, social medias e profissionais que administram várias contas e clientes.", features: ["Até 20 contas/clientes", "Históricos separados por conta", "Comparações e acompanhamento contínuo", "Relatórios organizados por cliente", "Análise ampliada da exportação oficial da Meta", "Estrutura para operações com maior volume"], highlighted: false },
+  {
+    code: "free",
+    name: "Grátis",
+    monthly: "R$ 0",
+    annual: "Grátis",
+    description: "Para fazer análises pontuais do seu Instagram sem precisar acompanhar histórico entre períodos.",
+    features: [
+      "1 conta por análise",
+      "Até 50 mil seguidores",
+      "Quem não segue você de volta",
+      "Quem você não segue de volta",
+      "Seguidores mútuos",
+      "Resultado da análise atual, sem histórico privado",
+      "Processamento local no navegador",
+    ],
+    highlighted: false,
+  },
+  {
+    code: "pro",
+    name: "Pro",
+    monthly: "R$ 19,90/mês",
+    annual: "R$ 199/ano",
+    annualNote: "Economize R$ 39,80 no plano anual",
+    description: "Para transformar análises isoladas em acompanhamento contínuo, comparando períodos e monitorando a evolução de até 5 perfis.",
+    features: [
+      "Até 5 contas acompanhadas",
+      "Até 500 mil seguidores por perfil",
+      "Área Pro exclusiva com visão dos perfis",
+      "Histórico privado de análises",
+      "Comparação automática entre exportações",
+      "Novos seguidores por período",
+      "Quem deixou de seguir por período",
+      "Evolução de seguidores e seguindo entre análises",
+      "Curtidas, comentários e interações com stories quando incluídos na exportação da Meta",
+    ],
+    highlighted: true,
+  },
+  {
+    code: "agency",
+    name: "Agency",
+    monthly: "R$ 59,90/mês",
+    annual: "R$ 599/ano",
+    annualNote: "Economize R$ 119,80 no plano anual",
+    description: "Para agências, social medias e profissionais que precisam acompanhar vários clientes em uma operação organizada e recorrente.",
+    features: [
+      "Até 20 contas ou clientes",
+      "Histórico separado por perfil",
+      "Comparações e acompanhamento contínuo",
+      "Novos seguidores e unfollows por período",
+      "Relatórios organizados por cliente",
+      "Análise ampliada da exportação oficial da Meta",
+      "Estrutura preparada para operações com maior volume",
+    ],
+    highlighted: false,
+  },
 ];
 
 export function PlansClient() {
@@ -116,7 +168,7 @@ export function PlansClient() {
         })}
       </div>
       <section className="mt-14 grid gap-4 md:grid-cols-3">
-        <div className="border border-white/10 bg-card p-5"><Zap className="size-5 text-primary" /><h2 className="mt-3 font-semibold">1. Escolha o plano</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Compare limites, recursos e periodicidade. Se você já tiver um plano, ele será identificado como Plano atual.</p></div>
+        <div className="border border-white/10 bg-card p-5"><Zap className="size-5 text-primary" /><h2 className="mt-3 font-semibold">1. Escolha o plano</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Use o Grátis para análises pontuais ou escolha Pro/Agency quando quiser salvar histórico, comparar períodos e acompanhar perfis continuamente.</p></div>
         <div className="border border-white/10 bg-card p-5"><UsersRound className="size-5 text-primary" /><h2 className="mt-3 font-semibold">2. Solicitação registrada</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Antes do pagamento, o Kivai registra plano, valor e periodicidade vinculados à sua conta.</p></div>
         <div className="border border-white/10 bg-card p-5"><ShieldCheck className="size-5 text-primary" /><h2 className="mt-3 font-semibold">3. Finalize pela SumUp</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">O pagamento abre na SumUp. Depois, informe no painel que pagou e aguarde a confirmação para ativação.</p></div>
       </section>
