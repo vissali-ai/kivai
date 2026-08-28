@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, Crown, ShieldCheck, UsersRound, Zap } from "lucide-react";
+import { ArrowRight, Check, Crown, ExternalLink, ShieldCheck, UsersRound, Zap } from "lucide-react";
 import { getCurrentUser, getStoredSession, supabaseUserFetch } from "@/lib/user-auth";
 
 type PlanCode = "free" | "pro" | "agency";
+type BillingCycle = "monthly" | "annual";
 
 type Plan = {
   code: PlanCode;
@@ -16,6 +17,17 @@ type Plan = {
   description: string;
   features: readonly string[];
   highlighted: boolean;
+};
+
+const paymentLinks: Record<Exclude<PlanCode, "free">, Record<BillingCycle, string>> = {
+  pro: {
+    monthly: "https://pay.sumup.com/b2c/QCQIWOP0",
+    annual: "https://pay.sumup.com/b2c/Q4QPYZFA",
+  },
+  agency: {
+    monthly: "https://pay.sumup.com/b2c/QYY1WQHF",
+    annual: "https://pay.sumup.com/b2c/Q13MYNQA",
+  },
 };
 
 const plans: readonly Plan[] = [
@@ -160,17 +172,20 @@ export function PlansClient() {
                       Criar conta grátis <ArrowRight className="size-4" />
                     </Link>
                   )
-                ) : (
+                ) : currentPlan ? (
                   <div className="space-y-2">
-                    <div className="flex min-h-12 w-full items-center justify-center border border-primary/30 bg-primary/[0.04] px-5 py-3 text-center text-sm font-semibold text-primary">
-                      Link de pagamento em configuração
-                    </div>
-                    {!currentPlan ? (
-                      <Link href={`/conta/login?next=${encodeURIComponent("/planos")}`} className="inline-flex w-full items-center justify-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground">
-                        Entre para contratar este plano
-                      </Link>
-                    ) : null}
+                    <a href={paymentLinks[plan.code].monthly} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">
+                      Contratar mensal <ExternalLink className="size-4" />
+                    </a>
+                    <a href={paymentLinks[plan.code].annual} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center gap-2 border border-primary/30 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5">
+                      Contratar anual <ExternalLink className="size-4" />
+                    </a>
+                    <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">O pagamento abre no ambiente seguro da SumUp. A ativação do plano é confirmada no Kivai após a validação do pagamento.</p>
                   </div>
+                ) : (
+                  <Link href={`/conta/login?next=${encodeURIComponent("/planos")}`} className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">
+                    Entrar para contratar <ArrowRight className="size-4" />
+                  </Link>
                 )}
               </div>
             </article>
@@ -192,7 +207,7 @@ export function PlansClient() {
         <div className="border border-white/10 bg-card p-5">
           <ShieldCheck className="size-5 text-primary" />
           <h2 className="mt-3 font-semibold">3. Finalize pela SumUp</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Quando os links estiverem cadastrados, cada opção de plano e valor abrirá o pagamento externo correspondente da SumUp.</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Cada opção mensal ou anual abre o link externo correspondente da SumUp em uma nova aba.</p>
         </div>
       </section>
     </>
