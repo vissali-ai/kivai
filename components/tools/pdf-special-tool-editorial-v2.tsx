@@ -1,5 +1,6 @@
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
+import { htmlParaPdfEditorialOverride } from "@/lib/html-para-pdf-editorial-override";
 import { pdfParaHtmlEditorialOverride } from "@/lib/pdf-para-html-editorial-override";
 import {
   pdfSpecialToolEditorialContent,
@@ -12,7 +13,11 @@ const pdfParaHtmlDescription =
   "Converta o texto extraível de PDFs digitais em HTML, com modo estruturado ou reposicionamento visual do texto. Não inclui OCR nem reconstrução de imagens.";
 
 export function PdfSpecialToolEditorialV2({ slug }: { slug: PdfSpecialToolEditorialSlug }) {
-  const content = slug === "pdf-para-html" ? pdfParaHtmlEditorialOverride : pdfSpecialToolEditorialContent[slug];
+  const content = slug === "pdf-para-html"
+    ? pdfParaHtmlEditorialOverride
+    : slug === "html-para-pdf"
+      ? htmlParaPdfEditorialOverride
+      : pdfSpecialToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
 
   if (!tool) return null;
