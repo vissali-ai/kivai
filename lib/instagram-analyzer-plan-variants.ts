@@ -1,9 +1,11 @@
 import "server-only";
 
+import { plainText } from "@/lib/blog/sanitize";
 import { supabaseRest } from "@/lib/blog/supabase";
 import {
   normalizeInstagramAnalyzerConfig,
   type InstagramAnalyzerConfig,
+  type InstagramTutorialStep,
 } from "@/lib/instagram-follow-analyzer-config";
 
 export type InstagramAnalyzerEditablePlan = "free" | "pro";
@@ -20,8 +22,35 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function safeText(value: unknown, fallback = "", max = 1500) {
+  const cleaned = plainText(typeof value === "string" ? value : "").slice(0, max);
+  return cleaned || fallback;
+}
+
+function safeUrl(value: unknown, fallback = "") {
+  if (typeof value !== "string") return fallback;
+  const cleaned = value.trim().slice(0, 1200);
+  if (!cleaned) return fallback;
+  if (cleaned.startsWith("/") || /^https?:\/\//i.test(cleaned)) return cleaned;
+  return fallback;
+}
+
+function normalizeSteps(value: unknown, fallback: InstagramTutorialStep[]) {
+  if (!Array.isArray(value)) return fallback;
+  const steps = value.flatMap((item, index) => {
+    if (!item || typeof item !== "object") return [];
+    const source = item as Record<string, unknown>;
+    const fallbackStep = fallback[index] ?? { title: `Passo ${index + 1}`, description: "", imageUrl: "" };
+    const title = safeText(source.title, fallbackStep.title, 180);
+    const description = safeText(source.description, fallbackStep.description, 1500);
+    const imageUrl = safeUrl(source.imageUrl, fallbackStep.imageUrl);
+    return title || description || imageUrl ? [{ title, description, imageUrl }] : [];
+  }).slice(0, 20);
+  return steps.length ? steps : fallback;
+}
+
 function proFallback(base: InstagramAnalyzerConfig): InstagramAnalyzerConfig {
-  return normalizeInstagramAnalyzerConfig({
+  return {
     ...base,
     eyebrow: "Kivai Pro",
     heroDescription:
@@ -41,7 +70,7 @@ function proFallback(base: InstagramAnalyzerConfig): InstagramAnalyzerConfig {
     uploadTitle: "Atualize seu acompanhamento Pro",
     uploadDescription:
       "Importe uma nova exportação do Instagram para atualizar o perfil, registrar a análise e comparar a evolução com os períodos anteriores.",
-  });
+  };
 }
 
 function normalizeVariant(
@@ -50,7 +79,11 @@ function normalizeVariant(
 ): InstagramAnalyzerConfig {
   const source = asRecord(raw);
   if (!Object.keys(source).length) return fallback;
-  return normalizeInstagramAnalyzerConfig({ ...fallback, ...source });
+  const normalized = normalizeInstagramAnalyzerConfig({ ...fallback, ...source });
+  return {
+    ...normalized,
+    tutorialSteps: normalizeSteps(source.tutorialSteps, fallback.tutorialSteps),
+  };
 }
 
 export async function getInstagramAnalyzerPlanVariants(
