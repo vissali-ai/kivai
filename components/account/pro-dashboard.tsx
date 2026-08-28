@@ -1,6 +1,6 @@
 "use client";
 
-// Deployment checkpoint após correção da Área Pro.
+// Deployment checkpoint após correção da Área Pro. Nova tentativa de publicação.
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, BarChart3, CalendarClock, Camera, Crown, History, LockKeyhole, RefreshCw, UsersRound } from "lucide-react";
