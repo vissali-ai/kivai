@@ -1,5 +1,6 @@
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
+import { editarPdfEditorialOverride } from "@/lib/editar-pdf-editorial-override";
 import { htmlParaPdfEditorialOverride } from "@/lib/html-para-pdf-editorial-override";
 import { pdfParaHtmlEditorialOverride } from "@/lib/pdf-para-html-editorial-override";
 import {
@@ -17,7 +18,9 @@ export function PdfSpecialToolEditorialV2({ slug }: { slug: PdfSpecialToolEditor
     ? pdfParaHtmlEditorialOverride
     : slug === "html-para-pdf"
       ? htmlParaPdfEditorialOverride
-      : pdfSpecialToolEditorialContent[slug];
+      : slug === "editar-pdf"
+        ? editarPdfEditorialOverride
+        : pdfSpecialToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
 
   if (!tool) return null;
