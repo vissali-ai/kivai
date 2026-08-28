@@ -25,16 +25,16 @@ export type ToolEditorialLink = {
 
 type ToolEditorialLayoutProps = {
   slug: string;
-  overview: string[];
-  useCases: ToolEditorialUseCase[];
-  steps: string[];
+  overview: readonly string[];
+  useCases: readonly ToolEditorialUseCase[];
+  steps: readonly string[];
   specificationsTitle?: string;
-  specifications: ToolEditorialSpecification[];
+  specifications: readonly ToolEditorialSpecification[];
   privacy: string;
-  limitations: string[];
-  faqs: ToolEditorialFaq[];
-  relatedTools: ToolEditorialLink[];
-  relatedArticles?: ToolEditorialLink[];
+  limitations: readonly string[];
+  faqs: readonly ToolEditorialFaq[];
+  relatedTools: readonly ToolEditorialLink[];
+  relatedArticles?: readonly ToolEditorialLink[];
   afterFaq?: ReactNode;
 };
 

@@ -9,7 +9,14 @@ import { getToolHref, getToolsByCategory } from "@/lib/tools";
 const filters = ["Todos", "Otimizar", "Converter", "Editar"];
 const registeredTools = getToolsByCategory("imagens");
 const tools = [
-  ...registeredTools.map((tool) => ({ ...tool, href: getToolHref(tool.slug) })),
+  ...registeredTools.map((tool) => ({
+    ...tool,
+    description:
+      tool.slug === "redimensionar-imagem"
+        ? "Redimensione imagens por pixels ou porcentagem e exporte em JPG, PNG ou WebP."
+        : tool.description,
+    href: getToolHref(tool.slug),
+  })),
   removedorMetadadosTool,
 ];
 
