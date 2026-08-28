@@ -45,4 +45,53 @@ export const imageToolEditorialOverrides = {
       { href: "/ferramentas/gerador-de-placeholder", label: "Gerar placeholder" },
     ],
   },
+  "conversor-de-imagens": {
+    overview: [
+      "O Conversor de Imagens transforma arquivos entre PNG, JPG e WebP mantendo a largura e a altura da imagem. Ele é útil quando um site, aplicativo, marketplace ou sistema exige um formato diferente daquele em que o arquivo foi criado.",
+      "A conversão muda a forma como a imagem é armazenada, mas não tem como objetivo garantir um arquivo menor. Dependendo do conteúdo, do formato escolhido e da qualidade configurada, o resultado pode ficar menor, semelhante ou maior que o original. A própria ferramenta mostra essa variação depois da conversão.",
+      "JPG e WebP permitem ajustar a qualidade de saída de 10% a 100%. PNG não exibe esse controle. Quando uma imagem com transparência é convertida para JPG, as áreas transparentes recebem fundo branco porque o formato JPG não suporta transparência.",
+    ],
+    useCases: [
+      { title: "Compatibilidade com plataformas", description: "Converta a imagem quando um formulário, marketplace, editor ou sistema aceita apenas determinados formatos de arquivo." },
+      { title: "Fotos para JPG", description: "Crie uma cópia em JPG para serviços e aplicações que não aceitam PNG ou WebP, com controle de qualidade da saída." },
+      { title: "Imagens para WebP", description: "Gere uma versão WebP quando esse formato for adequado ao site, aplicação ou fluxo de publicação que você utiliza." },
+      { title: "Preservação de transparência", description: "Escolha PNG quando a imagem precisa manter áreas transparentes, como logotipos, recortes e elementos gráficos." },
+    ],
+    steps: [
+      "Selecione uma imagem PNG, JPG ou WebP com até 5 MB.",
+      "Escolha PNG, JPG ou WebP como formato de saída.",
+      "Se a saída for JPG ou WebP, ajuste a qualidade entre 10% e 100% conforme a sua necessidade.",
+      "Clique em “Converter imagem”, confira a prévia, o tamanho final, as dimensões e a variação em relação ao arquivo original.",
+      "Baixe a nova cópia no formato escolhido. O arquivo original permanece no dispositivo sem ser substituído.",
+    ],
+    specifications: [
+      { label: "Entrada", value: "PNG, JPG/JPEG e WebP com até 5 MB." },
+      { label: "Saída", value: "PNG, JPG ou WebP, conforme a escolha do usuário." },
+      { label: "Dimensões", value: "A largura e a altura da imagem original são mantidas na conversão." },
+      { label: "Qualidade", value: "Ajustável de 10% a 100% para saídas JPG e WebP; o controle não é exibido para PNG." },
+      { label: "Transparência", value: "PNG pode preservar áreas transparentes. Ao gerar JPG, áreas transparentes são preenchidas com branco." },
+      { label: "Comparação", value: "A ferramenta mostra tamanho original, tamanho convertido, dimensões e variação percentual do arquivo." },
+    ],
+    privacy: "A imagem é lida, convertida e preparada para download no próprio navegador. O arquivo original não é substituído pela ferramenta e a nova versão só é salva no dispositivo quando o usuário escolhe fazer o download.",
+    limitations: [
+      "Converter uma imagem não garante redução de tamanho. O arquivo final pode ficar menor, semelhante ou maior que o original.",
+      "JPG não suporta transparência; ao converter uma imagem transparente para JPG, essas áreas recebem fundo branco.",
+      "Ajustes menores de qualidade em JPG e WebP podem reduzir detalhes visuais, principalmente em textos pequenos, linhas finas e degradês.",
+      "Converter para PNG não recupera transparência, nitidez ou informações que já não existem no arquivo de origem.",
+      "Metadados, perfis de cor e outras informações incorporadas ao arquivo original podem não permanecer na nova cópia gerada pelo navegador.",
+    ],
+    faqs: [
+      { question: "A conversão reduz o tamanho da imagem?", answer: "Não necessariamente. O tamanho final depende do conteúdo, do formato escolhido e, em JPG e WebP, da qualidade selecionada. A ferramenta mostra a variação depois do processamento." },
+      { question: "A largura e a altura mudam?", answer: "Não. A conversão mantém as dimensões em pixels do arquivo de origem. Para alterar largura ou altura, use a ferramenta de redimensionamento." },
+      { question: "O que acontece com a transparência ao converter para JPG?", answer: "JPG não suporta transparência. Por isso, as áreas transparentes recebem fundo branco na cópia convertida." },
+      { question: "Qualidade 100% significa que o arquivo ficará idêntico ao original?", answer: "Não. O valor controla a codificação das saídas JPG e WebP, mas uma conversão continua recriando o arquivo em outro formato. O resultado pode ter tamanho, compressão e características diferentes do original." },
+      { question: "Posso converter JPG para PNG e recuperar qualidade?", answer: "Não. A conversão muda o formato do arquivo, mas não recria detalhes que foram perdidos anteriormente no JPG." },
+      { question: "O arquivo original é alterado?", answer: "Não. A ferramenta gera uma nova cópia para download e mantém o arquivo selecionado sem substituí-lo." },
+    ],
+    related: [
+      { href: "/ferramentas/compressor-de-imagens", label: "Comprimir imagens" },
+      { href: "/ferramentas/redimensionar-imagem", label: "Redimensionar imagem" },
+      { href: "/ferramentas/conversor-heic", label: "Converter HEIC" },
+    ],
+  },
 };
