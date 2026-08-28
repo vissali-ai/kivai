@@ -7,6 +7,8 @@ import { supabaseRest } from "@/lib/blog/supabase";
 type RequestRow = {
   id: string;
   user_id: string;
+  customer_email: string;
+  customer_name: string | null;
   plan_code: "pro" | "agency";
   billing_cycle: "monthly" | "annual";
   status: string;
@@ -32,7 +34,7 @@ export async function confirmSubscriptionPayment(formData: FormData) {
   const requestId = String(formData.get("requestId") ?? "");
   if (!requestId) throw new Error("Solicitação inválida.");
 
-  const requests = await supabaseRest<RequestRow[]>(`subscription_requests?select=id,user_id,plan_code,billing_cycle,status&id=eq.${encodeURIComponent(requestId)}&limit=1`);
+  const requests = await supabaseRest<RequestRow[]>(`subscription_requests?select=id,user_id,customer_email,customer_name,plan_code,billing_cycle,status&id=eq.${encodeURIComponent(requestId)}&limit=1`);
   const request = requests[0];
   if (!request || !["awaiting_payment", "payment_reported"].includes(request.status)) throw new Error("Solicitação não disponível para confirmação.");
 
@@ -53,18 +55,17 @@ export async function confirmSubscriptionPayment(formData: FormData) {
     current_period_start: periodStart.toISOString(),
     current_period_end: periodEnd.toISOString(),
     cancel_at_period_end: false,
+    grace_until: null,
+    test_access: false,
     updated_at: now.toISOString(),
   };
 
-  if (existing) {
-    await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(existing.id)}`, { method: "PATCH", body: JSON.stringify(payload) });
-  } else {
-    await supabaseRest("user_subscriptions", { method: "POST", body: JSON.stringify(payload) });
-  }
+  if (existing) await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(existing.id)}`, { method: "PATCH", body: JSON.stringify(payload) });
+  else await supabaseRest("user_subscriptions", { method: "POST", body: JSON.stringify(payload) });
 
   await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(request.user_id)}`, {
     method: "PATCH",
-    body: JSON.stringify({ plan_code: request.plan_code, updated_at: now.toISOString() }),
+    body: JSON.stringify({ plan_code: request.plan_code, lifecycle_stage: "active", updated_at: now.toISOString() }),
   });
 
   await supabaseRest(`subscription_requests?id=eq.${encodeURIComponent(request.id)}`, {
@@ -72,7 +73,28 @@ export async function confirmSubscriptionPayment(formData: FormData) {
     body: JSON.stringify({ status: "active", confirmed_at: now.toISOString(), confirmed_by: "admin", updated_at: now.toISOString() }),
   });
 
+  const firstName = request.customer_name?.trim().split(/\s+/)[0] || "Olá";
+  const planName = request.plan_code === "pro" ? "Pro" : "Agency";
+  await supabaseRest("customer_communications", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: request.user_id,
+      event_key: `activation_${request.id}`,
+      channel: "email",
+      status: "ready",
+      subject: `Seu Plano ${planName} Kivai está ativo`,
+      message: `${firstName}, seu pagamento foi confirmado e o Plano ${planName} já está liberado. Seu acesso fica ativo até ${periodEnd.toLocaleDateString("pt-BR")}. Entre no seu painel para começar a usar os recursos do plano.`,
+      cta_label: "Acessar meu painel",
+      cta_url: "https://www.kivai.com.br/conta",
+      scheduled_for: now.toISOString(),
+      metadata: { recipient_email: request.customer_email, kind: "subscription_activation", period_end: periodEnd.toISOString() },
+    }),
+  });
+  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: request.user_id, event_type: isRenewal ? "subscription_renewed" : "subscription_activated", description: `Plano ${planName} ${request.billing_cycle === "monthly" ? "mensal" : "anual"} confirmado pelo administrador.`, metadata: { period_end: periodEnd.toISOString(), request_id: request.id } }) });
+
   revalidatePath("/admin/assinaturas");
+  revalidatePath("/admin/usuarios");
+  revalidatePath("/admin/marketing");
   revalidatePath("/conta");
 }
 
@@ -80,10 +102,6 @@ export async function rejectSubscriptionPayment(formData: FormData) {
   await assertAdminApi();
   const requestId = String(formData.get("requestId") ?? "");
   if (!requestId) throw new Error("Solicitação inválida.");
-
-  await supabaseRest(`subscription_requests?id=eq.${encodeURIComponent(requestId)}`, {
-    method: "PATCH",
-    body: JSON.stringify({ status: "rejected", updated_at: new Date().toISOString() }),
-  });
+  await supabaseRest(`subscription_requests?id=eq.${encodeURIComponent(requestId)}`, { method: "PATCH", body: JSON.stringify({ status: "rejected", updated_at: new Date().toISOString() }) });
   revalidatePath("/admin/assinaturas");
 }
