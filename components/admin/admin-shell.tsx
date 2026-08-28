@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bot, BookOpen, FolderTree, Images, LayoutDashboard, LogOut, Plus, PanelsTopLeft, Wrench } from "lucide-react";
+import { Bot, BookOpen, CreditCard, FolderTree, Images, LayoutDashboard, LogOut, Plus, PanelsTopLeft, Wrench } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +23,10 @@ const navigation = [
     links: [{ href: "/admin/site", label: "Conteúdo do site", icon: PanelsTopLeft }],
   },
   {
+    label: "Comercial",
+    links: [{ href: "/admin/assinaturas", label: "Assinaturas", icon: CreditCard }],
+  },
+  {
     label: "Sistema",
     links: [{ href: "/admin/blog/manutencao", label: "Manutenção", icon: Wrench }],
   },
@@ -34,6 +38,7 @@ const originPanels = new Set([
   "/admin/blog/categorias",
   "/admin/blog/agente",
   "/admin/site",
+  "/admin/assinaturas",
   "/admin/blog/manutencao",
 ]);
 
