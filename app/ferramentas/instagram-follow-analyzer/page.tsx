@@ -19,5 +19,5 @@ export default async function InstagramFollowAnalyzerPage() {
   const baseConfig = await getInstagramAnalyzerConfig();
   const variants = await getInstagramAnalyzerPlanVariants(baseConfig);
 
-  return <InstagramFollowAnalyzerPageClient freeConfig={variants.free} proConfig={variants.pro} />;
+  return <InstagramFollowAnalyzerPageClient freeConfig={variants.free} />;
 }
