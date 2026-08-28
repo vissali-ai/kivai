@@ -10,6 +10,7 @@ import {
   Home,
   LayoutDashboard,
   LogOut,
+  RefreshCw,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -145,14 +146,14 @@ export function AccountDashboard() {
               </Button>
             ) : (
               <Button asChild size="sm" variant="outline" className="mt-5 w-full">
-                <Link href="/planos">Ver meu plano</Link>
+                <Link href="/planos"><RefreshCw /> Renovar plano</Link>
               </Button>
             )}
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2">
         <Link href="/ferramentas/instagram-follow-analyzer" className="group rounded-2xl border border-white/10 bg-card p-5 transition hover:-translate-y-0.5 hover:border-primary/40">
           <div className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-primary">
             <Sparkles className="size-5" />
@@ -160,15 +161,6 @@ export function AccountDashboard() {
           <h2 className="mt-4 font-semibold">Quem deixou de seguir</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Importe seus dados do Instagram e gere uma nova análise.</p>
           <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">Acessar ferramenta <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></span>
-        </Link>
-
-        <Link href="/planos" className="group rounded-2xl border border-white/10 bg-card p-5 transition hover:-translate-y-0.5 hover:border-primary/40">
-          <div className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-primary">
-            <Crown className="size-5" />
-          </div>
-          <h2 className="mt-4 font-semibold">Planos e contratação</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Compare os recursos do Grátis, Pro e Agency e escolha a melhor opção.</p>
-          <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">Ver planos <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></span>
         </Link>
 
         <div className="rounded-2xl border border-white/10 bg-card p-5">
