@@ -81,6 +81,21 @@ export function PlansClient() {
     }
   }
 
+  function paidActions(plan: Plan, isCurrent: boolean) {
+    if (plan.code === "free") return null;
+    if (!loggedIn) {
+      return <Link href={`/conta/login?next=${encodeURIComponent("/planos")}`} className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">Entrar para contratar <ArrowRight className="size-4" /></Link>;
+    }
+    return (
+      <div className="space-y-2">
+        {isCurrent ? <div className="flex min-h-10 w-full items-center justify-center border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Este é o seu plano atual</div> : null}
+        <Button className="h-12 w-full" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "monthly")}>{starting === `${plan.code}-monthly` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar mensal" : "Contratar mensal"}</Button>
+        <Button variant="outline" className="h-12 w-full border-primary/30 text-primary" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "annual")}>{starting === `${plan.code}-annual` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar anual" : "Contratar anual"}</Button>
+        <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">Antes de abrir a SumUp, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento pelo administrador.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       {error ? <div className="mx-auto mt-8 max-w-2xl border border-red-500/30 bg-red-500/10 p-4 text-center text-sm text-red-200">{error}</div> : null}
@@ -94,13 +109,7 @@ export function PlansClient() {
               <div className="mt-5 border-y border-white/10 py-5"><p className="text-2xl font-semibold">{plan.monthly}</p><p className="mt-2 text-sm font-medium text-primary">{plan.annual}</p>{plan.annualNote ? <p className="mt-1 text-xs text-muted-foreground">{plan.annualNote}</p> : null}</div>
               <ul className="mt-5 flex-1 space-y-3">{plan.features.map((feature) => <li key={feature} className="flex gap-3 text-sm leading-6 text-muted-foreground"><Check className="mt-1 size-4 shrink-0 text-primary" /><span>{feature}</span></li>)}</ul>
               <div className="mt-6 space-y-2">
-                {isCurrent ? <div className="flex min-h-12 w-full items-center justify-center border border-primary/30 bg-primary/10 px-5 py-3 text-sm font-semibold text-primary">Este é o seu plano atual</div> : plan.code === "free" ? (loggedIn ? <Link href="/conta" className="inline-flex w-full items-center justify-center gap-2 border border-white/10 px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-white/[0.04]">Voltar ao meu painel</Link> : <Link href="/conta/cadastro?next=%2Fconta" className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">Criar conta grátis <ArrowRight className="size-4" /></Link>) : loggedIn ? (
-                  <div className="space-y-2">
-                    <Button className="h-12 w-full" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "monthly")}>{starting === `${plan.code}-monthly` ? <Loader2 className="animate-spin" /> : <ExternalLink />} Contratar mensal</Button>
-                    <Button variant="outline" className="h-12 w-full border-primary/30 text-primary" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "annual")}>{starting === `${plan.code}-annual` ? <Loader2 className="animate-spin" /> : <ExternalLink />} Contratar anual</Button>
-                    <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">Antes de abrir a SumUp, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento pelo administrador.</p>
-                  </div>
-                ) : <Link href={`/conta/login?next=${encodeURIComponent("/planos")}`} className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">Entrar para contratar <ArrowRight className="size-4" /></Link>}
+                {plan.code === "free" ? (isCurrent ? <div className="flex min-h-12 w-full items-center justify-center border border-primary/30 bg-primary/10 px-5 py-3 text-sm font-semibold text-primary">Este é o seu plano atual</div> : loggedIn ? <Link href="/conta" className="inline-flex w-full items-center justify-center gap-2 border border-white/10 px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-white/[0.04]">Voltar ao meu painel</Link> : <Link href="/conta/cadastro?next=%2Fconta" className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">Criar conta grátis <ArrowRight className="size-4" /></Link>) : paidActions(plan, isCurrent)}
               </div>
             </article>
           );
