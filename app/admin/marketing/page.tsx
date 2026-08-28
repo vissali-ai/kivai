@@ -2,6 +2,7 @@ import { Gift, Mail, MessageCircle, Repeat2, Target, TimerReset } from "lucide-r
 import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { grantGracePeriod, queueManualCampaign } from "@/app/admin/usuarios/actions";
+import { proWelcomeTemplate } from "@/lib/marketing/subscription-templates";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,14 @@ export default async function MarketingPage({ searchParams }: { searchParams: Pr
     <section className="border border-white/10 bg-card p-6">
       <div className="flex items-start justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Relacionamento e retenção</p><h1 className="mt-2 text-3xl font-semibold">Marketing de usuários</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Segmente usuários gratuitos, assinantes, clientes perto do vencimento e ex-assinantes. Prepare mensagens, ofertas e cortesias com base no histórico do cliente.</p></div><Target className="size-7 text-primary" /></div>
       <div className="mt-6 grid gap-3 sm:grid-cols-4"><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Grátis</p><p className="mt-1 text-2xl font-semibold">{counts.free}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Assinantes ativos</p><p className="mt-1 text-2xl font-semibold text-primary">{counts.active}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Vencidos</p><p className="mt-1 text-2xl font-semibold">{counts.expired}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">VIP / score alto</p><p className="mt-1 text-2xl font-semibold">{counts.vip}</p></div></div>
+    </section>
+
+    <section className="border border-primary/25 bg-primary/[0.035] p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Onboarding automático</p><h2 className="mt-2 text-xl font-semibold">E-mail de boas-vindas ao Plano Pro</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Este é o modelo usado automaticamente quando você confirma pela primeira vez o pagamento de um novo assinante Pro. A renovação usa uma mensagem separada.</p></div><Mail className="size-6 text-primary" /></div>
+      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
+        <div className="border border-white/10 bg-background/40 p-4"><p className="text-xs uppercase tracking-wider text-muted-foreground">Assunto</p><p className="mt-2 font-semibold">{proWelcomeTemplate.subject}</p><p className="mt-3 text-sm leading-6 text-muted-foreground">{proWelcomeTemplate.preview}</p><p className="mt-4 text-xs text-muted-foreground">O e-mail inclui agradecimento, confirmação da ativação, periodicidade, vencimento, instruções de primeiro acesso e botão para abrir a Área Pro.</p></div>
+        <div className="border border-white/10 bg-background/40 p-4"><p className="text-xs uppercase tracking-wider text-muted-foreground">Recursos informados ao cliente</p><ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">{proWelcomeTemplate.features.map((item) => <li key={item}>• {item}</li>)}</ul></div>
+      </div>
     </section>
 
     <nav className="flex flex-wrap gap-2 border border-white/10 bg-card p-3">
