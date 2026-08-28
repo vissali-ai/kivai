@@ -23,6 +23,7 @@ type Result = { name: string; blob: Blob };
 function friendlyError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   if (/password|encrypted/i.test(message)) return "Este PDF é protegido por senha. Remova a proteção e tente novamente.";
+  if (/sem camada de texto|text layer|ocr/i.test(message)) return "Este PDF não possui texto extraível. Documentos digitalizados como imagem precisam de OCR, que não faz parte desta versão.";
   if (/invalid|corrupt|format|header/i.test(message)) return "Não foi possível ler o PDF. Verifique se o arquivo está íntegro e tente novamente.";
   return "Não foi possível concluir a conversão. Tente novamente com outro arquivo PDF.";
 }
@@ -87,9 +88,9 @@ export default function PdfParaWordClient() {
   }
 
   return (
-    <ToolPageShell title="PDF para Word" description="Converta seus PDFs em documentos editáveis do Microsoft Word, preservando ao máximo a estrutura e a formatação." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="A conversão acontece localmente no seu navegador. Seus PDFs não são enviados ao Kivai.">
+    <ToolPageShell title="PDF para Word" description="Extraia o texto de PDFs digitais e gere documentos DOCX editáveis, com reconstrução aproximada de títulos, parágrafos, listas e quebras de página." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="A conversão acontece localmente no seu navegador. Seus PDFs não são enviados ao Kivai.">
       <Card className="mx-auto max-w-5xl">
-        <CardHeader><CardTitle>Selecione seus arquivos PDF</CardTitle><CardDescription>Adicione um ou vários PDFs para converter em documentos DOCX editáveis.</CardDescription></CardHeader>
+        <CardHeader><CardTitle>Selecione seus arquivos PDF</CardTitle><CardDescription>Adicione um ou vários PDFs digitais com texto selecionável para gerar documentos DOCX editáveis.</CardDescription></CardHeader>
         <CardContent className="space-y-6">
           {status !== "success" && <ToolUploadArea accept="application/pdf,.pdf" formats="PDF" maxSizeLabel="20 MB por arquivo" multiple disabled={status === "processing"} error={error && !files.length ? error : null} onFilesSelected={selectFiles} label="Selecionar arquivos PDF para converter em Word" />}
           {files.length > 0 && status !== "success" && <section aria-label="Arquivos selecionados" className="space-y-3">
@@ -99,7 +100,7 @@ export default function PdfParaWordClient() {
           <ToolProcessingStatus status={status} progress={progress} message={`Convertendo ${files.length > 1 ? "arquivos" : "arquivo"} para Word...`} />
           <ToolErrorMessage message={files.length ? error : null} />
           {files.length > 0 && status !== "success" && <ToolActionBar><Button size="lg" onClick={convert} disabled={status === "processing"}><FileText className="size-4" />Converter para Word</Button></ToolActionBar>}
-          {status === "success" && <ToolResultCard title={results.length > 1 ? "Documentos prontos" : "Documento pronto"} description={results.length > 1 ? `${results.length} arquivos DOCX foram reunidos em um ZIP. Toque em baixar para salvar no dispositivo.` : "O DOCX está pronto. Toque em baixar para salvar no dispositivo."} actions={<><Button onClick={() => downloadResult && downloadBlob(downloadResult.blob, downloadResult.name)} disabled={!downloadResult}><Download className="size-4" />{results.length > 1 ? "Baixar ZIP" : "Baixar DOCX"}</Button><Button variant="outline" onClick={reset}><RotateCcw className="size-4" />Converter outro arquivo</Button></>} />}
+          {status === "success" && <ToolResultCard title={results.length > 1 ? "Documentos prontos" : "Documento pronto"} description={results.length > 1 ? `${results.length} arquivos DOCX foram reunidos em um ZIP. Toque em baixar para salvar no dispositivo.` : "O DOCX está pronto. Revise a estrutura e a formatação depois do download."} actions={<><Button onClick={() => downloadResult && downloadBlob(downloadResult.blob, downloadResult.name)} disabled={!downloadResult}><Download className="size-4" />{results.length > 1 ? "Baixar ZIP" : "Baixar DOCX"}</Button><Button variant="outline" onClick={reset}><RotateCcw className="size-4" />Converter outro arquivo</Button></>} />}
         </CardContent>
       </Card>
     </ToolPageShell>
