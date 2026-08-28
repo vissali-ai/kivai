@@ -99,7 +99,7 @@ export function InstagramAnalyzerPublicationSettings({
           <span>Hub</span>
           <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={meta.hubId ?? ""} onChange={(e) => setMeta((current) => ({ ...current, hubId: e.target.value || null }))}>
             <option value="">Sem hub</option>
-            {hubs.map((hub) => <option key={hub.id} value={hub.id}>{hub.title}</option>)}
+            {hubs.map((hub) => <option key={hub.id} value={hub.id}>{hub.name}</option>)}
           </select>
         </label>
         <label className={fieldClass}>
