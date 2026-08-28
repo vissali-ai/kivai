@@ -45,4 +45,4 @@ export const imageToolEditorialOverrides = {
       { href: "/ferramentas/gerador-de-placeholder", label: "Gerar placeholder" },
     ],
   },
-} as const;
+};
