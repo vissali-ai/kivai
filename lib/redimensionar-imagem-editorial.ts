@@ -49,4 +49,4 @@ export const redimensionarImagemEditorial = {
     { href: "/ferramentas/conversor-de-imagens", label: "Converter imagens" },
     { href: "/ferramentas/recortar-imagem", label: "Recortar imagem" },
   ],
-} as const;
+};
