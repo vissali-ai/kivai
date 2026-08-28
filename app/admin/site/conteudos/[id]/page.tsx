@@ -6,6 +6,7 @@ import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-conf
 import { getInstagramAnalyzerPlanVariants } from "@/lib/instagram-analyzer-plan-variants";
 import { getSiteContentById, listSiteHubs } from "@/lib/site-cms/repository";
 
+// Deployment checkpoint: publica a correção mais recente do editor por plano.
 export default async function EditSiteContentPage({ params }: { params: Promise<{ id: string }> }) {
   const id = decodeURIComponent((await params).id);
   const [content, hubs] = await Promise.all([getSiteContentById(id), listSiteHubs()]);
