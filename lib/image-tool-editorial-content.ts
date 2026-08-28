@@ -31,18 +31,18 @@ export type ImageToolEditorialSlug =
 export const imageToolEditorialContent = {
   "removedor-de-fundo": {
     overview: [
-      "O Removedor de Fundo identifica o assunto principal de uma fotografia e cria uma nova imagem PNG com transparência ao redor do objeto. A ferramenta é indicada para quem precisa separar produtos, pessoas, animais ou outros elementos do cenário sem recortar manualmente cada contorno.",
+      "O Removedor de Fundo identifica automaticamente o principal elemento da imagem e remove o cenário ao redor, criando um novo arquivo PNG com fundo transparente. É útil para fotos de produtos, pessoas, animais, objetos, logotipos e outros elementos que precisam ser usados sem o fundo original.",
       "A análise acontece no navegador e o resultado pode ser comparado com a imagem original antes do download. Fundos simples e com bom contraste normalmente produzem bordas mais precisas; cenas com cabelos soltos, transparências, sombras ou objetos muito parecidos com o fundo podem exigir edição complementar.",
     ],
     useCases: [
       { title: "Catálogos de produtos", description: "Prepare fotos com fundo transparente para lojas virtuais, marketplaces, vitrines e materiais comerciais." },
       { title: "Artes para redes sociais", description: "Isole uma pessoa ou objeto para combinar a imagem com cores, textos e outros elementos de uma composição." },
-      { title: "Apresentações e documentos", description: "Remova áreas desnecessárias de logotipos, fotografias e ilustrações antes de inseri-los em slides ou relatórios." },
+      { title: "Apresentações e documentos", description: "Crie versões com fundo transparente de logotipos, fotografias e ilustrações para usar em apresentações, documentos e materiais gráficos." },
       { title: "Protótipos rápidos", description: "Crie recortes para testar anúncios, miniaturas e layouts antes de realizar um acabamento detalhado em um editor profissional." },
     ],
     steps: [
       "Selecione uma imagem PNG, JPG ou WebP com até 5 MB.",
-      "Aguarde o carregamento do modelo e o processamento da imagem no dispositivo.",
+      "Clique em “Remover fundo” e aguarde o processamento da imagem.",
       "Compare a fotografia original com a prévia do recorte gerado.",
       "Baixe o resultado em PNG para preservar o fundo transparente.",
     ],
@@ -60,7 +60,7 @@ export const imageToolEditorialContent = {
       "O arquivo final é PNG; a transparência não é preservada se ele for posteriormente convertido para JPG.",
     ],
     faqs: [
-      { question: "A remoção de fundo é realmente automática?", answer: "Sim. Um modelo de segmentação analisa a imagem e estima quais pixels pertencem ao assunto principal. Ainda assim, nenhum recorte automático é perfeito em todas as fotografias." },
+      { question: "A remoção de fundo é realmente automática?", answer: "Sim. A ferramenta analisa automaticamente a imagem, identifica o elemento principal e separa esse elemento do fundo. O resultado pode variar conforme iluminação, contraste e complexidade da foto." },
       { question: "Por que o resultado é baixado em PNG?", answer: "PNG aceita transparência. JPG sempre preenche as áreas transparentes com uma cor e, por isso, não é adequado para preservar o recorte." },
       { question: "A ferramenta funciona no celular?", answer: "Funciona em navegadores modernos, mas imagens grandes e a preparação do modelo podem exigir bastante memória. Um computador tende a ser mais estável para arquivos complexos." },
       { question: "Minha fotografia fica armazenada?", answer: "Não durante a operação normal da ferramenta. A seleção, a análise e a criação do PNG acontecem localmente no navegador." },
@@ -69,7 +69,7 @@ export const imageToolEditorialContent = {
     related: [
       { href: "/ferramentas/recortar-imagem", label: "Recortar imagem" },
       { href: "/ferramentas/redimensionar-imagem", label: "Redimensionar imagem" },
-      { href: "/ferramentas/adicionar-marca-dagua", label: "Adicionar marca d'água" },
+      { href: "/ferramentas/compressor-de-imagens", label: "Comprimir imagens" },
     ],
   },
   "compressor-de-imagens": {
