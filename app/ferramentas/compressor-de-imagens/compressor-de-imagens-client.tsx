@@ -278,9 +278,8 @@ export default function CompressorDeImagensClient() {
           </h1>
 
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Reduza o tamanho de imagens JPG, PNG e WebP
-            diretamente no navegador, com processamento local
-            e controle do nível de compressão.
+            Reduza o tamanho de imagens JPG, PNG e WebP mantendo
+            as dimensões e o formato original.
           </p>
         </div>
 
@@ -467,9 +466,11 @@ export default function CompressorDeImagensClient() {
                     {arquivo.type === "image/png" && (
                       <div className="mt-4 border border-border bg-muted/20 p-4">
                         <p className="text-xs leading-5 text-muted-foreground">
-                          Imagens PNG preservam o formato e a
-                          transparência. A redução pode variar
-                          conforme a estrutura do arquivo original.
+                          Em arquivos PNG, o formato e a transparência são
+                          preservados. Como o PNG usa compressão sem perdas,
+                          os níveis de qualidade não atuam da mesma forma que
+                          em JPG e WebP, e a redução pode variar conforme o
+                          arquivo original.
                         </p>
                       </div>
                     )}
