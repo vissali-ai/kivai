@@ -15,6 +15,11 @@ import { recortarImagemEditorial } from "@/lib/recortar-imagem-editorial";
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
+const schemaDescriptionOverrides: Partial<Record<ImageToolEditorialSlug, string>> = {
+  "recortar-imagem":
+    "Recorte imagens PNG, JPG e WebP com seleção visual, ajuste por pixels e proporções prontas como 1:1, 4:5, 3:2 e 16:9.",
+};
+
 export function ImageToolEditorialV2({ slug }: { slug: ImageToolEditorialSlug }) {
   const overrideContent =
     slug === "redimensionar-imagem"
@@ -45,7 +50,8 @@ export function ImageToolEditorialV2({ slug }: { slug: ImageToolEditorialSlug })
   const schema = buildToolPageSchema({
     name: tool.name,
     slug,
-    description: tool.seoDescription ?? tool.description,
+    description:
+      schemaDescriptionOverrides[slug] ?? tool.seoDescription ?? tool.description,
     breadcrumbs: [
       { name: "Início", href: "/" },
       { name: "Ferramentas", href: "/ferramentas" },
