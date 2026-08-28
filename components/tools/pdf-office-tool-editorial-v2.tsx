@@ -7,6 +7,11 @@ import {
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
+const schemaDescriptionOverrides: Partial<Record<PdfOfficeToolEditorialSlug, string>> = {
+  "pdf-para-word":
+    "Converta o texto de PDFs digitais em DOCX editável, reconstruindo títulos, parágrafos, listas e quebras de página no navegador.",
+};
+
 export function PdfOfficeToolEditorialV2({ slug }: { slug: PdfOfficeToolEditorialSlug }) {
   const content = pdfOfficeToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
@@ -16,7 +21,7 @@ export function PdfOfficeToolEditorialV2({ slug }: { slug: PdfOfficeToolEditoria
   const schema = buildToolPageSchema({
     name: tool.name,
     slug,
-    description: tool.seoDescription ?? tool.description,
+    description: schemaDescriptionOverrides[slug] ?? tool.seoDescription ?? tool.description,
     breadcrumbs: [
       { name: "Início", href: "/" },
       { name: "Ferramentas", href: "/ferramentas" },
