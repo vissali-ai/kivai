@@ -15,8 +15,8 @@ type BuildToolPageSchemaInput = {
   slug: string;
   description: string;
   applicationCategory?: string;
-  breadcrumbs: ToolSchemaBreadcrumb[];
-  faqs?: ToolSchemaFaq[];
+  breadcrumbs: readonly ToolSchemaBreadcrumb[];
+  faqs?: readonly ToolSchemaFaq[];
 };
 
 /**
