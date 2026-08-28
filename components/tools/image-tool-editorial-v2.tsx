@@ -4,11 +4,19 @@ import {
   imageToolEditorialContent,
   type ImageToolEditorialSlug,
 } from "@/lib/image-tool-editorial-content";
+import { imageToolEditorialOverrides } from "@/lib/image-tool-editorial-overrides";
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
 export function ImageToolEditorialV2({ slug }: { slug: ImageToolEditorialSlug }) {
-  const content = imageToolEditorialContent[slug];
+  const overrideContent =
+    slug in imageToolEditorialOverrides
+      ? imageToolEditorialOverrides[
+          slug as keyof typeof imageToolEditorialOverrides
+        ]
+      : undefined;
+
+  const content = overrideContent ?? imageToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
 
   if (!tool) return null;
