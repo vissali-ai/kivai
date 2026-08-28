@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { LayoutDashboard, Menu, UserRound } from "lucide-react";
 
 import { GlobalSearch } from "@/components/marketing/global-search";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { getCurrentUser, getStoredSession } from "@/lib/user-auth";
 
 const navItems = [
   { label: "Ferramentas", href: "/ferramentas" },
@@ -24,6 +26,33 @@ const navItems = [
 ];
 
 export function Navbar() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const session = getStoredSession();
+
+    if (!session?.access_token) {
+      setIsLoggedIn(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    setIsLoggedIn(true);
+    getCurrentUser(session)
+      .then((user) => {
+        if (active) setIsLoggedIn(Boolean(user?.id));
+      })
+      .catch(() => {
+        if (active) setIsLoggedIn(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/8 bg-background/75 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
@@ -44,8 +73,11 @@ export function Navbar() {
           <GlobalSearch />
         </div>
 
-        <Button asChild variant="outline" className="hidden h-9 lg:inline-flex">
-          <Link href="/conta/login"><UserRound /> Entrar</Link>
+        <Button asChild variant={isLoggedIn ? "default" : "outline"} className="hidden h-9 lg:inline-flex">
+          <Link href={isLoggedIn ? "/conta" : "/conta/login"}>
+            {isLoggedIn ? <LayoutDashboard /> : <UserRound />}
+            {isLoggedIn ? "Meu painel" : "Entrar"}
+          </Link>
         </Button>
 
         <div className="lg:hidden">
@@ -75,8 +107,9 @@ export function Navbar() {
                     </SheetClose>
                   ))}
                   <SheetClose asChild>
-                    <Link href="/conta/login" className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-white/[0.04]">
-                      <UserRound className="size-4" /> Entrar na conta
+                    <Link href={isLoggedIn ? "/conta" : "/conta/login"} className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-white/[0.04]">
+                      {isLoggedIn ? <LayoutDashboard className="size-4" /> : <UserRound className="size-4" />}
+                      {isLoggedIn ? "Acessar meu painel" : "Entrar na conta"}
                     </Link>
                   </SheetClose>
                 </nav>
