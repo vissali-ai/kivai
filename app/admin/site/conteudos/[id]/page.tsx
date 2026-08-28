@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { InstagramFollowAnalyzerEditor } from "@/components/admin/instagram-follow-analyzer-editor";
+import { InstagramPlanVariantEditor } from "@/components/admin/instagram-plan-variant-editor";
 import { SiteContentEditorV2 } from "@/components/admin/site-content-editor-v2";
 import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
+import { getInstagramAnalyzerPlanVariants } from "@/lib/instagram-analyzer-plan-variants";
 import { getSiteContentById, listSiteHubs } from "@/lib/site-cms/repository";
 
 export default async function EditSiteContentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -10,7 +12,14 @@ export default async function EditSiteContentPage({ params }: { params: Promise<
   if (!content) notFound();
 
   if (content.slug === "instagram-follow-analyzer") {
-    return <InstagramFollowAnalyzerEditor initialConfig={await getInstagramAnalyzerConfig()} initialContent={content} hubs={hubs} />;
+    const baseConfig = await getInstagramAnalyzerConfig();
+    const variants = await getInstagramAnalyzerPlanVariants(baseConfig);
+    return (
+      <>
+        <InstagramFollowAnalyzerEditor initialConfig={baseConfig} initialContent={content} hubs={hubs} />
+        <InstagramPlanVariantEditor initialVariants={variants} />
+      </>
+    );
   }
 
   return <SiteContentEditorV2 initialContent={content} hubs={hubs} />;
