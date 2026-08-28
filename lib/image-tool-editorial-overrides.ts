@@ -94,4 +94,52 @@ export const imageToolEditorialOverrides = {
       { href: "/ferramentas/conversor-heic", label: "Converter HEIC" },
     ],
   },
+  "conversor-heic": {
+    overview: [
+      "O Conversor HEIC para JPG transforma arquivos HEIC e HEIF em uma nova imagem JPG. Ele é útil quando uma foto está em um formato que determinado site, editor, formulário ou aplicativo não consegue abrir ou aceitar diretamente.",
+      "Nesta ferramenta, a saída é sempre JPG e a conversão usa qualidade fixa de 95%. Não há seletor de qualidade nem escolha de outro formato de saída. Depois do processamento, o Kivai mostra a imagem convertida, o tamanho do arquivo original, o tamanho do JPG e as dimensões da nova cópia.",
+      "A conversão cria um novo arquivo e não substitui o HEIC ou HEIF selecionado. Como o resultado é JPG, características específicas do arquivo de origem podem não permanecer na nova cópia, e o tamanho final pode ser maior ou menor que o original.",
+    ],
+    useCases: [
+      { title: "Sites e formulários", description: "Crie uma cópia em JPG quando uma plataforma não aceita arquivos HEIC ou HEIF." },
+      { title: "Compartilhamento", description: "Converta a foto para JPG antes de enviar a alguém ou usar em um serviço que trabalha melhor com esse formato." },
+      { title: "Edição em programas compatíveis com JPG", description: "Gere uma versão que possa ser aberta em editores ou sistemas que não oferecem suporte ao arquivo HEIC original." },
+      { title: "Publicação na web", description: "Prepare uma cópia JPG para fluxos de publicação que exigem esse formato de imagem." },
+    ],
+    steps: [
+      "Selecione um arquivo HEIC ou HEIF com até 20 MB.",
+      "Confira o nome e o tamanho do arquivo selecionado. A prévia do HEIC pode não aparecer antes da conversão.",
+      "Clique em “Converter para JPG” e aguarde o processamento.",
+      "Confira a prévia do JPG, o tamanho do arquivo convertido e as dimensões exibidas pela ferramenta.",
+      "Baixe a nova cópia em JPG. O arquivo HEIC ou HEIF original não é substituído.",
+    ],
+    specifications: [
+      { label: "Entrada", value: "Arquivos HEIC ou HEIF com até 20 MB." },
+      { label: "Saída", value: "Arquivo JPG." },
+      { label: "Qualidade", value: "Conversão para JPEG com qualidade fixa de 95%." },
+      { label: "Prévia", value: "Exibida depois da conversão em JPG; o arquivo HEIC pode não ter visualização nativa antes do processamento." },
+      { label: "Informações exibidas", value: "Tamanho do arquivo original, tamanho do JPG convertido e dimensões da imagem resultante." },
+    ],
+    privacy: "A conversão é executada no navegador com os recursos carregados pela própria página. O arquivo selecionado é usado para gerar a nova cópia JPG e só é salvo no dispositivo quando o usuário aciona o download.",
+    limitations: [
+      "A ferramenta gera somente JPG; não há opção de saída em PNG, WebP ou outro formato.",
+      "A qualidade da saída é fixa em 95% e não pode ser ajustada nesta versão.",
+      "A conversão não garante redução de tamanho. O JPG pode ficar menor ou maior que o HEIC ou HEIF original.",
+      "Recursos adicionais presentes em alguns arquivos HEIC ou HEIF, como sequências ou informações específicas do contêiner, podem não ser reproduzidos na cópia JPG.",
+      "Metadados e outras informações incorporadas ao arquivo original podem não permanecer no JPG convertido.",
+    ],
+    faqs: [
+      { question: "Posso escolher outro formato além de JPG?", answer: "Não nesta ferramenta. A saída atual é sempre JPG." },
+      { question: "Posso alterar a qualidade da conversão?", answer: "Não. A ferramenta usa qualidade fixa de 95% para gerar o JPG." },
+      { question: "Por que não aparece uma prévia antes de converter?", answer: "Arquivos HEIC e HEIF podem não ter visualização nativa no navegador. A prévia é exibida depois que a ferramenta gera a versão JPG." },
+      { question: "O JPG ficará menor que o arquivo original?", answer: "Não é possível garantir. O tamanho final depende das características da imagem e da forma como o arquivo original foi codificado." },
+      { question: "O arquivo original é apagado ou substituído?", answer: "Não. A ferramenta cria uma nova cópia em JPG para download e não substitui o arquivo selecionado." },
+      { question: "A ferramenta aceita mais de uma imagem por vez?", answer: "Não. O fluxo atual trabalha com um arquivo HEIC ou HEIF por conversão." },
+    ],
+    related: [
+      { href: "/ferramentas/conversor-de-imagens", label: "Converter imagens" },
+      { href: "/ferramentas/compressor-de-imagens", label: "Comprimir imagens" },
+      { href: "/ferramentas/redimensionar-imagem", label: "Redimensionar imagem" },
+    ],
+  },
 };
