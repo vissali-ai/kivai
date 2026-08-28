@@ -4,6 +4,7 @@ import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-conf
 import { getInstagramAnalyzerPlanVariants } from "@/lib/instagram-analyzer-plan-variants";
 import { getToolOverride } from "@/lib/site-cms/repository";
 
+// Deployment checkpoint: publica a versão mais recente da personalização por plano.
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getToolOverride("instagram-follow-analyzer");
   const seoTitle = content?.seoTitle || "Quem deixou de seguir no Instagram | Kivai";
