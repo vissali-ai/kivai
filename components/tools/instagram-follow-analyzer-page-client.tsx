@@ -4,43 +4,40 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Check, LockKeyhole, ShieldCheck, UsersRound, Zap } from "lucide-react";
 import { InstagramFollowAnalyzer } from "@/components/tools/instagram-follow-analyzer";
-import { getCurrentUser, getStoredSession, supabaseUserFetch } from "@/lib/user-auth";
+import { getStoredSession } from "@/lib/user-auth";
 import type { InstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
 
 type Plan = "free" | "pro" | "agency";
 
 type Props = {
   freeConfig: InstagramAnalyzerConfig;
-  proConfig: InstagramAnalyzerConfig;
 };
 
-export function InstagramFollowAnalyzerPageClient({ freeConfig, proConfig }: Props) {
+export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
   const [plan, setPlan] = useState<Plan>("free");
+  const [config, setConfig] = useState<InstagramAnalyzerConfig>(freeConfig);
 
   useEffect(() => {
-    async function identifyPlan() {
+    async function loadPaidExperience() {
       const session = getStoredSession();
       if (!session?.access_token) return;
       try {
-        const user = await getCurrentUser(session);
-        if (!user?.id) return;
-        const response = await supabaseUserFetch(
-          `/rest/v1/user_profiles?select=plan_code&user_id=eq.${encodeURIComponent(user.id)}&limit=1`,
-        );
+        const response = await fetch("/api/account/instagram-analyzer-config", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: "no-store",
+        });
         if (!response.ok) return;
-        const rows = (await response.json()) as Array<{ plan_code?: Plan }>;
-        const nextPlan = rows[0]?.plan_code;
-        if (nextPlan === "pro" || nextPlan === "agency") setPlan(nextPlan);
+        const payload = (await response.json()) as { plan?: Plan; config?: InstagramAnalyzerConfig };
+        if (!payload.config || (payload.plan !== "pro" && payload.plan !== "agency")) return;
+        setPlan(payload.plan);
+        setConfig(payload.config);
       } catch {
-        // A versão pública/grátis permanece como fallback seguro.
+        // O conteúdo público/grátis permanece como fallback seguro.
       }
     }
-    identifyPlan();
+    loadPaidExperience();
   }, []);
 
-  // Enquanto a experiência Agency específica não é implantada, contas Agency
-  // recebem a apresentação Pro, sem alterar suas permissões/regras de negócio.
-  const config = plan === "free" ? freeConfig : proConfig;
   const show = (key: string) => config.sectionVisibility[key] !== false;
   const plans = [
     { title: config.freeTitle, summary: config.freeDescription, items: config.freePlanDetail, highlight: false },
