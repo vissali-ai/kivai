@@ -5,16 +5,19 @@ import {
   type ImageToolEditorialSlug,
 } from "@/lib/image-tool-editorial-content";
 import { imageToolEditorialOverrides } from "@/lib/image-tool-editorial-overrides";
+import { redimensionarImagemEditorial } from "@/lib/redimensionar-imagem-editorial";
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
 export function ImageToolEditorialV2({ slug }: { slug: ImageToolEditorialSlug }) {
   const overrideContent =
-    slug in imageToolEditorialOverrides
-      ? imageToolEditorialOverrides[
-          slug as keyof typeof imageToolEditorialOverrides
-        ]
-      : undefined;
+    slug === "redimensionar-imagem"
+      ? redimensionarImagemEditorial
+      : slug in imageToolEditorialOverrides
+        ? imageToolEditorialOverrides[
+            slug as keyof typeof imageToolEditorialOverrides
+          ]
+        : undefined;
 
   const content = overrideContent ?? imageToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
