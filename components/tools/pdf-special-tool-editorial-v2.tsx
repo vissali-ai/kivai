@@ -1,5 +1,6 @@
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
+import { pdfParaHtmlEditorialOverride } from "@/lib/pdf-para-html-editorial-override";
 import {
   pdfSpecialToolEditorialContent,
   type PdfSpecialToolEditorialSlug,
@@ -7,8 +8,11 @@ import {
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
+const pdfParaHtmlDescription =
+  "Converta o texto extraível de PDFs digitais em HTML, com modo estruturado ou reposicionamento visual do texto. Não inclui OCR nem reconstrução de imagens.";
+
 export function PdfSpecialToolEditorialV2({ slug }: { slug: PdfSpecialToolEditorialSlug }) {
-  const content = pdfSpecialToolEditorialContent[slug];
+  const content = slug === "pdf-para-html" ? pdfParaHtmlEditorialOverride : pdfSpecialToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
 
   if (!tool) return null;
@@ -16,7 +20,7 @@ export function PdfSpecialToolEditorialV2({ slug }: { slug: PdfSpecialToolEditor
   const schema = buildToolPageSchema({
     name: tool.name,
     slug,
-    description: tool.seoDescription ?? tool.description,
+    description: slug === "pdf-para-html" ? pdfParaHtmlDescription : tool.seoDescription ?? tool.description,
     breadcrumbs: [
       { name: "Início", href: "/" },
       { name: "Ferramentas", href: "/ferramentas" },
