@@ -1,5 +1,6 @@
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
+import { excelParaPdfEditorialOverride } from "@/lib/excel-para-pdf-editorial-override";
 import { pdfParaExcelEditorialOverride } from "@/lib/pdf-para-excel-editorial-override";
 import {
   pdfOfficeToolEditorialContent,
@@ -13,10 +14,16 @@ const schemaDescriptionOverrides: Partial<Record<PdfOfficeToolEditorialSlug, str
     "Converta o texto de PDFs digitais em DOCX editável, reconstruindo títulos, parágrafos, listas e quebras de página no navegador.",
   "pdf-para-excel":
     "Identifique tabelas em PDFs digitais com texto selecionável, revise os dados reconhecidos e exporte para XLSX. Não inclui OCR e a detecção é baseada no posicionamento dos textos.",
+  "excel-para-pdf":
+    "Converta células de arquivos XLSX em páginas PDF configuráveis diretamente no navegador. Gráficos, imagens e objetos avançados não são incorporados nesta versão.",
 };
 
 export function PdfOfficeToolEditorialV2({ slug }: { slug: PdfOfficeToolEditorialSlug }) {
-  const content = slug === "pdf-para-excel" ? pdfParaExcelEditorialOverride : pdfOfficeToolEditorialContent[slug];
+  const content = slug === "pdf-para-excel"
+    ? pdfParaExcelEditorialOverride
+    : slug === "excel-para-pdf"
+      ? excelParaPdfEditorialOverride
+      : pdfOfficeToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
 
   if (!tool) return null;
