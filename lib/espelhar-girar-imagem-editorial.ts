@@ -1,0 +1,50 @@
+export const espelharGirarImagemEditorial = {
+  overview: [
+    "A ferramenta Espelhar e Girar Imagem altera a orientação de arquivos PNG, JPG e WebP sem modificar o arquivo original. É possível escolher rotações de 0°, 90°, 180° ou 270° e ativar o espelhamento horizontal, vertical ou os dois ao mesmo tempo.",
+    "As mudanças aparecem imediatamente na prévia. Quando a rotação é de 90° ou 270°, a largura e a altura da imagem são trocadas para acomodar a nova orientação. A ferramenta não recorta nem redimensiona o conteúdo: ela apenas gira e/ou reflete a imagem inteira.",
+    "O resultado é sempre gerado em PNG. Como a nova cópia é redesenhada no navegador, metadados do arquivo original podem não permanecer e o tamanho final pode ser diferente do arquivo de origem.",
+  ],
+  useCases: [
+    { title: "Corrigir orientação", description: "Gire fotos que foram abertas de lado ou de cabeça para baixo sem precisar usar um editor completo." },
+    { title: "Corrigir selfies espelhadas", description: "Use o espelhamento horizontal quando quiser inverter uma selfie ou imagem capturada com câmera frontal." },
+    { title: "Ajustar direção visual", description: "Inverta pessoas, objetos, setas ou elementos para mudar a direção visual dentro de uma composição." },
+    { title: "Criar variações simétricas", description: "Combine espelhamento horizontal e vertical para produzir versões refletidas de artes, padrões ou elementos gráficos." },
+  ],
+  steps: [
+    "Selecione uma imagem PNG, JPG ou WebP.",
+    "Escolha a rotação desejada entre 0°, 90°, 180° ou 270°.",
+    "Ative o espelhamento horizontal, vertical ou ambos, se necessário.",
+    "Confira o resultado diretamente na prévia.",
+    "Baixe a nova imagem em PNG. O arquivo original não é substituído.",
+  ],
+  specifications: [
+    { label: "Entrada", value: "Imagens PNG, JPG/JPEG e WebP." },
+    { label: "Rotações", value: "0°, 90°, 180° e 270°." },
+    { label: "Espelhamento", value: "Horizontal, vertical ou os dois eixos combinados." },
+    { label: "Prévia", value: "Atualizada automaticamente sempre que a rotação ou o espelhamento muda." },
+    { label: "Dimensões", value: "Mantidas em 0° e 180°; largura e altura são trocadas em 90° e 270°." },
+    { label: "Saída", value: "Arquivo PNG com a transformação aplicada." },
+  ],
+  privacy: "A imagem é aberta e redesenhada no navegador para gerar a prévia e a cópia final. O arquivo original não é substituído pela ferramenta, e o novo PNG só é salvo no dispositivo quando o usuário inicia o download.",
+  limitations: [
+    "O espelhamento é aplicado à imagem inteira. Não é possível inverter apenas uma pessoa, objeto ou região isolada.",
+    "Textos, placas, números, logotipos e outros elementos também são invertidos quando o espelhamento é ativado.",
+    "A ferramenta não recorta, não redimensiona e não corrige perspectiva; ela apenas gira e/ou espelha a imagem.",
+    "A saída é sempre PNG, mesmo quando o arquivo de entrada é JPG ou WebP.",
+    "Metadados, informações de câmera e outros dados incorporados ao arquivo original podem não permanecer na nova cópia.",
+    "O PNG resultante pode ocupar mais espaço que um JPG ou WebP de dimensões semelhantes, dependendo do conteúdo original.",
+  ],
+  faqs: [
+    { question: "Qual a diferença entre girar e espelhar?", answer: "Girar muda a orientação da imagem em incrementos de 90 graus. Espelhar cria uma versão refletida horizontalmente, verticalmente ou nos dois eixos." },
+    { question: "Posso usar rotação e espelhamento ao mesmo tempo?", answer: "Sim. A rotação e os dois tipos de espelhamento podem ser combinados na mesma imagem." },
+    { question: "A ferramenta altera o tamanho da imagem?", answer: "Ela não redimensiona o conteúdo. Em rotações de 90° e 270°, largura e altura apenas trocam de posição para acomodar a orientação." },
+    { question: "Posso corrigir uma selfie invertida?", answer: "Sim. O espelhamento horizontal pode corrigir ou criar o efeito de reflexo. Confira textos e logotipos na prévia, pois eles também serão invertidos." },
+    { question: "O resultado mantém o formato original?", answer: "Não. A ferramenta gera a nova cópia em PNG independentemente de a entrada ser PNG, JPG ou WebP." },
+    { question: "A imagem original é modificada?", answer: "Não. As transformações são aplicadas a uma nova cópia para download." },
+  ],
+  related: [
+    { href: "/ferramentas/recortar-imagem", label: "Recortar imagem" },
+    { href: "/ferramentas/redimensionar-imagem", label: "Redimensionar imagem" },
+    { href: "/ferramentas/adicionar-marca-dagua", label: "Adicionar marca d'água" },
+  ],
+} as const;
