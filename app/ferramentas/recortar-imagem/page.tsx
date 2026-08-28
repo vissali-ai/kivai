@@ -2,7 +2,7 @@ import { ImageToolEditorialV2 } from "@/components/tools/image-tool-editorial-v2
 import { CropImageClient } from "@/components/tools/crop-image-client";
 import { getToolMetadataAsync } from "@/lib/seo";
 
-const SEO_TITLE = "Recortar Imagem Online com Seleção Visual | Kivai";
+const SEO_TITLE = "Recortar Imagem Online com Seleção Visual";
 const SEO_DESCRIPTION =
   "Recorte imagens PNG, JPG e WebP com seleção visual, ajuste por pixels e proporções prontas como 1:1, 4:5, 3:2 e 16:9.";
 
