@@ -6,7 +6,7 @@ import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-conf
 import { getInstagramAnalyzerPlanVariants } from "@/lib/instagram-analyzer-plan-variants";
 import { getSiteContentById, listSiteHubs } from "@/lib/site-cms/repository";
 
-// Deployment checkpoint: nova tentativa após correção de tipagem do hub.
+// Deployment checkpoint: força novamente a publicação da versão mais recente corrigida.
 export default async function EditSiteContentPage({ params }: { params: Promise<{ id: string }> }) {
   const id = decodeURIComponent((await params).id);
   const [content, hubs] = await Promise.all([getSiteContentById(id), listSiteHubs()]);
