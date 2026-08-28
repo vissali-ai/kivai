@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runDueSubscriptionRenewals } from "@/lib/billing/sumup";
+import { expireDueExternalSubscriptions } from "@/lib/billing/manual-subscriptions";
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET ?? "";
@@ -7,10 +7,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
-    return NextResponse.json(await runDueSubscriptionRenewals());
+    return NextResponse.json(await expireDueExternalSubscriptions());
   } catch (error) {
-    const message = error instanceof Error ? error.message : "renewal_failed";
-    console.error("billing_renewal_cron_failed", message);
-    return NextResponse.json({ error: "Billing renewal failed" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "subscription_expiry_failed";
+    console.error("subscription_expiry_cron_failed", message);
+    return NextResponse.json({ error: "Subscription expiry check failed" }, { status: 500 });
   }
 }
