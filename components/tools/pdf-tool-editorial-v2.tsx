@@ -4,11 +4,15 @@ import {
   pdfToolEditorialContent,
   type PdfToolEditorialSlug,
 } from "@/lib/pdf-tool-editorial-content";
+import { pdfParaImagensEditorial } from "@/lib/pdf-para-imagens-editorial";
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
 export function PdfToolEditorialV2({ slug }: { slug: PdfToolEditorialSlug }) {
-  const content = pdfToolEditorialContent[slug];
+  const content =
+    slug === "pdf-para-imagens"
+      ? pdfParaImagensEditorial
+      : pdfToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
 
   if (!tool) return null;
