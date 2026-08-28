@@ -194,7 +194,7 @@ export const tools: Tool[] = [
   {
     slug: "removedor-de-fundo",
     name: "Removedor de Fundo",
-    description: "Remova fundos de imagens para produtos, anúncios e projetos.",
+    description: "Remova automaticamente o fundo de fotos e imagens e baixe o resultado em PNG transparente.",
     category: "imagens",
     hubFilter: "Otimizar",
     badge: "Imagem",
@@ -203,7 +203,7 @@ export const tools: Tool[] = [
     available: true,
     seoTitle: "Removedor de Fundo Online Grátis",
     seoDescription:
-      "Remova o fundo de imagens automaticamente em segundos. Ferramenta online gratuita, rápida e sem necessidade de instalar programas.",
+      "Remova automaticamente o fundo de imagens PNG, JPG e WebP e baixe o resultado em PNG transparente. Ferramenta online gratuita e sem instalação.",
     keywords: [
       "removedor de fundo",
       "remover fundo de imagem",
