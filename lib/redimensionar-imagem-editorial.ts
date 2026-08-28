@@ -1,0 +1,52 @@
+export const redimensionarImagemEditorial = {
+  overview: [
+    "O Redimensionar Imagens altera a largura e a altura de arquivos JPG, PNG, WebP, GIF e SVG. O ajuste pode ser feito informando dimensões em pixels ou escolhendo uma redução percentual, com a possibilidade de aplicar a mesma configuração a várias imagens de uma vez.",
+    "No modo por pixels, é possível manter a proporção original ou informar largura e altura separadamente. A opção “Não ampliar imagens menores” impede que uma imagem ultrapasse suas dimensões originais quando a configuração solicitada exigiria aumento.",
+    "A ferramenta gera novas cópias em JPG, PNG ou WebP. Para JPG e WebP, a qualidade da saída pode ser ajustada de 10% a 100%. O redimensionamento não cria detalhes que não existiam no arquivo original e ampliações podem deixar a imagem mais suave ou pixelada.",
+  ],
+  useCases: [
+    { title: "Lojas e marketplaces", description: "Padronize fotografias de produtos em dimensões semelhantes antes de publicar em vitrines, anúncios ou cadastros." },
+    { title: "Sites e blogs", description: "Crie versões com dimensões mais adequadas ao espaço em que a imagem será exibida, evitando usar arquivos maiores que o necessário." },
+    { title: "Redes sociais e apresentações", description: "Ajuste largura e altura de imagens antes de inseri-las em layouts, apresentações ou peças para publicação." },
+    { title: "Processamento em lote", description: "Aplique a mesma regra de redimensionamento a várias imagens e baixe os resultados juntos em um arquivo ZIP." },
+  ],
+  steps: [
+    "Selecione uma ou várias imagens JPG, PNG, WebP, GIF ou SVG, com até 20 MB por arquivo.",
+    "Escolha redimensionar por pixels ou por porcentagem. No modo percentual, estão disponíveis reduções de 25%, 50% ou 75%.",
+    "No modo por pixels, informe largura e altura e escolha se deseja manter a proporção original.",
+    "Defina se imagens menores podem ser ampliadas, escolha JPG, PNG ou WebP como formato de saída e ajuste a qualidade quando a saída for JPG ou WebP.",
+    "Confira as dimensões previstas, processe as imagens e faça o download individual ou, quando houver mais de uma, baixe todas em ZIP.",
+  ],
+  specifications: [
+    { label: "Entrada", value: "JPG/JPEG, PNG, WebP, GIF e SVG, com limite de 20 MB por arquivo." },
+    { label: "Quantidade", value: "Uma ou várias imagens podem ser processadas na mesma operação." },
+    { label: "Redimensionamento", value: "Por dimensões em pixels ou por redução percentual de 25%, 50% ou 75%." },
+    { label: "Proporção", value: "Pode ser mantida no modo por pixels; também é possível informar largura e altura de forma independente." },
+    { label: "Saída", value: "JPG, PNG ou WebP, conforme a escolha do usuário." },
+    { label: "Qualidade", value: "Ajustável de 10% a 100% para JPG e WebP; o controle não é exibido para PNG." },
+    { label: "Download", value: "Arquivo individual ou ZIP quando houver vários resultados." },
+  ],
+  privacy: "As imagens são abertas, redimensionadas e preparadas para download no navegador. Os arquivos originais não são substituídos pela ferramenta. As novas cópias só são salvas no dispositivo quando o usuário inicia o download.",
+  limitations: [
+    "Aumentar largura e altura não recupera foco, textura ou detalhes que não existiam no arquivo original.",
+    "Quando a proporção é desativada, largura e altura são aplicadas separadamente e a imagem pode ficar esticada ou achatada.",
+    "GIFs animados não permanecem animados na saída; o processamento gera uma imagem estática.",
+    "Arquivos SVG são rasterizados ao serem exportados como JPG, PNG ou WebP e deixam de manter as características de um vetor editável.",
+    "JPG não suporta transparência; áreas transparentes recebem fundo branco quando a saída escolhida é JPG.",
+    "Metadados e outras informações incorporadas ao arquivo original podem não permanecer na nova cópia gerada pelo navegador.",
+  ],
+  faqs: [
+    { question: "Redimensionar melhora a qualidade da imagem?", answer: "Não. Redimensionar altera a quantidade de pixels exibidos. Reduzir pode ser adequado para determinado uso, mas ampliar não cria novos detalhes reais e pode deixar a imagem menos nítida." },
+    { question: "Qual a diferença entre redimensionar por pixels e por porcentagem?", answer: "Por pixels, você define dimensões específicas. Por porcentagem, a ferramenta reduz cada imagem em 25%, 50% ou 75% em relação às dimensões originais." },
+    { question: "Posso redimensionar várias imagens ao mesmo tempo?", answer: "Sim. As mesmas configurações são aplicadas a todas as imagens selecionadas e os resultados podem ser baixados juntos em ZIP." },
+    { question: "O que faz a opção “Não ampliar imagens menores”?", answer: "Ela impede que uma imagem seja aumentada além das dimensões originais quando a configuração escolhida exigiria ampliação." },
+    { question: "O GIF continua animado depois do redimensionamento?", answer: "Não. Nesta ferramenta, GIFs são processados como imagem estática e a saída é gerada em JPG, PNG ou WebP." },
+    { question: "O SVG continua sendo vetor?", answer: "Não na saída desta ferramenta. O SVG é usado como entrada e o resultado é rasterizado em JPG, PNG ou WebP." },
+    { question: "Posso manter transparência?", answer: "PNG e WebP podem preservar transparência quando ela é suportada pelo conteúdo processado. JPG não aceita transparência e utiliza fundo branco." },
+  ],
+  related: [
+    { href: "/ferramentas/compressor-de-imagens", label: "Comprimir imagens" },
+    { href: "/ferramentas/conversor-de-imagens", label: "Converter imagens" },
+    { href: "/ferramentas/recortar-imagem", label: "Recortar imagem" },
+  ],
+} as const;
