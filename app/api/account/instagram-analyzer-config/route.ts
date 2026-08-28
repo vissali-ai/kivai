@@ -35,7 +35,9 @@ export async function GET(request: Request) {
 
     const base = await getInstagramAnalyzerConfig();
     const variants = await getInstagramAnalyzerPlanVariants(base);
-    return NextResponse.json({ plan, config: variants.pro }, {
+    const config = plan === "agency" ? variants.agency : variants.pro;
+
+    return NextResponse.json({ plan, config }, {
       headers: { "Cache-Control": "private, no-store" },
     });
   } catch (error) {
