@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { InstagramFollowAnalyzerEditor } from "@/components/admin/instagram-follow-analyzer-editor";
+import { InstagramAnalyzerPublicationSettings } from "@/components/admin/instagram-analyzer-publication-settings";
 import { InstagramPlanVariantEditor } from "@/components/admin/instagram-plan-variant-editor";
 import { SiteContentEditorV2 } from "@/components/admin/site-content-editor-v2";
 import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
@@ -16,7 +16,7 @@ export default async function EditSiteContentPage({ params }: { params: Promise<
     const variants = await getInstagramAnalyzerPlanVariants(baseConfig);
     return (
       <>
-        <InstagramFollowAnalyzerEditor initialConfig={baseConfig} initialContent={content} hubs={hubs} />
+        <InstagramAnalyzerPublicationSettings initialContent={content} hubs={hubs} />
         <InstagramPlanVariantEditor initialVariants={variants} />
       </>
     );
