@@ -1,0 +1,52 @@
+export const geradorPlaceholderEditorial = {
+  overview: [
+    "O Gerador de Placeholder (LQIP) cria uma versão muito pequena de uma imagem para ser usada como prévia temporária enquanto o arquivo principal é carregado. A ferramenta aceita PNG, JPG e WebP e gera uma nova cópia em JPEG, mantendo a proporção da imagem original.",
+    "Depois que a imagem é selecionada, o placeholder é criado automaticamente. A largura pode ser ajustada entre 8 e 128 pixels e a qualidade JPEG entre 10% e 90%. Cada alteração nesses controles gera novamente a prévia e atualiza o tamanho do arquivo resultante.",
+    "Além do arquivo JPEG para download, a ferramenta fornece o Data URL correspondente ao mesmo placeholder. Esse texto pode ser incorporado diretamente em HTML, CSS ou componentes que aceitem imagens codificadas, mas a implementação da troca entre o LQIP e a imagem final precisa ser feita no site ou aplicação onde ele será utilizado.",
+  ],
+  useCases: [
+    { title: "Carregamento progressivo", description: "Crie uma prévia pequena para ocupar o espaço da imagem enquanto o arquivo principal ainda está sendo carregado pela página." },
+    { title: "Galerias e vitrines", description: "Gere versões leves para antecipar cores e composição antes de fotografias maiores aparecerem completamente." },
+    { title: "Interfaces e protótipos", description: "Teste estratégias de placeholder em componentes e layouts sem precisar preparar manualmente miniaturas para cada imagem." },
+    { title: "Data URL para desenvolvimento", description: "Copie a representação em Data URL do JPEG gerado para usar em propriedades, estilos ou componentes compatíveis." },
+  ],
+  steps: [
+    "Selecione uma imagem PNG, JPG ou WebP com até 20 MB.",
+    "A ferramenta cria automaticamente um LQIP usando inicialmente 32 px de largura e qualidade JPEG de 55%.",
+    "Ajuste a largura entre 8 e 128 px e a qualidade entre 10% e 90%. A altura é calculada proporcionalmente.",
+    "Confira a prévia ampliada, o tamanho real em pixels e o peso aproximado do arquivo gerado.",
+    "Baixe o placeholder em JPEG ou copie o Data URL para usar na sua implementação.",
+  ],
+  specifications: [
+    { label: "Entrada", value: "PNG, JPG/JPEG ou WebP com até 20 MB." },
+    { label: "Saída", value: "Arquivo JPEG chamado placeholder-lqip.jpg e Data URL equivalente." },
+    { label: "Largura", value: "Ajustável de 8 a 128 pixels; valor inicial de 32 px." },
+    { label: "Altura", value: "Calculada automaticamente para manter a proporção da imagem de origem." },
+    { label: "Qualidade", value: "JPEG de 10% a 90%; valor inicial de 55%." },
+    { label: "Atualização", value: "A prévia e o arquivo são recriados automaticamente quando largura ou qualidade são alteradas." },
+    { label: "Prévia", value: "Exibe uma visualização ampliada do JPEG gerado e também uma reprodução no tamanho real." },
+  ],
+  privacy: "A imagem é aberta, redimensionada e codificada em JPEG no navegador. O Data URL também é criado a partir desse arquivo local. O arquivo original não precisa ser enviado a um serviço externo para gerar o placeholder.",
+  limitations: [
+    "O LQIP é uma imagem de baixa resolução e não foi projetado para substituir o arquivo final em tamanho normal.",
+    "A saída é sempre JPEG. Se a imagem original tiver transparência, essa transparência não é preservada no placeholder gerado.",
+    "A ferramenta gera o placeholder e o Data URL, mas não instala automaticamente a lógica de carregamento progressivo no seu site ou aplicativo.",
+    "Usar um Data URL maior do que o necessário pode aumentar o tamanho do HTML, CSS ou JavaScript em que ele for incorporado.",
+    "A prévia ampliada apenas aumenta visualmente o mesmo JPEG pequeno para facilitar a inspeção; ela não acrescenta detalhes nem aplica um efeito de blur ao arquivo.",
+    "Metadados e outras informações presentes na imagem original não fazem parte do JPEG reduzido gerado como placeholder.",
+  ],
+  faqs: [
+    { question: "O que significa LQIP?", answer: "LQIP é a sigla para Low Quality Image Placeholder. É uma imagem pequena e de baixa resolução usada temporariamente enquanto uma versão maior é carregada." },
+    { question: "A ferramenta adiciona blur ao placeholder?", answer: "Não. O arquivo gerado é um JPEG pequeno e comprimido. A prévia ampliada mostra esse mesmo arquivo sem aplicar desfoque artificial. Se o projeto quiser um efeito blur, ele deve ser configurado na interface onde o LQIP será utilizado." },
+    { question: "Qual a diferença entre baixar o JPEG e copiar o Data URL?", answer: "Os dois representam o mesmo placeholder. O JPEG é um arquivo separado; o Data URL contém os dados da imagem codificados em texto para uso direto em ambientes compatíveis." },
+    { question: "A proporção da imagem é mantida?", answer: "Sim. O usuário escolhe a largura e a ferramenta calcula a altura proporcionalmente às dimensões originais." },
+    { question: "Posso usar o placeholder como imagem final?", answer: "Tecnicamente é possível exibi-lo, mas ele possui apenas 8 a 128 pixels de largura e foi criado para funcionar como prévia temporária, não como substituto da imagem em alta resolução." },
+    { question: "PNG transparente continua transparente?", answer: "Não. A saída desta ferramenta é JPEG, formato que não possui canal de transparência." },
+    { question: "O Kivai configura o carregamento progressivo no meu site?", answer: "Não. A ferramenta gera o JPEG e o Data URL. A lógica para exibir o placeholder e depois substituí-lo pela imagem final precisa ser implementada no site ou aplicação de destino." },
+  ],
+  related: [
+    { href: "/ferramentas/compressor-de-imagens", label: "Comprimir imagens" },
+    { href: "/ferramentas/redimensionar-imagem", label: "Redimensionar imagem" },
+    { href: "/ferramentas/conversor-de-imagens", label: "Converter imagens" },
+  ],
+} as const;
