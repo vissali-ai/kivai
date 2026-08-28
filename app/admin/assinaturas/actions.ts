@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { supabaseRest } from "@/lib/blog/supabase";
+import { buildProWelcomeEmail } from "@/lib/marketing/subscription-templates";
 
 type RequestRow = {
   id: string;
@@ -73,24 +74,48 @@ export async function confirmSubscriptionPayment(formData: FormData) {
     body: JSON.stringify({ status: "active", confirmed_at: now.toISOString(), confirmed_by: "admin", updated_at: now.toISOString() }),
   });
 
-  const firstName = request.customer_name?.trim().split(/\s+/)[0] || "Olá";
+  const firstName = request.customer_name?.trim().split(/\s+/)[0] || null;
   const planName = request.plan_code === "pro" ? "Pro" : "Agency";
+  const welcome = request.plan_code === "pro" && !isRenewal
+    ? buildProWelcomeEmail({ firstName, periodEnd, billingCycle: request.billing_cycle })
+    : {
+        subject: `Seu Plano ${planName} Kivai está ativo`,
+        message: `${firstName || "Olá"}, seu pagamento foi confirmado e o Plano ${planName} já está liberado. Seu acesso fica ativo até ${periodEnd.toLocaleDateString("pt-BR")}. Entre no seu painel para começar a usar os recursos do plano.`,
+        ctaLabel: "Acessar meu painel",
+        ctaUrl: "https://www.kivai.com.br/conta",
+      };
+
   await supabaseRest("customer_communications", {
     method: "POST",
     body: JSON.stringify({
       user_id: request.user_id,
-      event_key: `activation_${request.id}`,
+      event_key: `${isRenewal ? "renewal" : "activation"}_${request.id}`,
       channel: "email",
       status: "ready",
-      subject: `Seu Plano ${planName} Kivai está ativo`,
-      message: `${firstName}, seu pagamento foi confirmado e o Plano ${planName} já está liberado. Seu acesso fica ativo até ${periodEnd.toLocaleDateString("pt-BR")}. Entre no seu painel para começar a usar os recursos do plano.`,
-      cta_label: "Acessar meu painel",
-      cta_url: "https://www.kivai.com.br/conta",
+      subject: welcome.subject,
+      message: welcome.message,
+      cta_label: welcome.ctaLabel,
+      cta_url: welcome.ctaUrl,
       scheduled_for: now.toISOString(),
-      metadata: { recipient_email: request.customer_email, kind: "subscription_activation", period_end: periodEnd.toISOString() },
+      metadata: {
+        recipient_email: request.customer_email,
+        kind: isRenewal ? "subscription_renewal" : request.plan_code === "pro" ? "pro_welcome" : "subscription_activation",
+        period_end: periodEnd.toISOString(),
+        plan_code: request.plan_code,
+        billing_cycle: request.billing_cycle,
+      },
     }),
   });
-  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: request.user_id, event_type: isRenewal ? "subscription_renewed" : "subscription_activated", description: `Plano ${planName} ${request.billing_cycle === "monthly" ? "mensal" : "anual"} confirmado pelo administrador.`, metadata: { period_end: periodEnd.toISOString(), request_id: request.id } }) });
+
+  await supabaseRest("customer_marketing_events", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: request.user_id,
+      event_type: isRenewal ? "subscription_renewed" : "subscription_activated",
+      description: `Plano ${planName} ${request.billing_cycle === "monthly" ? "mensal" : "anual"} confirmado pelo administrador.`,
+      metadata: { period_end: periodEnd.toISOString(), request_id: request.id },
+    }),
+  });
 
   revalidatePath("/admin/assinaturas");
   revalidatePath("/admin/usuarios");
