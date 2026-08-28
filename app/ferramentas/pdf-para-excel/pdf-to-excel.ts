@@ -293,7 +293,11 @@ function typedValue(raw: string, numericMode: NumericMode): { value: string | nu
   const currency = text.match(/^(R\$|US\$|\$|€)\s*(-?[\d.,]+)$/i);
   if (currency) {
     const parsed = parseLocaleNumber(currency[2]);
-    if (parsed !== null) return { value: parsed, format: currency[1].toUpperCase() === "R$" ? '"R$" #,##0.00' : '"$" #,##0.00' };
+    if (parsed !== null) {
+      const symbol = currency[1].toUpperCase();
+      const format = symbol === "R$" ? '"R$" #,##0.00' : symbol === "€" ? '"€" #,##0.00' : '"$" #,##0.00';
+      return { value: parsed, format };
+    }
   }
   if (/^-?\d+$/.test(text) && !/^0\d+/.test(text)) return { value: Number(text), format: "#,##0" };
   if (/^-?[\d.,]+$/.test(text)) {

@@ -91,13 +91,22 @@ function cellStyle(font?: Partial<Font>, fill?: Fill, alignment?: Partial<Alignm
   };
 }
 
+function currencyFromNumFmt(numFmt: string) {
+  if (/R\$/i.test(numFmt)) return "BRL";
+  if (/€/.test(numFmt)) return "EUR";
+  if (/£/.test(numFmt)) return "GBP";
+  if (/US\$/i.test(numFmt) || /\$/.test(numFmt)) return "USD";
+  return null;
+}
+
 function formatValue(value: unknown, numFmt: string, hasFormula: boolean, result: unknown) {
   const resolved = hasFormula ? result : value;
   if (resolved === null || resolved === undefined) return "";
   if (resolved instanceof Date) return new Intl.DateTimeFormat("pt-BR").format(resolved);
   if (typeof resolved === "number") {
     if (/%/.test(numFmt)) return new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 2 }).format(resolved);
-    if (/R\$|[$€£]/.test(numFmt)) return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(resolved);
+    const currency = currencyFromNumFmt(numFmt);
+    if (currency) return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(resolved);
     return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 8 }).format(resolved);
   }
   if (typeof resolved === "object" && resolved && "text" in resolved) return String((resolved as { text: unknown }).text);
