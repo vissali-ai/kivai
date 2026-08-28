@@ -7,6 +7,7 @@ import {
 import { imageToolEditorialOverrides } from "@/lib/image-tool-editorial-overrides";
 import { redimensionarImagemEditorial } from "@/lib/redimensionar-imagem-editorial";
 import { geradorFaviconEditorial } from "@/lib/gerador-favicon-editorial";
+import { adicionarMarcaDaguaEditorial } from "@/lib/adicionar-marca-dagua-editorial";
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
@@ -16,11 +17,13 @@ export function ImageToolEditorialV2({ slug }: { slug: ImageToolEditorialSlug })
       ? redimensionarImagemEditorial
       : slug === "gerador-de-favicon"
         ? geradorFaviconEditorial
-        : slug in imageToolEditorialOverrides
-          ? imageToolEditorialOverrides[
-              slug as keyof typeof imageToolEditorialOverrides
-            ]
-          : undefined;
+        : slug === "adicionar-marca-dagua"
+          ? adicionarMarcaDaguaEditorial
+          : slug in imageToolEditorialOverrides
+            ? imageToolEditorialOverrides[
+                slug as keyof typeof imageToolEditorialOverrides
+              ]
+            : undefined;
 
   const content = overrideContent ?? imageToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
