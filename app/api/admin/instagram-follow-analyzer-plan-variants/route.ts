@@ -8,7 +8,7 @@ import {
 } from "@/lib/instagram-analyzer-plan-variants";
 
 function validPlan(value: unknown): value is InstagramAnalyzerEditablePlan {
-  return value === "free" || value === "pro";
+  return value === "free" || value === "pro" || value === "agency";
 }
 
 export async function GET() {
