@@ -11,6 +11,7 @@ import { adicionarMarcaDaguaEditorial } from "@/lib/adicionar-marca-dagua-editor
 import { conversorSvgPngEditorial } from "@/lib/conversor-svg-png-editorial";
 import { espelharGirarImagemEditorial } from "@/lib/espelhar-girar-imagem-editorial";
 import { geradorPlaceholderEditorial } from "@/lib/gerador-placeholder-editorial";
+import { recortarImagemEditorial } from "@/lib/recortar-imagem-editorial";
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
@@ -28,11 +29,13 @@ export function ImageToolEditorialV2({ slug }: { slug: ImageToolEditorialSlug })
               ? espelharGirarImagemEditorial
               : slug === "gerador-de-placeholder"
                 ? geradorPlaceholderEditorial
-                : slug in imageToolEditorialOverrides
-                  ? imageToolEditorialOverrides[
-                      slug as keyof typeof imageToolEditorialOverrides
-                    ]
-                  : undefined;
+                : slug === "recortar-imagem"
+                  ? recortarImagemEditorial
+                  : slug in imageToolEditorialOverrides
+                    ? imageToolEditorialOverrides[
+                        slug as keyof typeof imageToolEditorialOverrides
+                      ]
+                    : undefined;
 
   const content = overrideContent ?? imageToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
