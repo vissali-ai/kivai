@@ -36,6 +36,7 @@ export async function convertPdfToDocx(file: File, onProgress: (value: number) =
   const children: InstanceType<typeof Paragraph>[] = [];
   const allFontSizes: number[] = [];
   const pages: ExtractedItem[][] = [];
+  let extractedTextCharacters = 0;
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
     const page = await pdf.getPage(pageNumber);
@@ -46,7 +47,12 @@ export async function convertPdfToDocx(file: File, onProgress: (value: number) =
       .map((item) => ({ ...item, pageWidth: viewport.width, fontSize: Math.max(Math.abs(item.transform[0]), Math.abs(item.transform[3])) }));
     pages.push(items);
     allFontSizes.push(...items.map((item) => item.fontSize));
+    extractedTextCharacters += items.reduce((sum, item) => sum + item.str.trim().length, 0);
     onProgress(Math.round((pageNumber / pdf.numPages) * 55));
+  }
+
+  if (extractedTextCharacters === 0) {
+    throw new Error("PDF sem camada de texto extraível. OCR é necessário para documentos digitalizados.");
   }
 
   const sortedSizes = allFontSizes.sort((a, b) => a - b);
