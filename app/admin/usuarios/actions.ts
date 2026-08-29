@@ -37,7 +37,8 @@ export async function updateCustomerAccount(formData: FormData) {
   const services = String(formData.get("contractedServices") ?? "").split(",").map((value) => value.trim()).filter(Boolean).slice(0, 30);
   const notes = String(formData.get("notes") ?? "").trim();
   if (!userId || !["free", "pro", "agency"].includes(planCode)) throw new Error("Dados inválidos.");
-  await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: planCode, lifecycle_stage: planCode, contracted_services: services, admin_notes: notes || null, updated_at: new Date().toISOString() }) });
+  const lifecycleStage = planCode === "free" ? "free" : "active";
+  await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: planCode, lifecycle_stage: lifecycleStage, contracted_services: services, admin_notes: notes || null, updated_at: new Date().toISOString() }) });
   revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta"); revalidatePath("/conta/dados");
 }
 
