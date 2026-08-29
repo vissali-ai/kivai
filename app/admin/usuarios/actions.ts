@@ -5,6 +5,7 @@ import { assertAdminApi } from "@/lib/blog/auth";
 import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deleteAuthCustomer } from "@/lib/admin/customer-users";
+import { isCustomerMarketingFlowKey } from "@/lib/marketing/customer-flows";
 
 function addDays(date: Date, days: number) { const copy = new Date(date); copy.setUTCDate(copy.getUTCDate() + days); return copy; }
 
@@ -78,5 +79,36 @@ export async function queueManualCampaign(formData: FormData) {
   if (!userId || !message || !["email", "whatsapp", "internal"].includes(channel)) throw new Error("Mensagem inválida.");
   await supabaseRest("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `manual_${Date.now()}`, channel, status: "ready", subject: subject || null, message, scheduled_for: new Date().toISOString(), metadata: { source: "admin_manual", offer_type: offerType } }) });
   await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "remarketing_queued", description: `Remarketing ${channel} preparado no Admin.`, metadata: { offer_type: offerType } }) });
+  revalidatePath("/admin/marketing");
+}
+
+export async function queueSuggestedEmail(formData: FormData) {
+  await assertAdminApi();
+  const userId = String(formData.get("userId") ?? "");
+  const subject = String(formData.get("subject") ?? "").trim();
+  const message = String(formData.get("message") ?? "").trim();
+  const flowKey = String(formData.get("flowKey") ?? "").trim();
+  if (!userId || !subject || !message) throw new Error("Selecione um usuário e uma sugestão válida.");
+  if (flowKey && !isCustomerMarketingFlowKey(flowKey)) throw new Error("Fluxo de marketing inválido.");
+  const now = new Date().toISOString();
+  await supabaseRest("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `suggestion_${flowKey || "manual"}_${Date.now()}`, channel: "email", status: "ready", subject, message, scheduled_for: now, metadata: { source: "admin_suggestion", flow_key: flowKey || null } }) });
+  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "suggested_email_queued", description: `Sugestão de e-mail adicionada à fila pelo Admin: ${subject}`, metadata: { flow_key: flowKey || null } }) });
+  revalidatePath("/admin/marketing");
+}
+
+export async function enrollCustomerInFlow(formData: FormData) {
+  await assertAdminApi();
+  const userId = String(formData.get("userId") ?? "");
+  const flowKey = String(formData.get("flowKey") ?? "");
+  if (!userId || !isCustomerMarketingFlowKey(flowKey)) throw new Error("Selecione um usuário e um fluxo válidos.");
+  const now = new Date().toISOString();
+  const existing = await supabaseRest<Array<{ id: string }>>(`customer_marketing_flow_enrollments?select=id&user_id=eq.${encodeURIComponent(userId)}&flow_key=eq.${encodeURIComponent(flowKey)}&limit=1`);
+  const payload = { status: "active", enrolled_at: now, updated_at: now, metadata: { source: "admin_manual" } };
+  if (existing[0]) {
+    await supabaseRest(`customer_marketing_flow_enrollments?id=eq.${encodeURIComponent(existing[0].id)}`, { method: "PATCH", body: JSON.stringify(payload) });
+  } else {
+    await supabaseRest("customer_marketing_flow_enrollments", { method: "POST", body: JSON.stringify({ user_id: userId, flow_key: flowKey, ...payload }) });
+  }
+  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "marketing_flow_enrolled", description: `Usuário incluído manualmente no fluxo ${flowKey}.`, metadata: { flow_key: flowKey } }) });
   revalidatePath("/admin/marketing");
 }
