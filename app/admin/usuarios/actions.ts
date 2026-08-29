@@ -7,6 +7,7 @@ import { supabaseRest } from "@/lib/blog/supabase";
 import { deleteAuthCustomer } from "@/lib/admin/customer-users";
 import { isCustomerMarketingFlowKey } from "@/lib/marketing/customer-flows";
 import { buildFreeWelcomeEmail } from "@/lib/marketing/subscription-templates";
+import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
 
 function addDays(date: Date, days: number) { const copy = new Date(date); copy.setUTCDate(copy.getUTCDate() + days); return copy; }
 
@@ -50,8 +51,9 @@ export async function updateCustomerAccount(formData: FormData) {
 
   if (planCode === "free" && previousPlan !== "free") {
     const welcome = buildFreeWelcomeEmail(firstName);
-    await supabaseRest("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `free_welcome_${Date.now()}`, channel: "email", status: "ready", subject: welcome.subject, message: welcome.message, cta_label: welcome.ctaLabel, cta_url: welcome.ctaUrl, scheduled_for: now.toISOString(), metadata: { kind: "free_welcome", previous_plan: previousPlan, plan_code: "free", source: "admin_plan_change" } }) });
-    await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "free_plan_activated", description: "Usuário alterado para o Plano Grátis e boas-vindas adicionadas à fila.", metadata: { previous_plan: previousPlan } }) });
+    const communication = await supabaseRest<Array<{ id: string }>>("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `free_welcome_${Date.now()}`, channel: "email", status: "ready", subject: welcome.subject, message: welcome.message, cta_label: welcome.ctaLabel, cta_url: welcome.ctaUrl, scheduled_for: now.toISOString(), metadata: { kind: "free_welcome", previous_plan: previousPlan, plan_code: "free", source: "admin_plan_change" } }) });
+    if (communication[0]) await deliverCustomerEmail(communication[0].id);
+    await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "free_plan_activated", description: "Usuário alterado para o Plano Grátis e boas-vindas processadas por e-mail.", metadata: { previous_plan: previousPlan } }) });
   }
 
   revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta"); revalidatePath("/conta/dados");
@@ -91,8 +93,9 @@ export async function deleteCustomerPermanently(formData: FormData) {
 export async function queueManualCampaign(formData: FormData) {
   await assertAdminApi(); const userId = String(formData.get("userId") ?? ""); const channel = String(formData.get("channel") ?? "email"); const subject = String(formData.get("subject") ?? "").trim(); const message = String(formData.get("message") ?? "").trim(); const offerType = String(formData.get("offerType") ?? "none");
   if (!userId || !message || !["email", "whatsapp", "internal"].includes(channel)) throw new Error("Mensagem inválida.");
-  await supabaseRest("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `manual_${Date.now()}`, channel, status: "ready", subject: subject || null, message, scheduled_for: new Date().toISOString(), metadata: { source: "admin_manual", offer_type: offerType } }) });
-  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "remarketing_queued", description: `Remarketing ${channel} preparado no Admin.`, metadata: { offer_type: offerType } }) });
+  const communication = await supabaseRest<Array<{ id: string }>>("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `manual_${Date.now()}`, channel, status: "ready", subject: subject || null, message, scheduled_for: new Date().toISOString(), metadata: { source: "admin_manual", offer_type: offerType } }) });
+  if (channel === "email" && communication[0]) await deliverCustomerEmail(communication[0].id);
+  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: channel === "email" ? "remarketing_sent" : "remarketing_queued", description: channel === "email" ? "Remarketing por e-mail processado pelo Resend." : `Remarketing ${channel} preparado no Admin.`, metadata: { offer_type: offerType } }) });
   revalidatePath("/admin/marketing");
 }
 
@@ -105,8 +108,9 @@ export async function queueSuggestedEmail(formData: FormData) {
   if (!userId || !subject || !message) throw new Error("Selecione um usuário e uma sugestão válida.");
   if (flowKey && !isCustomerMarketingFlowKey(flowKey)) throw new Error("Fluxo de marketing inválido.");
   const now = new Date().toISOString();
-  await supabaseRest("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `suggestion_${flowKey || "manual"}_${Date.now()}`, channel: "email", status: "ready", subject, message, scheduled_for: now, metadata: { source: "admin_suggestion", flow_key: flowKey || null } }) });
-  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "suggested_email_queued", description: `Sugestão de e-mail adicionada à fila pelo Admin: ${subject}`, metadata: { flow_key: flowKey || null } }) });
+  const communication = await supabaseRest<Array<{ id: string }>>("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `suggestion_${flowKey || "manual"}_${Date.now()}`, channel: "email", status: "ready", subject, message, scheduled_for: now, metadata: { source: "admin_suggestion", flow_key: flowKey || null } }) });
+  if (communication[0]) await deliverCustomerEmail(communication[0].id);
+  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "suggested_email_processed", description: `Sugestão de e-mail processada pelo Resend: ${subject}`, metadata: { flow_key: flowKey || null } }) });
   revalidatePath("/admin/marketing");
 }
 
