@@ -11,11 +11,7 @@ export type KivaiAuthSession = {
   expires_in?: number;
   expires_at?: number;
   token_type?: string;
-  user?: {
-    id: string;
-    email?: string;
-    user_metadata?: Record<string, unknown>;
-  };
+  user?: { id: string; email?: string; user_metadata?: Record<string, unknown> };
 };
 
 type AuthError = { error?: string; error_description?: string; msg?: string; message?: string };
@@ -42,17 +38,10 @@ export function getStoredSession(): KivaiAuthSession | null {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
-  try {
-    return JSON.parse(raw) as KivaiAuthSession;
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
+  try { return JSON.parse(raw) as KivaiAuthSession; } catch { localStorage.removeItem(STORAGE_KEY); return null; }
 }
 
-export function clearSession() {
-  if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
-}
+export function clearSession() { if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY); }
 
 export function consumeOAuthNext() {
   if (typeof window === "undefined") return "/conta";
@@ -62,11 +51,7 @@ export function consumeOAuthNext() {
 }
 
 export async function signInWithPassword(email: string, password: string) {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ email, password }),
-  });
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ email, password }) });
   const payload = await response.json();
   if (!response.ok) throw new Error(getErrorMessage(payload, "Não foi possível entrar."));
   saveSession(payload as KivaiAuthSession);
@@ -74,11 +59,7 @@ export async function signInWithPassword(email: string, password: string) {
 }
 
 export async function signUpWithPassword(name: string, email: string, password: string) {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ email, password, data: { full_name: name } }),
-  });
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ email, password, data: { full_name: name } }) });
   const payload = await response.json();
   if (!response.ok) throw new Error(getErrorMessage(payload, "Não foi possível criar sua conta."));
   if (payload.access_token) saveSession(payload as KivaiAuthSession);
@@ -95,34 +76,44 @@ export function signInWithGoogle(next = "/conta") {
   window.location.assign(authorize.toString());
 }
 
+export async function requestPasswordReset(email: string) {
+  const redirectTo = typeof window === "undefined" ? undefined : `${window.location.origin}/conta/redefinir-senha`;
+  const url = new URL(`${SUPABASE_URL}/auth/v1/recover`);
+  if (redirectTo) url.searchParams.set("redirect_to", redirectTo);
+  const response = await fetch(url.toString(), { method: "POST", headers: authHeaders(), body: JSON.stringify({ email }) });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(getErrorMessage(payload, "Não foi possível solicitar a redefinição de senha."));
+}
+
+export async function updatePassword(accessToken: string, password: string) {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, { method: "PUT", headers: authHeaders(accessToken), body: JSON.stringify({ password }) });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(getErrorMessage(payload, "Não foi possível redefinir a senha."));
+  return payload;
+}
+
+export async function updateAccountEmail(accessToken: string, email: string) {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, { method: "PUT", headers: authHeaders(accessToken), body: JSON.stringify({ email }) });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(getErrorMessage(payload, "Não foi possível atualizar o e-mail."));
+  return payload;
+}
+
 export async function getCurrentUser(session = getStoredSession()) {
   if (!session?.access_token) return null;
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: authHeaders(session.access_token),
-  });
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, { headers: authHeaders(session.access_token) });
   if (!response.ok) return null;
   return response.json();
 }
 
 export async function signOut() {
   const session = getStoredSession();
-  if (session?.access_token) {
-    await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
-      method: "POST",
-      headers: authHeaders(session.access_token),
-    }).catch(() => undefined);
-  }
+  if (session?.access_token) await fetch(`${SUPABASE_URL}/auth/v1/logout`, { method: "POST", headers: authHeaders(session.access_token) }).catch(() => undefined);
   clearSession();
 }
 
 export async function supabaseUserFetch(path: string, init: RequestInit = {}) {
   const session = getStoredSession();
   if (!session?.access_token) throw new Error("Faça login para continuar.");
-  return fetch(`${SUPABASE_URL}${path}`, {
-    ...init,
-    headers: {
-      ...authHeaders(session.access_token),
-      ...(init.headers ?? {}),
-    },
-  });
+  return fetch(`${SUPABASE_URL}${path}`, { ...init, headers: { ...authHeaders(session.access_token), ...(init.headers ?? {}) } });
 }
