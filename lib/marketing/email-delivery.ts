@@ -4,6 +4,7 @@ import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
 
 const CUSTOMER_EMAIL_FROM = "Kivai <contato@kivai.com.br>";
+const SITE_URL = "https://www.kivai.com.br";
 
 type CommunicationRow = {
   id: string;
@@ -18,11 +19,18 @@ type CommunicationRow = {
   metadata: Record<string, unknown> | null;
 };
 
+type EmailPreferenceRow = {
+  user_id: string;
+  marketing_opt_out: boolean;
+  unsubscribe_token: string;
+};
+
 type AuthUser = { id: string; email?: string };
 
 type DeliveryResult =
   | { status: "sent"; providerId: string | null }
   | { status: "skipped" }
+  | { status: "canceled"; reason: string }
   | { status: "failed"; error: string };
 
 function escapeHtml(value: string) {
@@ -34,7 +42,12 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-function renderHtml(row: CommunicationRow) {
+function isMarketingCommunication(row: CommunicationRow) {
+  const source = typeof row.metadata?.source === "string" ? row.metadata.source : "";
+  return source === "admin_suggestion" || source === "admin_manual" || typeof row.metadata?.flow_key === "string";
+}
+
+function renderHtml(row: CommunicationRow, unsubscribeUrl: string | null) {
   const paragraphs = row.message
     .split(/\n{2,}/)
     .map((part) => `<p style="margin:0 0 16px;line-height:1.65;color:#d8d8df">${escapeHtml(part).replaceAll("\n", "<br>")}</p>`)
@@ -42,8 +55,11 @@ function renderHtml(row: CommunicationRow) {
   const cta = row.cta_label && row.cta_url
     ? `<p style="margin:24px 0"><a href="${escapeHtml(row.cta_url)}" style="display:inline-block;padding:12px 18px;background:#6d6cff;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">${escapeHtml(row.cta_label)}</a></p>`
     : "";
+  const unsubscribe = unsubscribeUrl
+    ? `<div style="margin-top:28px;padding-top:18px;border-top:1px solid #242631;font-size:12px;line-height:1.6;color:#8f92a3">Deseja continuar recebendo nossos contatos de marketing? <a href="${escapeHtml(unsubscribeUrl)}" style="color:#b8b7ff">Não quero receber mais e-mails de marketing</a>.</div>`
+    : "";
 
-  return `<!doctype html><html><body style="margin:0;background:#090a0f;font-family:Arial,sans-serif;color:#fff"><div style="max-width:620px;margin:0 auto;padding:32px 20px"><div style="padding:24px;border:1px solid #242631;border-radius:16px;background:#111219"><div style="font-size:22px;font-weight:800;margin-bottom:24px">Kivai</div>${paragraphs}${cta}<p style="margin:28px 0 0;font-size:12px;line-height:1.5;color:#8f92a3">Ferramentas inteligentes para resultados reais.</p></div></div></body></html>`;
+  return `<!doctype html><html><body style="margin:0;background:#090a0f;font-family:Arial,sans-serif;color:#fff"><div style="max-width:620px;margin:0 auto;padding:32px 20px"><div style="padding:24px;border:1px solid #242631;border-radius:16px;background:#111219"><div style="font-size:22px;font-weight:800;margin-bottom:24px">Kivai</div>${paragraphs}${cta}<p style="margin:28px 0 0;font-size:12px;line-height:1.5;color:#8f92a3">Ferramentas inteligentes para resultados reais.</p>${unsubscribe}</div></div></body></html>`;
 }
 
 async function getAuthEmail(userId: string) {
@@ -59,10 +75,27 @@ async function getAuthEmail(userId: string) {
   return user.email?.trim().toLowerCase() || null;
 }
 
+async function getOrCreateEmailPreference(userId: string) {
+  const existing = await supabaseRest<EmailPreferenceRow[]>(`customer_email_preferences?select=user_id,marketing_opt_out,unsubscribe_token&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
+  if (existing[0]) return existing[0];
+  const created = await supabaseRest<EmailPreferenceRow[]>("customer_email_preferences", {
+    method: "POST",
+    body: JSON.stringify({ user_id: userId }),
+  });
+  return created[0] ?? null;
+}
+
 async function markFailed(id: string, message: string) {
   await supabaseRest(`customer_communications?id=eq.${encodeURIComponent(id)}&status=eq.queued`, {
     method: "PATCH",
     body: JSON.stringify({ status: "failed", error: message.slice(0, 1000), updated_at: new Date().toISOString() }),
+  });
+}
+
+async function markCanceled(id: string, reason: string) {
+  await supabaseRest(`customer_communications?id=eq.${encodeURIComponent(id)}&status=eq.queued`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: "canceled", error: reason.slice(0, 1000), updated_at: new Date().toISOString() }),
   });
 }
 
@@ -73,6 +106,14 @@ export async function deliverCustomerEmail(communicationId: string): Promise<Del
   });
   const row = claimed[0];
   if (!row) return { status: "skipped" };
+
+  const marketing = isMarketingCommunication(row);
+  const preference = marketing ? await getOrCreateEmailPreference(row.user_id) : null;
+  if (marketing && preference?.marketing_opt_out) {
+    const reason = "Usuário optou por não receber e-mails de marketing.";
+    await markCanceled(row.id, reason);
+    return { status: "canceled", reason };
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -89,6 +130,10 @@ export async function deliverCustomerEmail(communicationId: string): Promise<Del
     return { status: "failed", error };
   }
 
+  const unsubscribeUrl = marketing && preference
+    ? `${SITE_URL}/email/preferencias?token=${encodeURIComponent(preference.unsubscribe_token)}`
+    : null;
+
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -97,8 +142,9 @@ export async function deliverCustomerEmail(communicationId: string): Promise<Del
         from: CUSTOMER_EMAIL_FROM,
         to: [recipient],
         subject: row.subject || "Kivai",
-        text: row.message,
-        html: renderHtml(row),
+        text: unsubscribeUrl ? `${row.message}\n\nNão quer mais receber e-mails de marketing? ${unsubscribeUrl}` : row.message,
+        html: renderHtml(row, unsubscribeUrl),
+        ...(unsubscribeUrl ? { headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` } } : {}),
       }),
     });
 
