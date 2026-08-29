@@ -6,8 +6,8 @@ import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deleteAuthCustomer } from "@/lib/admin/customer-users";
 import { isCustomerMarketingFlowKey } from "@/lib/marketing/customer-flows";
-import { buildFreeWelcomeEmail } from "@/lib/marketing/subscription-templates";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
+import { getOnboardingTemplate } from "@/lib/marketing/onboarding-templates";
 
 function addDays(date: Date, days: number) { const copy = new Date(date); copy.setUTCDate(copy.getUTCDate() + days); return copy; }
 
@@ -43,17 +43,20 @@ export async function updateCustomerAccount(formData: FormData) {
 
   const profiles = await supabaseRest<Array<{ plan_code: "free" | "pro" | "agency"; full_name: string | null }>>(`user_profiles?select=plan_code,full_name&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
   const previousPlan = profiles[0]?.plan_code ?? "free";
-  const firstName = profiles[0]?.full_name?.trim().split(/\s+/)[0] || null;
+  const firstName = profiles[0]?.full_name?.trim().split(/\s+/)[0] || "Olá";
   const lifecycleStage = planCode === "free" ? "free" : "active";
   const now = new Date();
 
   await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: planCode, lifecycle_stage: lifecycleStage, contracted_services: services, admin_notes: notes || null, updated_at: now.toISOString() }) });
 
   if (planCode === "free" && previousPlan !== "free") {
-    const welcome = buildFreeWelcomeEmail(firstName);
-    const communication = await supabaseRest<Array<{ id: string }>>("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `free_welcome_${Date.now()}`, channel: "email", status: "ready", subject: welcome.subject, message: welcome.message, cta_label: welcome.ctaLabel, cta_url: welcome.ctaUrl, scheduled_for: now.toISOString(), metadata: { kind: "free_welcome", previous_plan: previousPlan, plan_code: "free", source: "admin_plan_change" } }) });
-    if (communication[0]) await deliverCustomerEmail(communication[0].id);
-    await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "free_plan_activated", description: "Usuário alterado para o Plano Grátis e boas-vindas processadas por e-mail.", metadata: { previous_plan: previousPlan } }) });
+    const template = await getOnboardingTemplate("free_welcome");
+    if (template?.enabled) {
+      const message = template.message.replaceAll("{{nome}}", firstName);
+      const communication = await supabaseRest<Array<{ id: string }>>("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `free_welcome_${Date.now()}`, channel: "email", status: "ready", subject: template.subject.replaceAll("{{nome}}", firstName), message, cta_label: template.cta_label, cta_url: template.cta_url, scheduled_for: now.toISOString(), metadata: { kind: "free_welcome", transactional: true, previous_plan: previousPlan, plan_code: "free", source: "admin_plan_change" } }) });
+      if (communication[0]) await deliverCustomerEmail(communication[0].id);
+    }
+    await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "free_plan_activated", description: "Usuário alterado para o Plano Grátis e onboarding automático processado por e-mail.", metadata: { previous_plan: previousPlan } }) });
   }
 
   revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta"); revalidatePath("/conta/dados");
@@ -100,11 +103,7 @@ export async function queueManualCampaign(formData: FormData) {
 }
 
 export async function queueSuggestedEmail(formData: FormData) {
-  await assertAdminApi();
-  const userId = String(formData.get("userId") ?? "");
-  const subject = String(formData.get("subject") ?? "").trim();
-  const message = String(formData.get("message") ?? "").trim();
-  const flowKey = String(formData.get("flowKey") ?? "").trim();
+  await assertAdminApi(); const userId = String(formData.get("userId") ?? ""); const subject = String(formData.get("subject") ?? "").trim(); const message = String(formData.get("message") ?? "").trim(); const flowKey = String(formData.get("flowKey") ?? "").trim();
   if (!userId || !subject || !message) throw new Error("Selecione um usuário e uma sugestão válida.");
   if (flowKey && !isCustomerMarketingFlowKey(flowKey)) throw new Error("Fluxo de marketing inválido.");
   const now = new Date().toISOString();
@@ -115,18 +114,10 @@ export async function queueSuggestedEmail(formData: FormData) {
 }
 
 export async function enrollCustomerInFlow(formData: FormData) {
-  await assertAdminApi();
-  const userId = String(formData.get("userId") ?? "");
-  const flowKey = String(formData.get("flowKey") ?? "");
+  await assertAdminApi(); const userId = String(formData.get("userId") ?? ""); const flowKey = String(formData.get("flowKey") ?? "");
   if (!userId || !isCustomerMarketingFlowKey(flowKey)) throw new Error("Selecione um usuário e um fluxo válidos.");
-  const now = new Date().toISOString();
-  const existing = await supabaseRest<Array<{ id: string }>>(`customer_marketing_flow_enrollments?select=id&user_id=eq.${encodeURIComponent(userId)}&flow_key=eq.${encodeURIComponent(flowKey)}&limit=1`);
-  const payload = { status: "active", enrolled_at: now, updated_at: now, metadata: { source: "admin_manual" } };
-  if (existing[0]) {
-    await supabaseRest(`customer_marketing_flow_enrollments?id=eq.${encodeURIComponent(existing[0].id)}`, { method: "PATCH", body: JSON.stringify(payload) });
-  } else {
-    await supabaseRest("customer_marketing_flow_enrollments", { method: "POST", body: JSON.stringify({ user_id: userId, flow_key: flowKey, ...payload }) });
-  }
+  const now = new Date().toISOString(); const existing = await supabaseRest<Array<{ id: string }>>(`customer_marketing_flow_enrollments?select=id&user_id=eq.${encodeURIComponent(userId)}&flow_key=eq.${encodeURIComponent(flowKey)}&limit=1`); const payload = { status: "active", enrolled_at: now, updated_at: now, metadata: { source: "admin_manual" } };
+  if (existing[0]) await supabaseRest(`customer_marketing_flow_enrollments?id=eq.${encodeURIComponent(existing[0].id)}`, { method: "PATCH", body: JSON.stringify(payload) }); else await supabaseRest("customer_marketing_flow_enrollments", { method: "POST", body: JSON.stringify({ user_id: userId, flow_key: flowKey, ...payload }) });
   await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "marketing_flow_enrolled", description: `Usuário incluído manualmente no fluxo ${flowKey}.`, metadata: { flow_key: flowKey } }) });
   revalidatePath("/admin/marketing");
 }
