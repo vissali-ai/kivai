@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { supabaseRest } from "@/lib/blog/supabase";
-import { buildProWelcomeEmail } from "@/lib/marketing/subscription-templates";
+import { buildAgencyWelcomeEmail, buildProWelcomeEmail } from "@/lib/marketing/subscription-templates";
 
 type RequestRow = {
   id: string;
@@ -76,11 +76,13 @@ export async function confirmSubscriptionPayment(formData: FormData) {
 
   const firstName = request.customer_name?.trim().split(/\s+/)[0] || null;
   const planName = request.plan_code === "pro" ? "Pro" : "Agency";
-  const welcome = request.plan_code === "pro" && !isRenewal
-    ? buildProWelcomeEmail({ firstName, periodEnd, billingCycle: request.billing_cycle })
+  const welcome = !isRenewal
+    ? request.plan_code === "pro"
+      ? buildProWelcomeEmail({ firstName, periodEnd, billingCycle: request.billing_cycle })
+      : buildAgencyWelcomeEmail({ firstName, periodEnd, billingCycle: request.billing_cycle })
     : {
-        subject: `Seu Plano ${planName} Kivai está ativo`,
-        message: `${firstName || "Olá"}, seu pagamento foi confirmado e o Plano ${planName} já está liberado. Seu acesso fica ativo até ${periodEnd.toLocaleDateString("pt-BR")}. Entre no seu painel para começar a usar os recursos do plano.`,
+        subject: `Seu Plano ${planName} Kivai foi renovado`,
+        message: `${firstName || "Olá"}, sua renovação foi confirmada e o Plano ${planName} continua ativo até ${periodEnd.toLocaleDateString("pt-BR")}. Entre no painel para continuar usando os recursos do seu plano.`,
         ctaLabel: "Acessar meu painel",
         ctaUrl: "https://www.kivai.com.br/conta",
       };
@@ -99,7 +101,7 @@ export async function confirmSubscriptionPayment(formData: FormData) {
       scheduled_for: now.toISOString(),
       metadata: {
         recipient_email: request.customer_email,
-        kind: isRenewal ? "subscription_renewal" : request.plan_code === "pro" ? "pro_welcome" : "subscription_activation",
+        kind: isRenewal ? "subscription_renewal" : request.plan_code === "pro" ? "pro_welcome" : "agency_welcome",
         period_end: periodEnd.toISOString(),
         plan_code: request.plan_code,
         billing_cycle: request.billing_cycle,
