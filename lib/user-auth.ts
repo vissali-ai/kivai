@@ -4,6 +4,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://fphphknegw
 const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_KDt8whhimaeknpeeT0Emjg_DvvwA33Z";
 const STORAGE_KEY = "kivai_user_session";
 const OAUTH_NEXT_KEY = "kivai_oauth_next";
+const OAUTH_WHATSAPP_KEY = "kivai_oauth_whatsapp";
 
 export type KivaiAuthSession = {
   access_token: string;
@@ -17,23 +18,14 @@ export type KivaiAuthSession = {
 type AuthError = { error?: string; error_description?: string; msg?: string; message?: string };
 
 function authHeaders(accessToken?: string) {
-  return {
-    apikey: SUPABASE_PUBLISHABLE_KEY,
-    "Content-Type": "application/json",
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-  };
+  return { apikey: SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json", ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) };
 }
 
-function getErrorMessage(payload: AuthError, fallback: string) {
-  return payload.error_description || payload.msg || payload.message || payload.error || fallback;
-}
+function getErrorMessage(payload: AuthError, fallback: string) { return payload.error_description || payload.msg || payload.message || payload.error || fallback; }
 
 function triggerPendingWelcome(accessToken: string) {
   if (typeof window === "undefined" || !accessToken) return;
-  void fetch("/api/account/email-delivery", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${accessToken}` },
-  }).catch(() => undefined);
+  void fetch("/api/account/email-delivery", { method: "POST", headers: { Authorization: `Bearer ${accessToken}` } }).catch(() => undefined);
 }
 
 export function saveSession(session: KivaiAuthSession) {
@@ -59,6 +51,13 @@ export function consumeOAuthNext() {
   return value?.startsWith("/") ? value : "/conta";
 }
 
+export function consumeOAuthWhatsapp() {
+  if (typeof window === "undefined") return "";
+  const value = sessionStorage.getItem(OAUTH_WHATSAPP_KEY) ?? "";
+  sessionStorage.removeItem(OAUTH_WHATSAPP_KEY);
+  return value;
+}
+
 export async function signInWithPassword(email: string, password: string) {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ email, password }) });
   const payload = await response.json();
@@ -67,17 +66,18 @@ export async function signInWithPassword(email: string, password: string) {
   return payload as KivaiAuthSession;
 }
 
-export async function signUpWithPassword(name: string, email: string, password: string) {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ email, password, data: { full_name: name } }) });
+export async function signUpWithPassword(name: string, email: string, password: string, phone: string) {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ email, password, data: { full_name: name, phone } }) });
   const payload = await response.json();
   if (!response.ok) throw new Error(getErrorMessage(payload, "Não foi possível criar sua conta."));
   if (payload.access_token) saveSession(payload as KivaiAuthSession);
   return payload as KivaiAuthSession;
 }
 
-export function signInWithGoogle(next = "/conta") {
+export function signInWithGoogle(next = "/conta", phone = "") {
   if (typeof window === "undefined") return;
   sessionStorage.setItem(OAUTH_NEXT_KEY, next.startsWith("/") ? next : "/conta");
+  if (phone) sessionStorage.setItem(OAUTH_WHATSAPP_KEY, phone);
   const callback = new URL("/conta/callback", window.location.origin);
   const authorize = new URL(`${SUPABASE_URL}/auth/v1/authorize`);
   authorize.searchParams.set("provider", "google");
