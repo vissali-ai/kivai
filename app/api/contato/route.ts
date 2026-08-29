@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 const SUBJECTS = new Set(["Problema técnico", "Sugerir ferramenta", "Dúvidas"]);
-const DESTINATION_EMAIL = "contatokivai@gmail.com";
+const KIVAI_EMAIL = "contato@kivai.com.br";
+const KIVAI_FROM = `Kivai <${KIVAI_EMAIL}>`;
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQUESTS = 5;
 const MAX_BODY_BYTES = 8_000;
@@ -80,8 +81,7 @@ export async function POST(request: Request) {
     }
 
     const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.CONTACT_EMAIL_FROM;
-    if (!apiKey || !from) {
+    if (!apiKey) {
       console.error("[contact] Email service is not configured.");
       return NextResponse.json({ error: "Não foi possível enviar a mensagem." }, { status: 503 });
     }
@@ -92,7 +92,13 @@ export async function POST(request: Request) {
     const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [DESTINATION_EMAIL], reply_to: email, subject: `[Kivai Contato] ${subject}`, text: emailBody }),
+      body: JSON.stringify({
+        from: KIVAI_FROM,
+        to: [KIVAI_EMAIL],
+        reply_to: email,
+        subject: `[Kivai Contato] ${subject}`,
+        text: emailBody,
+      }),
     });
 
     if (!resendResponse.ok) {
