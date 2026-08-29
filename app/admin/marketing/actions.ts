@@ -79,6 +79,23 @@ export async function removeCustomerFromMarketingFlow(formData: FormData) {
   revalidatePath("/admin/marketing");
 }
 
+export async function retryCommunicationNow(formData: FormData) {
+  await assertAdminApi();
+  const communicationId = String(formData.get("communicationId") ?? "");
+  if (!communicationId) throw new Error("Comunicação inválida.");
+  const rows = await supabaseRest<Array<{ id: string; status: string; channel: string }>>(`customer_communications?select=id,status,channel&id=eq.${encodeURIComponent(communicationId)}&limit=1`);
+  const row = rows[0];
+  if (!row || row.channel !== "email" || !["ready", "failed"].includes(row.status)) throw new Error("Esta comunicação não está disponível para envio manual.");
+  if (row.status === "failed") {
+    await supabaseRest(`customer_communications?id=eq.${encodeURIComponent(row.id)}&status=eq.failed`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "ready", error: null, updated_at: new Date().toISOString() }),
+    });
+  }
+  await deliverCustomerEmail(row.id);
+  revalidatePath("/admin/marketing");
+}
+
 export async function saveMarketingTemplate(formData: FormData) {
   await assertAdminApi();
   const flowKey = String(formData.get("flowKey") ?? "");
