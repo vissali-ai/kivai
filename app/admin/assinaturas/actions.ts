@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { buildAgencyWelcomeEmail, buildProWelcomeEmail } from "@/lib/marketing/subscription-templates";
+import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
 
 type RequestRow = {
   id: string;
@@ -87,7 +88,7 @@ export async function confirmSubscriptionPayment(formData: FormData) {
         ctaUrl: "https://www.kivai.com.br/conta",
       };
 
-  await supabaseRest("customer_communications", {
+  const communication = await supabaseRest<Array<{ id: string }>>("customer_communications", {
     method: "POST",
     body: JSON.stringify({
       user_id: request.user_id,
@@ -108,13 +109,14 @@ export async function confirmSubscriptionPayment(formData: FormData) {
       },
     }),
   });
+  if (communication[0]) await deliverCustomerEmail(communication[0].id);
 
   await supabaseRest("customer_marketing_events", {
     method: "POST",
     body: JSON.stringify({
       user_id: request.user_id,
       event_type: isRenewal ? "subscription_renewed" : "subscription_activated",
-      description: `Plano ${planName} ${request.billing_cycle === "monthly" ? "mensal" : "anual"} confirmado pelo administrador.`,
+      description: `Plano ${planName} ${request.billing_cycle === "monthly" ? "mensal" : "anual"} confirmado pelo administrador e comunicação processada por e-mail.`,
       metadata: { period_end: periodEnd.toISOString(), request_id: request.id },
     }),
   });
