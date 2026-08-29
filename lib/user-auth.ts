@@ -28,10 +28,19 @@ function getErrorMessage(payload: AuthError, fallback: string) {
   return payload.error_description || payload.msg || payload.message || payload.error || fallback;
 }
 
+function triggerPendingWelcome(accessToken: string) {
+  if (typeof window === "undefined" || !accessToken) return;
+  void fetch("/api/account/email-delivery", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  }).catch(() => undefined);
+}
+
 export function saveSession(session: KivaiAuthSession) {
   if (typeof window === "undefined") return;
   const expiresAt = session.expires_at ?? (session.expires_in ? Math.floor(Date.now() / 1000) + session.expires_in : undefined);
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...session, expires_at: expiresAt }));
+  triggerPendingWelcome(session.access_token);
 }
 
 export function getStoredSession(): KivaiAuthSession | null {
