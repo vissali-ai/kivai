@@ -6,6 +6,7 @@ import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deleteAuthCustomer } from "@/lib/admin/customer-users";
 import { isCustomerMarketingFlowKey } from "@/lib/marketing/customer-flows";
+import { buildFreeWelcomeEmail } from "@/lib/marketing/subscription-templates";
 
 function addDays(date: Date, days: number) { const copy = new Date(date); copy.setUTCDate(copy.getUTCDate() + days); return copy; }
 
@@ -38,8 +39,21 @@ export async function updateCustomerAccount(formData: FormData) {
   const services = String(formData.get("contractedServices") ?? "").split(",").map((value) => value.trim()).filter(Boolean).slice(0, 30);
   const notes = String(formData.get("notes") ?? "").trim();
   if (!userId || !["free", "pro", "agency"].includes(planCode)) throw new Error("Dados inválidos.");
+
+  const profiles = await supabaseRest<Array<{ plan_code: "free" | "pro" | "agency"; full_name: string | null }>>(`user_profiles?select=plan_code,full_name&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
+  const previousPlan = profiles[0]?.plan_code ?? "free";
+  const firstName = profiles[0]?.full_name?.trim().split(/\s+/)[0] || null;
   const lifecycleStage = planCode === "free" ? "free" : "active";
-  await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: planCode, lifecycle_stage: lifecycleStage, contracted_services: services, admin_notes: notes || null, updated_at: new Date().toISOString() }) });
+  const now = new Date();
+
+  await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: planCode, lifecycle_stage: lifecycleStage, contracted_services: services, admin_notes: notes || null, updated_at: now.toISOString() }) });
+
+  if (planCode === "free" && previousPlan !== "free") {
+    const welcome = buildFreeWelcomeEmail(firstName);
+    await supabaseRest("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `free_welcome_${Date.now()}`, channel: "email", status: "ready", subject: welcome.subject, message: welcome.message, cta_label: welcome.ctaLabel, cta_url: welcome.ctaUrl, scheduled_for: now.toISOString(), metadata: { kind: "free_welcome", previous_plan: previousPlan, plan_code: "free", source: "admin_plan_change" } }) });
+    await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "free_plan_activated", description: "Usuário alterado para o Plano Grátis e boas-vindas adicionadas à fila.", metadata: { previous_plan: previousPlan } }) });
+  }
+
   revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta"); revalidatePath("/conta/dados");
 }
 
