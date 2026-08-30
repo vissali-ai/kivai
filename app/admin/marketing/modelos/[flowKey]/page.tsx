@@ -29,9 +29,8 @@ export default async function MarketingTemplateEditorPage({ params, searchParams
       {flowKey === "new_post" ? <p className="mt-3 text-xs leading-5 text-muted-foreground">Variáveis disponíveis: {"{{titulo}}"}, {"{{resumo}}"}, {"{{slug}}"} e {"{{link}}"}.</p> : null}
       {query.saved ? <p className="mt-4 text-sm text-emerald-300">Template salvo com sucesso.</p> : null}{query.sent ? <p className="mt-4 text-sm text-emerald-300">E-mail enviado com sucesso.</p> : null}
     </section>
-
     <MarketingTemplateRichEditor
-      initial={{ subject: template.subject, message: template.message, ctaLabel: template.cta_label ?? "", ctaUrl: template.cta_url ?? "", secondaryCtaLabel: template.secondary_cta_label ?? "", secondaryCtaUrl: template.secondary_cta_url ?? "", enabled: template.enabled }}
+      initial={{ title: template.title, description: template.description, subject: template.subject, message: template.message, ctaLabel: template.cta_label ?? "", ctaUrl: template.cta_url ?? "", secondaryCtaLabel: template.secondary_cta_label ?? "", secondaryCtaUrl: template.secondary_cta_url ?? "", enabled: template.enabled }}
       automatic={automatic}
       users={customers}
       saveAction={saveAction}
