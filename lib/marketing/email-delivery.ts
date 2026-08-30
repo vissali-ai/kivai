@@ -59,6 +59,63 @@ async function getOrCreateEmailPreference(userId: string) {
 async function markFailed(id: string, message: string) { await supabaseRest(`customer_communications?id=eq.${encodeURIComponent(id)}&status=eq.queued`, { method: "PATCH", body: JSON.stringify({ status: "failed", provider_status: "failed", error: message.slice(0, 1000), updated_at: new Date().toISOString() }) }); }
 async function markCanceled(id: string, reason: string) { await supabaseRest(`customer_communications?id=eq.${encodeURIComponent(id)}&status=eq.queued`, { method: "PATCH", body: JSON.stringify({ status: "canceled", provider_status: "canceled", error: reason.slice(0, 1000), updated_at: new Date().toISOString() }) }); }
 
+export async function sendAdminCampaignTestEmail(input: {
+  recipient: string;
+  subject: string;
+  message: string;
+  ctaLabel?: string | null;
+  ctaUrl?: string | null;
+  preheader?: string;
+  eyebrow?: string;
+  headline?: string;
+  highlight?: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, error: "RESEND_API_KEY não configurada." } as const;
+  const recipient = input.recipient.trim().toLowerCase();
+  if (!recipient) return { ok: false, error: "E-mail do administrador não configurado." } as const;
+
+  const row: CommunicationRow = {
+    id: "admin-campaign-test",
+    user_id: "admin",
+    channel: "email",
+    status: "ready",
+    subject: input.subject,
+    message: input.message,
+    cta_label: input.ctaLabel ?? null,
+    cta_url: input.ctaUrl ?? null,
+    scheduled_for: new Date().toISOString(),
+    metadata: {
+      layout: "kivai_campaign",
+      preheader: input.preheader ?? "",
+      eyebrow: input.eyebrow ?? "",
+      headline: input.headline ?? "",
+      highlight: input.highlight ?? "",
+    },
+  };
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: CUSTOMER_EMAIL_FROM,
+        to: [recipient],
+        reply_to: CUSTOMER_REPLY_TO,
+        subject: `[TESTE] ${input.subject}`,
+        text: `[TESTE DE CAMPANHA KIVAI]\n\n${input.message}`,
+        html: renderCampaignHtml(row, null),
+        tags: [{ name: "category", value: "campaign_test" }],
+      }),
+    });
+    const payload = await response.json().catch(() => ({})) as { id?: string; message?: string; name?: string };
+    if (!response.ok) return { ok: false, error: payload.message || payload.name || `Resend recusou o teste (${response.status}).` } as const;
+    return { ok: true, providerId: payload.id ?? null } as const;
+  } catch (cause) {
+    return { ok: false, error: cause instanceof Error ? cause.message : "Falha inesperada ao enviar o teste." } as const;
+  }
+}
+
 export async function deliverCustomerEmail(communicationId: string): Promise<DeliveryResult> {
   const claimed = await supabaseRest<CommunicationRow[]>(`customer_communications?id=eq.${encodeURIComponent(communicationId)}&status=eq.ready&channel=eq.email`, { method: "PATCH", body: JSON.stringify({ status: "queued", provider_status: "processing", error: null, updated_at: new Date().toISOString() }) });
   const row = claimed[0];
