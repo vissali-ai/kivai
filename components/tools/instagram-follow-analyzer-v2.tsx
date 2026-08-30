@@ -202,9 +202,8 @@ export function InstagramFollowAnalyzerV2() {
 
         {tutorialOpen ? (
           <div className="border-t border-white/10 px-6 pb-8 pt-6 sm:px-8">
-            <div className="flex flex-col gap-3 border border-white/10 bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm leading-6 text-muted-foreground">O botão abaixo leva diretamente à página oficial usada para gerar a exportação.</p>
-              <a href={META_EXPORT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex shrink-0 items-center justify-center gap-2 bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">Abrir página oficial da Meta <ExternalLink className="size-4" /></a>
+            <div className="flex justify-end">
+              <a href={META_EXPORT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">Abrir página oficial da Meta <ExternalLink className="size-4" /></a>
             </div>
 
             <div className="mt-8 space-y-8">
