@@ -15,8 +15,26 @@ type DeliveryResult = { status: "sent"; providerId: string | null } | { status: 
 
 function escapeHtml(value: string) { return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 function isMarketingCommunication(row: CommunicationRow) { const source = typeof row.metadata?.source === "string" ? row.metadata.source : ""; return source === "admin_suggestion" || source === "admin_manual" || typeof row.metadata?.flow_key === "string"; }
+function metadataText(row: CommunicationRow, key: string) { return typeof row.metadata?.[key] === "string" ? String(row.metadata[key]).trim() : ""; }
+
+function renderParagraphs(message: string, color = "#d8d9e3") {
+  return message.split(/\n{2,}/).filter(Boolean).map((part) => `<p style="margin:0 0 18px;line-height:1.72;color:${color};font-size:16px">${escapeHtml(part).replaceAll("\n", "<br>")}</p>`).join("");
+}
+
+function renderCampaignHtml(row: CommunicationRow, unsubscribeUrl: string | null) {
+  const preheader = metadataText(row, "preheader");
+  const eyebrow = metadataText(row, "eyebrow");
+  const headline = metadataText(row, "headline") || row.subject || "Kivai";
+  const highlight = metadataText(row, "highlight");
+  const paragraphs = renderParagraphs(row.message);
+  const primary = row.cta_label && row.cta_url ? `<a href="${escapeHtml(row.cta_url)}" style="display:inline-block;padding:14px 22px;background:#6d72ff;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:800;font-size:15px">${escapeHtml(row.cta_label)}</a>` : "";
+  const highlightBlock = highlight ? `<div style="margin:24px 0;padding:18px 20px;border:1px solid #353a69;border-radius:12px;background:#15182a;color:#eef0ff;font-size:14px;line-height:1.65">${escapeHtml(highlight).replaceAll("\n", "<br>")}</div>` : "";
+  const unsubscribe = unsubscribeUrl ? `<div style="margin-top:30px;padding-top:20px;border-top:1px solid #262936;font-size:12px;line-height:1.65;color:#8f92a3">Você recebeu este e-mail por ter cadastro ou relacionamento com o Kivai. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#9aa0ff">Cancelar recebimento de e-mails de marketing</a>.</div>` : "";
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"></head><body style="margin:0;background:#090a10;font-family:Arial,Helvetica,sans-serif;color:#ffffff">${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>` : ""}<div style="max-width:680px;margin:0 auto;padding:34px 18px"><div style="padding:30px;border:1px solid #252836;border-radius:18px;background:#0f1119"><div style="display:inline-block;margin-bottom:26px;padding:8px 12px;border:1px solid #343861;border-radius:999px;color:#9ca1ff;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase">KIVAI</div>${eyebrow ? `<div style="margin-bottom:12px;color:#7f86ff;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">${escapeHtml(eyebrow)}</div>` : ""}<h1 style="margin:0 0 20px;font-size:32px;line-height:1.12;color:#ffffff">${escapeHtml(headline)}</h1>${paragraphs}${highlightBlock}${primary ? `<div style="margin-top:26px">${primary}</div>` : ""}<div style="margin-top:28px;font-size:12px;line-height:1.65;color:#8f92a3">Ferramentas inteligentes para resultados reais.<br><a href="${SITE_URL}" style="color:#9aa0ff">kivai.com.br</a> · <a href="${WHATSAPP_URL}" style="color:#9aa0ff">WhatsApp</a></div>${unsubscribe}</div></div></body></html>`;
+}
 
 function renderHtml(row: CommunicationRow, unsubscribeUrl: string | null) {
+  if (metadataText(row, "layout") === "kivai_campaign") return renderCampaignHtml(row, unsubscribeUrl);
   const paragraphs = row.message.split(/\n{2,}/).map((part) => `<p style="margin:0 0 16px;line-height:1.65;color:#252631">${escapeHtml(part).replaceAll("\n", "<br>")}</p>`).join("");
   const primary = row.cta_label && row.cta_url ? `<a href="${escapeHtml(row.cta_url)}" style="display:inline-block;margin:0 8px 8px 0;padding:12px 18px;background:#5f5cff;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">${escapeHtml(row.cta_label)}</a>` : "";
   const whatsapp = `<a href="${WHATSAPP_URL}" style="display:inline-block;margin:0 0 8px;padding:12px 18px;background:#ffffff;color:#15151b;text-decoration:none;border:1px solid #d9dae2;border-radius:8px;font-weight:700">Entrar em contato pelo WhatsApp</a>`;
