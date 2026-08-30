@@ -53,12 +53,6 @@ export function UserSignupForm() {
 
   return (
     <div className="space-y-5">
-      <label className="block space-y-1.5 text-sm">
-        <span>WhatsApp</span>
-        <Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="(31) 99999-0000" required className="h-11" />
-        <span className="block text-xs leading-5 text-muted-foreground">Obrigatório para manter seus dados de contato atualizados. Comunicações de marketing respeitam as opções de descadastro.</span>
-      </label>
-
       <Button type="button" variant="outline" className="h-11 w-full" onClick={handleGoogle}>Continuar com Google</Button>
 
       <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />ou crie com e-mail<span className="h-px flex-1 bg-border" /></div>
@@ -66,6 +60,7 @@ export function UserSignupForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block space-y-1.5 text-sm"><span>Nome</span><Input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required className="h-11" /></label>
         <label className="block space-y-1.5 text-sm"><span>E-mail</span><Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" required className="h-11" /></label>
+        <label className="block space-y-1.5 text-sm"><span>WhatsApp</span><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="(31) 99999-0000" required className="h-11" /></label>
         <label className="block space-y-1.5 text-sm"><span>Senha</span><Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" autoComplete="new-password" required className="h-11" /></label>
         <label className="block space-y-1.5 text-sm"><span>Confirmar senha</span><Input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" autoComplete="new-password" required className="h-11" /></label>
         {error ? <p className="border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</p> : null}

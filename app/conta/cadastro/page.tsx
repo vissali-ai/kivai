@@ -14,7 +14,6 @@ export default function UserSignupPage() {
       <section className="w-full max-w-md border border-white/10 bg-card p-6 shadow-2xl">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Conta Kivai</p>
         <h1 className="mt-2 text-2xl font-semibold">Criar conta</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Salve suas análises e acesse recursos Free, Pro e Agency.</p>
         <div className="mt-6"><UserSignupForm /></div>
       </section>
     </main>
