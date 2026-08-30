@@ -5,6 +5,7 @@ export const customerMarketingFlows = [
   { key: "renewal", label: "Renovação", description: "Fluxo para assinantes próximos do vencimento." },
   { key: "winback", label: "Recuperação", description: "Reativa usuários com assinatura vencida ou inativa." },
   { key: "cross_sell", label: "Venda cruzada", description: "Apresenta serviços Kivai complementares às ferramentas e planos." },
+  { key: "new_post", label: "Novas publicações", description: "Envia automaticamente cada nova publicação do blog para todos os usuários cadastrados." },
 ] as const;
 
 export type CustomerMarketingFlowKey = (typeof customerMarketingFlows)[number]["key"];

@@ -39,4 +39,18 @@ export async function listAdminCustomers(): Promise<AdminCustomer[]> {
   });
 }
 
+export async function listRegisteredEmailUsers() {
+  const users: AuthUser[] = [];
+  for (let page = 1; ; page += 1) {
+    const auth = await authAdminFetch(`users?page=${page}&per_page=1000`);
+    const authData = await auth.json() as AuthUsersResponse;
+    const batch = authData.users ?? [];
+    users.push(...batch);
+    if (batch.length < 1000) break;
+  }
+  return users
+    .filter((user) => Boolean(user.email?.trim()))
+    .map((user) => ({ id: user.id, email: user.email!.trim().toLowerCase() }));
+}
+
 export async function deleteAuthCustomer(userId: string) { await authAdminFetch(`users/${encodeURIComponent(userId)}`, { method: "DELETE" }); }
