@@ -1,26 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BellRing, Gift, Mail, Pencil, Target, UserPlus, X } from "lucide-react";
+import { BellRing, Gift, Mail, Pencil, Target } from "lucide-react";
 import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { grantGracePeriod, queueManualCampaign } from "@/app/admin/usuarios/actions";
-import { enrollCustomerInMarketingFlow, removeCustomerFromMarketingFlow, saveMarketingReminder, sendMarketingTemplateNow } from "@/app/admin/marketing/actions";
-import { customerMarketingFlows } from "@/lib/marketing/customer-flows";
+import { saveMarketingReminder, sendMarketingTemplateNow } from "@/app/admin/marketing/actions";
 import { listCustomerMarketingTemplates } from "@/lib/marketing/templates";
 import { listOnboardingTemplates } from "@/lib/marketing/onboarding-templates";
 
 export const dynamic = "force-dynamic";
 
-type FlowEnrollment = { id: string; user_id: string; flow_key: string; status: string; enrolled_at: string };
-
-function formatDate(value: string | null) { if (!value) return "-"; return new Date(value).toLocaleString("pt-BR"); }
-
 export default async function MarketingPage({ searchParams }: { searchParams: Promise<{ segment?: string }> }) {
   const params = await searchParams;
   const segment = params.segment ?? "all";
-  const [users, enrollments, templates, onboardingTemplates, reminders] = await Promise.all([
+  const [users, templates, onboardingTemplates, reminders] = await Promise.all([
     listAdminCustomers(),
-    supabaseRest<FlowEnrollment[]>("customer_marketing_flow_enrollments?select=id,user_id,flow_key,status,enrolled_at&status=eq.active&order=enrolled_at.desc&limit=100"),
     listCustomerMarketingTemplates(),
     listOnboardingTemplates(),
     supabaseRest<Array<{ note: string }>>("admin_marketing_reminders?select=note&id=eq.1&limit=1"),
@@ -37,8 +31,6 @@ export default async function MarketingPage({ searchParams }: { searchParams: Pr
     if (segment === "trial") return user.testAccess || user.lifecycleStage === "trial";
     return true;
   });
-  const userMap = new Map(users.map((u) => [u.id, u]));
-  const flowMap = new Map(customerMarketingFlows.map((flow) => [flow.key, flow.label]));
   const counts = {
     free: users.filter((u) => u.planCode === "free" && u.subscriptionStatus !== "past_due").length,
     active: users.filter((u) => u.subscriptionStatus === "active").length,
@@ -48,7 +40,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: Pr
 
   return <div className="space-y-6">
     <section className="border border-white/10 bg-card p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Relacionamento e retenção</p><h1 className="mt-2 text-3xl font-semibold">Marketing de usuários</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Gerencie onboardings automáticos, modelos de relacionamento, fluxos e histórico recente de comunicações.</p></div><Target className="size-7 text-primary" /></div>
+      <div className="flex items-start justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Relacionamento e retenção</p><h1 className="mt-2 text-3xl font-semibold">Marketing de usuários</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Gerencie onboardings automáticos, modelos de relacionamento, campanhas e histórico recente de comunicações.</p></div><Target className="size-7 text-primary" /></div>
       <form action={saveMarketingReminder} className="mt-5 grid gap-2 border border-primary/20 bg-primary/[0.04] p-4 md:grid-cols-[auto_1fr_auto]"><BellRing className="mt-2 size-5 text-primary" /><div><p className="text-xs font-semibold uppercase tracking-wider text-primary">Meu lembrete interno</p><textarea name="note" defaultValue={reminders[0]?.note ?? ""} rows={2} placeholder="Escreva aqui algo que você precisa lembrar..." className="mt-2 w-full border border-white/10 bg-background p-3 text-sm" /></div><button className="h-9 self-end border border-primary/30 bg-primary/10 px-4 text-xs font-semibold text-primary">Salvar lembrete</button></form>
       <div className="mt-5 grid gap-3 sm:grid-cols-4"><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Grátis</p><p className="mt-1 text-2xl font-semibold">{counts.free}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Assinantes ativos</p><p className="mt-1 text-2xl font-semibold text-primary">{counts.active}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Próximos da renovação</p><p className="mt-1 text-2xl font-semibold">{counts.expiring}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Vencidos</p><p className="mt-1 text-2xl font-semibold">{counts.expired}</p></div></div>
     </section>
@@ -62,12 +54,6 @@ export default async function MarketingPage({ searchParams }: { searchParams: Pr
       <div className="flex items-center gap-3"><Image src="/logo.png" alt="Kivai" width={28} height={28} /><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Remarketing e nutrição</p><h2 className="mt-1 text-xl font-semibold">Modelos por situação do cliente</h2></div></div>
       <p className="mt-3 text-xs leading-5 text-muted-foreground">O botão de WhatsApp não fica mais no Admin. Ele é incluído dentro do e-mail recebido pelo cliente, ao lado do CTA principal do modelo.</p>
       <div className="mt-5 grid gap-4 lg:grid-cols-2">{templates.map((item) => <article key={item.flow_key} className="border border-white/10 bg-background/35 p-4"><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-2"><Image src="/logo.png" alt="Kivai" width={20} height={20} /><h3 className="font-semibold">{item.title}</h3></div><Link href={`/admin/marketing/modelos/${item.flow_key}`} className="inline-flex h-8 items-center gap-1 border border-white/10 px-2 text-xs font-semibold text-muted-foreground hover:text-primary"><Pencil className="size-3.5" /> Editar</Link></div><p className="mt-3 text-xs font-semibold">Assunto: {item.subject}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>{item.flow_key === "new_post" ? <p className="mt-4 border border-primary/20 bg-primary/[0.05] p-3 text-xs leading-5 text-muted-foreground">Fluxo automático para todos os usuários cadastrados. O envio ocorre quando a publicação entra no ar, seja imediatamente ou por agendamento.</p> : <form action={sendMarketingTemplateNow} className="mt-4 grid gap-2"><input type="hidden" name="flowKey" value={item.flow_key} /><select name="userId" required defaultValue="" className="h-10 w-full border border-white/10 bg-background px-3 text-sm"><option value="" disabled>Selecionar usuário</option>{users.map((user) => <option key={user.id} value={user.id}>{user.fullName || user.email} · {user.email}</option>)}</select><button disabled={!item.enabled} className="h-9 bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">{item.enabled ? "Enviar e-mail agora" : "Modelo desativado"}</button></form>}</article>)}</div>
-    </section>
-
-    <section className="border border-white/10 bg-card p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Fluxos de marketing</p><h2 className="mt-1 text-xl font-semibold">Incluir usuário em um fluxo</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Por enquanto o fluxo organiza e segmenta usuários. Ele não dispara uma sequência automática D+1, D+3 etc. Essa automação será definida quando você estruturar a cadência.</p></div><UserPlus className="size-6 text-primary" /></div>
-      <form action={enrollCustomerInMarketingFlow} className="mt-5 grid gap-3 md:grid-cols-[1fr_1fr_auto]"><select name="userId" required defaultValue="" className="h-10 border border-white/10 bg-background px-3 text-sm"><option value="" disabled>Selecionar usuário</option>{users.map((user) => <option key={user.id} value={user.id}>{user.fullName || user.email} · {user.email}</option>)}</select><select name="flowKey" required defaultValue="" className="h-10 border border-white/10 bg-background px-3 text-sm"><option value="" disabled>Selecionar fluxo</option>{customerMarketingFlows.filter((flow) => flow.key !== "new_post").map((flow) => <option key={flow.key} value={flow.key}>{flow.label}</option>)}</select><button className="h-10 bg-primary px-5 text-xs font-semibold text-primary-foreground">Incluir no fluxo</button></form>
-      <div className="mt-5 grid gap-2 md:grid-cols-2">{enrollments.slice(0,20).map((item) => { const user = userMap.get(item.user_id); return <div key={item.id} className="flex items-center justify-between gap-3 border border-white/10 bg-background/30 p-3 text-xs"><div><p className="font-semibold">{user?.fullName || user?.email || item.user_id}</p><p className="mt-1 text-muted-foreground">{flowMap.get(item.flow_key as never) || item.flow_key} · desde {formatDate(item.enrolled_at)}</p></div><form action={removeCustomerFromMarketingFlow}><input type="hidden" name="enrollmentId" value={item.id} /><input type="hidden" name="userId" value={item.user_id} /><input type="hidden" name="flowKey" value={item.flow_key} /><button className="inline-flex h-8 items-center gap-1 border border-red-400/30 bg-red-500/10 px-2 font-semibold text-red-300"><X className="size-3.5" /> Remover</button></form></div>; })}{!enrollments.length ? <p className="text-sm text-muted-foreground">Nenhum usuário em fluxo ativo.</p> : null}</div>
     </section>
 
     <nav className="flex flex-wrap gap-2 border border-white/10 bg-card p-3">{[['all','Todos'],['free','Grátis'],['active','Ativos'],['expiring','Vence em até 7 dias'],['expired','Vencidos'],['trial','Teste/cortesia']].map(([value,label]) => <a key={value} href={`/admin/marketing?segment=${value}`} className={`border px-3 py-2 text-xs font-semibold ${segment === value ? 'border-primary/40 bg-primary/10 text-primary' : 'border-white/10 text-muted-foreground'}`}>{label}</a>)}</nav>
