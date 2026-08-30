@@ -17,7 +17,13 @@ type DeliveryResult = { status: "sent"; providerId: string | null } | { status: 
 function escapeHtml(value: string) { return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 function isMarketingCommunication(row: CommunicationRow) { const source = typeof row.metadata?.source === "string" ? row.metadata.source : ""; return source === "admin_suggestion" || source === "admin_manual" || typeof row.metadata?.flow_key === "string"; }
 function metadataText(row: CommunicationRow, key: string) { return typeof row.metadata?.[key] === "string" ? String(row.metadata[key]).trim() : ""; }
-function richMessage(row: CommunicationRow) { return metadataText(row, "message_format") === "rich_html"; }
+function richMessage(row: CommunicationRow) {
+  const format = metadataText(row, "message_format");
+  if (format === "rich_html") return true;
+  if (format === "plain_text") return false;
+  if (metadataText(row, "layout") !== "kivai_campaign") return false;
+  return /<\/?(?:p|br|strong|em|h2|h3|ul|ol|li|blockquote|a|hr|img)\b[^>]*>/i.test(row.message);
+}
 
 function renderParagraphs(message: string, color = "#d8d9e3") {
   return message.split(/\n{2,}/).filter(Boolean).map((part) => `<p style="margin:0 0 18px;line-height:1.72;color:${color};font-size:16px">${escapeHtml(part).replaceAll("\n", "<br>")}</p>`).join("");
