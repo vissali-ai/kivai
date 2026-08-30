@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { Monitor, Smartphone, Send, Save, RotateCcw } from "lucide-react";
-import { sendCustomEmailCampaign, type CampaignActionState } from "./actions";
+import { Monitor, Smartphone, Send, Save, RotateCcw, MailCheck } from "lucide-react";
+import { sendCustomEmailCampaign, sendCustomEmailTest, type CampaignActionState } from "./actions";
 
 type Counts = { all: number; free: number; pro: number; agency: number; active: number; trial: number };
 type Draft = {
@@ -38,6 +38,7 @@ export function EmailMarketingEditor({ counts }: { counts: Counts }) {
   const [saved, setSaved] = useState(false);
   const initialState: CampaignActionState = { ok: false, message: "" };
   const [state, formAction, pending] = useActionState(sendCustomEmailCampaign, initialState);
+  const [testState, testFormAction, testPending] = useActionState(sendCustomEmailTest, initialState);
 
   useEffect(() => {
     try {
@@ -71,7 +72,7 @@ export function EmailMarketingEditor({ counts }: { counts: Counts }) {
   return <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(420px,.9fr)]">
     <form action={formAction} className="space-y-5 border border-white/10 bg-card p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Composição</p><h2 className="mt-1 text-xl font-semibold">Criar e-mail marketing</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Monte a campanha, confira a prévia e confirme o disparo somente quando estiver pronta.</p></div>
+        <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Composição</p><h2 className="mt-1 text-xl font-semibold">Criar e-mail marketing</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Monte a campanha, envie primeiro um teste para sua caixa de entrada e confirme o disparo somente quando estiver pronta.</p></div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground"><Save className="size-4" />{saved ? "Rascunho salvo" : "Salvamento automático"}</div>
       </div>
 
@@ -101,11 +102,16 @@ export function EmailMarketingEditor({ counts }: { counts: Counts }) {
         <p className="mt-1 text-xs leading-5 text-muted-foreground">O sistema respeita quem cancelou e-mails de marketing. Cada mensagem é enviada individualmente pelo Resend e mantém o link de descadastro.</p>
       </div>
 
+      <div className="border border-white/10 bg-background/35 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-semibold">Teste antes do disparo</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Envia uma cópia real, com o mesmo layout da campanha, para o e-mail configurado como administrador. O assunto recebe o prefixo [TESTE].</p></div><button type="submit" formAction={testFormAction} disabled={testPending || pending} className="inline-flex h-9 items-center gap-2 border border-primary/30 bg-primary/10 px-4 text-xs font-semibold text-primary disabled:opacity-50"><MailCheck className="size-4" />{testPending ? "Enviando teste..." : "Enviar teste para mim"}</button></div>
+        {testState.message ? <div className={`mt-3 border p-3 text-sm ${testState.ok ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200" : "border-amber-400/30 bg-amber-500/10 text-amber-100"}`}>{testState.message}</div> : null}
+      </div>
+
       <label className="flex items-start gap-3 border border-red-400/20 bg-red-500/[0.04] p-4 text-sm"><input name="confirmSend" type="checkbox" className="mt-1" /><span><strong>Confirmo o envio desta campanha.</strong><span className="mt-1 block text-xs leading-5 text-muted-foreground">Ao clicar no botão abaixo, o envio começa imediatamente para o público selecionado. Revise assunto, conteúdo, links e quantidade de destinatários.</span></span></label>
 
       {state.message ? <div className={`border p-3 text-sm ${state.ok ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200" : "border-amber-400/30 bg-amber-500/10 text-amber-100"}`}>{state.message}</div> : null}
 
-      <div className="flex flex-wrap gap-2"><button disabled={pending} className="inline-flex h-10 items-center gap-2 bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50"><Send className="size-4" />{pending ? "Enviando campanha..." : "Enviar campanha agora"}</button><button type="button" onClick={resetDraft} className="inline-flex h-10 items-center gap-2 border border-white/10 px-4 text-sm font-semibold text-muted-foreground hover:text-foreground"><RotateCcw className="size-4" />Limpar rascunho</button></div>
+      <div className="flex flex-wrap gap-2"><button disabled={pending || testPending} className="inline-flex h-10 items-center gap-2 bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50"><Send className="size-4" />{pending ? "Enviando campanha..." : "Enviar campanha agora"}</button><button type="button" onClick={resetDraft} className="inline-flex h-10 items-center gap-2 border border-white/10 px-4 text-sm font-semibold text-muted-foreground hover:text-foreground"><RotateCcw className="size-4" />Limpar rascunho</button></div>
     </form>
 
     <section className="h-fit border border-white/10 bg-card p-4 sm:p-5 xl:sticky xl:top-6">
