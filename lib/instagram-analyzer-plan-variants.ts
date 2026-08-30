@@ -85,7 +85,7 @@ function agencyFallback(base: InstagramAnalyzerConfig): InstagramAnalyzerConfig 
   return {
     ...pro,
     eyebrow: "Kivai Agency",
-    pageTitle: "Instagram Follow Analyzer para agências",
+    pageTitle: "Analisador de Seguidores do Instagram para agências",
     heroDescription:
       "Centralize a análise de até 20 perfis ou clientes, organize históricos por conta e acompanhe mudanças de seguidores e indicadores em uma operação profissional.",
     badgeOne: "Até 20 contas e clientes",

@@ -28,7 +28,7 @@ export const freeWelcomeTemplate = {
   subject: "Seu Plano Grátis Kivai está disponível",
   preview: "Sua conta está no Plano Grátis e você já pode começar a usar os recursos disponíveis.",
   features: [
-    "Análise básica do Instagram Follow Analyzer",
+    "Análise básica do Analisador de Seguidores do Instagram",
     "Comparação entre quem você segue e quem segue você",
     "Identificação de seguidores, seguindo e conexões mútuas",
     "Uso das ferramentas gratuitas disponíveis no ecossistema Kivai",
@@ -65,7 +65,7 @@ export function buildAgencyWelcomeEmail(params: {
 
   return {
     subject: agencyWelcomeTemplate.subject,
-    message: `${name}, obrigado por escolher o Plano Agency Kivai. Seu pagamento foi confirmado e seu acesso Agency já está ativo.\n\nSeu plano é ${cycle} e fica disponível até ${expires}.\n\nO que você tem disponível no Plano Agency:\n${features}\n\nComo começar:\n1. Entre no seu painel Kivai.\n2. Acesse o Instagram Follow Analyzer.\n3. Organize as contas ou clientes que deseja acompanhar.\n4. Importe as exportações oficiais da Meta em JSON.\n5. Repita as análises ao longo do tempo para construir histórico e comparações.\n\nOs dados ficam vinculados à sua conta e devem permanecer separados por cliente para facilitar sua operação.\n\nObrigado por escolher o Kivai para apoiar sua gestão de múltiplas contas.`,
+    message: `${name}, obrigado por escolher o Plano Agency Kivai. Seu pagamento foi confirmado e seu acesso Agency já está ativo.\n\nSeu plano é ${cycle} e fica disponível até ${expires}.\n\nO que você tem disponível no Plano Agency:\n${features}\n\nComo começar:\n1. Entre no seu painel Kivai.\n2. Acesse o Analisador de Seguidores do Instagram.\n3. Organize as contas ou clientes que deseja acompanhar.\n4. Importe as exportações oficiais da Meta em JSON.\n5. Repita as análises ao longo do tempo para construir histórico e comparações.\n\nOs dados ficam vinculados à sua conta e devem permanecer separados por cliente para facilitar sua operação.\n\nObrigado por escolher o Kivai para apoiar sua gestão de múltiplas contas.`,
     ctaLabel: "Acessar meu painel Agency",
     ctaUrl: "https://www.kivai.com.br/conta",
   };

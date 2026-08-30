@@ -67,7 +67,7 @@ const SECTION_KEYS = Object.keys(DEFAULT_VISIBILITY);
 
 export const DEFAULT_INSTAGRAM_ANALYZER_CONFIG: InstagramAnalyzerConfig = {
   eyebrow: "Kivai Social Intelligence",
-  pageTitle: "Quem deixou de seguir no Instagram",
+  pageTitle: "Analisador de Seguidores do Instagram",
   heroDescription: "Descubra rapidamente de forma gratuita quem não te segue de volta no Instagram e limpe seu perfil.",
   badgeOne: "Análise rápida",
   badgeTwo: "Exportação oficial da Meta",
