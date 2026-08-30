@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BellRing, Mail, Pencil, Target } from "lucide-react";
 import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
-import { saveMarketingReminder, sendMarketingTemplateNow } from "@/app/admin/marketing/actions";
+import { saveMarketingReminder } from "@/app/admin/marketing/actions";
 import { isAutomaticMarketingFlowKey } from "@/lib/marketing/customer-flows";
 import { listCustomerMarketingTemplates } from "@/lib/marketing/templates";
 import { listOnboardingTemplates } from "@/lib/marketing/onboarding-templates";
@@ -12,12 +12,8 @@ export const dynamic = "force-dynamic";
 
 export default async function MarketingPage() {
   const [users, templates, onboardingTemplates, reminders] = await Promise.all([
-    listAdminCustomers(),
-    listCustomerMarketingTemplates(),
-    listOnboardingTemplates(),
-    supabaseRest<Array<{ note: string }>>("admin_marketing_reminders?select=note&id=eq.1&limit=1"),
+    listAdminCustomers(), listCustomerMarketingTemplates(), listOnboardingTemplates(), supabaseRest<Array<{ note: string }>>("admin_marketing_reminders?select=note&id=eq.1&limit=1"),
   ]);
-
   const now = Date.now();
   const counts = {
     free: users.filter((u) => u.planCode === "free" && u.subscriptionStatus !== "past_due").length,
@@ -35,18 +31,18 @@ export default async function MarketingPage() {
 
     <section className="border border-primary/25 bg-primary/[0.035] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Onboarding automático</p><h2 className="mt-1 text-xl font-semibold">E-mails automáticos da conta</h2></div><Mail className="size-6 text-primary" /></div>
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">{onboardingTemplates.map((item) => <article key={item.template_key} className="border border-white/10 bg-background/35 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-primary">Automático</p><h3 className="mt-1 font-semibold">{item.title}</h3></div><Link href={`/admin/marketing/onboarding/${item.template_key}`} className="inline-flex h-8 items-center gap-1 border border-white/10 px-2 text-xs font-semibold text-muted-foreground hover:text-primary"><Pencil className="size-3.5" /> Editar</Link></div><p className="mt-3 text-xs font-semibold">Assunto: {item.subject}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p><p className="mt-3 text-xs text-muted-foreground">Status: {item.enabled ? "ativo" : "desativado"}</p></article>)}</div>
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">{onboardingTemplates.map((item) => <article key={item.template_key} className="border border-white/10 bg-background/35 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-primary">Automático</p><h3 className="mt-1 font-semibold">{item.title}</h3></div><Link href={`/admin/marketing/onboarding/${item.template_key}`} className="inline-flex h-8 items-center gap-1 border border-white/10 px-2 text-xs font-semibold text-muted-foreground hover:text-primary"><Pencil className="size-3.5" /> Editar e visualizar</Link></div><p className="mt-3 text-xs font-semibold">Assunto: {item.subject}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p><p className="mt-3 text-xs text-muted-foreground">Status: {item.enabled ? "ativo" : "desativado"}</p></article>)}</div>
     </section>
 
     <section className="border border-white/10 bg-card p-5 sm:p-6">
       <div className="flex items-center gap-3"><Image src="/logo.png" alt="Kivai" width={28} height={28} /><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Remarketing e nutrição</p><h2 className="mt-1 text-xl font-semibold">Modelos por situação do cliente</h2></div></div>
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">Modelos automáticos são disparados pelos fluxos do sistema. Apenas modelos manuais exibem seleção de usuário e botão de envio.</p>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">Todos os modelos abrem no editor completo com prévia desktop/mobile e dois botões opcionais. Modelos automáticos são disparados pelo sistema; modelos manuais permitem escolher o destinatário apenas depois da revisão.</p>
       <div className="mt-5 grid gap-4 lg:grid-cols-2">{templates.map((item) => {
         const automatic = isAutomaticMarketingFlowKey(item.flow_key);
-        return <article key={item.flow_key} className="border border-white/10 bg-background/35 p-4"><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-2"><Image src="/logo.png" alt="Kivai" width={20} height={20} /><div><h3 className="font-semibold">{item.title}</h3>{automatic ? <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-primary">Fluxo automático</p> : <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Envio manual</p>}</div></div><Link href={`/admin/marketing/modelos/${item.flow_key}`} className="inline-flex h-8 items-center gap-1 border border-white/10 px-2 text-xs font-semibold text-muted-foreground hover:text-primary"><Pencil className="size-3.5" /> Editar</Link></div><p className="mt-3 text-xs font-semibold">Assunto: {item.subject}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>{automatic ? <p className="mt-4 border border-primary/20 bg-primary/[0.05] p-3 text-xs leading-5 text-muted-foreground">Este modelo pertence a um fluxo automático e não possui disparo manual neste painel.</p> : <form action={sendMarketingTemplateNow} className="mt-4 grid gap-2"><input type="hidden" name="flowKey" value={item.flow_key} /><select name="userId" required defaultValue="" className="h-10 w-full border border-white/10 bg-background px-3 text-sm"><option value="" disabled>Selecionar usuário</option>{users.map((user) => <option key={user.id} value={user.id}>{user.fullName || user.email} · {user.email}</option>)}</select><button disabled={!item.enabled} className="h-9 bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">{item.enabled ? "Enviar e-mail agora" : "Modelo desativado"}</button></form>}</article>;
+        return <article key={item.flow_key} className="border border-white/10 bg-background/35 p-4"><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-2"><Image src="/logo.png" alt="Kivai" width={20} height={20} /><div><h3 className="font-semibold">{item.title}</h3>{automatic ? <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-primary">Fluxo automático</p> : <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Envio manual</p>}</div></div><Link href={`/admin/marketing/modelos/${item.flow_key}`} className="inline-flex h-8 items-center gap-1 border border-white/10 px-2 text-xs font-semibold text-muted-foreground hover:text-primary"><Pencil className="size-3.5" /> {automatic ? "Editar e visualizar" : "Prévia e enviar"}</Link></div><p className="mt-3 text-xs font-semibold">Assunto: {item.subject}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>{automatic ? <p className="mt-4 border border-primary/20 bg-primary/[0.05] p-3 text-xs leading-5 text-muted-foreground">Este modelo pertence a um fluxo automático. A edição altera os próximos disparos, mas não cria envio manual.</p> : <p className="mt-4 border border-white/10 p-3 text-xs leading-5 text-muted-foreground">O envio manual fica dentro do editor, depois da prévia e da seleção do destinatário.</p>}</article>;
       })}</div>
     </section>
 
-    <section className="border border-primary/25 bg-primary/[0.035] p-4"><h3 className="font-semibold">Automação de vencimento ativa</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">Planos Pro e Agency recebem e-mails automáticos 7, 3 e 1 dia antes do vencimento. Sete dias após vencer, o sistema libera uma única cortesia de 7 dias no mesmo plano e envia o aviso pelo Resend. Se houver pagamento em andamento, o fluxo pausa os disparos e não concede a cortesia. Os textos são controlados pelos modelos “Avisos automáticos de vencimento” e “Cortesia automática após vencimento” acima.</p></section>
+    <section className="border border-primary/25 bg-primary/[0.035] p-4"><h3 className="font-semibold">Automação de vencimento ativa</h3><p className="mt-2 text-xs leading-5 text-muted-foreground">Planos Pro e Agency recebem e-mails automáticos 7, 3 e 1 dia antes do vencimento. Sete dias após vencer, o sistema libera uma única cortesia de 7 dias no mesmo plano e envia o aviso pelo Resend. Se houver pagamento em andamento, o fluxo pausa os disparos e não concede a cortesia.</p></section>
   </div>;
 }
