@@ -11,17 +11,21 @@ export type CustomerMarketingTemplate = {
   message: string;
   cta_label: string | null;
   cta_url: string | null;
+  secondary_cta_label: string | null;
+  secondary_cta_url: string | null;
   enabled: boolean;
   updated_at: string;
 };
 
+const SELECT = "flow_key,title,subject,description,message,cta_label,cta_url,secondary_cta_label,secondary_cta_url,enabled,updated_at";
+
 export async function listCustomerMarketingTemplates() {
-  const rows = await supabaseRest<CustomerMarketingTemplate[]>("customer_marketing_templates?select=flow_key,title,subject,description,message,cta_label,cta_url,enabled,updated_at&order=flow_key.asc");
+  const rows = await supabaseRest<CustomerMarketingTemplate[]>(`customer_marketing_templates?select=${SELECT}&order=flow_key.asc`);
   const map = new Map(rows.map((row) => [row.flow_key, row]));
   return customerMarketingFlows.map((flow) => map.get(flow.key)).filter(Boolean) as CustomerMarketingTemplate[];
 }
 
 export async function getCustomerMarketingTemplate(flowKey: CustomerMarketingFlowKey) {
-  const rows = await supabaseRest<CustomerMarketingTemplate[]>(`customer_marketing_templates?select=flow_key,title,subject,description,message,cta_label,cta_url,enabled,updated_at&flow_key=eq.${encodeURIComponent(flowKey)}&limit=1`);
+  const rows = await supabaseRest<CustomerMarketingTemplate[]>(`customer_marketing_templates?select=${SELECT}&flow_key=eq.${encodeURIComponent(flowKey)}&limit=1`);
   return rows[0] ?? null;
 }
