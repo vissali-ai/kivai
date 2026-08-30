@@ -2,8 +2,9 @@
 
 import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { assertAdminApi } from "@/lib/blog/auth";
+import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
-import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
+import { deliverCustomerEmail, sendAdminCampaignTestEmail } from "@/lib/marketing/email-delivery";
 
 export type CampaignActionState = {
   ok: boolean;
@@ -28,29 +29,67 @@ function matchesAudience(user: Awaited<ReturnType<typeof listAdminCustomers>>[nu
   return true;
 }
 
+function readCampaignFields(formData: FormData) {
+  return {
+    campaignName: clean(formData.get("campaignName"), 120),
+    audience: clean(formData.get("audience"), 30) || "all",
+    subject: clean(formData.get("subject"), 180),
+    preheader: clean(formData.get("preheader"), 220),
+    eyebrow: clean(formData.get("eyebrow"), 80),
+    headline: clean(formData.get("headline"), 180),
+    message: clean(formData.get("message"), 10000),
+    highlight: clean(formData.get("highlight"), 1200),
+    ctaLabel: clean(formData.get("ctaLabel"), 70),
+    ctaUrl: clean(formData.get("ctaUrl"), 800),
+  };
+}
+
+function validateCampaign(fields: ReturnType<typeof readCampaignFields>, requireName = true) {
+  if ((requireName && !fields.campaignName) || !fields.subject || !fields.headline || !fields.message) {
+    return requireName
+      ? "Preencha nome da campanha, assunto, título e conteúdo do e-mail."
+      : "Preencha assunto, título e conteúdo do e-mail antes de enviar o teste.";
+  }
+  if (fields.ctaLabel && !fields.ctaUrl) return "Informe o link do botão principal.";
+  if (fields.ctaUrl && !/^https:\/\//i.test(fields.ctaUrl)) return "O link do botão deve começar com https://.";
+  return null;
+}
+
+export async function sendCustomEmailTest(_previous: CampaignActionState, formData: FormData): Promise<CampaignActionState> {
+  await assertAdminApi();
+  const fields = readCampaignFields(formData);
+  const validation = validateCampaign(fields, false);
+  if (validation) return { ok: false, message: validation };
+
+  const recipient = blogConfig.adminEmail?.trim().toLowerCase() ?? "";
+  if (!recipient) return { ok: false, message: "O e-mail do administrador não está configurado." };
+
+  const result = await sendAdminCampaignTestEmail({
+    recipient,
+    subject: fields.subject,
+    message: fields.message,
+    ctaLabel: fields.ctaLabel || null,
+    ctaUrl: fields.ctaUrl || null,
+    preheader: fields.preheader,
+    eyebrow: fields.eyebrow,
+    headline: fields.headline,
+    highlight: fields.highlight,
+  });
+
+  if (!result.ok) return { ok: false, message: `Não foi possível enviar o teste: ${result.error}` };
+  return { ok: true, message: `E-mail de teste enviado para ${recipient}. Confira a caixa de entrada antes do disparo geral.` };
+}
+
 export async function sendCustomEmailCampaign(_previous: CampaignActionState, formData: FormData): Promise<CampaignActionState> {
   await assertAdminApi();
 
-  const campaignName = clean(formData.get("campaignName"), 120);
-  const audience = clean(formData.get("audience"), 30) || "all";
-  const subject = clean(formData.get("subject"), 180);
-  const preheader = clean(formData.get("preheader"), 220);
-  const eyebrow = clean(formData.get("eyebrow"), 80);
-  const headline = clean(formData.get("headline"), 180);
-  const message = clean(formData.get("message"), 10000);
-  const highlight = clean(formData.get("highlight"), 1200);
-  const ctaLabel = clean(formData.get("ctaLabel"), 70);
-  const ctaUrl = clean(formData.get("ctaUrl"), 800);
+  const fields = readCampaignFields(formData);
+  const validation = validateCampaign(fields, true);
+  if (validation) return { ok: false, message: validation };
   const confirmed = formData.get("confirmSend") === "on";
-
-  if (!campaignName || !subject || !headline || !message) {
-    return { ok: false, message: "Preencha nome da campanha, assunto, título e conteúdo do e-mail." };
-  }
-  if (ctaLabel && !ctaUrl) return { ok: false, message: "Informe o link do botão principal." };
-  if (ctaUrl && !/^https:\/\//i.test(ctaUrl)) return { ok: false, message: "O link do botão deve começar com https://." };
   if (!confirmed) return { ok: false, message: "Confirme explicitamente o envio antes de disparar a campanha." };
 
-  const users = (await listAdminCustomers()).filter((user) => user.email && matchesAudience(user, audience));
+  const users = (await listAdminCustomers()).filter((user) => user.email && matchesAudience(user, fields.audience));
   if (!users.length) return { ok: false, message: "Nenhum usuário foi encontrado para este público." };
   if (users.length > MAX_RECIPIENTS_PER_SEND) {
     return { ok: false, message: `Este disparo possui ${users.length} destinatários. O limite seguro atual é ${MAX_RECIPIENTS_PER_SEND} por envio. Segmente a campanha antes de continuar.` };
@@ -65,22 +104,22 @@ export async function sendCustomEmailCampaign(_previous: CampaignActionState, fo
       event_key: `custom_campaign_${campaignId}_${user.id}`,
       channel: "email",
       status: "ready",
-      subject,
-      message,
-      cta_label: ctaLabel || null,
-      cta_url: ctaUrl || null,
+      subject: fields.subject,
+      message: fields.message,
+      cta_label: fields.ctaLabel || null,
+      cta_url: fields.ctaUrl || null,
       scheduled_for: now,
       metadata: {
         source: "admin_manual",
         kind: "custom_email_campaign",
         layout: "kivai_campaign",
         campaign_id: campaignId,
-        campaign_name: campaignName,
-        audience,
-        preheader,
-        eyebrow,
-        headline,
-        highlight,
+        campaign_name: fields.campaignName,
+        audience: fields.audience,
+        preheader: fields.preheader,
+        eyebrow: fields.eyebrow,
+        headline: fields.headline,
+        highlight: fields.highlight,
         recipient_email: user.email,
         recipient_name: user.fullName,
       },
@@ -108,8 +147,8 @@ export async function sendCustomEmailCampaign(_previous: CampaignActionState, fo
     body: JSON.stringify({
       user_id: users[0].id,
       event_type: "custom_campaign_completed",
-      description: `Campanha manual ${campaignName} concluída: ${sent} enviados, ${canceled} cancelados e ${failed} com falha.`,
-      metadata: { campaign_id: campaignId, campaign_name: campaignName, audience, recipients: users.length, sent, canceled, failed },
+      description: `Campanha manual ${fields.campaignName} concluída: ${sent} enviados, ${canceled} cancelados e ${failed} com falha.`,
+      metadata: { campaign_id: campaignId, campaign_name: fields.campaignName, audience: fields.audience, recipients: users.length, sent, canceled, failed },
     }),
   });
 
