@@ -7,6 +7,15 @@ const supabaseHostname = supabaseUrl
   : "fphphknegwlgydwulehl.supabase.co";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/ferramentas/instagram-follow-analyzer",
+        destination: "/ferramentas/analisador-de-seguidores-instagram",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [{
       protocol: "https",
