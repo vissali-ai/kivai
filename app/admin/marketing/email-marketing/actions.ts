@@ -1,5 +1,6 @@
 "use server";
 
+import sanitizeHtml from "sanitize-html";
 import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { blogConfig } from "@/lib/blog/config";
@@ -20,6 +21,26 @@ function clean(value: FormDataEntryValue | null, max: number) {
   return String(value ?? "").trim().slice(0, max);
 }
 
+function sanitizeCampaignMessage(value: FormDataEntryValue | null) {
+  return sanitizeHtml(String(value ?? "").slice(0, 30000), {
+    allowedTags: ["p", "br", "strong", "em", "h2", "h3", "ul", "ol", "li", "blockquote", "a", "hr", "img"],
+    allowedAttributes: {
+      a: ["href", "target", "rel"],
+      img: ["src", "alt", "title"],
+    },
+    allowedSchemes: ["http", "https"],
+    allowedSchemesByTag: { img: ["http", "https"] },
+    transformTags: {
+      a: (_tagName, attribs) => ({ tagName: "a", attribs: { ...attribs, target: "_blank", rel: "noopener noreferrer" } }),
+    },
+  }).trim();
+}
+
+function hasCampaignContent(html: string) {
+  const text = sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} }).replace(/\s+/g, " ").trim();
+  return Boolean(text || /<img\b/i.test(html) || /<hr\b/i.test(html));
+}
+
 function matchesAudience(user: Awaited<ReturnType<typeof listAdminCustomers>>[number], audience: string) {
   if (audience === "free") return user.planCode === "free";
   if (audience === "pro") return user.planCode === "pro";
@@ -37,21 +58,26 @@ function readCampaignFields(formData: FormData) {
     preheader: clean(formData.get("preheader"), 220),
     eyebrow: clean(formData.get("eyebrow"), 80),
     headline: clean(formData.get("headline"), 180),
-    message: clean(formData.get("message"), 10000),
+    message: sanitizeCampaignMessage(formData.get("message")),
     highlight: clean(formData.get("highlight"), 1200),
     ctaLabel: clean(formData.get("ctaLabel"), 70),
     ctaUrl: clean(formData.get("ctaUrl"), 800),
+    secondaryCtaLabel: clean(formData.get("secondaryCtaLabel"), 70),
+    secondaryCtaUrl: clean(formData.get("secondaryCtaUrl"), 800),
   };
 }
 
 function validateCampaign(fields: ReturnType<typeof readCampaignFields>, requireName = true) {
-  if ((requireName && !fields.campaignName) || !fields.subject || !fields.headline || !fields.message) {
+  if ((requireName && !fields.campaignName) || !fields.subject || !fields.headline || !hasCampaignContent(fields.message)) {
     return requireName
       ? "Preencha nome da campanha, assunto, título e conteúdo do e-mail."
       : "Preencha assunto, título e conteúdo do e-mail antes de enviar o teste.";
   }
   if (fields.ctaLabel && !fields.ctaUrl) return "Informe o link do botão principal.";
-  if (fields.ctaUrl && !/^https:\/\//i.test(fields.ctaUrl)) return "O link do botão deve começar com https://.";
+  if (fields.ctaUrl && !/^https:\/\//i.test(fields.ctaUrl)) return "O link do botão principal deve começar com https://.";
+  if (fields.secondaryCtaLabel && !fields.secondaryCtaUrl) return "Informe o link do segundo botão.";
+  if (fields.secondaryCtaUrl && !fields.secondaryCtaLabel) return "Informe o texto do segundo botão ou remova o link.";
+  if (fields.secondaryCtaUrl && !/^https:\/\//i.test(fields.secondaryCtaUrl)) return "O link do segundo botão deve começar com https://.";
   return null;
 }
 
@@ -70,6 +96,8 @@ export async function sendCustomEmailTest(_previous: CampaignActionState, formDa
     message: fields.message,
     ctaLabel: fields.ctaLabel || null,
     ctaUrl: fields.ctaUrl || null,
+    secondaryCtaLabel: fields.secondaryCtaLabel || null,
+    secondaryCtaUrl: fields.secondaryCtaUrl || null,
     preheader: fields.preheader,
     eyebrow: fields.eyebrow,
     headline: fields.headline,
@@ -113,6 +141,7 @@ export async function sendCustomEmailCampaign(_previous: CampaignActionState, fo
         source: "admin_manual",
         kind: "custom_email_campaign",
         layout: "kivai_campaign",
+        message_format: "rich_html",
         campaign_id: campaignId,
         campaign_name: fields.campaignName,
         audience: fields.audience,
@@ -120,6 +149,8 @@ export async function sendCustomEmailCampaign(_previous: CampaignActionState, fo
         eyebrow: fields.eyebrow,
         headline: fields.headline,
         highlight: fields.highlight,
+        secondary_cta_label: fields.secondaryCtaLabel,
+        secondary_cta_url: fields.secondaryCtaUrl,
         recipient_email: user.email,
         recipient_name: user.fullName,
       },

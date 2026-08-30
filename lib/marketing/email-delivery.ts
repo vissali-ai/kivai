@@ -1,5 +1,6 @@
 import "server-only";
 
+import sanitizeHtml from "sanitize-html";
 import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
 
@@ -16,9 +17,43 @@ type DeliveryResult = { status: "sent"; providerId: string | null } | { status: 
 function escapeHtml(value: string) { return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 function isMarketingCommunication(row: CommunicationRow) { const source = typeof row.metadata?.source === "string" ? row.metadata.source : ""; return source === "admin_suggestion" || source === "admin_manual" || typeof row.metadata?.flow_key === "string"; }
 function metadataText(row: CommunicationRow, key: string) { return typeof row.metadata?.[key] === "string" ? String(row.metadata[key]).trim() : ""; }
+function richMessage(row: CommunicationRow) { return metadataText(row, "message_format") === "rich_html"; }
 
 function renderParagraphs(message: string, color = "#d8d9e3") {
   return message.split(/\n{2,}/).filter(Boolean).map((part) => `<p style="margin:0 0 18px;line-height:1.72;color:${color};font-size:16px">${escapeHtml(part).replaceAll("\n", "<br>")}</p>`).join("");
+}
+
+function renderRichCampaignContent(message: string) {
+  return sanitizeHtml(message, {
+    allowedTags: ["p", "br", "strong", "em", "h2", "h3", "ul", "ol", "li", "blockquote", "a", "hr", "img"],
+    allowedAttributes: {
+      p: ["style"], h2: ["style"], h3: ["style"], ul: ["style"], ol: ["style"], li: ["style"], blockquote: ["style"], hr: ["style"],
+      a: ["href", "target", "rel", "style"], img: ["src", "alt", "title", "style"],
+    },
+    allowedSchemes: ["http", "https"],
+    allowedSchemesByTag: { img: ["http", "https"] },
+    transformTags: {
+      p: () => ({ tagName: "p", attribs: { style: "margin:0 0 18px;line-height:1.72;color:#d8d9e3;font-size:16px" } }),
+      h2: () => ({ tagName: "h2", attribs: { style: "margin:26px 0 12px;font-size:24px;line-height:1.25;color:#ffffff" } }),
+      h3: () => ({ tagName: "h3", attribs: { style: "margin:22px 0 10px;font-size:19px;line-height:1.3;color:#ffffff" } }),
+      ul: () => ({ tagName: "ul", attribs: { style: "margin:0 0 18px;padding-left:24px;color:#d8d9e3;font-size:16px;line-height:1.7" } }),
+      ol: () => ({ tagName: "ol", attribs: { style: "margin:0 0 18px;padding-left:24px;color:#d8d9e3;font-size:16px;line-height:1.7" } }),
+      li: () => ({ tagName: "li", attribs: { style: "margin:0 0 8px" } }),
+      blockquote: () => ({ tagName: "blockquote", attribs: { style: "margin:22px 0;padding:4px 0 4px 18px;border-left:3px solid #6d72ff;color:#eef0ff;font-size:16px;line-height:1.7" } }),
+      a: (_tagName, attribs) => ({ tagName: "a", attribs: { href: attribs.href || "#", target: "_blank", rel: "noopener noreferrer", style: "color:#9aa0ff;text-decoration:underline" } }),
+      img: (_tagName, attribs) => ({ tagName: "img", attribs: { src: attribs.src || "", alt: attribs.alt || "", title: attribs.title || "", style: "display:block;width:auto;max-width:100%;height:auto;margin:22px auto;border:0;border-radius:12px" } }),
+      hr: () => ({ tagName: "hr", attribs: { style: "border:0;border-top:1px solid #2b2e3b;margin:26px 0" } }),
+    },
+  });
+}
+
+function messageToText(row: CommunicationRow) {
+  if (!richMessage(row)) return row.message;
+  return sanitizeHtml(row.message, { allowedTags: [], allowedAttributes: {} }).replace(/\s+/g, " ").trim();
+}
+
+function campaignButton(label: string, url: string) {
+  return `<a href="${escapeHtml(url)}" style="display:inline-block;margin:0 8px 8px 0;padding:14px 22px;background:#6d72ff;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:800;font-size:15px">${escapeHtml(label)}</a>`;
 }
 
 function renderCampaignHtml(row: CommunicationRow, unsubscribeUrl: string | null) {
@@ -26,11 +61,15 @@ function renderCampaignHtml(row: CommunicationRow, unsubscribeUrl: string | null
   const eyebrow = metadataText(row, "eyebrow");
   const headline = metadataText(row, "headline") || row.subject || "Kivai";
   const highlight = metadataText(row, "highlight");
-  const paragraphs = renderParagraphs(row.message);
-  const primary = row.cta_label && row.cta_url ? `<a href="${escapeHtml(row.cta_url)}" style="display:inline-block;padding:14px 22px;background:#6d72ff;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:800;font-size:15px">${escapeHtml(row.cta_label)}</a>` : "";
+  const content = richMessage(row) ? renderRichCampaignContent(row.message) : renderParagraphs(row.message);
+  const primary = row.cta_label && row.cta_url ? campaignButton(row.cta_label, row.cta_url) : "";
+  const secondaryLabel = metadataText(row, "secondary_cta_label");
+  const secondaryUrl = metadataText(row, "secondary_cta_url");
+  const secondary = secondaryLabel && secondaryUrl ? campaignButton(secondaryLabel, secondaryUrl) : "";
+  const buttons = primary || secondary ? `<div style="margin-top:26px">${primary}${secondary}</div>` : "";
   const highlightBlock = highlight ? `<div style="margin:24px 0;padding:18px 20px;border:1px solid #353a69;border-radius:12px;background:#15182a;color:#eef0ff;font-size:14px;line-height:1.65">${escapeHtml(highlight).replaceAll("\n", "<br>")}</div>` : "";
   const unsubscribe = unsubscribeUrl ? `<div style="margin-top:30px;padding-top:20px;border-top:1px solid #262936;font-size:12px;line-height:1.65;color:#8f92a3">Você recebeu este e-mail por ter cadastro ou relacionamento com o Kivai. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#9aa0ff">Cancelar recebimento de e-mails de marketing</a>.</div>` : "";
-  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"></head><body style="margin:0;background:#090a10;font-family:Arial,Helvetica,sans-serif;color:#ffffff">${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>` : ""}<div style="max-width:680px;margin:0 auto;padding:34px 18px"><div style="padding:30px;border:1px solid #252836;border-radius:18px;background:#0f1119"><div style="display:inline-block;margin-bottom:26px;padding:8px 12px;border:1px solid #343861;border-radius:999px;color:#9ca1ff;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase">KIVAI</div>${eyebrow ? `<div style="margin-bottom:12px;color:#7f86ff;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">${escapeHtml(eyebrow)}</div>` : ""}<h1 style="margin:0 0 20px;font-size:32px;line-height:1.12;color:#ffffff">${escapeHtml(headline)}</h1>${paragraphs}${highlightBlock}${primary ? `<div style="margin-top:26px">${primary}</div>` : ""}<div style="margin-top:28px;font-size:12px;line-height:1.65;color:#8f92a3">Ferramentas inteligentes para resultados reais.<br><a href="${SITE_URL}" style="color:#9aa0ff">kivai.com.br</a> · <a href="${WHATSAPP_URL}" style="color:#9aa0ff">WhatsApp</a></div>${unsubscribe}</div></div></body></html>`;
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"></head><body style="margin:0;background:#090a10;font-family:Arial,Helvetica,sans-serif;color:#ffffff">${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>` : ""}<div style="max-width:680px;margin:0 auto;padding:34px 18px"><div style="padding:30px;border:1px solid #252836;border-radius:18px;background:#0f1119"><div style="display:inline-block;margin-bottom:26px;padding:8px 12px;border:1px solid #343861;border-radius:999px;color:#9ca1ff;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase">KIVAI</div>${eyebrow ? `<div style="margin-bottom:12px;color:#7f86ff;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">${escapeHtml(eyebrow)}</div>` : ""}<h1 style="margin:0 0 20px;font-size:32px;line-height:1.12;color:#ffffff">${escapeHtml(headline)}</h1>${content}${highlightBlock}${buttons}<div style="margin-top:28px;font-size:12px;line-height:1.65;color:#8f92a3">Ferramentas inteligentes para resultados reais.<br><a href="${SITE_URL}" style="color:#9aa0ff">kivai.com.br</a> · <a href="${WHATSAPP_URL}" style="color:#9aa0ff">WhatsApp</a></div>${unsubscribe}</div></div></body></html>`;
 }
 
 function renderHtml(row: CommunicationRow, unsubscribeUrl: string | null) {
@@ -65,6 +104,8 @@ export async function sendAdminCampaignTestEmail(input: {
   message: string;
   ctaLabel?: string | null;
   ctaUrl?: string | null;
+  secondaryCtaLabel?: string | null;
+  secondaryCtaUrl?: string | null;
   preheader?: string;
   eyebrow?: string;
   headline?: string;
@@ -76,21 +117,11 @@ export async function sendAdminCampaignTestEmail(input: {
   if (!recipient) return { ok: false, error: "E-mail do administrador não configurado." } as const;
 
   const row: CommunicationRow = {
-    id: "admin-campaign-test",
-    user_id: "admin",
-    channel: "email",
-    status: "ready",
-    subject: input.subject,
-    message: input.message,
-    cta_label: input.ctaLabel ?? null,
-    cta_url: input.ctaUrl ?? null,
-    scheduled_for: new Date().toISOString(),
+    id: "admin-campaign-test", user_id: "admin", channel: "email", status: "ready", subject: input.subject, message: input.message,
+    cta_label: input.ctaLabel ?? null, cta_url: input.ctaUrl ?? null, scheduled_for: new Date().toISOString(),
     metadata: {
-      layout: "kivai_campaign",
-      preheader: input.preheader ?? "",
-      eyebrow: input.eyebrow ?? "",
-      headline: input.headline ?? "",
-      highlight: input.highlight ?? "",
+      layout: "kivai_campaign", message_format: "rich_html", preheader: input.preheader ?? "", eyebrow: input.eyebrow ?? "", headline: input.headline ?? "", highlight: input.highlight ?? "",
+      secondary_cta_label: input.secondaryCtaLabel ?? "", secondary_cta_url: input.secondaryCtaUrl ?? "",
     },
   };
 
@@ -99,12 +130,8 @@ export async function sendAdminCampaignTestEmail(input: {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: CUSTOMER_EMAIL_FROM,
-        to: [recipient],
-        reply_to: CUSTOMER_REPLY_TO,
-        subject: `[TESTE] ${input.subject}`,
-        text: `[TESTE DE CAMPANHA KIVAI]\n\n${input.message}`,
-        html: renderCampaignHtml(row, null),
+        from: CUSTOMER_EMAIL_FROM, to: [recipient], reply_to: CUSTOMER_REPLY_TO, subject: `[TESTE] ${input.subject}`,
+        text: `[TESTE DE CAMPANHA KIVAI]\n\n${messageToText(row)}`, html: renderCampaignHtml(row, null),
         tags: [{ name: "category", value: "campaign_test" }],
       }),
     });
@@ -133,19 +160,16 @@ export async function deliverCustomerEmail(communicationId: string): Promise<Del
 
   const unsubscribeUrl = marketing && preference ? `${SITE_URL}/email/preferencias?token=${encodeURIComponent(preference.unsubscribe_token)}` : null;
   const category = typeof row.metadata?.kind === "string" ? row.metadata.kind : marketing ? "marketing" : "transactional";
+  const textMessage = messageToText(row);
 
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: CUSTOMER_EMAIL_FROM,
-        to: [recipient],
-        reply_to: CUSTOMER_REPLY_TO,
-        subject: row.subject || "Kivai",
-        text: `${row.message}\n\nFale com o Kivai no WhatsApp: ${WHATSAPP_URL}${unsubscribeUrl ? `\n\nNão quer mais receber e-mails de marketing? ${unsubscribeUrl}` : ""}`,
-        html: renderHtml(row, unsubscribeUrl),
-        tags: [{ name: "category", value: category.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64) }],
+        from: CUSTOMER_EMAIL_FROM, to: [recipient], reply_to: CUSTOMER_REPLY_TO, subject: row.subject || "Kivai",
+        text: `${textMessage}\n\nFale com o Kivai no WhatsApp: ${WHATSAPP_URL}${unsubscribeUrl ? `\n\nNão quer mais receber e-mails de marketing? ${unsubscribeUrl}` : ""}`,
+        html: renderHtml(row, unsubscribeUrl), tags: [{ name: "category", value: category.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64) }],
         ...(unsubscribeUrl ? { headers: { "List-Unsubscribe": `<${unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}),
       }),
     });
