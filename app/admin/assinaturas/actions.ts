@@ -28,7 +28,7 @@ export async function confirmSubscriptionPayment(formData: FormData) {
   const isRenewal = existing?.status === "active" && existing.plan_code === request.plan_code && existing.billing_cycle === request.billing_cycle && existingEnd && existingEnd > now;
   const periodStart = isRenewal ? existingEnd : now;
   const periodEnd = addPeriod(periodStart, request.billing_cycle);
-  const payload = { user_id: request.user_id, plan_code: request.plan_code, status: "active", provider: "sumup_external", billing_cycle: request.billing_cycle, provider_checkout_reference: request.id, current_period_start: periodStart.toISOString(), current_period_end: periodEnd.toISOString(), cancel_at_period_end: false, grace_until: null, test_access: false, updated_at: now.toISOString() };
+  const payload = { user_id: request.user_id, plan_code: request.plan_code, status: "active", provider: "sumup_external", billing_cycle: request.billing_cycle, provider_checkout_reference: request.id, current_period_start: periodStart.toISOString(), current_period_end: periodEnd.toISOString(), cancel_at_period_end: false, grace_until: null, automatic_grace_granted_at: null, automatic_grace_original_period_end: null, test_access: false, updated_at: now.toISOString() };
   if (existing) await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(existing.id)}`, { method: "PATCH", body: JSON.stringify(payload) });
   else await supabaseRest("user_subscriptions", { method: "POST", body: JSON.stringify(payload) });
   await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(request.user_id)}`, { method: "PATCH", body: JSON.stringify({ plan_code: request.plan_code, lifecycle_stage: "active", updated_at: now.toISOString() }) });

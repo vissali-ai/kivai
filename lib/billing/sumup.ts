@@ -245,7 +245,7 @@ async function activateSubscription(params: { subscriptionId: string; userId: st
   else end.setUTCFullYear(end.getUTCFullYear() + 1);
   await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(params.subscriptionId)}`, {
     method: "PATCH",
-    body: JSON.stringify({ status: "active", provider_checkout_reference: params.checkoutReference, provider_subscription_id: params.checkoutId, current_period_start: now.toISOString(), current_period_end: end.toISOString(), updated_at: now.toISOString() }),
+    body: JSON.stringify({ status: "active", provider_checkout_reference: params.checkoutReference, provider_subscription_id: params.checkoutId, current_period_start: now.toISOString(), current_period_end: end.toISOString(), grace_until: null, automatic_grace_granted_at: null, automatic_grace_original_period_end: null, updated_at: now.toISOString() }),
   });
   await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(params.userId)}`, {
     method: "PATCH",
@@ -311,7 +311,7 @@ export async function runDueSubscriptionRenewals() {
       periodEnd.setUTCMonth(periodEnd.getUTCMonth() + 1);
       await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(subscription.id)}`, {
         method: "PATCH",
-        body: JSON.stringify({ provider_checkout_reference: charged.reference, provider_subscription_id: charged.checkout.id, current_period_start: periodStart.toISOString(), current_period_end: periodEnd.toISOString(), status: "active", updated_at: new Date().toISOString() }),
+        body: JSON.stringify({ provider_checkout_reference: charged.reference, provider_subscription_id: charged.checkout.id, current_period_start: periodStart.toISOString(), current_period_end: periodEnd.toISOString(), grace_until: null, automatic_grace_granted_at: null, automatic_grace_original_period_end: null, status: "active", updated_at: new Date().toISOString() }),
       });
       await supabaseRest(`subscription_billing_attempts?id=eq.${encodeURIComponent(attemptId)}`, {
         method: "PATCH",
