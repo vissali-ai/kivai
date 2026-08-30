@@ -12,8 +12,8 @@ const socialTools = getToolsByCategory("social");
 const tools = [
   ...socialTools,
   {
-    slug: "instagram-follow-analyzer",
-    name: "Instagram Follow Analyzer",
+    slug: "analisador-de-seguidores-instagram",
+    name: "Analisador de Seguidores do Instagram",
     description: "Descubra quem não te segue de volta, quem você não segue e quais seguidores são mútuos usando a exportação oficial da Meta.",
     category: "social" as const,
     hubFilter: "Analisar",

@@ -62,7 +62,7 @@ export function InstagramAnalyzerPublicationSettings({
     <main className="mx-auto max-w-6xl space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Instagram Follow Analyzer</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Analisador de Seguidores do Instagram</p>
           <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">Configuração geral e conteúdo por plano</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
             SEO, publicação e sitemap são únicos para a URL. Os textos, blocos e imagens são editados separadamente nas abas Grátis e Pro abaixo.
@@ -70,7 +70,7 @@ export function InstagramAnalyzerPublicationSettings({
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild type="button" variant="outline">
-            <a href="/ferramentas/instagram-follow-analyzer" target="_blank" rel="noreferrer"><ExternalLink />Abrir página</a>
+            <a href="/ferramentas/analisador-de-seguidores-instagram" target="_blank" rel="noreferrer"><ExternalLink />Abrir página</a>
           </Button>
           <Button type="button" onClick={save} disabled={busy}><Save />{busy ? "Salvando..." : "Salvar configuração geral"}</Button>
         </div>
