@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bot, BookOpen, FolderTree, Images, LayoutDashboard, LogOut, Megaphone, Plus, PanelsTopLeft, Repeat2, UsersRound, Wrench } from "lucide-react";
+import { Bot, BookOpen, FolderTree, Images, LayoutDashboard, LogOut, MailPlus, Megaphone, Plus, PanelsTopLeft, Repeat2, UsersRound, Wrench } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 
@@ -19,12 +19,13 @@ const navigation = [
   { label: "Comercial", links: [
     { href: "/admin/usuarios", label: "Usuários e assinaturas", icon: UsersRound },
     { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
+    { href: "/admin/marketing/email-marketing", label: "E-mail marketing", icon: MailPlus },
     { href: "/admin/marketing/fila", label: "Fila de comunicações", icon: Repeat2 },
   ]},
   { label: "Sistema", links: [{ href: "/admin/blog/manutencao", label: "Manutenção", icon: Wrench }] },
 ];
 
-const originPanels = new Set(["/admin/blog", "/admin/blog/midias", "/admin/blog/categorias", "/admin/blog/agente", "/admin/site", "/admin/usuarios", "/admin/marketing", "/admin/marketing/fila", "/admin/blog/manutencao"]);
+const originPanels = new Set(["/admin/blog", "/admin/blog/midias", "/admin/blog/categorias", "/admin/blog/agente", "/admin/site", "/admin/usuarios", "/admin/marketing", "/admin/marketing/email-marketing", "/admin/marketing/fila", "/admin/blog/manutencao"]);
 
 function isAdminSaveRequest(input: RequestInfo | URL, init?: RequestInit) {
   const method = String(init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
