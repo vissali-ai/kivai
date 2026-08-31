@@ -17,6 +17,8 @@ const schemaDescriptionOverrides: Partial<Record<CalculatorToolEditorialSlug, st
     "Calcule o ROAS da campanha pela receita e pelo investimento em anúncios e estime o ROAS de equilíbrio usando a margem de contribuição.",
   "calculadora-de-desconto":
     "Calcule o valor economizado e o preço final após aplicar um desconto percentual entre 0% e 100% sobre o preço original.",
+  "calculadora-de-porcentagem":
+    "Calcule porcentagem de um valor, percentual entre valores, aumento, redução, acréscimo, desconto e valor original em oito modos online.",
 };
 
 export function CalculatorToolEditorialV2({ slug }: { slug: CalculatorToolEditorialSlug }) {
