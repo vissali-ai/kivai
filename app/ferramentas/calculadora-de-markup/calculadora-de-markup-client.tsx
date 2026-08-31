@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
-  ArrowLeft,
   CircleDollarSign,
   Percent,
   RotateCcw,
@@ -75,15 +73,9 @@ export default function CalculadoraDeMarkupClient() {
       return null;
     }
 
-    const precoSugerido =
-      custoTotalNumero * (1 + markupNumero / 100);
-
+    const precoSugerido = custoTotalNumero * (1 + markupNumero / 100);
     const lucroBruto = precoSugerido - custoTotalNumero;
-
-    const margem =
-      precoSugerido > 0
-        ? (lucroBruto / precoSugerido) * 100
-        : 0;
+    const margem = precoSugerido > 0 ? (lucroBruto / precoSugerido) * 100 : 0;
 
     return {
       custoTotal: custoTotalNumero,
@@ -105,17 +97,7 @@ export default function CalculadoraDeMarkupClient() {
 
   return (
     <section className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="mb-8">
-          <Link
-            href="/ferramentas/calculadoras"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            Voltar para Calculadoras
-          </Link>
-        </div>
-
+      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-32 sm:px-6 sm:pt-32 lg:px-8 lg:pb-16 lg:pt-32">
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
             Precificação e Rentabilidade
@@ -151,17 +133,12 @@ export default function CalculadoraDeMarkupClient() {
 
                   <div className="space-y-4">
                     <div>
-                      <label
-                        htmlFor="custoTotal"
-                        className="text-sm font-medium"
-                      >
+                      <label htmlFor="custoTotal" className="text-sm font-medium">
                         Custo total
                       </label>
 
                       <div className="mt-2 flex items-center border border-border bg-background">
-                        <span className="pl-3 text-sm text-muted-foreground">
-                          R$
-                        </span>
+                        <span className="pl-3 text-sm text-muted-foreground">R$</span>
 
                         <input
                           id="custoTotal"
@@ -171,9 +148,7 @@ export default function CalculadoraDeMarkupClient() {
                           inputMode="decimal"
                           placeholder="100,00"
                           value={custoTotal}
-                          onChange={(event) =>
-                            setCustoTotal(event.target.value)
-                          }
+                          onChange={(event) => setCustoTotal(event.target.value)}
                           className={`${inputClassName} border-0`}
                         />
                       </div>
@@ -185,10 +160,7 @@ export default function CalculadoraDeMarkupClient() {
                     </div>
 
                     <div>
-                      <label
-                        htmlFor="markup"
-                        className="text-sm font-medium"
-                      >
+                      <label htmlFor="markup" className="text-sm font-medium">
                         Markup desejado
                       </label>
 
@@ -201,15 +173,11 @@ export default function CalculadoraDeMarkupClient() {
                           inputMode="decimal"
                           placeholder="50,00"
                           value={markup}
-                          onChange={(event) =>
-                            setMarkup(event.target.value)
-                          }
+                          onChange={(event) => setMarkup(event.target.value)}
                           className={`${inputClassName} border-0`}
                         />
 
-                        <span className="pr-3 text-sm text-muted-foreground">
-                          %
-                        </span>
+                        <span className="pr-3 text-sm text-muted-foreground">%</span>
                       </div>
                     </div>
                   </div>
@@ -222,9 +190,7 @@ export default function CalculadoraDeMarkupClient() {
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">
-                        Markup não é margem
-                      </p>
+                      <p className="text-sm font-medium">Markup não é margem</p>
 
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         Um markup de 50% sobre um custo de R$ 100,00 gera um
@@ -261,9 +227,7 @@ export default function CalculadoraDeMarkupClient() {
                   </p>
 
                   <p className="mt-2 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
-                    {resultado
-                      ? formatCurrency(resultado.precoSugerido)
-                      : "R$ 0,00"}
+                    {resultado ? formatCurrency(resultado.precoSugerido) : "R$ 0,00"}
                   </p>
 
                   <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
@@ -281,14 +245,8 @@ export default function CalculadoraDeMarkupClient() {
                   <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                     <div className="border border-border bg-muted/20 p-4">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <CircleDollarSign
-                          className="size-4"
-                          aria-hidden="true"
-                        />
-
-                        <p className="text-xs uppercase tracking-wider">
-                          Lucro bruto
-                        </p>
+                        <CircleDollarSign className="size-4" aria-hidden="true" />
+                        <p className="text-xs uppercase tracking-wider">Lucro bruto</p>
                       </div>
 
                       <p className="mt-2 font-heading text-xl font-semibold">
@@ -299,10 +257,7 @@ export default function CalculadoraDeMarkupClient() {
                     <div className="border border-border bg-muted/20 p-4">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Percent className="size-4" aria-hidden="true" />
-
-                        <p className="text-xs uppercase tracking-wider">
-                          Margem resultante
-                        </p>
+                        <p className="text-xs uppercase tracking-wider">Margem resultante</p>
                       </div>
 
                       <p className="mt-2 font-heading text-xl font-semibold">
@@ -313,13 +268,8 @@ export default function CalculadoraDeMarkupClient() {
                 )}
 
                 {resultado && (
-                  <div
-                    className={`mt-4 border p-4 ${resultado.analysis.className}`}
-                  >
-                    <p className="text-sm font-semibold">
-                      {resultado.analysis.title}
-                    </p>
-
+                  <div className={`mt-4 border p-4 ${resultado.analysis.className}`}>
+                    <p className="text-sm font-semibold">{resultado.analysis.title}</p>
                     <p className="mt-2 text-xs leading-5 opacity-90">
                       {resultado.analysis.description}
                     </p>
