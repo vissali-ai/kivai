@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
-  ArrowLeft,
   CircleDollarSign,
   Percent,
   RotateCcw,
@@ -108,17 +106,7 @@ export default function CalculadoraDeMargemClient() {
 
   return (
     <section className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-12 sm:px-6 sm:pt-24 lg:px-8 lg:pt-24 lg:pb-16">
-        <div className="mb-8">
-          <Link
-            href="/ferramentas/calculadoras"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            Voltar para Calculadoras
-          </Link>
-        </div>
-
+      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-32 sm:px-6 sm:pt-32 lg:px-8 lg:pb-16 lg:pt-32">
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
             Vendas e Rentabilidade
