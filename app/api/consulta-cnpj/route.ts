@@ -5,12 +5,6 @@ const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_IP = 10;
 const requestHistory = new Map<string, number[]>();
 
-type BrasilApiError = {
-  name?: string;
-  message?: string;
-  type?: string;
-};
-
 function getClientIp(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();
@@ -85,7 +79,7 @@ export async function POST(request: Request) {
       clearTimeout(timeout);
     }
 
-    const payload = (await response.json().catch(() => null)) as Record<string, unknown> | BrasilApiError | null;
+    const payload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
 
     if (response.status === 400) {
       return NextResponse.json(

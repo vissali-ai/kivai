@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, ReactNode, useMemo, useRef, useState } from "react";
 import { Building2, Check, Copy, Loader2, RotateCcw, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -97,12 +97,17 @@ function formatMoney(value?: number | null) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
-function formatPhone(ddd?: string | null, phone?: string | null) {
-  const area = (ddd ?? "").replace(/\D/g, "");
-  const number = (phone ?? "").replace(/\D/g, "");
+function formatPhone(value?: string | null) {
+  const number = (value ?? "").replace(/\D/g, "");
   if (!number) return "Não informado";
-  const full = area ? `(${area}) ${number}` : number;
-  return full;
+  if (number.length === 10 || number.length === 11) {
+    const area = number.slice(0, 2);
+    const subscriber = number.slice(2);
+    return number.length === 11
+      ? `(${area}) ${subscriber.slice(0, 5)}-${subscriber.slice(5)}`
+      : `(${area}) ${subscriber.slice(0, 4)}-${subscriber.slice(4)}`;
+  }
+  return value || "Não informado";
 }
 
 function formatCep(value?: string | null) {
@@ -115,15 +120,15 @@ function display(value?: string | number | null) {
   return String(value);
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({ children }: { children: ReactNode }) {
   return <h2 className="text-xl font-semibold tracking-tight">{children}</h2>;
 }
 
-function InfoGrid({ children }: { children: React.ReactNode }) {
+function InfoGrid({ children }: { children: ReactNode }) {
   return <dl className="mt-5 grid gap-4 sm:grid-cols-2">{children}</dl>;
 }
 
-function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
+function InfoItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="border border-border bg-muted/10 p-4">
       <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</dt>
@@ -325,8 +330,8 @@ export default function ConsultaDeCnpjClient() {
             <CardHeader><CardTitle>Contato</CardTitle></CardHeader>
             <CardContent>
               <InfoGrid>
-                <InfoItem label="Telefone 1" value={formatPhone(company.uf === company.uf ? undefined : undefined, company.ddd_telefone_1)} />
-                <InfoItem label="Telefone 2" value={formatPhone(undefined, company.ddd_telefone_2)} />
+                <InfoItem label="Telefone 1" value={formatPhone(company.ddd_telefone_1)} />
+                <InfoItem label="Telefone 2" value={formatPhone(company.ddd_telefone_2)} />
                 <InfoItem label="E-mail" value={display(company.email)} />
               </InfoGrid>
               <p className="mt-4 text-xs leading-5 text-muted-foreground">Os dados de contato são exibidos somente quando disponibilizados pela fonte consultada.</p>
