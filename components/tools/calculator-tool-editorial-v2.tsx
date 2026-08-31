@@ -12,6 +12,11 @@ export type CalculatorToolEditorialSlug =
   | "calculadora-de-desconto"
   | "calculadora-de-porcentagem";
 
+const schemaDescriptionOverrides: Partial<Record<CalculatorToolEditorialSlug, string>> = {
+  "calculadora-de-roas":
+    "Calcule o ROAS da campanha pela receita e pelo investimento em anúncios e estime o ROAS de equilíbrio usando a margem de contribuição.",
+};
+
 export function CalculatorToolEditorialV2({ slug }: { slug: CalculatorToolEditorialSlug }) {
   const content = generalToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
@@ -21,7 +26,7 @@ export function CalculatorToolEditorialV2({ slug }: { slug: CalculatorToolEditor
   const schema = buildToolPageSchema({
     name: tool.name,
     slug,
-    description: tool.seoDescription ?? tool.description,
+    description: schemaDescriptionOverrides[slug] ?? tool.seoDescription ?? tool.description,
     applicationCategory: content.applicationCategory,
     breadcrumbs: [
       { name: "Início", href: "/" },
