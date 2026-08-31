@@ -16,6 +16,8 @@ const schemaDescriptionOverrides: Partial<Record<PdfOfficeToolEditorialSlug, str
     "Identifique tabelas em PDFs digitais com texto selecionável, revise os dados reconhecidos e exporte para XLSX. Não inclui OCR e a detecção é baseada no posicionamento dos textos.",
   "excel-para-pdf":
     "Converta células de arquivos XLSX em páginas PDF configuráveis diretamente no navegador. Gráficos, imagens e objetos avançados não são incorporados nesta versão.",
+  "pdf-para-powerpoint":
+    "Converta páginas de PDF em slides PPTX com prévia, seleção e reordenação, formatos 16:9 ou 4:3 e qualidade de renderização ajustável.",
   "powerpoint-para-pdf":
     "Converta PPTX em PDF com prévia dos slides, seleção e reordenação da sequência, orientação, tamanho de página e qualidade ajustáveis.",
 };
