@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
-  ArrowLeft,
   BarChart3,
   CircleDollarSign,
   RotateCcw,
@@ -127,13 +125,11 @@ export default function CalculadoraDeRoasClient() {
     }
 
     const roas = receitaNumero / investimentoNumero;
-
     const margemValida =
       margem !== "" &&
       Number.isFinite(margemNumero) &&
       margemNumero > 0 &&
       margemNumero <= 100;
-
     const breakEvenRoas = margemValida ? 100 / margemNumero : null;
 
     return {
@@ -158,17 +154,7 @@ export default function CalculadoraDeRoasClient() {
 
   return (
     <section className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="mb-8">
-          <Link
-            href="/ferramentas/calculadoras"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            Voltar para calculadoras
-          </Link>
-        </div>
-
+      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-24 sm:px-6 sm:pt-24 lg:px-8 lg:pb-16 lg:pt-28">
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
             Marketing e Performance
@@ -187,7 +173,6 @@ export default function CalculadoraDeRoasClient() {
         <Card className="mx-auto max-w-4xl overflow-hidden">
           <CardHeader>
             <CardTitle>Calcule o ROAS da sua campanha</CardTitle>
-
             <CardDescription>
               Informe o investimento em anúncios e a receita atribuída à
               campanha. A margem de contribuição é opcional.
@@ -204,18 +189,11 @@ export default function CalculadoraDeRoasClient() {
 
                   <div className="space-y-4">
                     <div>
-                      <label
-                        htmlFor="investimento"
-                        className="text-sm font-medium"
-                      >
+                      <label htmlFor="investimento" className="text-sm font-medium">
                         Investimento em anúncios
                       </label>
-
                       <div className="mt-2 flex items-center border border-border bg-background">
-                        <span className="pl-3 text-sm text-muted-foreground">
-                          R$
-                        </span>
-
+                        <span className="pl-3 text-sm text-muted-foreground">R$</span>
                         <input
                           id="investimento"
                           type="number"
@@ -224,9 +202,7 @@ export default function CalculadoraDeRoasClient() {
                           inputMode="decimal"
                           placeholder="1000,00"
                           value={investimento}
-                          onChange={(event) =>
-                            setInvestimento(event.target.value)
-                          }
+                          onChange={(event) => setInvestimento(event.target.value)}
                           className={`${inputClassName} border-0`}
                         />
                       </div>
@@ -236,12 +212,8 @@ export default function CalculadoraDeRoasClient() {
                       <label htmlFor="receita" className="text-sm font-medium">
                         Receita gerada
                       </label>
-
                       <div className="mt-2 flex items-center border border-border bg-background">
-                        <span className="pl-3 text-sm text-muted-foreground">
-                          R$
-                        </span>
-
+                        <span className="pl-3 text-sm text-muted-foreground">R$</span>
                         <input
                           id="receita"
                           type="number"
@@ -263,7 +235,6 @@ export default function CalculadoraDeRoasClient() {
                           Opcional
                         </span>
                       </label>
-
                       <div className="mt-2 flex items-center border border-border bg-background">
                         <input
                           id="margem"
@@ -277,12 +248,8 @@ export default function CalculadoraDeRoasClient() {
                           onChange={(event) => setMargem(event.target.value)}
                           className={`${inputClassName} border-0`}
                         />
-
-                        <span className="pr-3 text-sm text-muted-foreground">
-                          %
-                        </span>
+                        <span className="pr-3 text-sm text-muted-foreground">%</span>
                       </div>
-
                       <p className="mt-2 text-xs leading-5 text-muted-foreground">
                         Informe a margem disponível antes do custo de mídia para
                         estimar o ROAS de equilíbrio.
@@ -296,12 +263,8 @@ export default function CalculadoraDeRoasClient() {
                     <div className="flex size-10 shrink-0 items-center justify-center border border-border bg-background text-primary">
                       <Target className="size-4" aria-hidden="true" />
                     </div>
-
                     <div>
-                      <p className="text-sm font-medium">
-                        Como interpretar o resultado
-                      </p>
-
+                      <p className="text-sm font-medium">Como interpretar o resultado</p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         Um ROAS maior não garante lucro. Margem, impostos,
                         taxas, produto e custos operacionais também influenciam
@@ -327,25 +290,17 @@ export default function CalculadoraDeRoasClient() {
                 <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Resultado
                 </p>
-
                 <div className="flex min-h-64 flex-col items-center justify-center border border-border bg-muted/20 p-5 text-center">
                   <div className="flex size-14 items-center justify-center border border-border bg-background text-primary">
                     <BarChart3 className="size-5" aria-hidden="true" />
                   </div>
-
-                  <p className="mt-5 text-sm font-medium text-muted-foreground">
-                    Seu ROAS
-                  </p>
-
+                  <p className="mt-5 text-sm font-medium text-muted-foreground">Seu ROAS</p>
                   <p className="mt-2 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
                     {resultado ? `${formatNumber(resultado.roas)}x` : "0,00x"}
                   </p>
-
                   <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
                     {resultado
-                      ? `Para cada R$ 1,00 investido em anúncios, sua campanha gerou ${formatCurrency(
-                          resultado.roas
-                        )} em receita.`
+                      ? `Para cada R$ 1,00 investido em anúncios, sua campanha gerou ${formatCurrency(resultado.roas)} em receita.`
                       : "Preencha o investimento em anúncios e a receita gerada para calcular o ROAS."}
                   </p>
                 </div>
@@ -356,27 +311,17 @@ export default function CalculadoraDeRoasClient() {
                       <div className="border border-border bg-muted/20 p-4">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <TrendingUp className="size-4" aria-hidden="true" />
-                          <p className="text-xs uppercase tracking-wider">
-                            ROAS atual
-                          </p>
+                          <p className="text-xs uppercase tracking-wider">ROAS atual</p>
                         </div>
-
                         <p className="mt-2 font-heading text-2xl font-semibold">
                           {formatNumber(resultado.roas)}x
                         </p>
                       </div>
-
                       <div className="border border-border bg-muted/20 p-4">
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <CircleDollarSign
-                            className="size-4"
-                            aria-hidden="true"
-                          />
-                          <p className="text-xs uppercase tracking-wider">
-                            Equilíbrio
-                          </p>
+                          <CircleDollarSign className="size-4" aria-hidden="true" />
+                          <p className="text-xs uppercase tracking-wider">Equilíbrio</p>
                         </div>
-
                         <p className="mt-2 font-heading text-2xl font-semibold">
                           {formatNumber(resultado.breakEvenRoas)}x
                         </p>
@@ -385,13 +330,8 @@ export default function CalculadoraDeRoasClient() {
                   )}
 
                 {resultado && !resultado.breakEvenAnalysis && (
-                  <div
-                    className={`mt-4 border p-4 ${resultado.analysis.className}`}
-                  >
-                    <p className="text-sm font-semibold">
-                      {resultado.analysis.title}
-                    </p>
-
+                  <div className={`mt-4 border p-4 ${resultado.analysis.className}`}>
+                    <p className="text-sm font-semibold">{resultado.analysis.title}</p>
                     <p className="mt-2 text-xs leading-5 opacity-90">
                       {resultado.analysis.description}
                     </p>
@@ -399,13 +339,10 @@ export default function CalculadoraDeRoasClient() {
                 )}
 
                 {resultado?.breakEvenAnalysis && (
-                  <div
-                    className={`mt-4 border p-4 ${resultado.breakEvenAnalysis.className}`}
-                  >
+                  <div className={`mt-4 border p-4 ${resultado.breakEvenAnalysis.className}`}>
                     <p className="text-sm font-semibold">
                       {resultado.breakEvenAnalysis.title}
                     </p>
-
                     <p className="mt-2 text-xs leading-5 opacity-90">
                       {resultado.breakEvenAnalysis.description}
                     </p>
