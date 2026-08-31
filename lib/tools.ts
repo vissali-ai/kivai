@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
+  Building2,
   Calculator,
   Combine,
   FileImage,
@@ -136,6 +137,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "capturar-frame-video",
   "compressor-de-imagens",
   "compressor-de-videos",
+  "consulta-de-cnpj",
   "conversor-de-imagens",
   "conversor-heic",
   "conversor-svg-png",
@@ -603,6 +605,29 @@ export const tools: Tool[] = [
     seoTitle: "Compactar PDF Online com Três Níveis | Kivai",
     seoDescription: "Otimize a estrutura do PDF ou gere uma cópia visual rasterizada com compressão média ou alta e processamento local.",
     keywords: ["compactar pdf", "comprimir pdf", "reduzir tamanho pdf", "otimizar pdf", "diminuir arquivo pdf"],
+  },
+  {
+    slug: "consulta-de-cnpj",
+    name: "Consulta de CNPJ",
+    description:
+      "Consulte dados cadastrais, situação, atividades, endereço, contatos, quadro societário e informações tributárias de empresas pelo CNPJ.",
+    category: "utilitarios",
+    hubFilter: "Empresarial",
+    badge: "Empresarial",
+    icon: Building2,
+    available: true,
+    seoTitle: "Consulta de CNPJ Online Grátis | Kivai",
+    seoDescription:
+      "Consulte CNPJ online e veja dados cadastrais, situação, razão social, nome fantasia, endereço, CNAE, atividades secundárias, quadro societário e outras informações disponíveis.",
+    keywords: [
+      "consulta de cnpj",
+      "consultar cnpj",
+      "consulta cnpj grátis",
+      "consultar cnpj online",
+      "pesquisar cnpj",
+      "dados de empresa pelo cnpj",
+      "situação cadastral cnpj",
+    ],
   },
   {
     slug: "calculadora-de-roas",
