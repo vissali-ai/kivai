@@ -7,21 +7,34 @@ import {
 } from "@/lib/text-tool-editorial-content";
 import { getToolBySlug } from "@/lib/tools";
 
+const schemaOverrides: Partial<
+  Record<TextToolEditorialSlug, { name: string; description: string }>
+> = {
+  "contador-de-palavras": {
+    name: "Contador de Palavras e Caracteres",
+    description:
+      "Conte palavras e caracteres com e sem espaços e acompanhe frases, parágrafos, linhas, tempo de leitura, tempo de fala e termos frequentes.",
+  },
+};
+
 export function TextToolEditorialV2({ slug }: { slug: TextToolEditorialSlug }) {
   const content = textToolEditorialContent[slug];
   const tool = getToolBySlug(slug);
 
   if (!tool) return null;
 
+  const schemaOverride = schemaOverrides[slug];
+  const schemaName = schemaOverride?.name ?? tool.name;
+
   const schema = buildToolPageSchema({
-    name: tool.name,
+    name: schemaName,
     slug,
-    description: tool.seoDescription ?? tool.description,
+    description: schemaOverride?.description ?? tool.seoDescription ?? tool.description,
     breadcrumbs: [
       { name: "Início", href: "/" },
       { name: "Ferramentas", href: "/ferramentas" },
       { name: "Texto", href: "/ferramentas/texto" },
-      { name: tool.name, href: `/ferramentas/${slug}` },
+      { name: schemaName, href: `/ferramentas/${slug}` },
     ],
     faqs: content.faqs,
   });
