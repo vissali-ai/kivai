@@ -71,7 +71,10 @@ export async function POST(request: Request) {
     try {
       response = await fetch(`${BRASIL_API_URL}/${encodeURIComponent(cnpj)}`, {
         method: "GET",
-        headers: { Accept: "application/json" },
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Kivai-CNPJ/1.0 (+https://www.kivai.com.br)",
+        },
         cache: "no-store",
         signal: controller.signal,
       });
@@ -95,6 +98,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (response.status === 429) {
+      return NextResponse.json(
+        { error: "A fonte de dados atingiu o limite de consultas. Aguarde alguns instantes e tente novamente." },
+        {
+          status: 429,
+          headers: { "Cache-Control": "no-store", "Retry-After": response.headers.get("Retry-After") ?? "30" },
+        },
+      );
+    }
+
     if (!response.ok || !payload || typeof payload !== "object") {
       return NextResponse.json(
         { error: "Não foi possível realizar a consulta agora. Tente novamente em alguns instantes." },
@@ -107,6 +120,8 @@ export async function POST(request: Request) {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
+    console.error("[consulta-cnpj] upstream request failed", error);
+
     if (error instanceof DOMException && error.name === "AbortError") {
       return NextResponse.json(
         { error: "A consulta demorou mais que o esperado. Tente novamente." },
