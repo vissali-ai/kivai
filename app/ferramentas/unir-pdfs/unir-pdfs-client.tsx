@@ -1,324 +1,377 @@
 "use client";
 
-import { openFilePicker } from "@/lib/browser/file-picker";
-
-import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
 import {
-  ArrowLeft,
   ArrowDown,
   ArrowUp,
   Download,
+  FilePlus2,
   FileText,
+  Layers3,
   Trash2,
   Upload,
 } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 
-import { AdSlot } from "@/components/ads/AdSlot";
-
+import { ToolActionBar } from "@/components/tools/tool-action-bar";
+import { ToolErrorMessage } from "@/components/tools/tool-error-message";
+import { ToolPageShell } from "@/components/tools/tool-page-shell";
+import { ToolProcessingStatus, type ToolStatus } from "@/components/tools/tool-processing-status";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { openFilePicker } from "@/lib/browser/file-picker";
+import { formatFileSize } from "@/lib/tool-files";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { getPdfPageCount, mergePdfs, type PdfFile } from "./pdf-utils";
 
-import {
-  mergePdfs,
-  getPdfPageCount,
-  type PdfFile,
-} from "./pdf-utils";
+function friendlyError(error: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+
+  if (message.includes("encrypted") || message.includes("password")) {
+    return "Um dos PDFs possui proteção e não pôde ser aberto. Adicione somente arquivos desbloqueados que você tenha autorização para editar.";
+  }
+
+  return "Não foi possível ler um dos PDFs. Verifique se o arquivo é válido, não está corrompido e tente novamente.";
+}
 
 export default function UnirPdfsClient() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const addMoreRef = useRef<HTMLInputElement>(null);
 
   const [pdfs, setPdfs] = useState<PdfFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<ToolStatus>("idle");
+  const [stage, setStage] = useState("Aguardando os PDFs");
+  const [error, setError] = useState<string | null>(null);
 
-  const processFiles = useCallback(
-    async (files: FileList | File[]) => {
-      const list = Array.from(files);
+  const processFiles = useCallback(async (files: FileList | File[]) => {
+    const list = Array.from(files);
+    if (!list.length || status === "processing") return;
 
-      const novos: PdfFile[] = [];
+    setError(null);
+    setStatus("processing");
+    setStage(list.length > 1 ? "Lendo os PDFs selecionados" : "Lendo o PDF selecionado");
 
-      for (const file of list) {
-        if (file.type !== "application/pdf") continue;
+    const novos: PdfFile[] = [];
+    let failed = 0;
+    let lastError: unknown = null;
 
-        try {
-          const pages = await getPdfPageCount(file);
-
-          novos.push({
-            id: crypto.randomUUID(),
-            file,
-            pages,
-            size: file.size,
-          });
-        } catch (error) {
-          console.error("Erro ao ler PDF:", file.name, error);
-        }
+    for (const file of list) {
+      const extension = file.name.split(".").pop()?.toLowerCase();
+      if (extension !== "pdf") {
+        failed += 1;
+        continue;
       }
 
+      try {
+        const pages = await getPdfPageCount(file);
+        novos.push({
+          id: crypto.randomUUID(),
+          file,
+          pages,
+          size: file.size,
+        });
+      } catch (reason) {
+        failed += 1;
+        lastError = reason;
+      }
+    }
+
+    if (novos.length) {
       setPdfs((old) => [...old, ...novos]);
-    },
-    []
-  );
-
-  async function handleMerge() {
-    if (pdfs.length < 2) return;
-
-    try {
-      setLoading(true);
-
-      const bytes = await mergePdfs(
-        pdfs.map((pdf) => pdf.file)
+      setStatus("ready");
+      setStage(
+        novos.length > 1
+          ? `${novos.length} PDFs adicionados à sequência`
+          : "PDF adicionado à sequência"
       );
 
-      const arrayBuffer = new ArrayBuffer(bytes.byteLength);
+      if (failed) {
+        setError(
+          `${failed} ${failed === 1 ? "arquivo não pôde" : "arquivos não puderam"} ser adicionado. Use PDFs válidos e sem proteção que impeça a leitura.`
+        );
+      }
+      return;
+    }
 
+    setStatus("error");
+    setStage("Não foi possível adicionar os arquivos");
+    setError(lastError ? friendlyError(lastError) : "Selecione arquivos no formato PDF.");
+  }, [status]);
+
+  async function handleMerge() {
+    if (pdfs.length < 2 || status === "processing") return;
+
+    setError(null);
+    setStatus("processing");
+    setStage("Copiando as páginas na ordem definida");
+
+    try {
+      const bytes = await mergePdfs(pdfs.map((pdf) => pdf.file));
+      const arrayBuffer = new ArrayBuffer(bytes.byteLength);
       new Uint8Array(arrayBuffer).set(bytes);
 
-      const blob = new Blob([arrayBuffer], {
-        type: "application/pdf",
-      });
-
+      const blob = new Blob([arrayBuffer], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
-
       const link = document.createElement("a");
 
       link.href = url;
       link.download = "pdf-unido.pdf";
-
       document.body.appendChild(link);
-
       link.click();
-
       document.body.removeChild(link);
-
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error(error);
-      alert("Não foi possível unir os PDFs.");
-    } finally {
-      setLoading(false);
+
+      setStatus("success");
+      setStage("PDF unido e download iniciado");
+    } catch (reason) {
+      setError(friendlyError(reason));
+      setStatus("error");
+      setStage("Não foi possível concluir a união");
     }
   }
 
   function moveUp(index: number) {
-    if (index === 0) return;
+    if (index === 0 || status === "processing") return;
 
-    const copy = [...pdfs];
-
-    [copy[index - 1], copy[index]] = [
-      copy[index],
-      copy[index - 1],
-    ];
-
-    setPdfs(copy);
+    setPdfs((current) => {
+      const copy = [...current];
+      [copy[index - 1], copy[index]] = [copy[index], copy[index - 1]];
+      return copy;
+    });
+    setStatus("ready");
+    setStage("Ordem dos documentos atualizada");
   }
 
   function moveDown(index: number) {
-    if (index === pdfs.length - 1) return;
+    if (index === pdfs.length - 1 || status === "processing") return;
 
-    const copy = [...pdfs];
-
-    [copy[index], copy[index + 1]] = [
-      copy[index + 1],
-      copy[index],
-    ];
-
-    setPdfs(copy);
+    setPdfs((current) => {
+      const copy = [...current];
+      [copy[index], copy[index + 1]] = [copy[index + 1], copy[index]];
+      return copy;
+    });
+    setStatus("ready");
+    setStage("Ordem dos documentos atualizada");
   }
 
   function remove(id: string) {
-    setPdfs((old) =>
-      old.filter((pdf) => pdf.id !== id)
-    );
+    if (status === "processing") return;
+
+    setPdfs((current) => {
+      const next = current.filter((pdf) => pdf.id !== id);
+      setStatus(next.length ? "ready" : "idle");
+      setStage(next.length ? "Sequência atualizada" : "Aguardando os PDFs");
+      return next;
+    });
+    setError(null);
   }
 
+  function reset() {
+    if (status === "processing") return;
+    setPdfs([]);
+    setStatus("idle");
+    setStage("Aguardando os PDFs");
+    setError(null);
+  }
+
+  const totalPages = pdfs.reduce((sum, pdf) => sum + pdf.pages, 0);
+
   return (
-    <section className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-12 sm:px-6 sm:pt-24 lg:px-8 lg:pt-24 lg:pb-16">
+    <ToolPageShell
+      title="Unir PDFs"
+      description="Monte um único PDF a partir de vários documentos, ajuste a ordem antes de unir e mantenha as páginas na sequência escolhida."
+      categoryName="PDF"
+      categoryHref="/ferramentas/pdfs"
+      breadcrumbRootName="Início"
+      breadcrumbRootHref="/"
+      privacyMessage="A leitura e a união dos PDFs acontecem localmente no navegador. Os documentos não são enviados ao Kivai."
+    >
+      <Card className="mx-auto max-w-5xl">
+        <CardHeader>
+          <CardTitle>Monte a sequência dos documentos</CardTitle>
+          <CardDescription>
+            Adicione pelo menos dois PDFs e organize a ordem em que eles aparecerão no arquivo final.
+          </CardDescription>
+        </CardHeader>
 
-        <div className="mb-8">
-          <Link
-            href="/ferramentas/pdfs"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Voltar para PDFs
-          </Link>
-        </div>
-
-        <div className="mb-10 max-w-3xl">
-          <p className="text-sm font-medium uppercase tracking-wider text-primary">
-            DOCUMENTOS
-          </p>
-
-          <h1 className="mt-3 font-heading text-3xl font-semibold sm:text-4xl lg:text-5xl">
-            Unir PDFs
-          </h1>
-
-          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Junte vários arquivos PDF em um único documento de forma rápida e segura.
-          </p>
-        </div>
-
-        <Card className="mx-auto max-w-5xl">
-          <CardHeader>
-            <CardTitle>Selecione os PDFs</CardTitle>
-
-            <CardDescription>
-              Escolha dois ou mais arquivos PDF para unir.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragActive(true);
-              }}
-              onDragLeave={() => setDragActive(false)}
-              onDrop={async (e) => {
-                e.preventDefault();
-
-                setDragActive(false);
-
-                await processFiles(e.dataTransfer.files);
-              }}
-              onClick={() => openFilePicker(inputRef.current)}
-              className={`cursor-pointer rounded-lg border border-dashed border-primary/40 bg-muted/20 p-10 text-center transition hover:bg-muted/30 ${
-                dragActive ? "border-primary bg-primary/5" : ""
-              }`}
-            >
-              <Upload className="mx-auto mb-4 size-8 text-primary" />
-
-              <p className="font-medium">
-                Clique ou arraste os PDFs aqui
-              </p>
-
-              <p className="mt-2 text-sm text-muted-foreground">
-                Selecione dois ou mais arquivos PDF
-              </p>
-
+        <CardContent className="space-y-6">
+          {pdfs.length === 0 && status !== "processing" && (
+            <>
               <input
+                id="unir-pdfs-files"
                 ref={inputRef}
                 type="file"
                 className="sr-only"
                 multiple
-                accept="application/pdf"
-                onChange={(e) => {
-                  if (!e.target.files) return;
-
-                  processFiles(e.target.files);
+                accept="application/pdf,.pdf"
+                onChange={(event) => {
+                  if (event.target.files?.length) void processFiles(event.target.files);
+                  event.target.value = "";
                 }}
               />
-            </div>
-                        {pdfs.length > 0 && (
-              <>
-                <div className="mt-8 overflow-hidden rounded-lg border">
-                  <div className="border-b p-4">
-                    <h2 className="font-semibold">
-                      Arquivos selecionados
-                    </h2>
 
-                    <p className="text-sm text-muted-foreground">
-                      {pdfs.length} arquivo(s)
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => openFilePicker(inputRef.current)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") openFilePicker(inputRef.current);
+                }}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragOver={(event) => event.preventDefault()}
+                onDragLeave={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragActive(false);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDragActive(false);
+                  if (event.dataTransfer.files?.length) void processFiles(event.dataTransfer.files);
+                }}
+                className={`flex min-h-64 cursor-pointer flex-col items-center justify-center border border-dashed p-6 text-center outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 sm:p-10 ${
+                  dragActive ? "border-primary bg-primary/5" : "border-border bg-muted/20 hover:bg-muted/40"
+                }`}
+              >
+                <span className="flex size-14 items-center justify-center border border-border bg-background">
+                  <Upload className="size-5" />
+                </span>
+                <p className="mt-5 font-heading text-lg font-medium">Clique ou arraste seus PDFs</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Selecione dois ou mais documentos para começar a montar a sequência.
+                </p>
+              </div>
+            </>
+          )}
+
+          <ToolProcessingStatus status={status} message={stage} />
+          <ToolErrorMessage message={error} />
+
+          {pdfs.length > 0 && (
+            <>
+              <section aria-label="Sequência dos PDFs" className="overflow-hidden rounded-lg border border-border">
+                <div className="flex flex-col gap-3 border-b border-border bg-muted/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="font-heading font-medium">Ordem do PDF final</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {pdfs.length} {pdfs.length === 1 ? "documento" : "documentos"} · {totalPages} {totalPages === 1 ? "página" : "páginas"} no total
                     </p>
                   </div>
 
-                  <div className="divide-y">
-                    {pdfs.map((pdf, index) => (
-                      <div
-                        key={pdf.id}
-                        className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between"
-                      >
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="rounded-lg bg-primary/10 p-3">
-                            <FileText className="size-5 text-primary" />
-                          </div>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      ref={addMoreRef}
+                      type="file"
+                      className="sr-only"
+                      multiple
+                      accept="application/pdf,.pdf"
+                      onChange={(event) => {
+                        if (event.target.files?.length) void processFiles(event.target.files);
+                        event.target.value = "";
+                      }}
+                    />
 
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium">
-                              {pdf.file.name}
-                            </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openFilePicker(addMoreRef.current)}
+                      disabled={status === "processing"}
+                    >
+                      <FilePlus2 className="size-4" />
+                      Adicionar PDFs
+                    </Button>
 
-                            <p className="text-sm text-muted-foreground">
-                              {(pdf.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-
-                            <p className="text-sm text-muted-foreground">
-                              {pdf.pages} página
-                              {pdf.pages > 1 ? "s" : ""}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => moveUp(index)}
-                            disabled={index === 0}
-                          >
-                            <ArrowUp className="size-4" />
-                          </Button>
-
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => moveDown(index)}
-                            disabled={index === pdfs.length - 1}
-                          >
-                            <ArrowDown className="size-4" />
-                          </Button>
-
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => remove(pdf.id)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                    <Button variant="outline" size="sm" onClick={reset} disabled={status === "processing"}>
+                      <Trash2 className="size-4" />
+                      Limpar lista
+                    </Button>
                   </div>
                 </div>
 
-                <div className="mt-8 flex justify-end">
-                  <Button
-                    size="lg"
-                    onClick={handleMerge}
-                    disabled={
-                      pdfs.length < 2 || loading
-                    }
-                  >
-                    {loading ? (
-                      "Unindo PDFs..."
-                    ) : (
-                      <>
-                        <Download className="size-4" />
-                        Unir PDFs
-                      </>
-                    )}
-                  </Button>
+                <div className="divide-y divide-border">
+                  {pdfs.map((pdf, index) => (
+                    <div
+                      key={pdf.id}
+                      className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex size-10 shrink-0 items-center justify-center border border-border bg-muted/20 text-sm font-semibold text-primary">
+                          {index + 1}
+                        </span>
+                        <FileText className="size-5 shrink-0 text-primary" />
+
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{pdf.file.name}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {formatFileSize(pdf.size)} · {pdf.pages} {pdf.pages === 1 ? "página" : "páginas"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => moveUp(index)}
+                          disabled={index === 0 || status === "processing"}
+                          aria-label={`Mover ${pdf.file.name} para cima`}
+                          title="Mover para cima"
+                        >
+                          <ArrowUp className="size-4" />
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => moveDown(index)}
+                          disabled={index === pdfs.length - 1 || status === "processing"}
+                          aria-label={`Mover ${pdf.file.name} para baixo`}
+                          title="Mover para baixo"
+                        >
+                          <ArrowDown className="size-4" />
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => remove(pdf.id)}
+                          disabled={status === "processing"}
+                          aria-label={`Remover ${pdf.file.name}`}
+                          title="Remover da sequência"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </>
-            )}
-                      </CardContent>
-        </Card>
+              </section>
 
-        <div className="mx-auto mt-8 max-w-5xl">
-          <AdSlot variant="banner" />
-        </div>
+              <div className="flex gap-3 rounded-lg border border-border bg-muted/20 p-4">
+                <Layers3 className="mt-0.5 size-5 shrink-0 text-primary" />
+                <div>
+                  <h3 className="font-heading font-medium">A ordem da lista define o documento final</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    O primeiro PDF abre o novo arquivo e os seguintes entram logo depois, respeitando a sequência acima. As páginas são copiadas para o novo documento sem rasterização proposital.
+                  </p>
+                </div>
+              </div>
 
-      </div>
-    </section>
+              <ToolActionBar>
+                <Button
+                  size="lg"
+                  onClick={handleMerge}
+                  disabled={pdfs.length < 2 || status === "processing"}
+                >
+                  <Download className="size-4" />
+                  {status === "processing" ? "Unindo PDFs..." : "Criar PDF unido"}
+                </Button>
+              </ToolActionBar>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </ToolPageShell>
   );
 }
