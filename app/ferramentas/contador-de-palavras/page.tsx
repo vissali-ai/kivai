@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     ...metadata,
-    title: SEO_TITLE,
+    title: { absolute: SEO_TITLE },
     description: SEO_DESCRIPTION,
     openGraph: metadata.openGraph
       ? { ...metadata.openGraph, title: SEO_TITLE, description: SEO_DESCRIPTION }
