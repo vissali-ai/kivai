@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
-  ArrowLeft,
   BadgePercent,
   CircleDollarSign,
   RotateCcw,
@@ -46,7 +44,7 @@ function getDiscountAnalysis(discount: number) {
     };
   }
 
-  if (discount >= 100) {
+  if (discount === 100) {
     return {
       title: "Desconto total",
       description:
@@ -77,7 +75,8 @@ export default function CalculadoraDeDescontoClient() {
       !Number.isFinite(preco) ||
       !Number.isFinite(percentual) ||
       preco <= 0 ||
-      percentual < 0
+      percentual < 0 ||
+      percentual > 100
     ) {
       return null;
     }
@@ -104,17 +103,7 @@ export default function CalculadoraDeDescontoClient() {
 
   return (
     <section className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-12 sm:px-6 sm:pt-24 lg:px-8 lg:pt-24 lg:pb-16">
-        <div className="mb-8">
-          <Link
-            href="/ferramentas/calculadoras"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Voltar para Calculadoras
-          </Link>
-        </div>
-
+      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-32 sm:px-6 sm:pt-32 lg:px-8 lg:pb-16 lg:pt-32">
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
             Vendas e Promoções
@@ -135,20 +124,17 @@ export default function CalculadoraDeDescontoClient() {
             <CardTitle>Calcule um desconto</CardTitle>
 
             <CardDescription>
-              Informe o preço original e o percentual de desconto.
+              Informe o preço original e um percentual entre 0% e 100%.
             </CardDescription>
           </CardHeader>
 
           <CardContent>
             <div className="grid gap-6 lg:grid-cols-[1fr_0.95fr]">
-
               <div className="space-y-6">
-
-                <div className="border border-border bg-muted/20 p-5">
-
+                <div className="border border-border bg-muted/20 p-4 sm:p-5">
                   <div className="space-y-4">
-                                        <div>
-                      <label className="text-sm font-medium">
+                    <div>
+                      <label htmlFor="precoOriginal" className="text-sm font-medium">
                         Preço original
                       </label>
 
@@ -158,29 +144,35 @@ export default function CalculadoraDeDescontoClient() {
                         </span>
 
                         <input
+                          id="precoOriginal"
                           type="number"
                           min="0"
                           step="0.01"
+                          inputMode="decimal"
+                          placeholder="100,00"
                           value={precoOriginal}
-                          onChange={(e) => setPrecoOriginal(e.target.value)}
+                          onChange={(event) => setPrecoOriginal(event.target.value)}
                           className={`${inputClassName} border-0`}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium">
+                      <label htmlFor="desconto" className="text-sm font-medium">
                         Desconto (%)
                       </label>
 
                       <div className="mt-2 flex items-center border border-border bg-background">
                         <input
+                          id="desconto"
                           type="number"
                           min="0"
                           max="100"
                           step="0.01"
+                          inputMode="decimal"
+                          placeholder="10"
                           value={desconto}
-                          onChange={(e) => setDesconto(e.target.value)}
+                          onChange={(event) => setDesconto(event.target.value)}
                           className={`${inputClassName} border-0`}
                         />
 
@@ -188,117 +180,110 @@ export default function CalculadoraDeDescontoClient() {
                           %
                         </span>
                       </div>
+
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                        Use valores de 0% a 100%. Percentuais acima de 100% não são calculados.
+                      </p>
                     </div>
-
                   </div>
-
                 </div>
 
-                <div className="border border-border bg-muted/20 p-5">
-
+                <div className="border border-border bg-muted/20 p-4 sm:p-5">
                   <div className="flex items-start gap-3">
-
-                    <div className="flex size-10 items-center justify-center border border-border bg-background text-primary">
-                      <ShoppingBag className="size-4" />
+                    <div className="flex size-10 shrink-0 items-center justify-center border border-border bg-background text-primary">
+                      <ShoppingBag className="size-4" aria-hidden="true" />
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">
-                        Dica
-                      </p>
+                      <p className="text-sm font-medium">Dica</p>
 
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         Compare promoções utilizando sempre o preço final e o
                         valor efetivamente economizado.
                       </p>
                     </div>
-
                   </div>
-
                 </div>
 
                 <Button
+                  type="button"
                   variant="outline"
                   size="lg"
                   className="w-full"
                   onClick={limparCampos}
                 >
-                  <RotateCcw className="size-4" />
+                  <RotateCcw className="size-4" aria-hidden="true" />
                   Limpar campos
                 </Button>
-
               </div>
 
               <div>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Resultado
+                </p>
 
                 <div className="flex min-h-64 flex-col items-center justify-center border border-border bg-muted/20 p-5 text-center">
-
                   <div className="flex size-14 items-center justify-center border border-border bg-background text-primary">
-                    <TrendingDown className="size-5" />
+                    <TrendingDown className="size-5" aria-hidden="true" />
                   </div>
 
-                  <p className="mt-5 text-sm text-muted-foreground">
+                  <p className="mt-5 text-sm font-medium text-muted-foreground">
                     Preço final
                   </p>
 
-                  <p className="mt-2 font-heading text-4xl font-semibold">
-                    {resultado
-                      ? formatCurrency(resultado.precoFinal)
-                      : "R$ 0,00"}
+                  <p className="mt-2 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
+                    {resultado ? formatCurrency(resultado.precoFinal) : "R$ 0,00"}
                   </p>
 
+                  <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
+                    {resultado
+                      ? `Você economiza ${formatCurrency(resultado.valorDesconto)} sobre o preço original.`
+                      : "Preencha o preço original e um desconto entre 0% e 100% para calcular."}
+                  </p>
                 </div>
 
                 {resultado && (
-
-                  <div className="mt-4 grid gap-3">
-
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                     <div className="border border-border bg-muted/20 p-4">
-
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <CircleDollarSign className="size-4" />
-                        <p className="text-xs uppercase">
+                        <CircleDollarSign className="size-4" aria-hidden="true" />
+                        <p className="text-xs uppercase tracking-wider">
                           Valor economizado
                         </p>
                       </div>
 
-                      <p className="mt-2 text-xl font-semibold">
+                      <p className="mt-2 font-heading text-xl font-semibold">
                         {formatCurrency(resultado.valorDesconto)}
                       </p>
-
                     </div>
 
                     <div className="border border-border bg-muted/20 p-4">
-
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <BadgePercent className="size-4" />
-                        <p className="text-xs uppercase">
+                        <BadgePercent className="size-4" aria-hidden="true" />
+                        <p className="text-xs uppercase tracking-wider">
                           Desconto aplicado
                         </p>
                       </div>
 
-                      <p className="mt-2 text-xl font-semibold">
+                      <p className="mt-2 font-heading text-xl font-semibold">
                         {formatPercentage(resultado.percentual)}%
                       </p>
-
                     </div>
-
-                    <div className={`border p-4 ${resultado.analysis.className}`}>
-                      <p className="font-semibold">
-                        {resultado.analysis.title}
-                      </p>
-
-                      <p className="mt-2 text-xs leading-5">
-                        {resultado.analysis.description}
-                      </p>
-
-                    </div>
-
                   </div>
-
                 )}
-                              </div>
 
+                {resultado && (
+                  <div className={`mt-4 border p-4 ${resultado.analysis.className}`}>
+                    <p className="text-sm font-semibold">
+                      {resultado.analysis.title}
+                    </p>
+
+                    <p className="mt-2 text-xs leading-5 opacity-90">
+                      {resultado.analysis.description}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -306,7 +291,6 @@ export default function CalculadoraDeDescontoClient() {
         <div className="mx-auto mt-8 max-w-4xl">
           <AdSlot variant="banner" />
         </div>
-
       </div>
     </section>
   );
