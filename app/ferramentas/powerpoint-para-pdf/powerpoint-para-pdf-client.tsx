@@ -203,8 +203,8 @@ export default function PowerPointParaPdfClient() {
     }
   }
 
-  return <ToolPageShell title="Converter PowerPoint para PDF" description="Transforme apresentações PowerPoint em arquivos PDF em poucos segundos." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/">
-    <Card className="mx-auto max-w-5xl"><CardHeader><CardTitle>Converter PowerPoint para PDF</CardTitle><CardDescription>Transforme apresentações PowerPoint em arquivos PDF em poucos segundos.</CardDescription></CardHeader><CardContent className="space-y-6">
+  return <ToolPageShell title="Converter PowerPoint para PDF" description="Revise os slides antes de gerar o PDF: selecione o que entra, ajuste a ordem e escolha orientação, tamanho de página e qualidade." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/">
+    <Card className="mx-auto max-w-5xl"><CardHeader><CardTitle>Prepare os slides para o PDF</CardTitle><CardDescription>Carregue um PPTX e confira as miniaturas antes de definir quais slides entram no arquivo final.</CardDescription></CardHeader><CardContent className="space-y-6">
       {!file && status !== "processing" && <>
         <input ref={fileInputRef} type="file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" className="sr-only" onChange={(event) => { void selectFile(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
         <div onDragEnter={(event) => { event.preventDefault(); setDraggingFile(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDraggingFile(false); }} onDrop={(event) => { event.preventDefault(); setDraggingFile(false); void selectFile(Array.from(event.dataTransfer.files)); }} className={`flex min-h-64 flex-col items-center justify-center border border-dashed p-6 text-center transition-colors sm:p-10 ${draggingFile ? "border-primary bg-primary/5" : "border-border bg-muted/20"}`}>
