@@ -44,6 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "social-media",
       "videos",
       "arquivos",
+      "empresas",
     ].filter((slug) => {
       const hub = hubSettings.get(slug);
       return !hub || (hub.status === "published" && hub.indexable && hub.includeInSitemap);
