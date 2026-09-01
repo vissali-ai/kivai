@@ -20,6 +20,53 @@ type SocialToolEditorialSlug =
 type GeneralEditorialContent = (typeof generalToolEditorialContent)[GeneralToolEditorialSlug];
 type EditorialContent = GeneralEditorialContent | SocialAdvancedEditorialContent;
 
+const instagramContent: GeneralEditorialContent = {
+  categoryName: "Social Media",
+  categoryHref: "/ferramentas/social-media",
+  applicationCategory: "BusinessApplication",
+  overview: [
+    "O Contador de Caracteres para Instagram conta os caracteres do texto digitado ou colado, mostra a quantidade de palavras e identifica hashtags presentes no texto.",
+    "Ele foi pensado para revisar legendas antes da publicação. A contagem acontece no navegador e não representa uma validação oficial do limite exibido pelo aplicativo do Instagram.",
+  ],
+  useCases: [
+    { title: "Revisar legendas", description: "Confira rapidamente o tamanho do texto antes de copiar a legenda para o Instagram." },
+    { title: "Acompanhar palavras", description: "Veja a quantidade de palavras enquanto edita uma legenda." },
+    { title: "Conferir hashtags", description: "Identifique quantas hashtags o texto contém usando o padrão reconhecido pela ferramenta." },
+  ],
+  steps: [
+    "Digite ou cole a legenda no campo de texto.",
+    "Confira a quantidade de caracteres, palavras e hashtags.",
+    "Edite o texto até chegar ao tamanho desejado.",
+    "Use o botão de copiar para levar o texto ao Instagram ou a outro aplicativo.",
+  ],
+  specifications: [
+    { label: "Caracteres", value: "A contagem considera o tamanho da string digitada no navegador." },
+    { label: "Palavras", value: "As palavras são separadas por espaços em branco após a remoção dos espaços nas extremidades." },
+    { label: "Hashtags", value: "A ferramenta identifica hashtags formadas por # seguido de letras, números ou sublinhado." },
+    { label: "Processamento", value: "O texto é processado localmente no navegador." },
+    { label: "Ações", value: "É possível copiar o texto e limpar o campo para iniciar uma nova contagem." },
+  ],
+  privacy: "O texto digitado é processado localmente no navegador. A ferramenta não envia a legenda para servidores nem exige conexão com uma conta do Instagram.",
+  limitations: [
+    "A contagem é uma referência para revisão e não deve ser tratada como confirmação de um limite oficial da plataforma.",
+    "Caracteres, palavras e hashtags são contados segundo a lógica desta ferramenta e podem não corresponder a contadores de terceiros com metodologias diferentes.",
+    "A ferramenta não publica, agenda ou valida a legenda dentro do Instagram.",
+  ],
+  faqs: [
+    { question: "O que o Contador de Caracteres para Instagram conta?", answer: "Ele mostra caracteres, palavras e hashtags presentes no texto digitado." },
+    { question: "Preciso conectar minha conta do Instagram?", answer: "Não. O contador funciona no navegador sem login ou acesso à conta." },
+    { question: "O texto é enviado para o Kivai?", answer: "Não. A contagem é feita localmente no navegador." },
+    { question: "A ferramenta confirma o limite de caracteres do Instagram?", answer: "Não. Ela conta o texto informado, mas não valida um limite oficial diretamente no Instagram." },
+    { question: "Como as hashtags são identificadas?", answer: "A ferramenta procura ocorrências de # seguidas por letras, números ou sublinhado." },
+    { question: "Posso copiar minha legenda?", answer: "Sim. Use o botão de copiar para enviar o texto para a área de transferência." },
+  ],
+  related: [
+    { href: "/ferramentas/planejador-de-conteudo-social-media", label: "Planejador de Conteúdo" },
+    { href: "/ferramentas/preview-de-post-redes-sociais", label: "Preview de Post" },
+    { href: "/ferramentas/contador-de-palavras", label: "Contador de Palavras" },
+  ],
+};
+
 const engagementContent: GeneralEditorialContent = {
   categoryName: "Social Media",
   categoryHref: "/ferramentas/social-media",
@@ -114,6 +161,7 @@ function isAdvancedSlug(slug: SocialToolEditorialSlug): slug is SocialAdvancedEd
 
 function getContent(slug: SocialToolEditorialSlug): EditorialContent {
   if (slug === "calculadora-de-engajamento") return engagementContent;
+  if (slug === "contador-de-caracteres-instagram") return instagramContent;
   if (isAdvancedSlug(slug)) return socialAdvancedEditorialContent[slug];
   return generalToolEditorialContent[slug];
 }
