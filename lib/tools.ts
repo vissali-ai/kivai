@@ -841,7 +841,7 @@ export const tools: Tool[] = [
     icon: LayoutGrid,
     available: true,
     seoTitle: "Preview de Post para Redes Sociais Grátis | Kivai",
-    seoDescription: "Visualize perfil, imagem, texto e legenda antes de publicar com o Preview de Post para Redes Sociais do Kivai.",
+    seoDescription: "Monte uma simulação visual de post com perfil, imagem, proporção e legenda para revisar o conteúdo antes de publicar.",
     keywords: ["preview de post para redes sociais", "preview de post", "simulador de post", "visualizar post antes de publicar", "preview Instagram"],
   },
   {
