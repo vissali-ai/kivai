@@ -114,8 +114,8 @@ export default function ConsultaDeCnaeClient() {
     <ToolPageShell
       title="Consulta de CNAE"
       description="Consulte a classificação de uma atividade econômica pelo código CNAE e visualize sua hierarquia no IBGE."
-      categoryName="Empresarial"
-      categoryHref="/ferramentas"
+      categoryName="Empresas"
+      categoryHref="/ferramentas/empresas"
       processingMode="server"
       privacyMessage="O código CNAE informado é enviado à BrasilAPI para consulta. O Kivai não salva o resultado da consulta."
     >

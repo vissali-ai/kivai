@@ -45,7 +45,8 @@ export type ToolCategory =
   | "ecommerce"
   | "seo"
   | "ia"
-  | "utilitarios";
+  | "utilitarios"
+  | "empresas";
 
 export interface ToolCategoryDefinition {
   slug: ToolCategory;
@@ -104,6 +105,14 @@ export const toolCategories: ToolCategoryDefinition[] = [
     href: "/ferramentas/videos",
     icon: FileImage,
   },
+  {
+    slug: "empresas",
+    name: "Empresas",
+    description:
+      "Consulte CNPJ, CNAE, NCM, bancos e domínios .BR para apoiar pesquisas empresariais e comerciais.",
+    href: "/ferramentas/empresas",
+    icon: Building2,
+  },
 ];
 
 export interface Tool {
@@ -139,7 +148,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "compressor-de-videos",
   "consulta-de-cnae",
   "consulta-de-ncm",
-  "consulta-de-cnpj",
+  "consulta-cnpj",
   "conversor-de-imagens",
   "conversor-heic",
   "conversor-svg-png",
@@ -612,9 +621,9 @@ export const tools: Tool[] = [
     slug: "verificador-de-dominio-br",
     name: "Verificador de Domínio .BR",
     description: "Consulte o status e outras informações públicas de um domínio .br.",
-    category: "utilitarios",
-    hubFilter: "Empresarial",
-    badge: "Empresarial",
+    category: "empresas",
+    hubFilter: "Domínios",
+    badge: "Domínios",
     icon: Code2,
     available: true,
     seoTitle: "Verificador de Domínio .BR Online | Kivai",
@@ -625,9 +634,9 @@ export const tools: Tool[] = [
     slug: "consulta-de-cnae",
     name: "Consulta de CNAE",
     description: "Consulte a classificação de atividades econômicas pelo código CNAE e visualize sua hierarquia no IBGE.",
-    category: "utilitarios",
-    hubFilter: "Empresarial",
-    badge: "Empresarial",
+    category: "empresas",
+    hubFilter: "Empresa",
+    badge: "Empresa",
     icon: Building2,
     available: true,
     seoTitle: "Consulta de CNAE Online Grátis | Kivai",
@@ -638,9 +647,9 @@ export const tools: Tool[] = [
     slug: "consulta-de-banco",
     name: "Consulta de Banco",
     description: "Consulte dados de bancos e instituições financeiras a partir do código bancário.",
-    category: "utilitarios",
-    hubFilter: "Empresarial",
-    badge: "Empresarial",
+    category: "empresas",
+    hubFilter: "Financeiro",
+    badge: "Financeiro",
     icon: Building2,
     available: true,
     seoTitle: "Consulta de Banco Online Grátis | Kivai",
@@ -651,9 +660,9 @@ export const tools: Tool[] = [
     slug: "consulta-de-ncm",
     name: "Consulta de NCM",
     description: "Consulte códigos NCM, descrição, vigência e informações do ato legal associado ao produto.",
-    category: "utilitarios",
-    hubFilter: "Empresarial",
-    badge: "Empresarial",
+    category: "empresas",
+    hubFilter: "Comércio",
+    badge: "Comércio",
     icon: Tags,
     available: true,
     seoTitle: "Consulta de NCM Online Grátis | Kivai",
@@ -661,13 +670,13 @@ export const tools: Tool[] = [
     keywords: ["consulta de ncm", "consultar ncm", "ncm online", "código ncm", "ncm produto", "ncm comércio exterior"],
   },
   {
-    slug: "consulta-de-cnpj",
+    slug: "consulta-cnpj",
     name: "Consulta de CNPJ",
     description:
       "Consulte dados cadastrais, situação, atividades, endereço, contatos, quadro societário e informações tributárias de empresas pelo CNPJ.",
-    category: "utilitarios",
-    hubFilter: "Empresarial",
-    badge: "Empresarial",
+    category: "empresas",
+    hubFilter: "Empresa",
+    badge: "Empresa",
     icon: Building2,
     available: true,
     seoTitle: "Consulta de CNPJ Online Grátis | Kivai",

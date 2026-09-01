@@ -4,51 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Building2 } from "lucide-react";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { getToolHref, getToolsByCategory } from "@/lib/tools";
 
 const filters = ["Todos", "Empresa", "Comércio", "Financeiro", "Domínios"] as const;
 type Filter = (typeof filters)[number];
 
-const tools = [
-  {
-    name: "Consulta de CNPJ",
-    description: "Consulte dados cadastrais, situação, endereço, atividades e outras informações públicas de empresas.",
-    badge: "Empresa",
-    filter: "Empresa" as const,
-    href: "/ferramentas/consulta-de-cnpj",
-  },
-  {
-    name: "Consulta de CNAE",
-    description: "Pesquise uma classe CNAE e consulte sua descrição e classificação na atividade econômica.",
-    badge: "Empresa",
-    filter: "Empresa" as const,
-    href: "/ferramentas/consulta-de-cnae",
-  },
-  {
-    name: "Consulta de NCM",
-    description: "Consulte códigos NCM e encontre informações de classificação de mercadorias.",
-    badge: "Comércio",
-    filter: "Comércio" as const,
-    href: "/ferramentas/consulta-de-ncm",
-  },
-  {
-    name: "Consulta de Banco",
-    description: "Consulte instituições financeiras pelo código bancário e confira os dados disponíveis.",
-    badge: "Financeiro",
-    filter: "Financeiro" as const,
-    href: "/ferramentas/consulta-de-banco",
-  },
-  {
-    name: "Verificador de Domínio .BR",
-    description: "Consulte o status e informações públicas de um domínio com final .br.",
-    badge: "Domínios",
-    filter: "Domínios" as const,
-    href: "/ferramentas/verificador-de-dominio-br",
-  },
-];
+const tools = getToolsByCategory("empresas");
 
 export default function EmpresasPage() {
   const [filter, setFilter] = useState<Filter>("Todos");
-  const filteredTools = filter === "Todos" ? tools : tools.filter((tool) => tool.filter === filter);
+  const filteredTools = filter === "Todos" ? tools : tools.filter((tool) => tool.hubFilter === filter);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -86,8 +51,8 @@ export default function EmpresasPage() {
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {filteredTools.map((tool) => (
               <Link
-                key={tool.href}
-                href={tool.href}
+                key={tool.slug}
+                href={getToolHref(tool.slug)}
                 className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4"
               >
                 <div className="flex h-full flex-col">

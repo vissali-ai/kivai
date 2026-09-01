@@ -25,7 +25,7 @@ const FAQ = [
 ];
 
 export async function generateMetadata() {
-  return getToolMetadataAsync("consulta-de-cnpj");
+  return getToolMetadataAsync("consulta-cnpj");
 }
 
 export default function ConsultaDeCnpjPage() {
@@ -69,7 +69,7 @@ export default function ConsultaDeCnpjPage() {
             "@type": "ListItem",
             position: 2,
             name: "Consulta de CNPJ",
-            item: "https://www.kivai.com.br/ferramentas/consulta-de-cnpj",
+            item: "https://www.kivai.com.br/ferramentas/consulta-cnpj",
           },
         ],
       },

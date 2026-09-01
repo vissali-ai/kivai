@@ -75,8 +75,8 @@ export default function ConsultaDeBancoClient() {
     <ToolPageShell
       title="Consulta de Banco"
       description="Consulte dados de bancos e instituições financeiras a partir do código bancário."
-      categoryName="Empresarial"
-      categoryHref="/ferramentas"
+      categoryName="Empresas"
+      categoryHref="/ferramentas/empresas"
       processingMode="server"
       privacyMessage="O código informado é enviado à BrasilAPI para consulta. O Kivai não salva o resultado da consulta."
     >

@@ -223,8 +223,8 @@ export default function ConsultaDeCnpjClient() {
     <ToolPageShell
       title="Consulta de CNPJ"
       description="Consulte dados cadastrais, situação, atividades, endereço, contatos e outras informações disponíveis de uma empresa pelo CNPJ."
-      categoryName="Empresarial"
-      categoryHref="/ferramentas"
+      categoryName="Empresas"
+      categoryHref="/ferramentas/empresas"
       processingMode="server"
       privacyMessage="O CNPJ informado é enviado à BrasilAPI para consulta. O Kivai não salva o resultado da consulta."
     >
