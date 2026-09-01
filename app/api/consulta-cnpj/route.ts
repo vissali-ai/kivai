@@ -14,7 +14,9 @@ function getClientIp(request: Request) {
 
 function isAllowed(ip: string) {
   const now = Date.now();
-  const recent = (requestHistory.get(ip) ?? []).filter((timestamp) => now - timestamp < WINDOW_MS);
+  const recent = (requestHistory.get(ip) ?? []).filter(
+    (timestamp) => now - timestamp < WINDOW_MS,
+  );
 
   if (recent.length >= MAX_REQUESTS_PER_IP) {
     requestHistory.set(ip, recent);
@@ -23,6 +25,16 @@ function isAllowed(ip: string) {
 
   recent.push(now);
   requestHistory.set(ip, recent);
+
+  // Evita crescimento indefinido do mapa em instâncias de longa duração.
+  if (requestHistory.size > 1_000) {
+    for (const [key, timestamps] of requestHistory) {
+      if (timestamps.every((timestamp) => now - timestamp >= WINDOW_MS)) {
+        requestHistory.delete(key);
+      }
+    }
+  }
+
   return true;
 }
 
@@ -41,6 +53,18 @@ function normalizeCnpj(value: unknown) {
 
 export async function POST(request: Request) {
   try {
+    const body = (await request.json().catch(() => null)) as { cnpj?: unknown } | null;
+    const cnpj = normalizeCnpj(body?.cnpj);
+
+    if (!cnpj) {
+      return NextResponse.json(
+        { error: "Informe um CNPJ válido com 14 caracteres." },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    // O limite é aplicado somente a consultas válidas, evitando consumir
+    // a cota do usuário com entradas inválidas.
     const ip = getClientIp(request);
 
     if (!isAllowed(ip)) {
@@ -50,16 +74,6 @@ export async function POST(request: Request) {
           status: 429,
           headers: { "Retry-After": "60", "Cache-Control": "no-store" },
         },
-      );
-    }
-
-    const body = (await request.json().catch(() => null)) as { cnpj?: unknown } | null;
-    const cnpj = normalizeCnpj(body?.cnpj);
-
-    if (!cnpj) {
-      return NextResponse.json(
-        { error: "Informe um CNPJ válido com 14 caracteres." },
-        { status: 400, headers: { "Cache-Control": "no-store" } },
       );
     }
 
