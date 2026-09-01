@@ -112,10 +112,10 @@ export default function FerramentasPage() {
             const Icon = category.icon;
             const isArquivos = category.slug === "arquivos";
             const isImagens = category.slug === "imagens";
-            const registeredCount = isArquivos
+            const isEmpresas = category.slug === "empresas";
+            const registeredCount = isArquivos || isEmpresas
               ? 0
               : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
-            const isEmpresas = category.slug === "empresas";
             const availableCount = isArquivos ? 5 : isEmpresas ? 5 : isImagens ? registeredCount + 1 : registeredCount;
 
             return (
