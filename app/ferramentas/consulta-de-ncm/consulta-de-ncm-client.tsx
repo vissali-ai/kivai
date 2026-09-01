@@ -8,7 +8,7 @@ import { ToolPageShell } from "@/components/tools/tool-page-shell";
 type NcmData = { codigo?: string; descricao?: string; data_inicio?: string; data_fim?: string; tipo_ato?: string; numero_ato?: string; ano_ato?: string };
 const normalize=(v:string)=>v.replace(/\D/g,"").slice(0,8);
 const fmt=(v?:string)=>{const d=normalize(v??""); return d.length===8?`${d.slice(0,4)}.${d.slice(4,6)}.${d.slice(6,8)}`:v||"Não informado"};
-const date=(v?:string)=>v?((p=v.split("-")).length===3?`${p[2]}/${p[1]}/${p[0]}`:v):"Não informado";
+const date=(v?:string)=>{if(!v)return "Não informado";const parts=v.split("-");return parts.length===3?`${parts[2]}/${parts[1]}/${parts[0]}`:v};
 const display=(v?:string|null)=>v||"Não informado";
 
 export default function ConsultaDeNcmClient(){
