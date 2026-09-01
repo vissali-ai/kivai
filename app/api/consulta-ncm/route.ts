@@ -14,7 +14,13 @@ function isAllowed(ip: string) {
   const now = Date.now();
   const recent = (requestHistory.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
   if (recent.length >= MAX_REQUESTS_PER_IP) { requestHistory.set(ip, recent); return false; }
-  recent.push(now); requestHistory.set(ip, recent); return true;
+  recent.push(now); requestHistory.set(ip, recent);
+  if (requestHistory.size > 1_000) {
+    for (const [key, timestamps] of requestHistory) {
+      if (timestamps.every((timestamp) => now - timestamp >= WINDOW_MS)) requestHistory.delete(key);
+    }
+  }
+  return true;
 }
 function normalizeCode(value: unknown) {
   if (typeof value !== "string") return null;
@@ -23,11 +29,11 @@ function normalizeCode(value: unknown) {
 }
 export async function POST(request: Request) {
   try {
-    const ip = getClientIp(request);
-    if (!isAllowed(ip)) return NextResponse.json({ error: "Muitas consultas em pouco tempo. Aguarde um minuto e tente novamente." }, { status: 429, headers: { "Retry-After": "60" } });
     const body = (await request.json().catch(() => null)) as { code?: unknown } | null;
     const code = normalizeCode(body?.code);
     if (!code) return NextResponse.json({ error: "Informe um código NCM com 8 dígitos, com ou sem pontos." }, { status: 400 });
+    const ip = getClientIp(request);
+    if (!isAllowed(ip)) return NextResponse.json({ error: "Muitas consultas em pouco tempo. Aguarde um minuto e tente novamente." }, { status: 429, headers: { "Retry-After": "60" } });
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
     let response: Response;
