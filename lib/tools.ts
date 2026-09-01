@@ -769,14 +769,14 @@ export const tools: Tool[] = [
   {
     slug: "calculadora-de-engajamento",
     name: "Calculadora de Engajamento",
-    description: "Calcule a taxa de engajamento por seguidores, alcance ou impressões a partir das interações das suas publicações.",
+    description: "Calcule a taxa de engajamento por seguidores, alcance ou impressões e compare uma ou várias publicações pelo mesmo método.",
     category: "social",
     hubFilter: "Analisar",
     badge: "Social Media",
     icon: BarChart3,
     available: true,
     seoTitle: "Calculadora de Engajamento para Redes Sociais | Kivai",
-    seoDescription: "Calcule gratuitamente a taxa de engajamento por seguidores, alcance ou impressões e analise as interações das suas publicações.",
+    seoDescription: "Calcule gratuitamente a taxa de engajamento por seguidores, alcance ou impressões e compare uma ou várias publicações pelo mesmo método.",
     keywords: ["calculadora de engajamento", "taxa de engajamento", "calcular engajamento", "engajamento Instagram", "engajamento por alcance"],
   },
   {
