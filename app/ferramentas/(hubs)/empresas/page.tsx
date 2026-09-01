@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight, Building2 } from "lucide-react";
 import { AdSlot } from "@/components/ads/AdSlot";
 
-const filters = ["Todos", "Empresa", "Comércio", "Domínios"] as const;
+const filters = ["Todos", "Empresa", "Comércio", "Financeiro", "Domínios"] as const;
 type Filter = (typeof filters)[number];
 
 const tools = [
@@ -34,7 +34,7 @@ const tools = [
     name: "Consulta de Banco",
     description: "Consulte instituições financeiras pelo código bancário e confira os dados disponíveis.",
     badge: "Financeiro",
-    filter: "Empresa" as const,
+    filter: "Financeiro" as const,
     href: "/ferramentas/consulta-de-banco",
   },
   {
