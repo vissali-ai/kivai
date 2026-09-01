@@ -847,12 +847,15 @@ export const tools: Tool[] = [
   {
     slug: "contador-de-caracteres-instagram",
     name: "Contador de Caracteres para Instagram",
-    description: "Conte caracteres e confira limites de textos para publicações no Instagram.",
+    description: "Conte caracteres, palavras e hashtags de uma legenda antes de publicar no Instagram.",
     category: "social",
     hubFilter: "Analisar",
     badge: "Social Media",
     icon: Type,
     available: true,
+    seoTitle: "Contador de Caracteres para Instagram Online | Kivai",
+    seoDescription: "Conte caracteres, palavras e hashtags de uma legenda no navegador antes de publicar no Instagram, sem enviar o texto para servidores.",
+    keywords: ["contador de caracteres Instagram", "contador de caracteres", "contar caracteres Instagram", "contador de legenda Instagram", "contador de hashtags"],
   },
   {
     slug: "baixar-video-instagram",
