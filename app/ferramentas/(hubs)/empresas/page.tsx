@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { ArrowLeft, ArrowRight, Building2 } from "lucide-react";
 import { AdSlot } from "@/components/ads/AdSlot";
 
@@ -46,7 +47,7 @@ const tools = [
 ];
 
 export default function EmpresasPage() {
-  const [filter, setFilter] = React.useState<Filter>("Todos");
+  const [filter, setFilter] = useState<Filter>("Todos");
   const filteredTools = filter === "Todos" ? tools : tools.filter((tool) => tool.filter === filter);
 
   return (
