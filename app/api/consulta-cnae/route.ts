@@ -13,13 +13,26 @@ function getClientIp(request: Request) {
 
 function isAllowed(ip: string) {
   const now = Date.now();
-  const recent = (requestHistory.get(ip) ?? []).filter((timestamp) => now - timestamp < WINDOW_MS);
+  const recent = (requestHistory.get(ip) ?? []).filter(
+    (timestamp) => now - timestamp < WINDOW_MS,
+  );
+
   if (recent.length >= MAX_REQUESTS_PER_IP) {
     requestHistory.set(ip, recent);
     return false;
   }
+
   recent.push(now);
   requestHistory.set(ip, recent);
+
+  if (requestHistory.size > 1_000) {
+    for (const [key, timestamps] of requestHistory) {
+      if (timestamps.every((timestamp) => now - timestamp >= WINDOW_MS)) {
+        requestHistory.delete(key);
+      }
+    }
+  }
+
   return true;
 }
 
@@ -31,15 +44,15 @@ function normalizeClasse(value: unknown) {
 
 export async function POST(request: Request) {
   try {
-    const ip = getClientIp(request);
-    if (!isAllowed(ip)) {
-      return NextResponse.json({ error: "Muitas consultas em pouco tempo. Aguarde um minuto e tente novamente." }, { status: 429, headers: { "Retry-After": "60", "Cache-Control": "no-store" } });
-    }
-
     const body = (await request.json().catch(() => null)) as { classe?: unknown } | null;
     const classe = normalizeClasse(body?.classe);
     if (!classe) {
       return NextResponse.json({ error: "Informe um código CNAE de classe com 5 dígitos." }, { status: 400, headers: { "Cache-Control": "no-store" } });
+    }
+
+    const ip = getClientIp(request);
+    if (!isAllowed(ip)) {
+      return NextResponse.json({ error: "Muitas consultas em pouco tempo. Aguarde um minuto e tente novamente." }, { status: 429, headers: { "Retry-After": "60", "Cache-Control": "no-store" } });
     }
 
     const controller = new AbortController();
