@@ -10,7 +10,7 @@ export default function RadarDeTendenciasPage() {
     <>
       <ToolPageShell
         title="Radar de Notícias e Tendências"
-        description="Encontre notícias recentes de marketing, inteligência artificial e e-commerce em uma seleção rápida de fontes especializadas."
+        description="Acompanhe notícias recentes de marketing, inteligência artificial e e-commerce em uma seleção de fontes especializadas."
         categoryName="Social Media"
         categoryHref="/ferramentas/social-media"
         processingMode="server"
