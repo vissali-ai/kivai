@@ -196,9 +196,53 @@ def _positive_int(value: str | None) -> int | None:
     return parsed if parsed > 0 else None
 
 
-def _photo_result_from_html(html: str, shortcode: str) -> dict[str, Any]:
+def _og_media_result_from_html(html: str, shortcode: str) -> dict[str, Any]:
     parser = _OpenGraphParser()
     parser.feed(html)
+    headers = {"Referer": "https://www.instagram.com/", "User-Agent": "Mozilla/5.0"}
+    title = parser.values.get("og:title", "Conteúdo público do Instagram").strip()
+
+    video_url = (
+        parser.values.get("og:video:secure_url")
+        or parser.values.get("og:video")
+        or parser.values.get("og:video:url")
+        or ""
+    ).strip()
+    if video_url.startswith("https://"):
+        declared_type = parser.values.get("og:video:type", "").lower()
+        extension = "mp4"
+        path_extension = Path(urlsplit(video_url).path).suffix.lower().lstrip(".")
+        if path_extension in {"mp4", "m4v", "webm"}:
+            extension = path_extension
+        media_type = declared_type if declared_type.startswith("video/") else f"video/{extension}"
+        media = RemoteMedia(
+            url=video_url,
+            filename=f"instagram-{shortcode}.{extension}",
+            media_type=media_type,
+            kind="video",
+            headers=headers,
+            max_bytes=MAX_VIDEO_BYTES,
+        )
+        return {
+            "source": "instagram",
+            "shortcode": shortcode,
+            "title": title[:240],
+            "author": None,
+            "thumbnailToken": None,
+            "items": [{
+                "id": f"{shortcode}-1",
+                "kind": "video",
+                "filename": media.filename,
+                "format": extension.upper(),
+                "width": _positive_int(parser.values.get("og:video:width")),
+                "height": _positive_int(parser.values.get("og:video:height")),
+                "duration": None,
+                "size": None,
+                "downloadToken": create_media_token(media),
+            }],
+            "expiresIn": TOKEN_TTL_SECONDS,
+        }
+
     image_url = parser.values.get("og:image", "").strip()
     if not image_url.startswith("https://"):
         raise InstagramResolveError(
@@ -218,10 +262,9 @@ def _photo_result_from_html(html: str, shortcode: str) -> dict[str, Any]:
         filename=f"instagram-{shortcode}.{extension}",
         media_type=media_type,
         kind="image",
-        headers={"Referer": "https://www.instagram.com/", "User-Agent": "Mozilla/5.0"},
+        headers=headers,
         max_bytes=MAX_IMAGE_BYTES,
     )
-    title = parser.values.get("og:title", "Foto pública do Instagram").strip()
     return {
         "source": "instagram",
         "shortcode": shortcode,
@@ -264,7 +307,7 @@ def _extract_instagram_photo_sync(url: str, shortcode: str) -> dict[str, Any]:
                         raise InstagramResolveError("A página pública é maior que o limite permitido.", 502)
                     chunks.append(chunk)
                 encoding = response.encoding or "utf-8"
-        return _photo_result_from_html(b"".join(chunks).decode(encoding, errors="replace"), shortcode)
+        return _og_media_result_from_html(b"".join(chunks).decode(encoding, errors="replace"), shortcode)
     except httpx.HTTPError as exc:
         raise InstagramResolveError(
             "Não foi possível consultar essa publicação pública agora. Tente novamente em alguns instantes.",
@@ -312,12 +355,13 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
             raw_info = downloader.extract_info(url, download=False)
             info = downloader.sanitize_info(raw_info)
     except yt_dlp.utils.DownloadError as exc:
-        if "no video in this post" in str(exc).lower():
-            try:
-                return _extract_instagram_photo_sync(url, shortcode)
-            except InstagramResolveError as photo_error:
-                raise photo_error from exc
-        raise instagram_download_error(str(exc)) from exc
+        error_text = str(exc)
+        # O HTML público às vezes ainda expõe og:video/og:image quando o
+        # extrator principal encontra bloqueio temporário ou login.
+        try:
+            return _extract_instagram_photo_sync(url, shortcode)
+        except InstagramResolveError:
+            raise instagram_download_error(error_text) from exc
 
     if not isinstance(info, dict):
         raise InstagramResolveError("O Instagram não retornou dados de vídeo compatíveis.", 422)
