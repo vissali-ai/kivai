@@ -46,3 +46,5 @@ typing_extensions==4.15.0
 uvicorn==0.50.0
 # Mantido sem pin rígido porque extratores de plataformas públicas exigem atualizações frequentes.
 yt-dlp
+
+curl-cffi>=0.15,<0.16
