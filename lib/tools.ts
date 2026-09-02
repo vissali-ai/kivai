@@ -23,6 +23,7 @@ import {
   Tags,
   TrendingUp,
   Type,
+  Users,
   WandSparkles,
   CalendarDays,
   Code2,
@@ -134,6 +135,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "adicionar-marca-dagua",
   "ajustar-velocidade-video",
   "alterar-volume-video",
+  "analisador-de-seguidores-instagram",
   "baixar-video-instagram",
   "calculadora-de-desconto",
   "calculadora-de-engajamento",
@@ -146,6 +148,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "capturar-frame-video",
   "compressor-de-imagens",
   "compressor-de-videos",
+  "consulta-de-banco",
   "consulta-de-cnae",
   "consulta-de-ncm",
   "consulta-cnpj",
@@ -194,6 +197,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "remover-audio-video",
   "unir-pdfs",
   "video-para-audio",
+  "verificador-de-dominio-br",
   "word-para-pdf",
 ] as const;
 
@@ -204,6 +208,21 @@ export function isToolIndexable(slug: string) {
 }
 
 export const tools: Tool[] = [
+  {
+    slug: "analisador-de-seguidores-instagram",
+    name: "Analisador de Seguidores do Instagram",
+    description:
+      "Descubra quem não segue você de volta, quem você não segue e quais seguidores são mútuos usando a exportação oficial da Meta.",
+    category: "social",
+    hubFilter: "Analisar",
+    badge: "Instagram",
+    icon: Users,
+    available: true,
+    seoTitle: "Quem Não Me Segue no Instagram? Analise seus Seguidores | Kivai",
+    seoDescription:
+      "Descubra quem não segue você de volta, compare seguidores e contas seguidas e analise seu Instagram usando a exportação oficial da Meta.",
+    keywords: ["quem não me segue no instagram", "analisar seguidores instagram", "unfollowers instagram", "seguidores mútuos instagram"],
+  },
   {
     slug: "removedor-de-fundo",
     name: "Removedor de Fundo",

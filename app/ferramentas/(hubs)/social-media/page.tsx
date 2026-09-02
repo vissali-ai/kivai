@@ -2,26 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { AdSlot } from "@/components/ads/AdSlot";
 import { getToolHref, getToolsByCategory } from "@/lib/tools";
 
 const filters = ["Todos", "Planejar", "Analisar", "Formatar", "Visualizar", "Pesquisar"];
-const socialTools = getToolsByCategory("social");
-const tools = [
-  ...socialTools,
-  {
-    slug: "analisador-de-seguidores-instagram",
-    name: "Analisador de Seguidores do Instagram",
-    description: "Descubra quem não te segue de volta, quem você não segue e quais seguidores são mútuos usando a exportação oficial da Meta.",
-    category: "social" as const,
-    hubFilter: "Analisar",
-    badge: "Instagram",
-    icon: Users,
-    available: true,
-  },
-];
+const tools = getToolsByCategory("social");
 
 export default function SocialMediaPage() {
   const [filter, setFilter] = useState("Todos");

@@ -55,7 +55,7 @@ export default function ConsultaDeCnaePage() {
   };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} />
       <ConsultaDeCnaeClient />
     </>
   );

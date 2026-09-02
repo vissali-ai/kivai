@@ -47,6 +47,8 @@ for (const entry of routeEntries) {
   const pagePath = path.join(routesRoot, entry.name, "page.tsx");
   try {
     const source = await readFile(pagePath, "utf8");
+    // Legacy URLs that only redirect do not represent independent tools or need metadata.
+    if (/\b(?:permanentRedirect|redirect)\s*\(/.test(source)) continue;
     routeSlugs.push(entry.name);
     routeSources.set(entry.name, source);
   } catch {
