@@ -244,15 +244,22 @@ export default function BaixarVideoInstagramClient() {
                           <p className="break-all font-medium">{result.items.length > 1 ? `${item.kind === "image" ? "Foto" : "Vídeo"} ${index + 1}` : item.filename}</p>
                           <p className="mt-1 text-sm text-muted-foreground">{details || "Arquivo disponível"}</p>
                         </div>
-                        <Button type="button" className="sm:shrink-0" onClick={() => void saveOrShare(item)} disabled={sharingId === item.id}>
-                          {sharingId === item.id ? <Share2 className="size-4 animate-pulse" /> : isMobileDevice() ? <Share2 className="size-4" /> : <Download className="size-4" />}
-                          <span>{sharingId === item.id ? "Preparando..." : isMobileDevice() ? actionLabel : `Baixar ${item.format}`}</span>
-                        </Button>
+                        <div className="flex flex-col gap-2 sm:shrink-0">
+                          <Button type="button" onClick={() => void saveOrShare(item)} disabled={sharingId === item.id}>
+                            {sharingId === item.id ? <Share2 className="size-4 animate-pulse" /> : isMobileDevice() ? <Share2 className="size-4" /> : <Download className="size-4" />}
+                            <span>{sharingId === item.id ? "Preparando..." : isMobileDevice() ? actionLabel : `Baixar ${item.format}`}</span>
+                          </Button>
+                          {isMobileDevice() && (
+                            <p className="text-center text-xs text-muted-foreground">
+                              No menu do aparelho, use "Ver Mais" para encontrar outros aplicativos compatíveis.
+                            </p>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
                   <p className="text-xs leading-5 text-muted-foreground">
-                    No celular, o botão abre as opções nativas de salvar e compartilhar do aparelho quando disponíveis. No computador, o arquivo continua sendo baixado diretamente. Os arquivos ficam disponíveis por aproximadamente {Math.max(1, Math.round(result.expiresIn / 60))} minutos; depois disso, analise a publicação novamente.
+                    No celular, o botão abre o menu nativo do aparelho. Nele você pode salvar o arquivo ou abrir/enviar para aplicativos compatíveis, como WhatsApp, Mensagens e outros. Se o aplicativo desejado não aparecer de imediato, use "Ver Mais". No computador, o arquivo continua sendo baixado diretamente. Os arquivos ficam disponíveis por aproximadamente {Math.max(1, Math.round(result.expiresIn / 60))} minutos; depois disso, analise a publicação novamente.
                   </p>
                 </div>
               )}
