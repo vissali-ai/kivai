@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Download, Images, Link2, RotateCcw, Search } from "lucide-react";
+import { Download, Images, Link2, RotateCcw, Search, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +59,17 @@ async function responseMessage(response: Response) {
   }
 }
 
+function isMobileDevice() {
+  if (typeof navigator === "undefined") return false;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
+function canShareFiles() {
+  if (typeof navigator === "undefined" || typeof navigator.share !== "function") return false;
+  if (typeof navigator.canShare !== "function") return true;
+  return navigator.canShare({ files: [new File([""], "kivai-test")] });
+}
+
 export default function BaixarVideoInstagramClient() {
   const requestRef = useRef<AbortController | null>(null);
   const [url, setUrl] = useState("");
@@ -66,6 +77,7 @@ export default function BaixarVideoInstagramClient() {
   const [status, setStatus] = useState<ToolStatus>("idle");
   const [error, setError] = useState("");
   const [result, setResult] = useState<InstagramResult | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
 
   useEffect(() => () => requestRef.current?.abort(), []);
 
@@ -103,6 +115,47 @@ export default function BaixarVideoInstagramClient() {
     }
   }
 
+  async function saveOrShare(item: InstagramItem) {
+    const mediaUrl = `${backendUrl()}/instagram/media/${encodeURIComponent(item.downloadToken)}?download=true`;
+
+    if (!isMobileDevice() || !canShareFiles()) {
+      window.location.assign(mediaUrl);
+      return;
+    }
+
+    setSharingId(item.id);
+    setError("");
+
+    try {
+      const response = await fetch(mediaUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error("Não foi possível preparar o arquivo para compartilhamento.");
+      const blob = await response.blob();
+      const file = new File([blob], item.filename, {
+        type: blob.type || (item.kind === "image" ? "image/jpeg" : "video/mp4"),
+      });
+
+      if (typeof navigator.share !== "function") {
+        window.location.assign(mediaUrl);
+        return;
+      }
+
+      if (typeof navigator.canShare === "function" && !navigator.canShare({ files: [file] })) {
+        window.location.assign(mediaUrl);
+        return;
+      }
+
+      await navigator.share({
+        files: [file],
+        title: item.kind === "image" ? "Foto do Instagram" : "Vídeo do Instagram",
+      });
+    } catch (nextError) {
+      if (nextError instanceof DOMException && nextError.name === "AbortError") return;
+      window.location.assign(mediaUrl);
+    } finally {
+      setSharingId(null);
+    }
+  }
+
   function reset() {
     requestRef.current?.abort();
     setUrl("");
@@ -110,12 +163,13 @@ export default function BaixarVideoInstagramClient() {
     setResult(null);
     setError("");
     setStatus("idle");
+    setSharingId(null);
   }
 
   return (
     <ToolPageShell
       title="Baixar Vídeo e Foto do Instagram"
-      description="Cole o link de um Reel ou de uma publicação pública e baixe o vídeo ou a foto disponível, sem conectar sua conta."
+      description="Cole o link de um Reel ou de uma publicação pública e salve ou compartilhe o vídeo ou a foto disponível, sem conectar sua conta."
       categoryName="Vídeos"
       categoryHref="/ferramentas/videos"
       breadcrumbRootName="Início"
@@ -183,21 +237,23 @@ export default function BaixarVideoInstagramClient() {
                       duration,
                       item.size ? formatFileSize(item.size) : null,
                     ].filter(Boolean).join(" · ");
+                    const actionLabel = item.kind === "image" ? "Salvar ou compartilhar foto" : "Salvar ou compartilhar vídeo";
                     return (
                       <div key={item.id} className="flex flex-col gap-3 border border-border p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="min-w-0">
-                          <p className="break-all font-medium">{result.items.length > 1 ? `Vídeo ${index + 1}` : item.filename}</p>
+                          <p className="break-all font-medium">{result.items.length > 1 ? `${item.kind === "image" ? "Foto" : "Vídeo"} ${index + 1}` : item.filename}</p>
                           <p className="mt-1 text-sm text-muted-foreground">{details || "Arquivo disponível"}</p>
                         </div>
-                        <Button asChild className="sm:shrink-0">
-                          <a href={`${backendUrl()}/instagram/media/${encodeURIComponent(item.downloadToken)}?download=true`}>
-                            <Download className="size-4" />Baixar {item.format}
-                          </a>
+                        <Button type="button" className="sm:shrink-0" onClick={() => void saveOrShare(item)} disabled={sharingId === item.id}>
+                          {sharingId === item.id ? <Share2 className="size-4 animate-pulse" /> : isMobileDevice() ? <Share2 className="size-4" /> : <Download className="size-4" />}
+                          <span>{sharingId === item.id ? "Preparando..." : isMobileDevice() ? actionLabel : `Baixar ${item.format}`}</span>
                         </Button>
                       </div>
                     );
                   })}
-                  <p className="text-xs leading-5 text-muted-foreground">Os botões de download ficam disponíveis por aproximadamente {Math.max(1, Math.round(result.expiresIn / 60))} minutos. Depois disso, analise a publicação novamente.</p>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    No celular, o botão abre as opções nativas de salvar e compartilhar do aparelho quando disponíveis. No computador, o arquivo continua sendo baixado diretamente. Os arquivos ficam disponíveis por aproximadamente {Math.max(1, Math.round(result.expiresIn / 60))} minutos; depois disso, analise a publicação novamente.
+                  </p>
                 </div>
               )}
               actions={<Button type="button" variant="outline" onClick={reset}><RotateCcw className="size-4" />Analisar outro link</Button>}
