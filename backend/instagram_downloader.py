@@ -288,26 +288,50 @@ def _og_media_result_from_html(html: str, shortcode: str) -> dict[str, Any]:
 
 def _extract_instagram_photo_sync(url: str, shortcode: str) -> dict[str, Any]:
     headers = {
-        "Accept": "text/html,application/xhtml+xml",
-        "User-Agent": "Mozilla/5.0",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
     }
+    candidates = [
+        url,
+        f"https://www.instagram.com/reel/{shortcode}/embed/",
+        f"https://www.instagram.com/p/{shortcode}/embed/",
+    ]
+    last_error: InstagramResolveError | None = None
+
     try:
         with httpx.Client(timeout=httpx.Timeout(20, connect=10), follow_redirects=False) as client:
-            with client.stream("GET", url, headers=headers) as response:
-                if response.status_code != 200:
-                    raise InstagramResolveError(
-                        "A publicação não está disponível publicamente.",
-                        403 if response.status_code in {401, 403} else 502,
-                    )
-                chunks: list[bytes] = []
-                received = 0
-                for chunk in response.iter_bytes():
-                    received += len(chunk)
-                    if received > MAX_INSTAGRAM_HTML_BYTES:
-                        raise InstagramResolveError("A página pública é maior que o limite permitido.", 502)
-                    chunks.append(chunk)
-                encoding = response.encoding or "utf-8"
-        return _og_media_result_from_html(b"".join(chunks).decode(encoding, errors="replace"), shortcode)
+            for candidate in candidates:
+                try:
+                    with client.stream("GET", candidate, headers=headers) as response:
+                        if response.status_code != 200:
+                            last_error = InstagramResolveError(
+                                "A publicação não está disponível publicamente.",
+                                403 if response.status_code in {401, 403} else 502,
+                            )
+                            continue
+                        chunks: list[bytes] = []
+                        received = 0
+                        for chunk in response.iter_bytes():
+                            received += len(chunk)
+                            if received > MAX_INSTAGRAM_HTML_BYTES:
+                                raise InstagramResolveError("A página pública é maior que o limite permitido.", 502)
+                            chunks.append(chunk)
+                        encoding = response.encoding or "utf-8"
+                    try:
+                        return _og_media_result_from_html(
+                            b"".join(chunks).decode(encoding, errors="replace"),
+                            shortcode,
+                        )
+                    except InstagramResolveError as exc:
+                        last_error = exc
+                        continue
+            if last_error:
+                raise last_error
+            raise InstagramResolveError(
+                "Não foi possível consultar essa publicação pública agora. Tente novamente em alguns instantes.",
+                502,
+            )
     except httpx.HTTPError as exc:
         raise InstagramResolveError(
             "Não foi possível consultar essa publicação pública agora. Tente novamente em alguns instantes.",
