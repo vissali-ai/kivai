@@ -879,7 +879,7 @@ export const tools: Tool[] = [
   {
     slug: "baixar-video-instagram",
     name: "Baixar Vídeo e Foto do Instagram",
-    description: "Baixe Reels, vídeos e fotos de publicações públicas do Instagram sem conectar sua conta.",
+    description: "Salve ou compartilhe Reels, vídeos e fotos de publicações públicas do Instagram sem conectar sua conta.",
     category: "video",
     hubFilter: "Baixar",
     badge: "Instagram",
@@ -887,7 +887,7 @@ export const tools: Tool[] = [
     featured: true,
     available: true,
     seoTitle: "Baixar Vídeo, Foto e Reels do Instagram | Kivai",
-    seoDescription: "Cole o link de um Reel ou publicação pública do Instagram e baixe o vídeo ou a foto disponível sem conectar sua conta.",
+    seoDescription: "Cole o link de um Reel ou publicação pública do Instagram e salve ou compartilhe o vídeo ou a foto disponível sem conectar sua conta.",
     keywords: ["baixar vídeo instagram", "baixar foto instagram", "baixar reels", "download instagram", "salvar reel", "baixar vídeo do instagram online"],
   },
   {
