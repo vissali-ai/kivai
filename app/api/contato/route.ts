@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
+import { sendKivaiEmail } from "@/lib/email/resend";
 
 const SUBJECTS = new Set(["Problema técnico", "Sugerir ferramenta", "Dúvidas"]);
 const KIVAI_EMAIL = "contato@kivai.com.br";
-const KIVAI_FROM = `Kivai <${KIVAI_EMAIL}>`;
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQUESTS = 5;
 const MAX_BODY_BYTES = 8_000;
@@ -57,15 +57,11 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  if (isRateLimited(ip)) {
-    return NextResponse.json({ error: "Muitas tentativas. Tente novamente mais tarde." }, { status: 429 });
-  }
+  if (isRateLimited(ip)) return NextResponse.json({ error: "Muitas tentativas. Tente novamente mais tarde." }, { status: 429 });
 
   try {
     const rawBody = await request.text();
-    if (new TextEncoder().encode(rawBody).length > MAX_BODY_BYTES) {
-      return NextResponse.json({ error: "Requisição inválida." }, { status: 413 });
-    }
+    if (new TextEncoder().encode(rawBody).length > MAX_BODY_BYTES) return NextResponse.json({ error: "Requisição inválida." }, { status: 413 });
 
     const payload = JSON.parse(rawBody) as Record<string, unknown>;
     const website = normalize(payload.website, 200);
@@ -80,31 +76,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Verifique os dados informados." }, { status: 400 });
     }
 
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      console.error("[contact] Email service is not configured.");
-      return NextResponse.json({ error: "Não foi possível enviar a mensagem." }, { status: 503 });
-    }
-
     const sentAt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "long", timeZone: "America/Sao_Paulo" }).format(new Date());
     const emailBody = [`Nome:\n${name}`, `E-mail:\n${email}`, `Assunto:\n${subject}`, `Mensagem:\n${message}`, `Data e hora:\n${sentAt}`].join("\n\n");
 
-    const resendResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: KIVAI_FROM,
-        to: [KIVAI_EMAIL],
-        reply_to: email,
-        subject: `[Kivai Contato] ${subject}`,
-        text: emailBody,
-      }),
+    await sendKivaiEmail({
+      to: KIVAI_EMAIL,
+      replyTo: email,
+      subject: `[Kivai Contato] ${subject}`,
+      text: emailBody,
     });
-
-    if (!resendResponse.ok) {
-      console.error("[contact] Email provider rejected the request.", { status: resendResponse.status });
-      return NextResponse.json({ error: "Não foi possível enviar a mensagem." }, { status: 502 });
-    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
