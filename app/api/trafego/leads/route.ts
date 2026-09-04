@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseRest } from "@/lib/blog/supabase";
+import { sendKivaiEmail } from "@/lib/email/resend";
+
+const LEADS_EMAIL = "contatokivai@gmail.com";
 
 const leadSchema = z.object({
   name: z.string().trim().min(2).max(120), company: z.string().trim().min(2).max(160), email: z.string().trim().email().max(180), phone: z.string().trim().min(8).max(40),
@@ -21,6 +24,10 @@ function clientKey(request: NextRequest) {
 
 function cleanText(value: string) {
   return value.replace(/[<>]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function emailValue(value: string) {
+  return value || "Não informado";
 }
 
 export async function POST(request: NextRequest) {
@@ -44,8 +51,55 @@ export async function POST(request: NextRequest) {
       objective: cleanText(lead.objective), currently_advertising: cleanText(lead.currently_advertising), monthly_budget: cleanText(lead.monthly_budget), message: cleanText(lead.message), privacy_consent: true, privacy_consent_at: new Date().toISOString(), status: "new",
       utm_source: cleanText(lead.utm_source), utm_medium: cleanText(lead.utm_medium), utm_campaign: cleanText(lead.utm_campaign), utm_term: cleanText(lead.utm_term), utm_content: cleanText(lead.utm_content), landing_page: cleanText(lead.landing_page), referrer: cleanText(lead.referrer),
     };
+
     await supabaseRest("trafego_leads", { method: "POST", body: JSON.stringify(row) });
-    return NextResponse.json({ ok: true });
+
+    const emailBody = [
+      "NOVO LEAD DE TRÁFEGO",
+      "",
+      `Nome: ${row.name}`,
+      `Empresa: ${row.company}`,
+      `Segmento: ${emailValue(row.segment)}`,
+      `Cidade/UF: ${emailValue(row.city)}${row.state ? `/${row.state}` : ""}`,
+      "",
+      `WhatsApp/Telefone: ${row.phone}`,
+      `E-mail: ${row.email}`,
+      `Site: ${emailValue(row.website)}`,
+      `Instagram: ${emailValue(row.instagram)}`,
+      "",
+      `Objetivo: ${emailValue(row.objective)}`,
+      `Anúncios atuais: ${emailValue(row.currently_advertising)}`,
+      `Orçamento mensal: ${emailValue(row.monthly_budget)}`,
+      `Mensagem: ${emailValue(row.message)}`,
+      "",
+      "ORIGEM",
+      `UTM Source: ${emailValue(row.utm_source)}`,
+      `UTM Medium: ${emailValue(row.utm_medium)}`,
+      `UTM Campaign: ${emailValue(row.utm_campaign)}`,
+      `UTM Term: ${emailValue(row.utm_term)}`,
+      `UTM Content: ${emailValue(row.utm_content)}`,
+      `Landing page: ${emailValue(row.landing_page)}`,
+      `Referrer: ${emailValue(row.referrer)}`,
+      "",
+      "O lead já foi salvo no Supabase com status: new.",
+    ].join("\n");
+
+    let notificationSent = true;
+    try {
+      await sendKivaiEmail({
+        to: LEADS_EMAIL,
+        subject: `[Kivai Tráfego] Novo lead | ${row.company}`,
+        text: emailBody,
+        replyTo: row.email,
+      });
+    } catch (error) {
+      notificationSent = false;
+      console.error("[trafego-leads] Lead saved but email notification failed.", {
+        cause: error instanceof Error ? error.name : "unknown",
+      });
+    }
+
+    return NextResponse.json({ ok: true, notificationSent });
   } catch {
     return NextResponse.json({ error: "Não foi possível registrar sua solicitação agora." }, { status: 500 });
   }
