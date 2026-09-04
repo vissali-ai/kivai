@@ -14,9 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
-  if (host === "trafego.kivai.com.br") {
-    return [{ url: "https://trafego.kivai.com.br", changeFrequency: "weekly", priority: 1 }];
-  }
+  if (host === "trafego.kivai.com.br") return [{ url: "https://trafego.kivai.com.br", changeFrequency: "weekly", priority: 1 }];
 
   const [blogPosts, categories, blogSitemapSlugs, managedSitemap, storedSiteContents, allHubs, managedServices, storedServices] = await Promise.all([
     listPublishedPosts(), listCategories(), listBlogSitemapSlugs(), listSitemapSiteContent(), listStoredSiteContents(), listSiteHubs(), listSitemapSiteServices(), listStoredSiteServices(),
@@ -43,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const toolPages: MetadataRoute.Sitemap = tools.filter((tool) => { const override = storedSiteContents.find((item) => item.existingToolSlug === tool.slug); if (!override || override.status === "draft") return isToolIndexable(tool.slug); return override.status === "published" && override.indexable && override.includeInSitemap; }).map((tool) => ({ url: `${SITE_URL}/ferramentas/${tool.slug}`, changeFrequency: "weekly", priority: tool.featured ? 0.9 : 0.8 }));
-  const managedPages: MetadataRoute.Sitemap = [...managedSitemap.hubs.map((hub) => ({ url: `${SITE_URL}${hub.path}`, lastModified: new Date(hub.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })), ...managedSitemap.contents.map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "weekly" as const, priority: item.contentType === "tool" ? 0.8 : 0.6 })), ...managedServices.map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "monthly" as const, priority: 0.8 }))];
+  const managedPages: MetadataRoute.Sitemap = [...managedSitemap.hubs.map((hub) => ({ url: `${SITE_URL}${hub.path}`, lastModified: new Date(hub.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })), ...managedSitemap.contents.map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "weekly" as const, priority: item.contentType === "tool" ? 0.8 : 0.6 })), ...managedServices.filter((item) => item.slug !== "trafego-kivai").map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "monthly" as const, priority: 0.8 }))];
   const serviceOverrides = new Map(storedServices.filter((item) => item.existingServiceSlug).map((item) => [item.existingServiceSlug, item]));
   const allowedPages = pages.filter((item) => { const match = item.url.match(/\/servicos\/([^/]+)$/); if (!match) return true; const override = serviceOverrides.get(match[1]); return !override || (override.status === "published" && override.indexable && override.includeInSitemap); });
   return [...new Map([...allowedPages, ...toolPages, ...managedPages].map((item) => [item.url, item])).values()];
