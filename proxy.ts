@@ -7,7 +7,10 @@ export function proxy(request: NextRequest) {
   const host = request.nextUrl.hostname.toLowerCase();
   const { pathname } = request.nextUrl;
 
-  if (host === TRAFEGO_HOST && pathname !== "/trafego" && !pathname.startsWith("/api/trafego/")) {
+  const isTrafficMetadata = pathname === "/robots.txt" || pathname === "/sitemap.xml";
+  const isTrafficApi = pathname.startsWith("/api/trafego/");
+
+  if (host === TRAFEGO_HOST && pathname !== "/trafego" && !isTrafficApi && !isTrafficMetadata) {
     const url = request.nextUrl.clone();
     url.pathname = "/trafego";
     return NextResponse.rewrite(url);
