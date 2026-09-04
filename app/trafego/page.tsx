@@ -101,7 +101,8 @@ function ServiceStructuredData({ title, description }: { title: string; descript
 
 export default async function TrafegoPage() {
   const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
-  if (host && host !== HOST && host !== "localhost") redirect("https://trafego.kivai.com.br");
+  const isVercelPreview = process.env.VERCEL_ENV === "preview";
+  if (host && host !== HOST && host !== "localhost" && !isVercelPreview) redirect(CANONICAL);
 
   const service = await getPublishedSiteService("trafego-kivai");
   if (!service) return null;
