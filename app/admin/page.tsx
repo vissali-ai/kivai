@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { noIndexRobots } from "@/lib/seo";
+import { TrafegoAdmin } from "@/components/admin/trafego-admin";
 
 export const metadata: Metadata = {
   title: "Painel administrativo",
@@ -9,11 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function Admin() {
-  return (
-    <main>
-      <h1>Painel Administrativo</h1>
-
-      <p>Área exclusiva do administrador.</p>
-    </main>
-  );
+  return <TrafegoAdmin />;
 }
