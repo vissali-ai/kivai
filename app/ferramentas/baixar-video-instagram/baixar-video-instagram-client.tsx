@@ -64,10 +64,9 @@ function isMobileDevice() {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
-function canShareFiles() {
-  if (typeof navigator === "undefined" || typeof navigator.share !== "function") return false;
-  if (typeof navigator.canShare !== "function") return true;
-  return navigator.canShare({ files: [new File([""], "kivai-test")] });
+function getShareFileType(blob: Blob, kind: InstagramItem["kind"]) {
+  if (kind === "image") return blob.type.startsWith("image/") ? blob.type : "image/jpeg";
+  return blob.type.startsWith("video/") ? blob.type : "video/mp4";
 }
 
 export default function BaixarVideoInstagramClient() {
@@ -118,7 +117,12 @@ export default function BaixarVideoInstagramClient() {
   async function saveOrShare(item: InstagramItem) {
     const mediaUrl = `${backendUrl()}/instagram/media/${encodeURIComponent(item.downloadToken)}?download=true`;
 
-    if (!isMobileDevice() || !canShareFiles()) {
+    if (!isMobileDevice()) {
+      window.location.assign(mediaUrl);
+      return;
+    }
+
+    if (typeof navigator.share !== "function") {
       window.location.assign(mediaUrl);
       return;
     }
@@ -131,13 +135,8 @@ export default function BaixarVideoInstagramClient() {
       if (!response.ok) throw new Error("Não foi possível preparar o arquivo para compartilhamento.");
       const blob = await response.blob();
       const file = new File([blob], item.filename, {
-        type: blob.type || (item.kind === "image" ? "image/jpeg" : "video/mp4"),
+        type: getShareFileType(blob, item.kind),
       });
-
-      if (typeof navigator.share !== "function") {
-        window.location.assign(mediaUrl);
-        return;
-      }
 
       if (typeof navigator.canShare === "function" && !navigator.canShare({ files: [file] })) {
         window.location.assign(mediaUrl);
