@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { blogConfig } from "@/lib/blog/config";
-import { deliverPendingAccountWelcome } from "@/lib/marketing/email-delivery";
+import { deliverPendingAccountWelcome, notifyAdminOfNewRegistration } from "@/lib/marketing/email-delivery";
 
 type AuthUser = { id: string };
 
@@ -21,8 +21,11 @@ async function authenticate(request: Request): Promise<AuthUser> {
 export async function POST(request: Request) {
   try {
     const user = await authenticate(request);
-    const result = await deliverPendingAccountWelcome(user.id);
-    return NextResponse.json({ ok: result.status !== "failed", status: result.status }, { headers: { "Cache-Control": "private, no-store" } });
+    const [welcome, adminNotification] = await Promise.all([
+      deliverPendingAccountWelcome(user.id),
+      notifyAdminOfNewRegistration(user.id),
+    ]);
+    return NextResponse.json({ ok: welcome.status !== "failed" && adminNotification.status !== "failed", welcome: welcome.status, adminNotification: adminNotification.status }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN";
     if (message === "UNAUTHORIZED") return NextResponse.json({ error: "Faça login para continuar." }, { status: 401 });
