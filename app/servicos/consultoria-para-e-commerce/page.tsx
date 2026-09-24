@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { BusinessServicePage } from "@/components/marketing/business-service-page";
 import { ecommerceConsultingService } from "@/lib/business-services";
 import { getPageMetadata } from "@/lib/seo";
@@ -30,31 +29,48 @@ export default function ConsultoriaParaEcommercePage() {
             </h2>
           </div>
 
-          <div className="mx-auto mt-10 flex max-w-3xl justify-center">
-            <a
-              href="https://www.souofertasonline.com.br"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex w-full max-w-md flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/[0.03] px-8 py-8 text-center transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-white/[0.05]"
-            >
-              <div className="flex min-h-40 w-full items-center justify-center rounded-2xl bg-white p-5">
-                <Image
-                  src="/clients/sou-ofertas-online.svg"
-                  alt="Sou Ofertas Online"
-                  width={380}
-                  height={235}
-                  className="h-auto max-h-32 w-auto max-w-full"
-                />
-              </div>
-              <span className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                Cliente ativo
-              </span>
-              <span className="mt-2 text-base font-semibold text-foreground">
-                Sou Ofertas Online
-              </span>
-            </a>
+          <div className="relative mx-auto mt-10 max-w-5xl overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#07080d] to-transparent sm:w-24" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#07080d] to-transparent sm:w-24" />
+
+            <div className="kivai-client-marquee flex w-max items-center gap-6 py-2">
+              {[0, 1].map((group) => (
+                <div key={group} className="flex items-center gap-6" aria-hidden={group === 1}>
+                  <div className="flex h-44 w-72 shrink-0 items-center justify-center rounded-3xl border border-white/10 bg-white p-7 sm:w-80">
+                    <img
+                      src="/clients/sou-ofertas-online.svg"
+                      alt={group === 0 ? "Sou Ofertas Online" : ""}
+                      className="max-h-28 max-w-full object-contain"
+                    />
+                  </div>
+
+                  <div className="flex h-44 w-72 shrink-0 items-center justify-center rounded-3xl border border-white/10 bg-white p-7 sm:w-80">
+                    <img
+                      src="https://http2.mlstatic.com/D_NQ_NP_861528-MLA81184928992_122024-O.webp"
+                      alt={group === 0 ? "Panela de Ferro Mineira" : ""}
+                      className="max-h-28 max-w-full object-contain"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        <style>{`
+          @keyframes kivai-client-marquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(calc(-50% - 0.75rem)); }
+          }
+          .kivai-client-marquee {
+            animation: kivai-client-marquee 18s linear infinite;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .kivai-client-marquee {
+              animation: none;
+            }
+          }
+        `}</style>
       </section>
     </>
   );
