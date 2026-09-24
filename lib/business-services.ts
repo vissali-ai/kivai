@@ -161,7 +161,7 @@ export const ecommerceConsultingService: BusinessServiceConfig = {
     title: "Da vitrine ao painel administrativo, uma operação pensada para",
     titleHighlight: "vender e gerir.",
     description:
-      "O escopo é adaptado ao negócio, mas pode reunir os mesmos tipos de recursos já aplicados em projetos reais como o Sou Ofertas Online.",
+      "O escopo é adaptado ao negócio, mas pode reunir os mesmos tipos de recursos já aplicados em projetos reais.",
     items: [
       { title: "Catálogo e páginas de produto", description: "Produtos simples ou com variações, categorias, galeria de imagens, descrição completa, ficha técnica, preço promocional, estoque e páginas individuais preparadas para SEO." },
       { title: "Kits e combinações de produtos", description: "Criação de kits com componentes, quantidades, composição de imagens, cálculo de disponibilidade e regras específicas de estoque." },
