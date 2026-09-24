@@ -196,7 +196,7 @@ export async function deliverCustomerEmail(communicationId: string): Promise<Del
 
 export async function notifyAdminOfNewRegistration(userId: string) {
   const apiKey = process.env.RESEND_API_KEY;
-  const recipient = (process.env.NEW_USER_NOTIFICATION_EMAIL ?? blogConfig.adminEmail).trim().toLowerCase();
+  const recipient = (process.env.NEW_USER_NOTIFICATION_EMAIL ?? "contakivai@gmail.com").trim().toLowerCase();
   if (!apiKey || !recipient) return { status: "skipped" } as const;
 
   const existing = await supabaseRest<Array<{ id: string }>>(`customer_marketing_events?select=id&user_id=eq.${encodeURIComponent(userId)}&event_type=eq.admin_new_user_notified&limit=1`);
