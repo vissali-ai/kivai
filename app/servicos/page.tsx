@@ -12,7 +12,6 @@ import {
   Share2,
   ShoppingCart,
   Sparkles,
-  Store,
   Workflow,
   BriefcaseBusiness,
 } from "lucide-react";
@@ -78,19 +77,12 @@ const services = [
   },
   {
     icon: ShoppingCart,
-    title: "Consultoria para E-commerce",
+    title: "Criação de E-commerce e Loja Virtual",
     description:
-      "Análise de operação, catálogo, margem, conversão, marketplaces, estoque, marketing e indicadores.",
+      "Loja virtual sob medida com catálogo, variações, kits, estoque, checkout, pagamentos, frete, clientes, pedidos, campanhas, SEO, Analytics e painel administrativo.",
     href: "/servicos/consultoria-para-e-commerce",
-    action: "Conhecer a consultoria",
-  },
-  {
-    icon: Store,
-    title: "Criação de Loja Virtual",
-    description:
-      "Implantação de e-commerce com catálogo, pagamentos, integrações, Analytics, pixels e Merchant Center.",
-    href: "/servicos/criacao-de-loja-virtual",
-    action: "Planejar minha loja",
+    action: "Conhecer a solução",
+    badge: "Projeto completo",
   },
   {
     icon: Search,
