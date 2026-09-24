@@ -2,6 +2,7 @@ export const customerMarketingFlows = [
   { key: "free_nurture", label: "Nutrição Grátis", description: "Apresenta benefícios dos planos pagos e recursos do Kivai para usuários gratuitos.", automatic: false },
   { key: "pro_upgrade", label: "Upgrade para Pro", description: "Estimula a migração para o Pro com foco em histórico, comparação e mais contas.", automatic: false },
   { key: "agency_upgrade", label: "Upgrade para Agency", description: "Apresenta o Agency para operações com múltiplas contas e clientes.", automatic: false },
+  { key: "plans_overview", label: "Conheça os planos Kivai", description: "Apresenta Grátis, Pro e Agency em um único e-mail, com vantagens, preços e chamada para assinatura.", automatic: false },
   { key: "renewal", label: "Renovação", description: "Fluxo automático para assinantes próximos do vencimento.", automatic: true },
   { key: "winback", label: "Recuperação", description: "Fluxo automático de recuperação com cortesia após o vencimento quando elegível.", automatic: true },
   { key: "cross_sell", label: "Venda cruzada", description: "Apresenta serviços Kivai complementares às ferramentas e planos.", automatic: false },
