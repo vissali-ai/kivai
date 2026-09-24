@@ -24,7 +24,8 @@ export async function saveMarketingTemplate(flowKey: string, formData: FormData)
   const secondaryCtaUrl = text(formData, "secondaryCtaUrl", 1000);
   if (!title || !subject || !message) throw new Error("Nome interno, assunto e conteúdo são obrigatórios.");
   if (!validPair(ctaLabel, ctaUrl) || !validPair(secondaryCtaLabel, secondaryCtaUrl)) throw new Error("Cada botão precisa de texto e URL https:// válidos.");
-  await supabaseRest(`customer_marketing_templates?flow_key=eq.${encodeURIComponent(flowKey)}`, { method: "PATCH", body: JSON.stringify({ title, description, subject, message, cta_label: ctaLabel || null, cta_url: ctaUrl || null, secondary_cta_label: secondaryCtaLabel || null, secondary_cta_url: secondaryCtaUrl || null, enabled: formData.get("enabled") === "on", updated_at: new Date().toISOString() }) });
+  const payload = { flow_key: flowKey, title, description, subject, message, cta_label: ctaLabel || null, cta_url: ctaUrl || null, secondary_cta_label: secondaryCtaLabel || null, secondary_cta_url: secondaryCtaUrl || null, enabled: formData.get("enabled") === "on", updated_at: new Date().toISOString() };
+  await supabaseRest("customer_marketing_templates?on_conflict=flow_key", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=representation" }, body: JSON.stringify(payload) });
   revalidatePath(`/admin/marketing/modelos/${flowKey}`); revalidatePath("/admin/marketing");
   redirect(`/admin/marketing/modelos/${flowKey}?saved=1`);
 }
