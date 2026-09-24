@@ -193,6 +193,74 @@ export async function deliverCustomerEmail(communicationId: string): Promise<Del
   }
 }
 
+
+export async function notifyAdminOfNewRegistration(userId: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const recipient = (process.env.NEW_USER_NOTIFICATION_EMAIL ?? blogConfig.adminEmail).trim().toLowerCase();
+  if (!apiKey || !recipient) return { status: "skipped" } as const;
+
+  const existing = await supabaseRest<Array<{ id: string }>>(`customer_marketing_events?select=id&user_id=eq.${encodeURIComponent(userId)}&event_type=eq.admin_new_user_notified&limit=1`);
+  if (existing[0]) return { status: "skipped" } as const;
+
+  const response = await fetch(`${blogConfig.supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+    cache: "no-store",
+    headers: { apikey: blogConfig.serviceRoleKey, Authorization: `Bearer ${blogConfig.serviceRoleKey}` },
+  });
+  if (!response.ok) return { status: "skipped" } as const;
+
+  const user = await response.json() as {
+    email?: string;
+    created_at?: string;
+    user_metadata?: { full_name?: string; name?: string; phone?: string };
+  };
+  const createdAt = user.created_at ? new Date(user.created_at) : null;
+  const notificationCutoff = new Date("2026-09-15T00:00:00.000Z");
+  if (!createdAt || Number.isNaN(createdAt.getTime()) || createdAt < notificationCutoff) return { status: "skipped" } as const;
+
+  const profiles = await supabaseRest<Array<{ full_name: string | null; phone: string | null }>>(
+    `user_profiles?select=full_name,phone&user_id=eq.${encodeURIComponent(userId)}&limit=1`
+  ).catch(() => []);
+  const name = profiles[0]?.full_name?.trim() || user.user_metadata?.full_name?.trim() || user.user_metadata?.name?.trim() || "Não informado";
+  const phone = profiles[0]?.phone?.trim() || user.user_metadata?.phone?.trim() || "Não informado";
+  const email = user.email?.trim().toLowerCase() || "Não informado";
+  const registeredAt = createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+  try {
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: CUSTOMER_EMAIL_FROM,
+        to: [recipient],
+        reply_to: email !== "Não informado" ? email : CUSTOMER_REPLY_TO,
+        subject: `Novo cadastro no Kivai: ${name}`,
+        text: `Novo usuário cadastrado no Kivai.\n\nNome: ${name}\nE-mail: ${email}\nWhatsApp: ${phone}\nCadastro: ${registeredAt}\n\nAbra o painel: https://www.kivai.com.br/admin/usuarios`,
+        html: `<!doctype html><html><body style="margin:0;background:#f6f7fb;font-family:Arial,sans-serif;color:#15151b"><div style="max-width:620px;margin:0 auto;padding:32px 20px"><div style="padding:28px;border:1px solid #e2e3e9;border-radius:16px;background:#fff"><div style="font-size:22px;font-weight:800;margin-bottom:8px">Novo cadastro no Kivai</div><p style="color:#5f6170">Um novo usuário concluiu o cadastro.</p><p><strong>Nome:</strong> ${escapeHtml(name)}<br><strong>E-mail:</strong> ${escapeHtml(email)}<br><strong>WhatsApp:</strong> ${escapeHtml(phone)}<br><strong>Cadastro:</strong> ${escapeHtml(registeredAt)}</p><a href="https://www.kivai.com.br/admin/usuarios" style="display:inline-block;margin-top:12px;padding:12px 18px;background:#5f5cff;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">Abrir usuários no painel</a></div></div></body></html>`,
+        tags: [{ name: "category", value: "admin_new_user" }],
+      }),
+    });
+    if (!emailResponse.ok) {
+      const payload = await emailResponse.text().catch(() => "");
+      console.error("admin_new_user_notification_failed", emailResponse.status, payload.slice(0, 500));
+      return { status: "failed" } as const;
+    }
+
+    await supabaseRest("customer_marketing_events", {
+      method: "POST",
+      body: JSON.stringify({
+        user_id: userId,
+        event_type: "admin_new_user_notified",
+        description: "Notificação administrativa de novo cadastro enviada por e-mail.",
+        metadata: { recipient_email: recipient, registered_email: email, source: "account_session" },
+      }),
+    });
+    return { status: "sent" } as const;
+  } catch (cause) {
+    console.error("admin_new_user_notification_failed", cause instanceof Error ? cause.message : cause);
+    return { status: "failed" } as const;
+  }
+}
+
 export async function deliverPendingAccountWelcome(userId: string) {
   const rows = await supabaseRest<Array<{ id: string }>>(`customer_communications?select=id&user_id=eq.${encodeURIComponent(userId)}&channel=eq.email&status=eq.ready&event_key=like.account_welcome_*&order=created_at.asc&limit=1`);
   if (!rows[0]) return { status: "skipped" } as const;
