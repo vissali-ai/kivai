@@ -59,7 +59,7 @@ export type BusinessServiceConfig = {
   };
 };
 
-export function BusinessServicePage({ config }: { config: BusinessServiceConfig }) {
+export function BusinessServicePage({ config, hideExperience = false, hideProcess = false }: { config: BusinessServiceConfig; hideExperience?: boolean; hideProcess?: boolean }) {
   const whatsappUrl = `https://wa.me/5531996205058?text=${encodeURIComponent(config.whatsappMessage)}`;
 
   return (
@@ -174,6 +174,7 @@ export function BusinessServicePage({ config }: { config: BusinessServiceConfig 
         </div>
       </section>
 
+      {!hideExperience ? (
       <section className="relative overflow-hidden border-b border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-28">
         <div
           aria-hidden="true"
@@ -217,6 +218,9 @@ export function BusinessServicePage({ config }: { config: BusinessServiceConfig 
         </div>
       </section>
 
+      ) : null}
+
+      {!hideProcess ? (
       <section className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
@@ -245,6 +249,8 @@ export function BusinessServicePage({ config }: { config: BusinessServiceConfig 
           </div>
         </div>
       </section>
+
+      ) : null}
 
       <ServiceSeoContent {...config.seo} />
       <ServiceFaqSection
