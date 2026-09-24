@@ -24,9 +24,6 @@ export default function ConsultoriaParaEcommercePage() {
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               Clientes que aprovaram
             </p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Projetos que confiam no nosso trabalho
-            </h2>
           </div>
 
           <div className="relative mx-auto mt-10 max-w-5xl overflow-hidden">
@@ -36,19 +33,19 @@ export default function ConsultoriaParaEcommercePage() {
             <div className="kivai-client-marquee flex w-max items-center gap-6 py-2">
               {[0, 1].map((group) => (
                 <div key={group} className="flex items-center gap-6" aria-hidden={group === 1}>
-                  <div className="flex h-44 w-72 shrink-0 items-center justify-center rounded-3xl border border-white/10 bg-white p-7 sm:w-80">
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
                     <img
                       src="/clients/sou-ofertas-online.svg"
                       alt={group === 0 ? "Sou Ofertas Online" : ""}
-                      className="max-h-28 max-w-full object-contain"
+                      className="max-h-20 max-w-full object-contain"
                     />
                   </div>
 
-                  <div className="flex h-44 w-72 shrink-0 items-center justify-center rounded-3xl border border-white/10 bg-white p-7 sm:w-80">
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
                     <img
                       src="https://http2.mlstatic.com/D_NQ_NP_861528-MLA81184928992_122024-O.webp"
                       alt={group === 0 ? "Panela de Ferro Mineira" : ""}
-                      className="max-h-28 max-w-full object-contain"
+                      className="max-h-20 max-w-full object-contain"
                     />
                   </div>
                 </div>
