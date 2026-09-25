@@ -19,7 +19,7 @@ function renderTemplate(template: CustomerMarketingTemplate, values: Record<stri
 async function contactFor(userId: string) { const requests = await supabaseRest<RequestRow[]>(`subscription_requests?select=customer_email,customer_name,plan_code,status&user_id=eq.${encodeURIComponent(userId)}&order=created_at.desc&limit=1`); return requests[0]; }
 function hasPendingPayment(request: RequestRow | undefined, planCode: "pro" | "agency") { return request?.plan_code === planCode && ["awaiting_payment", "payment_reported"].includes(request.status); }
 
-async function sendTransactionalEmail(input: { userId: string; eventKey: string; subject: string; message: string; recipientEmail?: string; ctaLabel?: string | null; ctaUrl?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null; kind: "subscription_expiry_reminder" | "subscription_automatic_grace"; metadata: Record<string, unknown> }) {
+async function sendTransactionalEmail(input: { userId: string; eventKey: string; subject: string; message: string; recipientEmail?: string; ctaLabel?: string | null; ctaUrl?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null; kind: "subscription_expiry_reminder" | "subscription_automatic_grace" | "pro_trial_ended"; metadata: Record<string, unknown> }) {
   const rows = await supabaseRest<Array<{ id: string }>>("customer_communications?on_conflict=event_key,channel", {
     method: "POST",
     headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
@@ -28,6 +28,58 @@ async function sendTransactionalEmail(input: { userId: string; eventKey: string;
   if (!rows[0]) return "duplicate" as const;
   const result = await deliverCustomerEmail(rows[0].id);
   return result.status;
+}
+
+async function expireDueAdminTests(now: Date) {
+  const trials = await supabaseRest<SubscriptionRow[]>(`user_subscriptions?select=id,user_id,plan_code,billing_cycle,current_period_end,status,grace_until,automatic_grace_granted_at&provider=eq.admin_test&status=eq.active&plan_code=eq.pro&current_period_end=not.is.null&current_period_end=lte.${encodeURIComponent(now.toISOString())}&limit=300`);
+  const expired: string[] = [];
+
+  for (const subscription of trials) {
+    if (!subscription.current_period_end) continue;
+    const updated = await supabaseRest<SubscriptionRow[]>(`user_subscriptions?id=eq.${encodeURIComponent(subscription.id)}&provider=eq.admin_test&status=eq.active&current_period_end=lte.${encodeURIComponent(now.toISOString())}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "past_due", updated_at: now.toISOString() }),
+    });
+    if (!updated[0]) continue;
+
+    const profiles = await supabaseRest<Array<{ full_name: string | null }>>(`user_profiles?select=full_name&user_id=eq.${encodeURIComponent(subscription.user_id)}&limit=1`);
+    const name = firstName(profiles[0]?.full_name);
+    await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(subscription.user_id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ plan_code: "free", lifecycle_stage: "expired", updated_at: now.toISOString() }),
+    });
+
+    const eventKey = `pro_trial_ended_${subscription.id}_${new Date(subscription.current_period_end).toISOString()}`;
+    await sendTransactionalEmail({
+      userId: subscription.user_id,
+      eventKey,
+      subject: "Seu teste do Kivai Pro terminou. O que você achou?",
+      message: `${name}, seu período gratuito de 7 dias no Kivai Pro chegou ao fim.
+
+Esperamos que você tenha aproveitado esse período para conhecer os recursos do Plano Pro.
+
+Gostou da experiência? Para continuar usando os recursos Pro, você pode assinar o plano agora e manter seu acesso ativo.
+
+Se ainda tiver alguma dúvida antes de assinar, fale com a gente pelo WhatsApp.`,
+      ctaLabel: "Assinar Kivai Pro",
+      ctaUrl: "https://www.kivai.com.br/planos",
+      kind: "pro_trial_ended",
+      metadata: { subscription_id: subscription.id, plan_code: "pro", trial_ended_at: subscription.current_period_end },
+    });
+
+    await supabaseRest("customer_marketing_events", {
+      method: "POST",
+      body: JSON.stringify({
+        user_id: subscription.user_id,
+        event_type: "pro_trial_ended",
+        description: "Teste Pro de 7 dias encerrado, acesso retornado ao Plano Grátis e convite para assinatura processado por e-mail.",
+        metadata: { subscription_id: subscription.id, expired_at: subscription.current_period_end, communication_event_key: eventKey },
+      }),
+    });
+    expired.push(subscription.id);
+  }
+
+  return expired;
 }
 
 async function expireCourtesy(subscription: SubscriptionRow, now: Date) {
@@ -41,6 +93,7 @@ async function expireCourtesy(subscription: SubscriptionRow, now: Date) {
 
 export async function expireDueExternalSubscriptions() {
   const now = new Date();
+  const trialExpired = await expireDueAdminTests(now);
   const renewalTemplate = await getCustomerMarketingTemplate("renewal");
   const graceTemplate = await getCustomerMarketingTemplate("winback");
   const active = await supabaseRest<SubscriptionRow[]>("user_subscriptions?select=id,user_id,plan_code,billing_cycle,current_period_end,status,grace_until,automatic_grace_granted_at&provider=eq.sumup_external&status=eq.active&plan_code=in.(pro,agency)&current_period_end=not.is.null&limit=500");
@@ -85,5 +138,5 @@ export async function expireDueExternalSubscriptions() {
     }
     graceGranted.push(subscription.id);
   }
-  return { checkedAt: now.toISOString(), activeChecked: active.length, remindersSent: reminders.length, expiredCount: expired.length, graceGrantedCount: graceGranted.length, courtesyExpiredCount: courtesyExpired.length, expired, graceGranted };
+  return { checkedAt: now.toISOString(), activeChecked: active.length, trialExpiredCount: trialExpired.length, remindersSent: reminders.length, expiredCount: expired.length, graceGrantedCount: graceGranted.length, courtesyExpiredCount: courtesyExpired.length, expired, trialExpired, graceGranted };
 }
