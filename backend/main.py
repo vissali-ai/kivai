@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import tempfile
+from pathlib import Path
 
 import bleach
 from bleach.css_sanitizer import CSSSanitizer
