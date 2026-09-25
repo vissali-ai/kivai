@@ -1,0 +1,264 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import { Download, Link2, RotateCcw, Search, Share2, Video } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ToolErrorMessage } from "@/components/tools/tool-error-message";
+import { ToolPageShell } from "@/components/tools/tool-page-shell";
+import { ToolProcessingStatus, type ToolStatus } from "@/components/tools/tool-processing-status";
+import { ToolResultCard } from "@/components/tools/tool-result-card";
+import { formatFileSize } from "@/lib/tool-files";
+
+type TikTokItem = {
+  id: string;
+  kind: "video";
+  filename: string;
+  format: string;
+  width?: number | null;
+  height?: number | null;
+  duration?: number | null;
+  size?: number | null;
+  downloadToken: string;
+};
+
+type TikTokResult = {
+  source: "tiktok";
+  videoId: string;
+  title: string;
+  author?: string | null;
+  items: TikTokItem[];
+  expiresIn: number;
+};
+
+const genericError = "Não foi possível analisar este link público do TikTok.";
+
+function backendUrl() {
+  if (typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+    return "http://127.0.0.1:8000";
+  }
+  return (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_KIVAI_BACKEND_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+}
+
+function formatDuration(seconds?: number | null) {
+  if (!seconds) return null;
+  const rounded = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(rounded / 60);
+  const remainder = rounded % 60;
+  return `${minutes}:${String(remainder).padStart(2, "0")}`;
+}
+
+async function responseMessage(response: Response) {
+  try {
+    return ((await response.json()) as { detail?: string }).detail || genericError;
+  } catch {
+    return genericError;
+  }
+}
+
+function isMobileDevice() {
+  if (typeof navigator === "undefined") return false;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+export default function BaixarVideoTikTokClient() {
+  const requestRef = useRef<AbortController | null>(null);
+  const [url, setUrl] = useState("");
+  const [authorized, setAuthorized] = useState(false);
+  const [status, setStatus] = useState<ToolStatus>("idle");
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<TikTokResult | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+
+  useEffect(() => () => requestRef.current?.abort(), []);
+
+  async function analyze(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!url.trim() || !authorized || status === "processing") return;
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setError("");
+    setResult(null);
+    setStatus("processing");
+    try {
+      const response = await fetch(`${backendUrl()}/tiktok/resolve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url.trim(), authorized }),
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(await responseMessage(response));
+      const payload = await response.json() as TikTokResult;
+      if (!payload.items?.length) throw new Error(genericError);
+      setResult(payload);
+      setStatus("success");
+    } catch (nextError) {
+      if ((nextError as Error).name === "AbortError") return;
+      const message = nextError instanceof Error ? nextError.message : genericError;
+      setError(message.includes("Failed to fetch")
+        ? "O recurso de download está temporariamente indisponível. Tente novamente em alguns instantes."
+        : message);
+      setStatus("error");
+    } finally {
+      if (requestRef.current === controller) requestRef.current = null;
+    }
+  }
+
+  async function saveOrShare(item: TikTokItem) {
+    const mediaUrl = `${backendUrl()}/tiktok/media/${encodeURIComponent(item.downloadToken)}?download=true`;
+
+    if (!isMobileDevice()) {
+      window.location.assign(mediaUrl);
+      return;
+    }
+
+    if (typeof navigator.share !== "function") {
+      window.location.assign(mediaUrl);
+      return;
+    }
+
+    setSharingId(item.id);
+    setError("");
+
+    try {
+      const response = await fetch(mediaUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error("Não foi possível preparar o arquivo para compartilhamento.");
+      const blob = await response.blob();
+      const file = new File([blob], item.filename, {
+        type: blob.type.startsWith("video/") ? blob.type : "video/mp4",
+      });
+
+      if (typeof navigator.canShare === "function" && !navigator.canShare({ files: [file] })) {
+        window.location.assign(mediaUrl);
+        return;
+      }
+
+      await navigator.share({
+        files: [file],
+        title: "Vídeo do TikTok",
+      });
+    } catch (nextError) {
+      if (nextError instanceof DOMException && nextError.name === "AbortError") return;
+      window.location.assign(mediaUrl);
+    } finally {
+      setSharingId(null);
+    }
+  }
+
+  function reset() {
+    requestRef.current?.abort();
+    setUrl("");
+    setAuthorized(false);
+    setResult(null);
+    setError("");
+    setStatus("idle");
+    setSharingId(null);
+  }
+
+  return (
+    <ToolPageShell
+      title="Baixar Vídeo do TikTok"
+      description="Baixe vídeos públicos do TikTok de forma rápida e simples diretamente pelo navegador. Cole o link do vídeo para visualizar e fazer o download."
+      categoryName="Social Media"
+      categoryHref="/ferramentas/social-media"
+      breadcrumbRootName="Início"
+      breadcrumbRootHref="/"
+      processingMode="server"
+      privacyMessage="Usamos o link apenas para encontrar o arquivo. Você não precisa informar login ou senha, e o conteúdo não fica salvo no Kivai."
+    >
+      <Card className="mx-auto max-w-4xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Video className="size-4 text-primary" />Link público do TikTok</CardTitle>
+          <CardDescription>Compatível com vídeos de publicações públicas do TikTok. Conteúdos privados ou indisponíveis não são suportados.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <form onSubmit={(event) => void analyze(event)} className="space-y-4">
+            <label className="block text-sm font-medium" htmlFor="tiktok-url">Link do vídeo</label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="relative flex-1">
+                <Link2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <Input
+                  id="tiktok-url"
+                  type="url"
+                  inputMode="url"
+                  autoComplete="url"
+                  required
+                  maxLength={2048}
+                  value={url}
+                  onChange={(event) => setUrl(event.target.value)}
+                  placeholder="https://www.tiktok.com/@usuario/video/..."
+                  className="h-11 pl-10 text-sm"
+                  disabled={status === "processing"}
+                />
+              </div>
+              <Button type="submit" size="lg" disabled={!url.trim() || !authorized || status === "processing"}>
+                <Search className="size-4" />Analisar link
+              </Button>
+            </div>
+            <label className="flex cursor-pointer items-start gap-3 border border-border bg-muted/20 p-4 text-sm leading-6">
+              <input
+                type="checkbox"
+                checked={authorized}
+                onChange={(event) => setAuthorized(event.target.checked)}
+                className="mt-1 accent-primary"
+                disabled={status === "processing"}
+              />
+              <span>Confirmo que este conteúdo é meu ou que possuo autorização para baixá-lo e utilizá-lo.</span>
+            </label>
+          </form>
+
+          <ToolProcessingStatus status={status} message="Localizando o vídeo público no TikTok..." />
+          <ToolErrorMessage message={error} />
+
+          {result && (
+            <ToolResultCard
+              title="Vídeo encontrado"
+              description={[result.author ? `@${result.author.replace(/^@/, "")}` : null, result.title].filter(Boolean).join(" · ")}
+              details={(
+                <div className="space-y-3">
+                  {result.items.map((item) => {
+                    const duration = formatDuration(item.duration);
+                    const details = [
+                      item.format,
+                      item.width && item.height ? `${item.width} × ${item.height}px` : null,
+                      duration,
+                      item.size ? formatFileSize(item.size) : null,
+                    ].filter(Boolean).join(" · ");
+                    return (
+                      <div key={item.id} className="flex flex-col gap-3 border border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-all font-medium">{item.filename}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">{details || "Arquivo disponível"}</p>
+                        </div>
+                        <div className="flex flex-col gap-2 sm:shrink-0">
+                          <Button type="button" onClick={() => void saveOrShare(item)} disabled={sharingId === item.id}>
+                            {sharingId === item.id ? <Share2 className="size-4 animate-pulse" /> : isMobileDevice() ? <Share2 className="size-4" /> : <Download className="size-4" />}
+                            <span>{sharingId === item.id ? "Preparando..." : isMobileDevice() ? "Salvar ou compartilhar vídeo" : `Baixar ${item.format}`}</span>
+                          </Button>
+                          {isMobileDevice() && (
+                            <p className="text-center text-xs text-muted-foreground">
+                              No menu do aparelho, use "Ver Mais" para encontrar outros aplicativos compatíveis.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    No celular, o botão abre o menu nativo do aparelho. Nele você pode salvar o arquivo ou abrir/enviar para aplicativos compatíveis, como WhatsApp, Mensagens e outros. Se o aplicativo desejado não aparecer de imediato, use "Ver Mais". No computador, o arquivo continua sendo baixado diretamente. Os arquivos ficam disponíveis por aproximadamente {Math.max(1, Math.round(result.expiresIn / 60))} minutos; depois disso, analise o vídeo novamente.
+                  </p>
+                </div>
+              )}
+              actions={<Button type="button" variant="outline" onClick={reset}><RotateCcw className="size-4" />Analisar outro link</Button>}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </ToolPageShell>
+  );
+}
