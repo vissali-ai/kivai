@@ -127,7 +127,13 @@ export default function BaixarVideoTikTokClient() {
 
     try {
       const response = await fetch(mediaUrl, { cache: "no-store" });
-      if (!response.ok) throw new Error("Não foi possível preparar o arquivo para compartilhamento.");
+      if (!response.ok) {
+        throw new Error(await responseMessage(response));
+      }
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.startsWith("video/") && contentType !== "application/octet-stream") {
+        throw new Error("O servidor não retornou um arquivo de vídeo válido. Analise o link novamente.");
+      }
       const blob = await response.blob();
       const file = new File([blob], item.filename, {
         type: blob.type.startsWith("video/") ? blob.type : "video/mp4",
@@ -144,7 +150,7 @@ export default function BaixarVideoTikTokClient() {
       });
     } catch (nextError) {
       if (nextError instanceof DOMException && nextError.name === "AbortError") return;
-      window.location.assign(mediaUrl);
+      setError(nextError instanceof Error ? nextError.message : "Não foi possível baixar o vídeo. Analise o link novamente.");
     } finally {
       setSharingId(null);
     }
