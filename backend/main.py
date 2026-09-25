@@ -31,9 +31,13 @@ try:
 except ImportError:
     from instagram_downloader import (
         InstagramResolveError,
+        TikTokResolveError,
         open_remote_media,
+        open_tiktok_remote_media,
         read_media_token,
+        read_tiktok_media_token,
         resolve_instagram_public,
+        resolve_tiktok_public,
     )
 
 
