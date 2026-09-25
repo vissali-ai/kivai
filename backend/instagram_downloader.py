@@ -238,7 +238,7 @@ def _og_media_result_from_html(html: str, shortcode: str) -> dict[str, Any]:
                 "height": _positive_int(parser.values.get("og:video:height")),
                 "duration": None,
                 "size": None,
-                "downloadToken": create_tiktok_download_token(url, video_id),
+                "downloadToken": create_media_token(media),
             }],
             "expiresIn": TOKEN_TTL_SECONDS,
         }
@@ -758,7 +758,7 @@ def _extract_tiktok_sync(url: str) -> dict[str, Any]:
             "height": selected.get("height") or info.get("height"),
             "duration": info.get("duration"),
             "size": known_size,
-            "downloadToken": create_media_token(media),
+            "downloadToken": create_tiktok_download_token(url, video_id),
         }],
         "expiresIn": TOKEN_TTL_SECONDS,
     }
