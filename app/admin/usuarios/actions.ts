@@ -14,11 +14,41 @@ function addDays(date: Date, days: number) { const copy = new Date(date); copy.s
 export async function grantProTest(formData: FormData) {
   await assertAdminApi(); const userId = String(formData.get("userId") ?? ""); if (!userId) throw new Error("Usuário inválido.");
   const now = new Date(); const end = addDays(now, 7);
+  const profiles = await supabaseRest<Array<{ full_name: string | null }>>(`user_profiles?select=full_name&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
+  const firstName = profiles[0]?.full_name?.trim().split(/\s+/)[0] || "Olá";
   const existing = await supabaseRest<Array<{ id: string }>>(`user_subscriptions?select=id&user_id=eq.${encodeURIComponent(userId)}&order=created_at.desc&limit=1`);
-  const payload = { user_id: userId, plan_code: "pro", status: "active", provider: "admin_test", billing_cycle: "monthly", current_period_start: now.toISOString(), current_period_end: end.toISOString(), test_access: true, updated_at: now.toISOString() };
+  const payload = { user_id: userId, plan_code: "pro", status: "active", provider: "admin_test", billing_cycle: "monthly", current_period_start: now.toISOString(), current_period_end: end.toISOString(), test_access: true, grace_until: null, automatic_grace_granted_at: null, automatic_grace_original_period_end: null, updated_at: now.toISOString() };
   if (existing[0]) await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(existing[0].id)}`, { method: "PATCH", body: JSON.stringify(payload) }); else await supabaseRest("user_subscriptions", { method: "POST", body: JSON.stringify(payload) });
   await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: "pro", lifecycle_stage: "trial", updated_at: now.toISOString() }) });
-  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "pro_test_granted", description: "Acesso Pro de teste liberado por 7 dias pelo administrador.", metadata: { expires_at: end.toISOString() } }) });
+
+  const eventKey = `pro_trial_started_${userId}_${end.toISOString()}`;
+  const communication = await supabaseRest<Array<{ id: string }>>("customer_communications?on_conflict=event_key,channel", {
+    method: "POST",
+    headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
+    body: JSON.stringify({
+      user_id: userId,
+      event_key: eventKey,
+      channel: "email",
+      status: "ready",
+      subject: "Seu acesso ao Kivai Pro foi liberado por 7 dias",
+      message: `${firstName}!
+
+Seu acesso ao Kivai Pro foi liberado gratuitamente por 7 dias.
+
+Durante esse período, você poderá testar os recursos disponíveis no Plano Pro e conhecer melhor tudo o que o Kivai pode oferecer.
+
+Seu acesso de teste ficará disponível até ${end.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}.
+
+Aproveite o período para explorar as ferramentas e recursos do seu plano.`,
+      cta_label: "Acessar meu painel",
+      cta_url: "https://www.kivai.com.br/conta",
+      scheduled_for: now.toISOString(),
+      metadata: { kind: "pro_trial_welcome", transactional: true, automated: true, plan_code: "pro", expires_at: end.toISOString() },
+    }),
+  });
+  if (communication[0]) await deliverCustomerEmail(communication[0].id);
+
+  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "pro_test_granted", description: "Acesso Pro de teste liberado por 7 dias pelo administrador e e-mail de boas-vindas processado.", metadata: { expires_at: end.toISOString(), communication_event_key: eventKey } }) });
   revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta");
 }
 
