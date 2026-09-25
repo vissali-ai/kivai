@@ -164,8 +164,8 @@ export default function BaixarVideoTikTokClient() {
     <ToolPageShell
       title="Baixar Vídeo do TikTok"
       description="Baixe vídeos públicos do TikTok de forma rápida e simples diretamente pelo navegador. Cole o link do vídeo para visualizar e fazer o download."
-      categoryName="Social Media"
-      categoryHref="/ferramentas/social-media"
+      categoryName="Vídeos"
+      categoryHref="/ferramentas/videos"
       breadcrumbRootName="Início"
       breadcrumbRootHref="/"
       processingMode="server"
