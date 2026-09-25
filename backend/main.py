@@ -23,6 +23,7 @@ try:
         TikTokResolveError,
         open_remote_media,
         open_tiktok_remote_media,
+        prepare_tiktok_download,
         read_media_token,
         read_tiktok_media_token,
         resolve_instagram_public,
@@ -34,6 +35,7 @@ except ImportError:
         TikTokResolveError,
         open_remote_media,
         open_tiktok_remote_media,
+        prepare_tiktok_download,
         read_media_token,
         read_tiktok_media_token,
         resolve_instagram_public,
@@ -210,46 +212,18 @@ async def tiktok_resolve(payload: TikTokResolveRequest):
 
 
 @app.get("/tiktok/media/{token}")
-async def tiktok_media(token: str, request: Request, download: bool = False):
+async def tiktok_media(token: str, download: bool = False):
     try:
-        media = read_tiktok_media_token(token)
-        client, upstream = await open_tiktok_remote_media(
-            media,
-            range_header=request.headers.get("range") if not download else None,
-        )
-        upstream_type = upstream.headers.get("content-type", "").split(";", 1)[0].lower()
-        if not upstream_type.startswith("video/") and upstream_type != "application/octet-stream":
-            await upstream.aclose()
-            await client.aclose()
-            raise TikTokResolveError("O servidor de origem não retornou um vídeo válido.", 502)
-
-        async def stream():
-            transferred = 0
-            try:
-                async for chunk in upstream.aiter_bytes():
-                    transferred += len(chunk)
-                    if transferred > media.max_bytes:
-                        return
-                    yield chunk
-            finally:
-                await upstream.aclose()
-                await client.aclose()
-
-        disposition = "attachment" if download else "inline"
-        headers = {
-            "Cache-Control": "private, no-store, max-age=0",
-            "Content-Disposition": f'{disposition}; filename="{media.filename}"',
-            "X-Content-Type-Options": "nosniff",
-        }
-        for name in ("content-length", "content-range", "accept-ranges"):
-            if value := upstream.headers.get(name):
-                headers[name.title()] = value
-
-        return StreamingResponse(
-            stream(),
-            status_code=upstream.status_code,
-            media_type=upstream_type or media.media_type,
-            headers=headers,
+        file_path, temp_dir = await prepare_tiktok_download(token)
+        return FileResponse(
+            path=file_path,
+            media_type="video/mp4",
+            filename=Path(file_path).name,
+            headers={
+                "Cache-Control": "private, no-store, max-age=0",
+                "X-Content-Type-Options": "nosniff",
+            },
+            background=BackgroundTask(shutil.rmtree, temp_dir, True),
         )
     except TikTokResolveError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
