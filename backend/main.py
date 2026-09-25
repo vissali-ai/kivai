@@ -20,9 +20,13 @@ from starlette.background import BackgroundTask
 try:
     from .instagram_downloader import (
         InstagramResolveError,
+        TikTokResolveError,
         open_remote_media,
+        open_tiktok_remote_media,
         read_media_token,
+        read_tiktok_media_token,
         resolve_instagram_public,
+        resolve_tiktok_public,
     )
 except ImportError:
     from instagram_downloader import (
@@ -32,20 +36,6 @@ except ImportError:
         resolve_instagram_public,
     )
 
-try:
-    from .tiktok_downloader import (
-        TikTokResolveError,
-        open_tiktok_remote_media,
-        read_tiktok_media_token,
-        resolve_tiktok_public,
-    )
-except ImportError:
-    from tiktok_downloader import (
-        TikTokResolveError,
-        open_tiktok_remote_media,
-        read_tiktok_media_token,
-        resolve_tiktok_public,
-    )
 
 
 app = FastAPI(
