@@ -238,7 +238,7 @@ def _og_media_result_from_html(html: str, shortcode: str) -> dict[str, Any]:
                 "height": _positive_int(parser.values.get("og:video:height")),
                 "duration": None,
                 "size": None,
-                "downloadToken": create_media_token(media),
+                "downloadToken": create_tiktok_download_token(url, video_id),
             }],
             "expiresIn": TOKEN_TTL_SECONDS,
         }
@@ -528,6 +528,121 @@ async def open_remote_media(media: RemoteMedia, *, range_header: str | None = No
 
 
 TIKTOK_HOSTS = {"tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"}
+
+
+def create_tiktok_download_token(source_url: str, video_id: str, *, ttl_seconds: int = TOKEN_TTL_SECONDS) -> str:
+    payload = {
+        "v": 2,
+        "exp": int(time.time()) + ttl_seconds,
+        "sourceUrl": source_url,
+        "videoId": video_id,
+    }
+    encoded = base64.urlsafe_b64encode(
+        json.dumps(payload, ensure_ascii=True, separators=(",", ":")).encode("utf-8")
+    ).rstrip(b"=")
+    signature = hmac.new(_TOKEN_SECRET, encoded, hashlib.sha256).digest()
+    return f"{encoded.decode('ascii')}.{base64.urlsafe_b64encode(signature).rstrip(b'=').decode('ascii')}"
+
+
+def read_tiktok_download_token(token: str) -> tuple[str, str]:
+    try:
+        encoded_text, signature_text = token.split(".", 1)
+        encoded = encoded_text.encode("ascii")
+        signature = base64.urlsafe_b64decode(signature_text + "=" * (-len(signature_text) % 4))
+        expected = hmac.new(_TOKEN_SECRET, encoded, hashlib.sha256).digest()
+        if not hmac.compare_digest(signature, expected):
+            raise ValueError("invalid-signature")
+        payload = json.loads(base64.urlsafe_b64decode(encoded_text + "=" * (-len(encoded_text) % 4)))
+        if payload.get("v") != 2 or int(payload["exp"]) < int(time.time()):
+            raise ValueError("expired-token")
+        source_url = normalize_tiktok_url(str(payload["sourceUrl"]))
+        video_id = re.sub(r"[^A-Za-z0-9_-]+", "", str(payload["videoId"]))[:80]
+        if not video_id:
+            raise ValueError("invalid-video-id")
+        return source_url, video_id
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError, UnicodeError) as exc:
+        raise TikTokResolveError("Este link temporário expirou ou não é válido.", 410) from exc
+
+
+def _download_tiktok_sync(source_url: str, video_id: str) -> tuple[str, str]:
+    try:
+        import yt_dlp
+    except ImportError as exc:
+        raise TikTokResolveError("O resolvedor do TikTok ainda não está instalado no servidor.", 503) from exc
+
+    import tempfile
+
+    temp_dir = tempfile.mkdtemp(prefix="kivai-tiktok-")
+    output_template = str(Path(temp_dir) / "tiktok-%(id)s.%(ext)s")
+    options = {
+        "quiet": True,
+        "no_warnings": True,
+        "noplaylist": True,
+        "format": "best[ext=mp4]/best",
+        "outtmpl": output_template,
+        "max_filesize": MAX_VIDEO_BYTES,
+        "overwrites": True,
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+        },
+        "socket_timeout": 30,
+        "retries": 2,
+        "extractor_retries": 2,
+        "nocheckcertificate": False,
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(options) as downloader:
+            info = downloader.extract_info(source_url, download=True)
+            if not isinstance(info, dict):
+                raise TikTokResolveError("Não foi possível preparar o vídeo para download.", 502)
+
+            requested = info.get("requested_downloads")
+            candidate_paths: list[str] = []
+            if isinstance(requested, list):
+                for item in requested:
+                    if isinstance(item, dict) and isinstance(item.get("filepath"), str):
+                        candidate_paths.append(item["filepath"])
+            prepared = downloader.prepare_filename(info)
+            if isinstance(prepared, str):
+                candidate_paths.append(prepared)
+
+        files = [Path(path) for path in candidate_paths if Path(path).is_file()]
+        if not files:
+            files = [path for path in Path(temp_dir).glob("*") if path.is_file()]
+        if not files:
+            raise TikTokResolveError("Não foi possível preparar o vídeo para download.", 502)
+
+        file_path = max(files, key=lambda path: path.stat().st_size)
+        if file_path.stat().st_size > MAX_VIDEO_BYTES:
+            raise TikTokResolveError("O vídeo ultrapassa o limite de 200 MB desta ferramenta.", 413)
+
+        final_name = f"tiktok-{video_id}.mp4"
+        final_path = Path(temp_dir) / final_name
+        if file_path != final_path:
+            file_path.replace(final_path)
+        return str(final_path), temp_dir
+    except yt_dlp.utils.DownloadError as exc:
+        import shutil
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise _tiktok_download_error(str(exc)) from exc
+    except Exception:
+        import shutil
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise
+
+
+async def prepare_tiktok_download(token: str) -> tuple[str, str]:
+    source_url, video_id = read_tiktok_download_token(token)
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(_download_tiktok_sync, source_url, video_id),
+            timeout=90,
+        )
+    except TimeoutError as exc:
+        raise TikTokResolveError("O TikTok demorou demais para preparar o vídeo. Tente novamente.", 504) from exc
+
 
 
 class TikTokResolveError(Exception):
