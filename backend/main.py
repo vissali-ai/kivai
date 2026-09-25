@@ -32,6 +32,21 @@ except ImportError:
         resolve_instagram_public,
     )
 
+try:
+    from .tiktok_downloader import (
+        TikTokResolveError,
+        open_tiktok_remote_media,
+        read_tiktok_media_token,
+        resolve_tiktok_public,
+    )
+except ImportError:
+    from tiktok_downloader import (
+        TikTokResolveError,
+        open_tiktok_remote_media,
+        read_tiktok_media_token,
+        resolve_tiktok_public,
+    )
+
 
 app = FastAPI(
     title="Kivai Backend",
@@ -84,6 +99,11 @@ VIDEO_COMPRESS_PRESETS = {
 
 
 class InstagramResolveRequest(BaseModel):
+    url: str = Field(min_length=1, max_length=2048)
+    authorized: bool
+
+
+class TikTokResolveRequest(BaseModel):
     url: str = Field(min_length=1, max_length=2048)
     authorized: bool
 
@@ -179,6 +199,65 @@ async def instagram_media(token: str, request: Request, download: bool = False):
             headers=headers,
         )
     except InstagramResolveError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+
+@app.post("/tiktok/resolve")
+async def tiktok_resolve(payload: TikTokResolveRequest):
+    if not payload.authorized:
+        raise HTTPException(
+            status_code=422,
+            detail="Confirme que o conteúdo é seu ou que você possui autorização para baixá-lo.",
+        )
+    try:
+        return await resolve_tiktok_public(payload.url)
+    except TikTokResolveError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+
+@app.get("/tiktok/media/{token}")
+async def tiktok_media(token: str, request: Request, download: bool = False):
+    try:
+        media = read_tiktok_media_token(token)
+        client, upstream = await open_tiktok_remote_media(
+            media,
+            range_header=request.headers.get("range") if not download else None,
+        )
+        upstream_type = upstream.headers.get("content-type", "").split(";", 1)[0].lower()
+        if not upstream_type.startswith("video/") and upstream_type != "application/octet-stream":
+            await upstream.aclose()
+            await client.aclose()
+            raise TikTokResolveError("O servidor de origem não retornou um vídeo válido.", 502)
+
+        async def stream():
+            transferred = 0
+            try:
+                async for chunk in upstream.aiter_bytes():
+                    transferred += len(chunk)
+                    if transferred > media.max_bytes:
+                        return
+                    yield chunk
+            finally:
+                await upstream.aclose()
+                await client.aclose()
+
+        disposition = "attachment" if download else "inline"
+        headers = {
+            "Cache-Control": "private, no-store, max-age=0",
+            "Content-Disposition": f'{disposition}; filename="{media.filename}"',
+            "X-Content-Type-Options": "nosniff",
+        }
+        for name in ("content-length", "content-range", "accept-ranges"):
+            if value := upstream.headers.get(name):
+                headers[name.title()] = value
+
+        return StreamingResponse(
+            stream(),
+            status_code=upstream.status_code,
+            media_type=upstream_type or media.media_type,
+            headers=headers,
+        )
+    except TikTokResolveError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
 
 
