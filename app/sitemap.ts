@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/ferramentas`, changeFrequency: "weekly", priority: 0.9 },
-    ...["imagens", "pdfs", "calculadoras", "texto", "social-media", "videos", "arquivos", "empresas"].filter((slug) => { const hub = hubSettings.get(slug); return !hub || (hub.status === "published" && hub.indexable && hub.includeInSitemap); }).map((slug) => ({ url: `${SITE_URL}/ferramentas/${slug}`, changeFrequency: "weekly" as const, priority: 0.7 })),
+    ...["imagens", "pdfs", "calculadoras", "texto", "social-media", "videos", "audio", "arquivos", "empresas"].filter((slug) => { const hub = hubSettings.get(slug); return !hub || (hub.status === "published" && hub.indexable && hub.includeInSitemap); }).map((slug) => ({ url: `${SITE_URL}/ferramentas/${slug}`, changeFrequency: "weekly" as const, priority: 0.7 })),
     ...archiveSearchItems.map((tool) => ({ url: `${SITE_URL}/ferramentas/${tool.slug}`, changeFrequency: "weekly" as const, priority: 0.8 })),
     { url: `${SITE_URL}${removedorMetadadosTool.href}`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${SITE_URL}/servicos`, changeFrequency: "monthly", priority: 0.9 },
