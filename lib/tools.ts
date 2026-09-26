@@ -30,6 +30,7 @@ import {
   Download,
   Unlock,
   Video,
+  Music,
 } from "lucide-react";
 
 export type ToolCategory =
@@ -107,6 +108,13 @@ export const toolCategories: ToolCategoryDefinition[] = [
     icon: FileImage,
   },
   {
+    slug: "audio",
+    name: "Áudio",
+    description: "Converta e prepare arquivos de áudio para diferentes formatos, usos e plataformas.",
+    href: "/ferramentas/audio",
+    icon: Music,
+  },
+  {
     slug: "empresas",
     name: "Empresas",
     description:
@@ -135,6 +143,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "adicionar-marca-dagua",
   "ajustar-velocidade-video",
   "alterar-volume-video",
+  "audio-para-youtube",
   "analisador-de-seguidores-instagram",
   "baixar-video-instagram",
   "baixar-video-tiktok",
@@ -903,6 +912,19 @@ export const tools: Tool[] = [
     seoTitle: "Baixar Vídeo do TikTok Online | Kivai",
     seoDescription: "Baixe vídeos públicos do TikTok de forma rápida e simples diretamente pelo navegador. Cole o link do vídeo para visualizar e fazer o download.",
     keywords: ["baixar vídeo tiktok", "download tiktok", "salvar vídeo tiktok", "baixar tiktok online", "vídeo tiktok"],
+  },
+  {
+    slug: "audio-para-youtube",
+    name: "Áudio para YouTube",
+    description: "Transforme WAV, MP3, M4A, AAC ou FLAC em vídeo com capa para publicar no YouTube.",
+    category: "audio",
+    hubFilter: "Converter",
+    badge: "Áudio",
+    icon: Music,
+    available: true,
+    seoTitle: "Áudio para YouTube: transforme WAV e MP3 em vídeo | Kivai",
+    seoDescription: "Transforme WAV, MP3, M4A, AAC ou FLAC em vídeo com capa para enviar ao YouTube. Gere WebM compatível diretamente no navegador.",
+    keywords: ["áudio para youtube", "wav para youtube", "mp3 para youtube", "converter áudio em vídeo", "wav para vídeo", "publicar áudio no youtube"],
   },
   {
     slug: "hevc-para-mp4",
