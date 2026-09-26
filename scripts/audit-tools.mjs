@@ -9,7 +9,7 @@ const archiveCatalogPath = path.join(root, "lib", "archive-search-items.ts");
 const standaloneCatalogPaths = [
   path.join(root, "lib", "removedor-metadados-tool.ts"),
 ];
-const hubRoutes = new Set(["imagens", "pdfs", "calculadoras", "texto", "social-media", "videos", "arquivos"]);
+const hubRoutes = new Set(["imagens", "pdfs", "calculadoras", "texto", "social-media", "videos", "audio", "arquivos"]);
 const errors = [];
 
 const catalogSource = await readFile(catalogPath, "utf8");
