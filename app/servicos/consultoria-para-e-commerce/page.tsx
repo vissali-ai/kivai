@@ -37,7 +37,7 @@ export default function ConsultoriaParaEcommercePage() {
                     <img
                       src="/clients/sou-ofertas-online.svg"
                       alt={group === 0 ? "Sou Ofertas Online" : ""}
-                      className="max-h-20 max-w-full object-contain"
+                      className="max-h-[5.5rem] max-w-[92%] object-contain"
                     />
                   </div>
 
@@ -45,13 +45,13 @@ export default function ConsultoriaParaEcommercePage() {
                     <img
                       src="https://http2.mlstatic.com/D_NQ_NP_861528-MLA81184928992_122024-O.webp"
                       alt={group === 0 ? "Panela de Ferro Mineira" : ""}
-                      className="max-h-28 w-[115%] max-w-none object-contain"
+                      className="max-h-[5.5rem] max-w-[92%] object-contain"
                     />
                   </div>
 
                   <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
                     <img
-                      src="/clients/at-shopping.jpg"
+                      src="/clients/at-shopping.webp"
                       alt={group === 0 ? "AT shopping" : ""}
                       className="max-h-20 max-w-full object-contain"
                     />
@@ -59,7 +59,7 @@ export default function ConsultoriaParaEcommercePage() {
 
                   <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
                     <img
-                      src="/clients/coimbra.jpg"
+                      src="/clients/coimbra.webp"
                       alt={group === 0 ? "Coimbra" : ""}
                       className="max-h-20 max-w-full object-contain"
                     />
@@ -67,7 +67,7 @@ export default function ConsultoriaParaEcommercePage() {
 
                   <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
                     <img
-                      src="/clients/droga-clara.jpg"
+                      src="/clients/droga-clara.webp"
                       alt={group === 0 ? "Droga Clara" : ""}
                       className="max-h-20 max-w-full object-contain"
                     />
