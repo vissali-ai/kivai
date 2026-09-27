@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220" role="img" aria-labelledby="title desc">
+  <title id="title">AT shopping</title>
+  <desc id="desc">Identificação visual AT shopping</desc>
+  <rect width="640" height="220" rx="24" fill="#ffffff"/>
+  <text x="64" y="142" font-family="Arial,Helvetica,sans-serif" font-size="108" font-weight="800" fill="#111827">AT</text>
+  <text x="238" y="142" font-family="Arial,Helvetica,sans-serif" font-size="74" font-weight="600" fill="#6b7280">shopping</text>
+</svg>
