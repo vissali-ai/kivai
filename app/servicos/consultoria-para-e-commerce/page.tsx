@@ -48,6 +48,14 @@ export default function ConsultoriaParaEcommercePage() {
                       className="max-h-20 max-w-full object-contain"
                     />
                   </div>
+
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
+                    <img
+                      src="/clients/at-shopping.svg"
+                      alt={group === 0 ? "AT shopping" : ""}
+                      className="max-h-20 max-w-full object-contain"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
