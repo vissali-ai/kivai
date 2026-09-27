@@ -22,7 +22,7 @@ export default function ConsultoriaParaEcommercePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Clientes que aprovaram
+              Experiência em projetos de e-commerce
             </p>
           </div>
 
@@ -45,14 +45,30 @@ export default function ConsultoriaParaEcommercePage() {
                     <img
                       src="https://http2.mlstatic.com/D_NQ_NP_861528-MLA81184928992_122024-O.webp"
                       alt={group === 0 ? "Panela de Ferro Mineira" : ""}
-                      className="max-h-28 w-[96%] object-contain scale-110"
+                      className="max-h-28 w-[115%] max-w-none object-contain"
                     />
                   </div>
 
                   <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
                     <img
-                      src="/clients/at-shopping.png"
+                      src="/clients/at-shopping.jpg"
                       alt={group === 0 ? "AT shopping" : ""}
+                      className="max-h-20 max-w-full object-contain"
+                    />
+                  </div>
+
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
+                    <img
+                      src="/clients/coimbra.jpg"
+                      alt={group === 0 ? "Coimbra" : ""}
+                      className="max-h-20 max-w-full object-contain"
+                    />
+                  </div>
+
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
+                    <img
+                      src="/clients/droga-clara.jpg"
+                      alt={group === 0 ? "Droga Clara" : ""}
                       className="max-h-20 max-w-full object-contain"
                     />
                   </div>
