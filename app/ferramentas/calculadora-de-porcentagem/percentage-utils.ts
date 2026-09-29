@@ -27,7 +27,7 @@ type PercentageModeConfig = {
 
 export const modes: Record<PercentageMode, PercentageModeConfig> = {
   percentageOfValue: {
-    label: "Calcular porcentagem de um valor",
+    label: "Quanto é X% de Y?",
     description: "Descubra quanto é uma porcentagem de um valor.",
     firstLabel: "Porcentagem (%)",
     secondLabel: "Valor",
@@ -36,7 +36,7 @@ export const modes: Record<PercentageMode, PercentageModeConfig> = {
     examples: [["10", "200"], ["15", "500"], ["25", "1000"], ["8", "450"]],
   },
   whatPercentage: {
-    label: "Descobrir a porcentagem",
+    label: "X é quantos % de Y?",
     description: "Descubra quanto um valor representa de outro.",
     firstLabel: "Valor parcial",
     secondLabel: "Valor total",
@@ -45,7 +45,7 @@ export const modes: Record<PercentageMode, PercentageModeConfig> = {
     examples: [["80", "200"], ["45", "300"], ["25", "400"], ["180", "240"]],
   },
   percentageIncrease: {
-    label: "Calcular aumento percentual",
+    label: "Aumento percentual",
     description: "Compare um valor inicial com um valor final maior ou igual a ele.",
     firstLabel: "Valor inicial",
     secondLabel: "Valor final",
@@ -54,7 +54,7 @@ export const modes: Record<PercentageMode, PercentageModeConfig> = {
     examples: [["100", "150"], ["200", "250"], ["80", "100"], ["500", "625"]],
   },
   percentageDecrease: {
-    label: "Calcular redução percentual",
+    label: "Redução percentual",
     description: "Compare um valor inicial com um valor final menor ou igual a ele.",
     firstLabel: "Valor inicial",
     secondLabel: "Valor final",
@@ -63,7 +63,7 @@ export const modes: Record<PercentageMode, PercentageModeConfig> = {
     examples: [["150", "100"], ["200", "150"], ["80", "60"], ["500", "400"]],
   },
   increaseValue: {
-    label: "Aumentar um valor",
+    label: "Aumentar um valor em X%",
     description: "Aplique um acréscimo percentual não negativo ao valor.",
     firstLabel: "Valor",
     secondLabel: "Aumento (%)",
@@ -72,7 +72,7 @@ export const modes: Record<PercentageMode, PercentageModeConfig> = {
     examples: [["250", "15"], ["100", "20"], ["500", "10"], ["80", "25"]],
   },
   decreaseValue: {
-    label: "Diminuir um valor",
+    label: "Aplicar desconto de X%",
     description: "Aplique um desconto entre 0% e 100% ao valor.",
     firstLabel: "Valor",
     secondLabel: "Desconto (%)",
@@ -81,7 +81,7 @@ export const modes: Record<PercentageMode, PercentageModeConfig> = {
     examples: [["250", "15"], ["100", "20"], ["500", "10"], ["80", "25"]],
   },
   originalBeforeIncrease: {
-    label: "Descobrir valor antes do aumento",
+    label: "Valor antes do aumento",
     description: "Encontre o valor original antes de um aumento percentual não negativo.",
     firstLabel: "Valor final",
     secondLabel: "Aumento (%)",
@@ -90,7 +90,7 @@ export const modes: Record<PercentageMode, PercentageModeConfig> = {
     examples: [["120", "20"], ["150", "50"], ["220", "10"], ["375", "25"]],
   },
   originalBeforeDiscount: {
-    label: "Descobrir valor antes do desconto",
+    label: "Valor antes do desconto",
     description: "Encontre o valor original antes de um desconto entre 0% e menos de 100%.",
     firstLabel: "Valor final",
     secondLabel: "Desconto (%)",
