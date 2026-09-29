@@ -246,7 +246,7 @@ export const pdfSpecialToolEditorialContent = {
   "montar-pdf-para-impressao": {
     overview: [
       "Montar PDF para Impressão cria novas folhas e distribui nelas uma ou mais páginas do PDF. Diferentemente de apenas redimensionar a página original, essa ferramenta controla folha, escala, posição, repetição, espaçamento e quantidade de itens em cada composição.",
-      "O fluxo é especialmente útil para etiquetas, cartões, documentos pequenos e materiais que precisam aproveitar melhor uma folha A4 ou outro formato. O editor visual permite posicionar, redimensionar e recortar a área usada antes de gerar o novo PDF.",
+      "O fluxo é especialmente útil para preparar PDF para impressão em A4, A6 e outros formatos, inclusive etiquetas de marketplace, cartões e documentos pequenos. O editor visual permite posicionar, redimensionar e recortar a área usada antes de gerar o novo PDF.",
     ],
     useCases: [
       { title: "Etiquetas de marketplace", description: "Posicione uma etiqueta pequena em uma folha maior para recorte e impressão sem desperdiçar papel." },
@@ -274,7 +274,7 @@ export const pdfSpecialToolEditorialContent = {
       "A ferramenta prepara o PDF, mas não controla configurações próprias do driver da impressora, como escala automática ou área não imprimível.",
     ],
     faqs: [
-      { question: "Posso colocar uma etiqueta pequena em uma folha A4?", answer: "Sim. Escolha A4 como folha e ajuste o tamanho e a posição do conteúdo." },
+      { question: "Posso colocar uma etiqueta A6 ou de marketplace em uma folha A4?", answer: "Sim. Escolha A4 como folha e ajuste o tamanho, a escala e a posição da etiqueta. Isso é útil para arquivos de envio de marketplaces e outros PDFs pequenos." },
       { question: "Posso repetir o mesmo documento várias vezes?", answer: "Sim. A ferramenta possui repetição e quantidade de itens por folha." },
       { question: "Qual a diferença para Redimensionar PDF?", answer: "Redimensionar altera a própria página; Montar PDF cria uma nova folha e posiciona um ou vários conteúdos dentro dela." },
       { question: "O PDF original é alterado?", answer: "Não. A saída é uma nova cópia preparada para impressão." },
