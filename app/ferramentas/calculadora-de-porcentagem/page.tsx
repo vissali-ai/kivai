@@ -4,7 +4,7 @@ import { getToolMetadataAsync } from "@/lib/seo";
 import CalculadoraDePorcentagemClient from "./calculadora-de-porcentagem-client";
 
 const SEO_DESCRIPTION =
-  "Calcule porcentagem de um valor, percentual entre valores, aumento, redução, acréscimo, desconto e valor original em oito modos online.";
+  "Use a calculadora de porcentagem online grátis para calcular X% de um valor, percentual entre valores, aumento, desconto, redução e variação percentual.";
 
 export async function generateMetadata() {
   const metadata = await getToolMetadataAsync("calculadora-de-porcentagem");
