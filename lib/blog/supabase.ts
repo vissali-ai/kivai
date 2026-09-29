@@ -14,6 +14,15 @@ const PUBLIC_REVALIDATE_SECONDS = 300;
 
 function getPublicReadCache(path: string, options: RequestOptions) {
   const method = (options.method ?? "GET").toUpperCase();
+  const explicitRevalidate = options.next?.revalidate;
+
+  if (method === "GET" && explicitRevalidate !== undefined) {
+    return {
+      cache: "force-cache" as const,
+      next: { revalidate: explicitRevalidate },
+    };
+  }
+
   const isPublishedRead = method === "GET" && path.includes("status=eq.published");
 
   if (!isPublishedRead) {
