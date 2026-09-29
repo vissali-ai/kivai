@@ -188,7 +188,7 @@ export async function listManagedSiteContents(): Promise<ManagedSiteContent[]> {
   const [stored, hubs] = await Promise.all([listStoredSiteContents(), listSiteHubs()]);
   const byExistingSlug = new Map(stored.filter((item) => item.existingToolSlug).map((item) => [item.existingToolSlug, item]));
   const hubBySlug = new Map(hubs.map((hub) => [hub.slug, hub.id]));
-  const categoryHub: Record<string, string> = { imagens: "imagens", pdf: "pdfs", calculadoras: "calculadoras", texto: "texto", social: "social-media", video: "videos" };
+  const categoryHub: Record<string, string> = { imagens: "imagens", pdf: "pdfs", calculadoras: "calculadoras", texto: "texto", social: "social-media", video: "videos", arquivos: "arquivos" };
   const defaultMostUsed = new Map(["removedor-de-fundo", "calculadora-de-porcentagem", "compressor-de-imagens", "gerador-de-qr-code", "pdf-para-imagens", "montar-pdf-para-impressao"].map((slug, index) => [slug, index + 1]));
   const virtual: ManagedSiteContent[] = tools.filter((tool) => !byExistingSlug.has(tool.slug)).map((tool) => ({
     id: `existing:${tool.slug}`, contentType: "tool", slug: tool.slug, path: `/ferramentas/${tool.slug}`,
@@ -239,6 +239,14 @@ export async function getToolOverride(slug: string) {
     const rows = await supabaseRest<ContentRow[]>(`site_contents?select=*&existing_tool_slug=eq.${encodeURIComponent(slug)}&limit=1`, { allowMissingConfig: true });
     return rows[0] ? contentFromRow(rows[0]) : null;
   } catch { return null; }
+}
+
+export async function isToolArchived(slug: string) {
+  const rows = await supabaseRest<Array<{ existing_tool_slug: string | null }>>(
+    "site_contents?select=existing_tool_slug&status=eq.archived",
+    { allowMissingConfig: true },
+  );
+  return rows.some((row) => row.existing_tool_slug === slug);
 }
 
 export async function createSiteContent(value: Partial<SiteContentInput>) {

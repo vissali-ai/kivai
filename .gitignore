@@ -23,6 +23,10 @@ backend/__pycache__/
 # Logs
 *.log
 
+# Relatórios locais dos testes de navegador
+playwright-report/
+test-results/
+
 # Sistema
 .DS_Store
 Thumbs.db

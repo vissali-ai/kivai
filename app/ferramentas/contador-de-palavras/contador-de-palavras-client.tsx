@@ -17,6 +17,8 @@ import {
   Type,
 } from "lucide-react";
 
+import { ToolErrorMessage } from "@/components/tools/tool-error-message";
+import { ToolPrivacyNotice } from "@/components/tools/tool-privacy-notice";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,6 +91,7 @@ export default function ContadorDePalavrasClient() {
   const [texto, setTexto] = useState("");
   const [presetAtivo, setPresetAtivo] = useState<string | null>(null);
   const [limitePersonalizado, setLimitePersonalizado] = useState("");
+  const [erro, setErro] = useState("");
   const [copiado, setCopiado] = useState(false);
 
   const metricas = useMemo(() => {
@@ -132,25 +135,29 @@ export default function ContadorDePalavrasClient() {
 
   async function copiarTexto() {
     if (!texto) return;
+    setErro("");
     try {
       await navigator.clipboard.writeText(texto);
       setCopiado(true);
       window.setTimeout(() => setCopiado(false), 1800);
     } catch {
+      setErro("Não foi possível copiar. Selecione o texto e use a opção Copiar do seu dispositivo.");
       setCopiado(false);
     }
   }
 
   async function colarTexto() {
+    setErro("");
     try {
       const conteudo = await navigator.clipboard.readText();
-      if (conteudo) setTexto(conteudo);
+      if (conteudo) { setTexto(conteudo); setCopiado(false); }
     } catch {
-      return;
+      setErro("Não foi possível acessar a área de transferência. Toque no campo e use a opção Colar do seu dispositivo.");
     }
   }
 
   function limparTexto() {
+    setErro("");
     setTexto("");
     setCopiado(false);
   }
@@ -184,6 +191,9 @@ export default function ContadorDePalavrasClient() {
           </CardHeader>
 
           <CardContent>
+            <div className="mb-5"><ToolPrivacyNotice message="O texto é analisado no navegador e não é enviado ao Kivai." /></div>
+            <ToolErrorMessage message={erro} className="mb-4" />
+            {copiado && <p role="status" className="mb-3 text-sm text-primary">Texto copiado.</p>}
             <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
               <div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -209,7 +219,7 @@ export default function ContadorDePalavrasClient() {
                 <textarea
                   id="contador-texto"
                   value={texto}
-                  onChange={(event) => setTexto(event.target.value)}
+                  onChange={(event) => { setTexto(event.target.value); setCopiado(false); setErro(""); }}
                   placeholder="Digite ou cole seu texto aqui..."
                   className="mt-3 min-h-[24rem] w-full resize-y border border-border bg-muted/20 px-4 py-4 text-sm leading-7 outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:min-h-[30rem]"
                 />

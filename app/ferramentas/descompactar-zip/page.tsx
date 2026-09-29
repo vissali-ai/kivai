@@ -1,3 +1,4 @@
+import { getToolMetadataAsync } from "@/lib/seo";
 import type { Metadata } from "next";
 
 import { ArchiveToolEditorialV2 } from "@/components/tools/archive-tool-editorial-v2";
@@ -9,7 +10,7 @@ const description =
   "Descompacte arquivos ZIP online, visualize o conteúdo e baixe os arquivos diretamente no navegador, sem enviar o ZIP para o servidor do Kivai.";
 const url = `${SITE_URL}/ferramentas/descompactar-zip`;
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   title: { absolute: title },
   description,
   keywords: [
@@ -23,6 +24,10 @@ export const metadata: Metadata = {
   openGraph: { title, description, url, siteName: "Kivai", locale: "pt_BR", type: "website" },
   twitter: { card: "summary_large_image", title, description },
 };
+
+export async function generateMetadata() {
+  return getToolMetadataAsync("descompactar-zip", baseMetadata);
+}
 
 export default function Page() {
   return (

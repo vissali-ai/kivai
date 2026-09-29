@@ -7,7 +7,7 @@ from backend.instagram_downloader import (
     InstagramResolveError,
     MAX_VIDEO_BYTES,
     RemoteMedia,
-    _photo_result_from_html,
+    _og_media_result_from_html,
     create_media_token,
     instagram_download_error,
     normalize_instagram_url,
@@ -46,7 +46,7 @@ class InstagramDownloaderTests(unittest.TestCase):
         self.assertIn("não encontramos um vídeo", error.detail.lower())
 
     def test_builds_download_for_public_photo_metadata(self):
-        result = _photo_result_from_html(
+        result = _og_media_result_from_html(
             '<meta property="og:title" content="Foto de teste">'
             '<meta property="og:image" content="https://cdn.example.com/photo.jpg">'
             '<meta property="og:image:type" content="image/jpeg">'
@@ -85,7 +85,7 @@ class InstagramDownloaderTests(unittest.TestCase):
         self.assertEqual(response.status_code, 422)
         self.assertIn("autorização", response.json()["detail"])
 
-    @patch("backend.main.resolve_instagram_public", new_callable=AsyncMock)
+    @patch("backend.api.instagram.resolve_instagram_public", new_callable=AsyncMock)
     def test_resolve_returns_extractor_result(self, resolve_mock):
         resolve_mock.return_value = {
             "source": "instagram",

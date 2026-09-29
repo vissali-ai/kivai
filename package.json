@@ -7,6 +7,9 @@
     "build": "npm run verify:adsense && npm run prepare:unrar-assets && next build",
     "start": "next start",
     "lint": "eslint",
+    "test:tools": "playwright test",
+    "test:tools:desktop": "playwright test --project=desktop",
+    "test:cms": "node --test tests/cms/*.test.mjs",
     "audit:live": "node scripts/audit-live-site.mjs",
     "audit:maintenance": "node scripts/audit-project-maintenance.mjs",
     "audit:tools": "node scripts/audit-tools.mjs",
@@ -52,6 +55,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.6",
@@ -60,6 +64,7 @@
     "@types/sanitize-html": "^2.16.1",
     "eslint": "^9",
     "eslint-config-next": "^16.3.1",
+    "jsqr": "^1.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

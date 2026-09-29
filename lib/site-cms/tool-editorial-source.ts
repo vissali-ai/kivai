@@ -1,3 +1,5 @@
+import { archiveToolEditorialContent } from "@/lib/archive-tool-editorial-content";
+import { removedorMetadadosEditorialContent } from "@/lib/removedor-metadados-editorial-content";
 import { generalToolEditorialContent } from "@/lib/general-tool-editorial-content";
 import { imageToolEditorialContent } from "@/lib/image-tool-editorial-content";
 import { pdfOfficeToolEditorialContent } from "@/lib/pdf-office-tool-editorial-content";
@@ -20,6 +22,8 @@ type EditorialSource = {
 };
 
 const sources: Array<Record<string, EditorialSource>> = [
+  archiveToolEditorialContent,
+  { "removedor-de-metadados": removedorMetadadosEditorialContent },
   generalToolEditorialContent,
   imageToolEditorialContent,
   pdfOfficeToolEditorialContent,

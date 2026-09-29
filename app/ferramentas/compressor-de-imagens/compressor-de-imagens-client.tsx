@@ -1,13 +1,13 @@
 ﻿"use client";
 
-import { openFilePicker } from "@/lib/browser/file-picker";
+import { ToolResultCard } from "@/components/tools/tool-result-card";
+import { ToolErrorMessage } from "@/components/tools/tool-error-message";
+import { ToolProcessingStatus } from "@/components/tools/tool-processing-status";
+import { ToolUploadArea } from "@/components/tools/tool-upload-area";
 
 import Link from "next/link";
 import {
-  ChangeEvent,
-  DragEvent,
   useEffect,
-  useRef,
   useState,
 } from "react";
 
@@ -16,7 +16,6 @@ import {
   Download,
   ImageIcon,
   LoaderCircle,
-  Upload,
   X,
 } from "lucide-react";
 
@@ -83,7 +82,6 @@ function formatarBytes(bytes: number) {
 }
 
 export default function CompressorDeImagensClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -95,7 +93,6 @@ export default function CompressorDeImagensClient() {
   const [resultado, setResultado] =
     useState<ResultadoCompressao | null>(null);
 
-  const [arrastando, setArrastando] = useState(false);
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -104,14 +101,21 @@ export default function CompressorDeImagensClient() {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
+    };
+  }, [previewUrl]);
 
+  useEffect(() => {
+    return () => {
       if (resultadoUrl) {
         URL.revokeObjectURL(resultadoUrl);
       }
     };
-  }, [previewUrl, resultadoUrl]);
+  }, [resultadoUrl]);
 
   function validarArquivo(file: File) {
+    if (!file.size) {
+      return "O arquivo está vazio. Tente selecionar outro.";
+    }
     if (!FORMATOS_ACEITOS.includes(file.type)) {
       return "Formato inválido. Use PNG, JPG ou WebP.";
     }
@@ -124,15 +128,12 @@ export default function CompressorDeImagensClient() {
   }
 
   function limparResultado() {
-    if (resultadoUrl) {
-      URL.revokeObjectURL(resultadoUrl);
-    }
-
     setResultadoUrl(null);
     setResultado(null);
   }
 
   function carregarArquivo(file: File) {
+    if (processando) return;
     const mensagemErro = validarArquivo(file);
 
     if (mensagemErro) {
@@ -142,10 +143,6 @@ export default function CompressorDeImagensClient() {
 
     limparResultado();
 
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
     const novaUrl = URL.createObjectURL(file);
 
     setArquivo(file);
@@ -154,44 +151,14 @@ export default function CompressorDeImagensClient() {
     setErro("");
   }
 
-  function selecionarArquivo(
-    event: ChangeEvent<HTMLInputElement>
-  ) {
-    const file = event.target.files?.[0];
-
-    if (file) {
-      carregarArquivo(file);
-    }
-  }
-
-  function soltarArquivo(
-    event: DragEvent<HTMLDivElement>
-  ) {
-    event.preventDefault();
-    setArrastando(false);
-
-    const file = event.dataTransfer.files?.[0];
-
-    if (file) {
-      carregarArquivo(file);
-    }
-  }
-
   function removerArquivo() {
     limparResultado();
-
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
 
     setArquivo(null);
     setPreviewUrl(null);
     setErro("");
     setNivel("equilibrada");
 
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
   }
 
   async function processarCompressao() {
@@ -294,65 +261,8 @@ export default function CompressorDeImagensClient() {
           </CardHeader>
 
           <CardContent>
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={selecionarArquivo}
-            />
-
-            {!arquivo ? (
-              <div
-                onDragEnter={(event) => {
-                  event.preventDefault();
-                  setArrastando(true);
-                }}
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  setArrastando(true);
-                }}
-                onDragLeave={(event) => {
-                  event.preventDefault();
-                  setArrastando(false);
-                }}
-                onDrop={soltarArquivo}
-                className={[
-                  "flex min-h-80 flex-col items-center justify-center border border-dashed p-6 text-center transition-colors sm:p-10",
-                  arrastando
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-muted/20 hover:bg-muted/40",
-                ].join(" ")}
-              >
-                <div className="flex max-w-md flex-col items-center">
-                  <div className="flex size-14 items-center justify-center border border-border bg-background">
-                    <Upload
-                      className="size-5"
-                      aria-hidden="true"
-                    />
-                  </div>
-
-                  <h2 className="mt-5 font-heading text-lg font-medium">
-                    Envie sua imagem
-                  </h2>
-
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Arraste e solte o arquivo nesta área ou
-                    selecione uma imagem diretamente do seu
-                    dispositivo.
-                  </p>
-
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="mt-6"
-                    onClick={() => openFilePicker(inputRef.current)}
-                  >
-                    Selecionar imagem
-                  </Button>
-                </div>
-              </div>
-            ) : (
+            <ToolUploadArea accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" formats="PNG, JPG e WebP" maxSizeLabel="5 MB por imagem" processingMode="local" compact={Boolean(arquivo)} disabled={processando} label={arquivo ? "Trocar imagem" : "Selecionar imagem"} onFilesSelected={(files) => files[0] && carregarArquivo(files[0])} className="mb-5" />
+            {arquivo && (
               <div className="space-y-6">
                 <div className="border border-border bg-muted/20 p-4 sm:p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -499,129 +409,27 @@ export default function CompressorDeImagensClient() {
               </div>
             )}
 
-            {resultado && resultadoUrl && arquivo && (
-              <div className="mt-6 border border-border bg-background p-4 sm:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-primary">
-                      Compressão concluída
-                    </p>
-
-                    <h3 className="mt-2 font-heading text-lg font-medium">
-                      {resultado.usouOriginal
-                        ? "A imagem original já é a melhor opção"
-                        : "Imagem otimizada com sucesso"}
-                    </h3>
-
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      {resultado.usouOriginal
-                        ? "O processamento não encontrou uma versão menor sem aumentar o arquivo. Mantivemos o original."
-                        : `Você economizou ${formatarBytes(
-                            resultado.bytesEconomizados
-                          )} nesta imagem.`}
-                    </p>
-                  </div>
-
-                  <span className="w-fit border border-border bg-muted/30 px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    {resultado.extensao}
-                  </span>
-                </div>
-
-                <div className="mt-5 flex min-h-64 items-center justify-center border border-border bg-muted/20 p-4">
-                  <img
-                    src={resultadoUrl}
-                    alt="Pré-visualização da imagem comprimida"
-                    className="max-h-96 w-full object-contain"
-                  />
-                </div>
-
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="border border-border bg-muted/20 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Original
-                    </p>
-
-                    <p className="mt-2 text-sm font-medium">
-                      {formatarBytes(
-                        resultado.tamanhoOriginal
-                      )}
-                    </p>
-                  </div>
-
-                  <div className="border border-border bg-muted/20 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Resultado
-                    </p>
-
-                    <p className="mt-2 text-sm font-medium">
-                      {formatarBytes(
-                        resultado.tamanhoFinal
-                      )}
-                    </p>
-                  </div>
-
-                  <div className="border border-border bg-muted/20 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Redução
-                    </p>
-
-                    <p className="mt-2 text-sm font-medium">
-                      {resultado.percentualReducao
-                        .toFixed(1)
-                        .replace(".", ",")}
-                      %
-                    </p>
-                  </div>
-
-                  <div className="border border-border bg-muted/20 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Dimensões
-                    </p>
-
-                    <p className="mt-2 text-sm font-medium">
-                      {resultado.largura} ×{" "}
-                      {resultado.altura} px
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                  <Button
-                    type="button"
-                    size="lg"
-                    onClick={baixarResultado}
-                    className="sm:min-w-48"
-                  >
-                    <Download
-                      className="size-4"
-                      aria-hidden="true"
-                    />
-                    Baixar imagem
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="lg"
-                    onClick={() => {
-                      limparResultado();
-                      setNivel("equilibrada");
-                    }}
-                  >
-                    Nova compressão
-                  </Button>
-                </div>
-              </div>
+            <ToolProcessingStatus status={processando ? "processing" : "idle"} message="Comprimindo imagem..." className="mt-4" />
+            {resultado && resultadoUrl && (
+              <ToolResultCard
+                title="Imagem comprimida pronta"
+                className="mt-6"
+                description={resultado.usouOriginal ? "O original já era menor. Ele foi mantido para evitar aumentar o arquivo." : "Economia de " + formatarBytes(resultado.bytesEconomizados) + "."}
+                preview={<img src={resultadoUrl} alt="Pré-visualização da imagem comprimida" className="mx-auto max-h-96 w-full object-contain" />}
+                details={<dl className="grid gap-4 text-sm sm:grid-cols-2">
+                  <div><dt className="text-muted-foreground">Original</dt><dd>{formatarBytes(resultado.tamanhoOriginal)}</dd></div>
+                  <div><dt className="text-muted-foreground">Resultado</dt><dd>{formatarBytes(resultado.tamanhoFinal)}</dd></div>
+                  <div><dt className="text-muted-foreground">Redução</dt><dd>{resultado.percentualReducao.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</dd></div>
+                  <div><dt className="text-muted-foreground">Dimensões</dt><dd>{resultado.largura} × {resultado.altura} px</dd></div>
+                </dl>}
+                actions={<>
+                  <Button size="lg" onClick={baixarResultado}><Download aria-hidden="true" />Baixar imagem</Button>
+                  <Button size="lg" variant="outline" onClick={removerArquivo}>Começar novamente</Button>
+                </>}
+              />
             )}
 
-            {erro && (
-              <div
-                role="alert"
-                className="mt-4 border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
-              >
-                {erro}
-              </div>
-            )}
+            <ToolErrorMessage message={erro} className="mt-4" />
           </CardContent>
         </Card>
 

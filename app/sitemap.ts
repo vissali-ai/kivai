@@ -1,10 +1,8 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { archiveSearchItems } from "@/lib/archive-search-items";
 import { filterIndexablePosts } from "@/lib/blog/indexing";
 import { listBlogSitemapSlugs } from "@/lib/blog/publication-controls";
 import { listCategories, listPublishedPosts } from "@/lib/blog/repository";
-import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { SITE_URL } from "@/lib/seo";
 import { isToolIndexable, tools } from "@/lib/tools";
 import { listSiteHubs, listSitemapSiteContent, listStoredSiteContents } from "@/lib/site-cms/repository";
@@ -26,8 +24,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/ferramentas`, changeFrequency: "weekly", priority: 0.9 },
     ...["imagens", "pdfs", "calculadoras", "texto", "social-media", "videos", "audio", "arquivos", "empresas"].filter((slug) => { const hub = hubSettings.get(slug); return !hub || (hub.status === "published" && hub.indexable && hub.includeInSitemap); }).map((slug) => ({ url: `${SITE_URL}/ferramentas/${slug}`, changeFrequency: "weekly" as const, priority: 0.7 })),
-    ...archiveSearchItems.map((tool) => ({ url: `${SITE_URL}/ferramentas/${tool.slug}`, changeFrequency: "weekly" as const, priority: 0.8 })),
-    { url: `${SITE_URL}${removedorMetadadosTool.href}`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${SITE_URL}/servicos`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/servicos/gestao-de-trafego`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/servicos/social-media`, changeFrequency: "monthly", priority: 0.9 },

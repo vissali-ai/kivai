@@ -1,17 +1,15 @@
 "use client";
 
-import { openFilePicker } from "@/lib/browser/file-picker";
+import { ToolResultCard } from "@/components/tools/tool-result-card";
+import { ToolUploadArea } from "@/components/tools/tool-upload-area";
 
 import Link from "next/link";
 import {
-  ChangeEvent,
-  DragEvent,
   useEffect,
-  useRef,
   useState,
 } from "react";
 
-import { LoaderCircle, Upload } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AdSlot } from "@/components/ads/AdSlot";
@@ -29,17 +27,15 @@ import {
   converterImagem,
   type FormatoSaida,
 } from "@/lib/image-converter/engine";
-import { validateFile } from "@/lib/tool-files";
+import { formatFileSize, validateFile } from "@/lib/tool-files";
 
 const FORMATOS_ACEITOS = ["image/png", "image/jpeg", "image/webp"];
 const TAMANHO_MAXIMO_GRATIS = 5 * 1024 * 1024;
 
 export default function ConversorDeImagensClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [arrastando, setArrastando] = useState(false);
   const [erro, setErro] = useState("");
 
   const [formatoSaida, setFormatoSaida] =
@@ -64,22 +60,22 @@ const [dimensoesResultado, setDimensoesResultado] = useState<{
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
+  };
+}, [previewUrl]);
 
+useEffect(() => {
+  return () => {
     if (resultadoUrl) {
       URL.revokeObjectURL(resultadoUrl);
     }
   };
-}, [previewUrl, resultadoUrl]);
+}, [resultadoUrl]);
 
   function validarArquivo(file: File) {
     return validateFile({ file, acceptedMimeTypes: FORMATOS_ACEITOS, acceptedExtensions: ["png", "jpg", "jpeg", "webp"], maxSizeBytes: TAMANHO_MAXIMO_GRATIS }) ?? "";
   }
 
   function limparResultado() {
-  if (resultadoUrl) {
-    URL.revokeObjectURL(resultadoUrl);
-  }
-
   setResultadoUrl(null);
   setResultadoBlob(null);
   setExtensaoResultado(null);
@@ -87,6 +83,7 @@ const [dimensoesResultado, setDimensoesResultado] = useState<{
 }
 
   function carregarArquivo(file: File) {
+    if (processando) return;
     const mensagemErro = validarArquivo(file);
 
     if (mensagemErro) {
@@ -94,9 +91,7 @@ const [dimensoesResultado, setDimensoesResultado] = useState<{
       return;
     }
 
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    limparResultado();
 
  const novaUrl = URL.createObjectURL(file);
 
@@ -113,39 +108,12 @@ setQualidade(90);
 setErro("");
   }
 
-  function selecionarArquivo(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (file) {
-      carregarArquivo(file);
-    }
-  }
-
-  function soltarArquivo(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    setArrastando(false);
-
-    const file = event.dataTransfer.files?.[0];
-
-    if (file) {
-      carregarArquivo(file);
-    }
-  }
-
   function removerArquivo() {
-    if (previewUrl) {
-        limparResultado();
-      URL.revokeObjectURL(previewUrl);
-    }
-
     limparResultado();
     setArquivo(null);
     setPreviewUrl(null);
     setErro("");
 
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
   }
 
   async function converterArquivo() {
@@ -240,74 +208,8 @@ function baixarResultado() {
           </CardHeader>
 
           <CardContent>
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={selecionarArquivo}
-            />
-
-            <div
-              role="button"
-              tabIndex={processando ? -1 : 0}
-              aria-label="Selecionar imagem"
-              aria-disabled={processando}
-              aria-busy={processando}
-              onKeyDown={(event) => {
-                if (!processando && (event.key === "Enter" || event.key === " ")) {
-                  event.preventDefault();
-                  openFilePicker(inputRef.current);
-                }
-              }}
-              onClick={(event) => {
-                if (!processando && !previewUrl && event.target === event.currentTarget) openFilePicker(inputRef.current);
-              }}
-              onDragEnter={(event) => {
-                event.preventDefault();
-                setArrastando(true);
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setArrastando(true);
-              }}
-              onDragLeave={(event) => {
-                event.preventDefault();
-                setArrastando(false);
-              }}
-              onDrop={soltarArquivo}
-              className={[
-                "flex min-h-80 flex-col items-center justify-center border border-dashed p-6 text-center outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 sm:p-10",
-                arrastando
-                  ? "border-primary bg-primary/5"
-                  : "border-border bg-muted/20 hover:bg-muted/40",
-              ].join(" ")}
-            >
-              {!previewUrl ? (
-                <div className="flex max-w-md flex-col items-center">
-                  <div className="flex size-14 items-center justify-center border border-border bg-background">
-                    <Upload className="size-5" aria-hidden="true" />
-                  </div>
-
-                  <h2 className="mt-5 font-heading text-lg font-medium">
-                    Envie sua imagem
-                  </h2>
-
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Arraste e solte o arquivo nesta área ou selecione uma imagem
-                    diretamente do seu dispositivo.
-                  </p>
-
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="mt-6"
-                    onClick={() => openFilePicker(inputRef.current)}
-                  >
-                    Selecionar imagem
-                  </Button>
-                </div>
-              ) : (
+            <ToolUploadArea accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" formats="PNG, JPG e WebP" maxSizeLabel="5 MB por imagem" processingMode="local" compact={Boolean(arquivo)} disabled={processando} label={arquivo ? "Trocar imagem" : "Selecionar imagem"} onFilesSelected={(files) => files[0] && carregarArquivo(files[0])} className="mb-5" />
+            {previewUrl && (
                 <div className="w-full">
                   <p className="mb-2 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Imagem selecionada
@@ -330,7 +232,7 @@ function baixarResultado() {
         </p>
 
         <p className="mt-1 text-xs text-muted-foreground">
-          {(arquivo.size / 1024 / 1024).toFixed(2)} MB
+          {formatFileSize(arquivo.size)}
         </p>
       </div>
 
@@ -429,118 +331,25 @@ function baixarResultado() {
 )}
                 </div>
               )}
-            </div>
             <ToolProcessingStatus status={processando ? "processing" : resultadoUrl ? "success" : arquivo ? "ready" : erro ? "error" : "idle"} message="Convertendo imagem..." className="mt-4" />
 {resultadoUrl && resultadoBlob && extensaoResultado && arquivo && (
-  <div className="mt-6 border border-border bg-background p-4 sm:p-6">
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-      <div className="text-left">
-        <p className="text-xs font-medium uppercase tracking-wider text-primary">
-          Conversão concluída
-        </p>
-
-        <h3 className="mt-2 font-heading text-lg font-medium">
-          Imagem convertida com sucesso
-        </h3>
-      </div>
-
-      <span className="w-fit border border-border bg-muted/30 px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        {extensaoResultado}
-      </span>
-    </div>
-
-    <div className="mt-5 flex min-h-64 items-center justify-center border border-border bg-muted/20 p-4">
-      <img
-        src={resultadoUrl}
-        alt="Pré-visualização da imagem convertida"
-        className="max-h-96 w-full object-contain"
-      />
-    </div>
-
-<div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-  <div className="border border-border bg-muted/20 p-4 text-left">
-    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-      Arquivo original
-    </p>
-
-    <p className="mt-2 text-sm font-medium">
-      {(arquivo.size / 1024 / 1024).toFixed(2)} MB
-    </p>
-  </div>
-
-  <div className="border border-border bg-muted/20 p-4 text-left">
-    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-      Arquivo convertido
-    </p>
-
-    <p className="mt-2 text-sm font-medium">
-      {(resultadoBlob.size / 1024 / 1024).toFixed(2)} MB
-    </p>
-  </div>
-
-  <div className="border border-border bg-muted/20 p-4 text-left">
-    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-      Dimensões
-    </p>
-
-    <p className="mt-2 text-sm font-medium">
-      {dimensoesResultado
-        ? `${dimensoesResultado.largura} × ${dimensoesResultado.altura} px`
-        : "Não disponível"}
-    </p>
-  </div>
-
-  <div className="border border-border bg-muted/20 p-4 text-left">
-    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-      Variação
-    </p>
-
-    <p className="mt-2 text-sm font-medium">
-      {(() => {
-        const percentual =
-          ((arquivo.size - resultadoBlob.size) / arquivo.size) * 100;
-
-        if (Math.abs(percentual) < 0.1) {
-          return "Tamanho praticamente igual";
-        }
-
-        if (percentual > 0) {
-          return `Redução de ${percentual.toFixed(1).replace(".", ",")}%`;
-        }
-
-        return `Arquivo ${Math.abs(percentual)
-          .toFixed(1)
-          .replace(".", ",")}% maior`;
-      })()}
-    </p>
-  </div>
-</div>
-
-    <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-      <Button
-        type="button"
-        size="lg"
-        onClick={baixarResultado}
-        className="sm:min-w-48"
-      >
-        Baixar imagem
-      </Button>
-
-      <Button
-        type="button"
-        variant="outline"
-        size="lg"
-        onClick={() => {
-          removerArquivo();
-          setFormatoSaida("webp");
-          inputRef.current?.focus();
-        }}
-      >
-        Processar outra imagem
-      </Button>
-    </div>
-  </div>
-)}
+              <ToolResultCard
+                title="Imagem convertida pronta"
+                className="mt-6"
+                description={extensaoResultado.toUpperCase() + " · " + formatFileSize(resultadoBlob.size)}
+                preview={<img src={resultadoUrl} alt="Pré-visualização da imagem convertida" className="mx-auto max-h-96 w-full object-contain" />}
+                details={<dl className="grid gap-4 text-sm sm:grid-cols-2">
+                  <div><dt className="text-muted-foreground">Arquivo original</dt><dd>{formatFileSize(arquivo.size)}</dd></div>
+                  <div><dt className="text-muted-foreground">Arquivo convertido</dt><dd>{formatFileSize(resultadoBlob.size)}</dd></div>
+                  <div><dt className="text-muted-foreground">Dimensões</dt><dd>{dimensoesResultado ? dimensoesResultado.largura + " × " + dimensoesResultado.altura + " px" : "Não disponível"}</dd></div>
+                  <div><dt className="text-muted-foreground">Variação de tamanho</dt><dd>{((resultadoBlob.size / arquivo.size - 1) * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1, signDisplay: "exceptZero" })}%</dd></div>
+                </dl>}
+                actions={<>
+                  <Button size="lg" onClick={baixarResultado}>Baixar imagem</Button>
+                  <Button size="lg" variant="outline" onClick={removerArquivo}>Começar novamente</Button>
+                </>}
+              />
+            )}
             <ToolErrorMessage message={erro} className="mt-4" />
                   </CardContent>
         </Card>

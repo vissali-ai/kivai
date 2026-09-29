@@ -23,7 +23,11 @@ function getPublicReadCache(path: string, options: RequestOptions) {
     };
   }
 
-  const isPublishedRead = method === "GET" && path.includes("status=eq.published");
+  const isPublishedRead = method === "GET" && (
+    path.includes("status=eq.published") ||
+    // Only public visibility state is selected here, never private draft content.
+    path.startsWith("site_contents?select=existing_tool_slug&status=eq.archived")
+  );
 
   if (!isPublishedRead) {
     return {

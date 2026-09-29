@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Archive, ArrowLeft, ArrowRight } from "lucide-react";
 
+import { getToolsByCategory, getToolHref } from "@/lib/tools";
+
 import { AdSlot } from "@/components/ads/AdSlot";
 
 const filters = ["Todos", "Extrair", "Compactar", "Organizar"] as const;
@@ -18,43 +20,10 @@ type FileTool = {
   filter: Exclude<Filter, "Todos">;
 };
 
-const tools: FileTool[] = [
-  {
-    name: "Descompactar ZIP",
-    description: "Abra arquivos ZIP e extraia o conteúdo para usar os arquivos normalmente.",
-    badge: "ZIP",
-    href: "/ferramentas/descompactar-zip",
-    filter: "Extrair",
-  },
-  {
-    name: "Descompactar RAR",
-    description: "Abra arquivos RAR e extraia os arquivos contidos no pacote.",
-    badge: "RAR",
-    href: "/ferramentas/descompactar-rar",
-    filter: "Extrair",
-  },
-  {
-    name: "Compactar Arquivos em ZIP",
-    description: "Reúna vários arquivos em um único pacote ZIP para organizar e compartilhar.",
-    badge: "ZIP",
-    href: "/ferramentas/compactar-arquivos-zip",
-    filter: "Compactar",
-  },
-  {
-    name: "Renomear Arquivos em Lote",
-    description: "Padronize vários nomes de arquivo com numeração automática e extensões preservadas.",
-    badge: "LOTE",
-    href: "/ferramentas/renomear-arquivos-em-lote",
-    filter: "Organizar",
-  },
-  {
-    name: "Adicionar Prefixo ou Sufixo",
-    description: "Acrescente texto antes ou depois do nome de vários arquivos sem apagar o nome atual.",
-    badge: "LOTE",
-    href: "/ferramentas/adicionar-prefixo-sufixo-arquivos",
-    filter: "Organizar",
-  },
-];
+const tools: FileTool[] = getToolsByCategory("arquivos").map((tool) => ({
+  name: tool.name, description: tool.description, badge: tool.badge,
+  href: getToolHref(tool.slug), filter: tool.hubFilter as FileTool["filter"],
+}));
 
 export default function ArquivosPage() {
   const [filter, setFilter] = useState<Filter>("Todos");

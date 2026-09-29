@@ -59,7 +59,9 @@ export async function converterImagem(
   arquivo: File,
   opcoes: OpcoesConversao
 ): Promise<ResultadoConversao> {
-  const bitmap = await createImageBitmap(arquivo);
+  const bitmap = await createImageBitmap(arquivo).catch(() => {
+    throw new Error("Não foi possível abrir a imagem. Ela pode estar corrompida ou usar um formato incompatível.");
+  });
 
   try {
     const canvas = document.createElement("canvas");

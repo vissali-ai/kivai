@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { getToolHref, getToolsByCategory } from "@/lib/tools";
 
 const filters = ["Todos", "Otimizar", "Converter", "Editar"];
@@ -17,7 +16,6 @@ const tools = [
         : tool.description,
     href: getToolHref(tool.slug),
   })),
-  removedorMetadadosTool,
 ];
 
 export default function ImagensPage() {

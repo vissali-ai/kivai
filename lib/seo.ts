@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { isToolIndexable, tools } from "@/lib/tools";
 import { getPublishedSiteContentByPath, getPublishedToolOverride } from "@/lib/site-cms/repository";
-import { getSiteHubBySlug } from "@/lib/site-cms/repository";
+import { getSiteHubBySlug, isToolArchived } from "@/lib/site-cms/repository";
 
 export const SITE_URL = "https://www.kivai.com.br";
 export const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/og-image.jpg`;
@@ -112,8 +113,9 @@ export function getToolMetadata(slug: string): Metadata {
   };
 }
 
-export async function getToolMetadataAsync(slug: string): Promise<Metadata> {
-  const base = getToolMetadata(slug);
+export async function getToolMetadataAsync(slug: string, fallback?: Metadata): Promise<Metadata> {
+  if (await isToolArchived(slug)) notFound();
+  const base = fallback ?? getToolMetadata(slug);
   const override = await getPublishedToolOverride(slug)
     ?? await getPublishedSiteContentByPath(`/ferramentas/${slug}`);
   if (!override) return base;

@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidateSiteCms } from "@/lib/site-cms/revalidation";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/blog/api";
 import { assertAdminApi } from "@/lib/blog/auth";
@@ -15,15 +15,8 @@ export async function PUT(request: Request, { params }: Context) {
   try {
     await assertAdminApi();
     const id = decodeURIComponent((await params).id);
-    const previous = await getSiteContentById(id);
     const item = await updateSiteContent(id, await request.json());
-    if (previous) revalidatePath(previous.path);
-    revalidatePath(item.path);
-    revalidatePath("/ferramentas");
-    revalidatePath("/");
-    revalidatePath("/ajuda");
-    revalidatePath("/recursos");
-    revalidatePath("/sitemap.xml");
+    revalidateSiteCms();
     return NextResponse.json(item);
   } catch (error) { return apiError(error); }
 }
@@ -32,13 +25,8 @@ export async function DELETE(_request: Request, { params }: Context) {
   try {
     await assertAdminApi();
     const id = decodeURIComponent((await params).id);
-    const previous = await getSiteContentById(id);
     await deleteSiteContent(id);
-    if (previous) revalidatePath(previous.path);
-    revalidatePath("/");
-    revalidatePath("/ajuda");
-    revalidatePath("/recursos");
-    revalidatePath("/sitemap.xml");
+    revalidateSiteCms();
     return new NextResponse(null, { status: 204 });
   } catch (error) { return apiError(error); }
 }

@@ -1,0 +1,1164 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Kivai Backend",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Raiz",
+        "operationId": "raiz__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instagram/resolve": {
+      "post": {
+        "summary": "Instagram Resolve",
+        "operationId": "instagram_resolve_instagram_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstagramResolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instagram/media/{token}": {
+      "get": {
+        "summary": "Instagram Media",
+        "operationId": "instagram_media_instagram_media__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tiktok/resolve": {
+      "post": {
+        "summary": "Tiktok Resolve",
+        "operationId": "tiktok_resolve_tiktok_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TikTokResolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tiktok/media/{token}": {
+      "get": {
+        "summary": "Tiktok Media",
+        "operationId": "tiktok_media_tiktok_media__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pdf-unlock/inspect": {
+      "post": {
+        "summary": "Inspect Pdf Unlock",
+        "operationId": "inspect_pdf_unlock_pdf_unlock_inspect_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_inspect_pdf_unlock_pdf_unlock_inspect_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pdf-unlock": {
+      "post": {
+        "summary": "Unlock Pdf",
+        "operationId": "unlock_pdf_pdf_unlock_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_unlock_pdf_pdf_unlock_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/compress/inspect": {
+      "post": {
+        "summary": "Inspect Video For Compression",
+        "operationId": "inspect_video_for_compression_video_compress_inspect_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_inspect_video_for_compression_video_compress_inspect_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/compress": {
+      "post": {
+        "summary": "Compress Video",
+        "operationId": "compress_video_video_compress_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_compress_video_video_compress_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/mp4-to-mov/inspect": {
+      "post": {
+        "summary": "Inspect Mp4 To Mov",
+        "operationId": "inspect_mp4_to_mov_video_mp4_to_mov_inspect_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_inspect_mp4_to_mov_video_mp4_to_mov_inspect_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/mp4-to-mov": {
+      "post": {
+        "summary": "Mp4 To Mov",
+        "operationId": "mp4_to_mov_video_mp4_to_mov_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_mp4_to_mov_video_mp4_to_mov_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/mp4-to-avi/inspect": {
+      "post": {
+        "summary": "Inspect Mp4 To Avi",
+        "operationId": "inspect_mp4_to_avi_video_mp4_to_avi_inspect_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_inspect_mp4_to_avi_video_mp4_to_avi_inspect_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/mp4-to-avi": {
+      "post": {
+        "summary": "Mp4 To Avi",
+        "operationId": "mp4_to_avi_video_mp4_to_avi_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_mp4_to_avi_video_mp4_to_avi_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/mov-to-mp4/inspect": {
+      "post": {
+        "summary": "Inspect Mov To Mp4",
+        "operationId": "inspect_mov_to_mp4_video_mov_to_mp4_inspect_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_inspect_mov_to_mp4_video_mov_to_mp4_inspect_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/mov-to-mp4": {
+      "post": {
+        "summary": "Mov To Mp4",
+        "operationId": "mov_to_mp4_video_mov_to_mp4_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_mov_to_mp4_video_mov_to_mp4_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/hevc-to-mp4": {
+      "post": {
+        "summary": "Hevc To Mp4",
+        "operationId": "hevc_to_mp4_video_hevc_to_mp4_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_hevc_to_mp4_video_hevc_to_mp4_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/mp4-to-hevc": {
+      "post": {
+        "summary": "Mp4 To Hevc",
+        "operationId": "mp4_to_hevc_video_mp4_to_hevc_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_mp4_to_hevc_video_mp4_to_hevc_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/html-to-pdf": {
+      "post": {
+        "summary": "Html To Pdf",
+        "operationId": "html_to_pdf_html_to_pdf_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HtmlToPdfRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/remove-background": {
+      "post": {
+        "summary": "Remove Background",
+        "operationId": "remove_background_remove_background_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_remove_background_remove_background_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_compress_video_video_compress_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode",
+            "default": "balanced"
+          },
+          "preset": {
+            "type": "string",
+            "title": "Preset",
+            "default": "custom"
+          },
+          "resolution": {
+            "type": "string",
+            "title": "Resolution",
+            "default": "auto"
+          },
+          "fps": {
+            "type": "string",
+            "title": "Fps",
+            "default": "original"
+          },
+          "bitrate": {
+            "type": "string",
+            "title": "Bitrate",
+            "default": "auto"
+          },
+          "custom_bitrate": {
+            "type": "integer",
+            "title": "Custom Bitrate",
+            "default": 2500
+          },
+          "codec": {
+            "type": "string",
+            "title": "Codec",
+            "default": "h264"
+          },
+          "audio": {
+            "type": "string",
+            "title": "Audio",
+            "default": "keep"
+          },
+          "audio_bitrate": {
+            "type": "integer",
+            "title": "Audio Bitrate",
+            "default": 128
+          },
+          "target_mb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Mb"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_compress_video_video_compress_post"
+      },
+      "Body_hevc_to_mp4_video_hevc_to_mp4_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "quality": {
+            "type": "string",
+            "title": "Quality",
+            "default": "auto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_hevc_to_mp4_video_hevc_to_mp4_post"
+      },
+      "Body_inspect_mov_to_mp4_video_mov_to_mp4_inspect_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_inspect_mov_to_mp4_video_mov_to_mp4_inspect_post"
+      },
+      "Body_inspect_mp4_to_avi_video_mp4_to_avi_inspect_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_inspect_mp4_to_avi_video_mp4_to_avi_inspect_post"
+      },
+      "Body_inspect_mp4_to_mov_video_mp4_to_mov_inspect_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_inspect_mp4_to_mov_video_mp4_to_mov_inspect_post"
+      },
+      "Body_inspect_pdf_unlock_pdf_unlock_inspect_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_inspect_pdf_unlock_pdf_unlock_inspect_post"
+      },
+      "Body_inspect_video_for_compression_video_compress_inspect_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_inspect_video_for_compression_video_compress_inspect_post"
+      },
+      "Body_mov_to_mp4_video_mov_to_mp4_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "quality": {
+            "type": "string",
+            "title": "Quality",
+            "default": "auto"
+          },
+          "resolution": {
+            "type": "string",
+            "title": "Resolution",
+            "default": "original"
+          },
+          "fps": {
+            "type": "string",
+            "title": "Fps",
+            "default": "original"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_mov_to_mp4_video_mov_to_mp4_post"
+      },
+      "Body_mp4_to_avi_video_mp4_to_avi_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "quality": {
+            "type": "string",
+            "title": "Quality",
+            "default": "auto"
+          },
+          "resolution": {
+            "type": "string",
+            "title": "Resolution",
+            "default": "original"
+          },
+          "fps": {
+            "type": "string",
+            "title": "Fps",
+            "default": "original"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_mp4_to_avi_video_mp4_to_avi_post"
+      },
+      "Body_mp4_to_hevc_video_mp4_to_hevc_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "quality": {
+            "type": "string",
+            "title": "Quality",
+            "default": "auto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_mp4_to_hevc_video_mp4_to_hevc_post"
+      },
+      "Body_mp4_to_mov_video_mp4_to_mov_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "quality": {
+            "type": "string",
+            "title": "Quality",
+            "default": "auto"
+          },
+          "resolution": {
+            "type": "string",
+            "title": "Resolution",
+            "default": "original"
+          },
+          "fps": {
+            "type": "string",
+            "title": "Fps",
+            "default": "original"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_mp4_to_mov_video_mp4_to_mov_post"
+      },
+      "Body_remove_background_remove_background_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_remove_background_remove_background_post"
+      },
+      "Body_unlock_pdf_pdf_unlock_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Password",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_unlock_pdf_pdf_unlock_post"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HtmlToPdfRequest": {
+        "properties": {
+          "html": {
+            "type": "string",
+            "maxLength": 5242880,
+            "minLength": 1,
+            "title": "Html"
+          },
+          "page_size": {
+            "type": "string",
+            "title": "Page Size",
+            "default": "A4"
+          },
+          "landscape": {
+            "type": "boolean",
+            "title": "Landscape",
+            "default": false
+          },
+          "margins": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Margins"
+          },
+          "scale": {
+            "type": "number",
+            "maximum": 1.5,
+            "minimum": 0.75,
+            "title": "Scale",
+            "default": 1
+          },
+          "header": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Header",
+            "default": ""
+          },
+          "footer": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Footer",
+            "default": ""
+          },
+          "page_numbers": {
+            "type": "boolean",
+            "title": "Page Numbers",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "html",
+          "margins"
+        ],
+        "title": "HtmlToPdfRequest"
+      },
+      "InstagramResolveRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Url"
+          },
+          "authorized": {
+            "type": "boolean",
+            "title": "Authorized"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "authorized"
+        ],
+        "title": "InstagramResolveRequest"
+      },
+      "TikTokResolveRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Url"
+          },
+          "authorized": {
+            "type": "boolean",
+            "title": "Authorized"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "authorized"
+        ],
+        "title": "TikTokResolveRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

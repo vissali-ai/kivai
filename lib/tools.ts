@@ -1,5 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Archive,
+  ShieldOff,
   BarChart3,
   Building2,
   Calculator,
@@ -34,6 +36,7 @@ import {
 } from "lucide-react";
 
 export type ToolCategory =
+  | "arquivos"
   | "imagens"
   | "pdf"
   | "calculadoras"
@@ -140,6 +143,12 @@ export interface Tool {
 }
 
 export const INDEXABLE_TOOL_SLUGS = [
+  "descompactar-zip",
+  "descompactar-rar",
+  "compactar-arquivos-zip",
+  "renomear-arquivos-em-lote",
+  "adicionar-prefixo-sufixo-arquivos",
+  "removedor-de-metadados",
   "adicionar-marca-dagua",
   "ajustar-velocidade-video",
   "alterar-volume-video",
@@ -218,6 +227,74 @@ export function isToolIndexable(slug: string) {
 }
 
 export const tools: Tool[] = [
+  {
+    slug: "descompactar-zip",
+    name: "Descompactar ZIP",
+    description: "Abra arquivos ZIP, visualize o conteúdo e baixe os arquivos diretamente no navegador.",
+    keywords: ["descompactar zip","abrir zip","extrair zip","arquivo zip"],
+    category: "arquivos",
+    hubFilter: "Extrair",
+    badge: "ZIP",
+    available: true,
+    icon: Archive,
+  },
+  {
+    slug: "descompactar-rar",
+    name: "Descompactar RAR",
+    description: "Abra arquivos RAR, visualize o conteúdo e extraia arquivos diretamente no navegador.",
+    keywords: ["descompactar rar","abrir rar","extrair rar","arquivo rar"],
+    category: "arquivos",
+    hubFilter: "Extrair",
+    badge: "RAR",
+    available: true,
+    icon: Archive,
+  },
+  {
+    slug: "compactar-arquivos-zip",
+    name: "Compactar Arquivos em ZIP",
+    description: "Reúna vários arquivos em um único ZIP e faça o download diretamente no navegador.",
+    keywords: ["compactar arquivos","criar zip","zip online","arquivos em zip"],
+    category: "arquivos",
+    hubFilter: "Compactar",
+    badge: "ZIP",
+    available: true,
+    icon: Archive,
+  },
+  {
+    slug: "renomear-arquivos-em-lote",
+    name: "Renomear Arquivos em Lote",
+    description: "Padronize vários nomes com numeração automática, preserve extensões e baixe as cópias em ZIP.",
+    keywords: ["renomear arquivos","renomear em lote","nomear arquivos","batch rename"],
+    category: "arquivos",
+    hubFilter: "Organizar",
+    badge: "LOTE",
+    available: true,
+    icon: Archive,
+  },
+  {
+    slug: "adicionar-prefixo-sufixo-arquivos",
+    name: "Adicionar Prefixo ou Sufixo em Lote",
+    description: "Acrescente texto antes ou depois do nome de vários arquivos sem apagar o nome atual.",
+    keywords: ["prefixo arquivo","sufixo arquivo","adicionar prefixo","adicionar sufixo","renomear lote"],
+    category: "arquivos",
+    hubFilter: "Organizar",
+    badge: "LOTE",
+    available: true,
+    icon: Archive,
+  },
+  {
+    slug: "removedor-de-metadados",
+    name: "Removedor de Metadados",
+    description: "Remova metadados herdados de imagens JPG, PNG e WebP, incluindo dados EXIF, GPS e outros blocos incorporados quando presentes.",
+    category: "imagens",
+    hubFilter: "Otimizar",
+    badge: "Imagem",
+    seoTitle: "Remover Metadados de Foto Online Grátis | Kivai",
+    seoDescription: "Remova EXIF, GPS e outros metadados herdados de fotos JPG, PNG e WebP diretamente no navegador. Gere e baixe uma nova cópia da imagem.",
+    keywords: ["remover metadados","remover metadados de foto","remover exif","apagar exif","remover gps de foto","limpar metadados de imagem","remover localização da foto","metadata remover","exif remover"],
+    available: true,
+    icon: ShieldOff,
+  },
   {
     slug: "analisador-de-seguidores-instagram",
     name: "Analisador de Seguidores do Instagram",

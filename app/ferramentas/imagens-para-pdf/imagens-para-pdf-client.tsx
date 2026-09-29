@@ -1,9 +1,11 @@
 "use client";
 
-import { FileImage, FileText, Plus, Trash2, Upload } from "lucide-react";
+import { FileImage, FileText, Plus, Trash2 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { useRef, useState } from "react";
 
+import { ToolUploadArea } from "@/components/tools/tool-upload-area";
+import { ToolDownloadResult, type ToolDownload } from "@/components/tools/tool-download-result";
 import { ToolActionBar } from "@/components/tools/tool-action-bar";
 import { ToolErrorMessage } from "@/components/tools/tool-error-message";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
@@ -38,16 +40,17 @@ async function dataUrlToImage(dataUrl: string) {
 }
 
 export default function ImagensParaPdfClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
   const addRef = useRef<HTMLInputElement>(null);
 
   const [files, setFiles] = useState<File[]>([]);
+  const [result, setResult] = useState<ToolDownload | null>(null);
   const [status, setStatus] = useState<ToolStatus>("idle");
   const [stage, setStage] = useState("Selecione suas imagens");
   const [error, setError] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
 
   function addFiles(selected: File[]) {
+    if (status === "processing") return;
+    setResult(null);
     const valid = validateImages(selected);
 
     if (!valid.length) {
@@ -63,6 +66,8 @@ export default function ImagensParaPdfClient() {
   }
 
   function removeFile(index: number) {
+    if (status === "processing") return;
+    setResult(null);
     setFiles((current) => {
       const next = current.filter((_, currentIndex) => currentIndex !== index);
       setStatus(next.length ? "ready" : "idle");
@@ -73,6 +78,8 @@ export default function ImagensParaPdfClient() {
   }
 
   function reset() {
+    if (status === "processing") return;
+    setResult(null);
     setFiles([]);
     setStatus("idle");
     setStage("Selecione suas imagens");
@@ -85,6 +92,7 @@ export default function ImagensParaPdfClient() {
     setError(null);
     setStatus("processing");
     setStage("Montando as páginas do PDF");
+    setResult(null);
 
     try {
       const pdf = new jsPDF();
@@ -120,10 +128,10 @@ export default function ImagensParaPdfClient() {
         pdf.addImage(jpegData, "JPEG", x, y, width, height);
       }
 
-      setStage("Preparando o download");
-      pdf.save("kivai-imagens.pdf");
+      setStage("Preparando o resultado");
+      setResult({ blob: pdf.output("blob"), name: "kivai-imagens.pdf" });
       setStatus("success");
-      setStage("PDF gerado e download iniciado");
+      setStage("PDF gerado pronto para baixar");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Não foi possível gerar o PDF. Revise as imagens e tente novamente.");
       setStatus("error");
@@ -149,49 +157,7 @@ export default function ImagensParaPdfClient() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <input
-            id="imagens-para-pdf-files"
-            ref={inputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            className="sr-only"
-            onChange={(event) => {
-              if (event.target.files) addFiles(Array.from(event.target.files));
-              event.target.value = "";
-            }}
-          />
-
-          <div
-            onClick={() => openFilePicker(inputRef.current)}
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setDragging(true);
-            }}
-            onDragOver={(event) => event.preventDefault()}
-            onDragLeave={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setDragging(false);
-              addFiles(Array.from(event.dataTransfer.files));
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") openFilePicker(inputRef.current);
-            }}
-            className={`flex min-h-64 cursor-pointer flex-col items-center justify-center border border-dashed p-6 text-center outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 sm:p-10 ${
-              dragging ? "border-primary bg-primary/5" : "border-border bg-muted/20 hover:bg-muted/40"
-            }`}
-          >
-            <span className="flex size-14 items-center justify-center border border-border bg-background">
-              <Upload className="size-5" />
-            </span>
-            <p className="mt-5 font-heading text-lg font-medium">Clique ou arraste suas imagens</p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">Formatos aceitos: JPG, PNG e WebP</p>
-          </div>
+          <ToolUploadArea accept="image/jpeg,image/png,image/webp" formats="JPG, PNG e WebP" multiple label="Selecionar imagens" processingMode="local" disabled={status === "processing"} onFilesSelected={addFiles} />
 
           <ToolProcessingStatus status={status} message={stage} />
           <ToolErrorMessage message={error} />
@@ -210,6 +176,7 @@ export default function ImagensParaPdfClient() {
                   <input
                     ref={addRef}
                     type="file"
+                    disabled={status === "processing"}
                     accept="image/jpeg,image/png,image/webp"
                     multiple
                     className="sr-only"
@@ -278,6 +245,7 @@ export default function ImagensParaPdfClient() {
               </ToolActionBar>
             </>
           )}
+          {result && <ToolDownloadResult result={result} onReset={reset} />}
         </CardContent>
       </Card>
     </ToolPageShell>

@@ -8,10 +8,11 @@ import {
   FileText,
   Layers3,
   Trash2,
-  Upload,
 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
+import { ToolUploadArea } from "@/components/tools/tool-upload-area";
+import { ToolDownloadResult, type ToolDownload } from "@/components/tools/tool-download-result";
 import { ToolActionBar } from "@/components/tools/tool-action-bar";
 import { ToolErrorMessage } from "@/components/tools/tool-error-message";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
@@ -34,11 +35,10 @@ function friendlyError(error: unknown) {
 }
 
 export default function UnirPdfsClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
   const addMoreRef = useRef<HTMLInputElement>(null);
 
   const [pdfs, setPdfs] = useState<PdfFile[]>([]);
-  const [dragActive, setDragActive] = useState(false);
+  const [result, setResult] = useState<ToolDownload | null>(null);
   const [status, setStatus] = useState<ToolStatus>("idle");
   const [stage, setStage] = useState("Aguardando os PDFs");
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +48,7 @@ export default function UnirPdfsClient() {
     if (!list.length || status === "processing") return;
 
     setError(null);
+    setResult(null);
     setStatus("processing");
     setStage(list.length > 1 ? "Lendo os PDFs selecionados" : "Lendo o PDF selecionado");
 
@@ -102,6 +103,7 @@ export default function UnirPdfsClient() {
     if (pdfs.length < 2 || status === "processing") return;
 
     setError(null);
+    setResult(null);
     setStatus("processing");
     setStage("Copiando as páginas na ordem definida");
 
@@ -111,18 +113,10 @@ export default function UnirPdfsClient() {
       new Uint8Array(arrayBuffer).set(bytes);
 
       const blob = new Blob([arrayBuffer], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = "pdf-unido.pdf";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setResult({ blob, name: "pdf-unido.pdf" });
 
       setStatus("success");
-      setStage("PDF unido e download iniciado");
+      setStage("PDF unido pronto para baixar");
     } catch (reason) {
       setError(friendlyError(reason));
       setStatus("error");
@@ -132,6 +126,7 @@ export default function UnirPdfsClient() {
 
   function moveUp(index: number) {
     if (index === 0 || status === "processing") return;
+    setResult(null);
 
     setPdfs((current) => {
       const copy = [...current];
@@ -144,6 +139,7 @@ export default function UnirPdfsClient() {
 
   function moveDown(index: number) {
     if (index === pdfs.length - 1 || status === "processing") return;
+    setResult(null);
 
     setPdfs((current) => {
       const copy = [...current];
@@ -156,6 +152,7 @@ export default function UnirPdfsClient() {
 
   function remove(id: string) {
     if (status === "processing") return;
+    setResult(null);
 
     setPdfs((current) => {
       const next = current.filter((pdf) => pdf.id !== id);
@@ -168,6 +165,7 @@ export default function UnirPdfsClient() {
 
   function reset() {
     if (status === "processing") return;
+    setResult(null);
     setPdfs([]);
     setStatus("idle");
     setStage("Aguardando os PDFs");
@@ -196,53 +194,7 @@ export default function UnirPdfsClient() {
 
         <CardContent className="space-y-6">
           {pdfs.length === 0 && status !== "processing" && (
-            <>
-              <input
-                id="unir-pdfs-files"
-                ref={inputRef}
-                type="file"
-                className="sr-only"
-                multiple
-                accept="application/pdf,.pdf"
-                onChange={(event) => {
-                  if (event.target.files?.length) void processFiles(event.target.files);
-                  event.target.value = "";
-                }}
-              />
-
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => openFilePicker(inputRef.current)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") openFilePicker(inputRef.current);
-                }}
-                onDragEnter={(event) => {
-                  event.preventDefault();
-                  setDragActive(true);
-                }}
-                onDragOver={(event) => event.preventDefault()}
-                onDragLeave={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragActive(false);
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  setDragActive(false);
-                  if (event.dataTransfer.files?.length) void processFiles(event.dataTransfer.files);
-                }}
-                className={`flex min-h-64 cursor-pointer flex-col items-center justify-center border border-dashed p-6 text-center outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 sm:p-10 ${
-                  dragActive ? "border-primary bg-primary/5" : "border-border bg-muted/20 hover:bg-muted/40"
-                }`}
-              >
-                <span className="flex size-14 items-center justify-center border border-border bg-background">
-                  <Upload className="size-5" />
-                </span>
-                <p className="mt-5 font-heading text-lg font-medium">Clique ou arraste seus PDFs</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Selecione dois ou mais documentos para começar a montar a sequência.
-                </p>
-              </div>
-            </>
+            <ToolUploadArea accept="application/pdf,.pdf" formats="PDF" multiple label="Selecionar PDFs" processingMode="local" onFilesSelected={(files) => void processFiles(files)} />
           )}
 
           <ToolProcessingStatus status={status} message={stage} />
@@ -263,6 +215,7 @@ export default function UnirPdfsClient() {
                     <input
                       ref={addMoreRef}
                       type="file"
+                    disabled={status === "processing"}
                       className="sr-only"
                       multiple
                       accept="application/pdf,.pdf"
@@ -370,6 +323,7 @@ export default function UnirPdfsClient() {
               </ToolActionBar>
             </>
           )}
+          {result && <ToolDownloadResult result={result} onReset={reset} />}
         </CardContent>
       </Card>
     </ToolPageShell>

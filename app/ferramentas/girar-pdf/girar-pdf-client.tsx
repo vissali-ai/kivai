@@ -2,8 +2,10 @@
 
 import { openFilePicker } from "@/lib/browser/file-picker";
 import { useRef, useState } from "react";
-import { Download, FileText, RefreshCw, RotateCw, Trash2, Upload } from "lucide-react";
+import { Download, FileText, RefreshCw, RotateCw, Trash2 } from "lucide-react";
 
+import { ToolUploadArea } from "@/components/tools/tool-upload-area";
+import { ToolDownloadResult, type ToolDownload } from "@/components/tools/tool-download-result";
 import { ToolActionBar } from "@/components/tools/tool-action-bar";
 import { ToolErrorMessage } from "@/components/tools/tool-error-message";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
@@ -27,19 +29,20 @@ function friendlyError(error: unknown) {
 }
 
 export default function GirarPdfClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
   const replaceRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState(0);
   const [size, setSize] = useState(0);
   const [angle, setAngle] = useState<RotationAngle>(90);
+  const [result, setResult] = useState<ToolDownload | null>(null);
   const [status, setStatus] = useState<ToolStatus>("idle");
   const [stage, setStage] = useState("Lendo o PDF");
   const [error, setError] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
 
   function reset() {
+    if (status === "processing") return;
+    setResult(null);
     setFile(null);
     setPages(0);
     setSize(0);
@@ -53,6 +56,7 @@ export default function GirarPdfClient() {
     if (status === "processing") return;
 
     setError(null);
+    setResult(null);
 
     if (selected.name.split(".").pop()?.toLowerCase() !== "pdf") {
       setError("Selecione um arquivo no formato PDF.");
@@ -80,6 +84,7 @@ export default function GirarPdfClient() {
     if (!file || status === "processing") return;
 
     setError(null);
+    setResult(null);
     setStatus("processing");
     setStage(`Girando todas as páginas em ${angle}°`);
 
@@ -89,18 +94,10 @@ export default function GirarPdfClient() {
       new Uint8Array(arrayBuffer).set(bytes);
 
       const blob = new Blob([arrayBuffer], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `${file.name.replace(/\.pdf$/i, "")}-girado.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setResult({ blob, name: `${file.name.replace(/\.pdf$/i, "")}-girado.pdf` });
 
       setStatus("success");
-      setStage("PDF girado e download iniciado");
+      setStage("PDF girado pronto para baixar");
     } catch (reason) {
       setError(friendlyError(reason));
       setStatus("error");
@@ -127,52 +124,7 @@ export default function GirarPdfClient() {
 
         <CardContent className="space-y-6">
           {!file && status !== "processing" && (
-            <>
-              <input
-                id="girar-pdf-file"
-                ref={inputRef}
-                type="file"
-                accept="application/pdf,.pdf"
-                className="sr-only"
-                onChange={(event) => {
-                  const selected = event.target.files?.[0];
-                  if (selected) void processFile(selected);
-                  event.target.value = "";
-                }}
-              />
-
-              <div
-                onClick={() => openFilePicker(inputRef.current)}
-                onDragEnter={(event) => {
-                  event.preventDefault();
-                  setDragging(true);
-                }}
-                onDragOver={(event) => event.preventDefault()}
-                onDragLeave={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false);
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  setDragging(false);
-                  const selected = event.dataTransfer.files?.[0];
-                  if (selected) void processFile(selected);
-                }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") openFilePicker(inputRef.current);
-                }}
-                className={`flex min-h-64 cursor-pointer flex-col items-center justify-center border border-dashed p-6 text-center outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 sm:p-10 ${
-                  dragging ? "border-primary bg-primary/5" : "border-border bg-muted/20 hover:bg-muted/40"
-                }`}
-              >
-                <span className="flex size-14 items-center justify-center border border-border bg-background">
-                  <Upload className="size-5" />
-                </span>
-                <p className="mt-5 font-heading text-lg font-medium">Clique ou arraste o PDF</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">Formato aceito: PDF</p>
-              </div>
-            </>
+            <ToolUploadArea accept="application/pdf,.pdf" formats="PDF" label="Selecionar PDF" processingMode="local" onFilesSelected={(files) => files[0] && void processFile(files[0])} />
           )}
 
           <ToolProcessingStatus status={status} message={stage} />
@@ -204,6 +156,7 @@ export default function GirarPdfClient() {
                   <input
                     ref={replaceRef}
                     type="file"
+                    disabled={status === "processing"}
                     accept="application/pdf,.pdf"
                     className="sr-only"
                     onChange={(event) => {
@@ -239,7 +192,7 @@ export default function GirarPdfClient() {
                         type="radio"
                         name="angle"
                         checked={angle === value}
-                        onChange={() => setAngle(value)}
+                        onChange={() => { setAngle(value); setResult(null); setStatus("ready"); }}
                       />
                       <div>
                         <p className="font-medium">{value}°</p>
@@ -267,6 +220,7 @@ export default function GirarPdfClient() {
               </ToolActionBar>
             </>
           )}
+          {result && <ToolDownloadResult result={result} onReset={reset} />}
         </CardContent>
       </Card>
     </ToolPageShell>

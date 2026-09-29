@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { Crop, Download, RefreshCw, Upload } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { Crop, Download, RotateCcw } from "lucide-react";
 
+import { ToolUploadArea } from "@/components/tools/tool-upload-area";
+import { ToolErrorMessage } from "@/components/tools/tool-error-message";
+import { ToolProcessingStatus } from "@/components/tools/tool-processing-status";
+import { ToolResultCard } from "@/components/tools/tool-result-card";
 import { ImageToolPageShell } from "@/components/tools/image-tool-page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +35,6 @@ function clamp(value: number, min: number, max: number) {
 }
 
 export function CropImageClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
   const imageUrlRef = useRef<string | null>(null);
@@ -41,6 +44,7 @@ export function CropImageClient() {
   const [cropBox, setCropBox] = useState<CropBox>({ x: 0, y: 0, width: 1, height: 1 });
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [result, setResult] = useState<CropResult | null>(null);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => { imageUrlRef.current = image?.src ?? null; }, [image]);
@@ -55,15 +59,14 @@ export function CropImageClient() {
     setResult(null);
   }
 
-  async function select(event: ChangeEvent<HTMLInputElement>) {
-    const input = event.currentTarget;
-    const file = event.target.files?.[0];
-    if (!file) return;
+  async function select(file: File) {
+    if (busy) return;
     if (!IMAGE_TYPES.includes(file.type)) {
       setError("Use PNG, JPG ou WebP.");
       return;
     }
 
+    setBusy(true);
     try {
       const loaded = await loadImage(file);
       if (image?.src.startsWith("blob:")) URL.revokeObjectURL(image.src);
@@ -76,7 +79,7 @@ export function CropImageClient() {
     } catch {
       setError("Não foi possível abrir esta imagem.");
     } finally {
-      input.value = "";
+      setBusy(false);
     }
   }
 
@@ -111,6 +114,7 @@ export function CropImageClient() {
   }
 
   function beginDrag(event: ReactPointerEvent<HTMLElement>, mode: DragState["mode"], handle?: DragState["handle"]) {
+    if (busy) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -157,16 +161,32 @@ export function CropImageClient() {
   }
 
   async function crop() {
-    if (!image) return;
-    const canvas = document.createElement("canvas");
-    canvas.width = cropBox.width;
-    canvas.height = cropBox.height;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    context.drawImage(image, cropBox.x, cropBox.y, cropBox.width, cropBox.height, 0, 0, cropBox.width, cropBox.height);
-    const blob = await canvasBlob(canvas);
+    if (!image || busy) return;
+    setBusy(true);
+    setError("");
     clearResult();
-    setResult({ blob, url: URL.createObjectURL(blob) });
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = cropBox.width;
+      canvas.height = cropBox.height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Não foi possível preparar o recorte. Tente novamente.");
+      context.drawImage(image, cropBox.x, cropBox.y, cropBox.width, cropBox.height, 0, 0, cropBox.width, cropBox.height);
+      const blob = await canvasBlob(canvas);
+      setResult({ blob, url: URL.createObjectURL(blob) });
+    } catch {
+      setError("Não foi possível gerar o recorte. Tente uma imagem menor ou selecione outro arquivo.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function reset() {
+    if (busy) return;
+    if (image?.src.startsWith("blob:")) URL.revokeObjectURL(image.src);
+    clearResult();
+    setImage(null);
+    setError("");
   }
 
   const imageWidth = image?.naturalWidth ?? 1;
@@ -180,15 +200,9 @@ export function CropImageClient() {
           <CardDescription>Arraste a moldura, use as alças nos cantos ou escolha uma proporção pronta.</CardDescription>
         </CardHeader>
         <CardContent>
-          <input id="crop-image-file" ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={select} />
-          {!image ? (
-            <div className="flex min-h-80 flex-col items-center justify-center border border-dashed border-border bg-muted/20 p-6 text-center">
-              <Upload className="size-7 text-primary" />
-              <h2 className="mt-5 text-lg font-semibold">Selecione uma imagem</h2>
-              <p className="mt-2 max-w-md text-sm text-muted-foreground">PNG, JPG ou WebP. O arquivo é processado no seu dispositivo.</p>
-              <Button asChild size="lg" className="mt-6 min-h-11"><label htmlFor="crop-image-file">Selecionar imagem</label></Button>
-            </div>
-          ) : (
+          <ToolUploadArea accept="image/png,image/jpeg,image/webp" formats="PNG, JPG e WebP" processingMode="local" compact={Boolean(image)} label={image ? "Trocar imagem" : "Selecionar imagem"} disabled={busy} onFilesSelected={(files) => files[0] && void select(files[0])} className="mb-5" />
+          <ToolProcessingStatus status={busy ? "processing" : "idle"} message="Preparando imagem..." className="mb-4" />
+          {image && (
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
               <section className="min-w-0 rounded-lg border border-border bg-black/90 p-3 sm:p-5" aria-label="Editor visual de recorte">
                 <div ref={stageRef} className="relative mx-auto w-fit max-w-full overflow-hidden">
@@ -222,7 +236,7 @@ export function CropImageClient() {
                 <p className="mt-4 text-center text-xs text-white/70">Arraste para posicionar · use os cantos para redimensionar</p>
               </section>
 
-              <aside className="rounded-lg border border-border bg-muted/20 p-4">
+              <fieldset disabled={busy} className="min-w-0 rounded-lg border border-border bg-muted/20 p-4">
                 <h2 className="font-semibold">Opções de recorte</h2>
                 <p className="mt-1 text-xs text-muted-foreground">Proporção</p>
                 <div className="mt-3 grid grid-cols-3 gap-2">
@@ -239,21 +253,12 @@ export function CropImageClient() {
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">Original: {imageWidth} × {imageHeight}px</p>
                 <Button size="lg" className="mt-5 min-h-11 w-full" onClick={() => void crop()}><Crop />Aplicar recorte</Button>
-                <Button asChild variant="outline" className="mt-3 min-h-11 w-full"><label htmlFor="crop-image-file"><RefreshCw />Trocar imagem</label></Button>
-              </aside>
+              </fieldset>
             </div>
           )}
 
-          {result && (
-            <section className="mt-6 rounded-lg border border-border bg-background p-4" aria-label="Resultado do recorte">
-              <img src={result.url} alt="Imagem recortada" className="mx-auto max-h-96 max-w-full object-contain" />
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">Resultado: {cropBox.width} × {cropBox.height}px</p>
-                <Button onClick={() => downloadBlob(result.blob, `${name}-recortada.png`)}><Download />Baixar PNG</Button>
-              </div>
-            </section>
-          )}
-          {error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}
+          {result && <ToolResultCard title="Imagem recortada pronta" className="mt-6" description={`Resultado: ${cropBox.width} × ${cropBox.height}px`} preview={<img src={result.url} alt="Imagem recortada" className="mx-auto max-h-96 max-w-full object-contain" />} actions={<><Button onClick={() => downloadBlob(result.blob, `${name}-recortada.png`)}><Download />Baixar PNG</Button><Button variant="outline" onClick={reset}><RotateCcw />Começar novamente</Button></>} />}
+          <ToolErrorMessage message={error} className="mt-4" />
         </CardContent>
       </Card>
     </ImageToolPageShell>

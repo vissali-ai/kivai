@@ -2,13 +2,17 @@
 
 import JSZip from "jszip";
 import Link from "next/link";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Download, ImageIcon, LoaderCircle, Plus, Trash2, Upload } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Download, ImageIcon, LoaderCircle, Trash2 } from "lucide-react";
 
 import { AdSlot } from "@/components/ads/AdSlot";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { ToolResultCard } from "@/components/tools/tool-result-card";
+import { ToolUploadArea } from "@/components/tools/tool-upload-area";
+import { ToolErrorMessage } from "@/components/tools/tool-error-message";
+import { ToolProcessingStatus } from "@/components/tools/tool-processing-status";
+import { downloadBlob } from "@/lib/image-tools/canvas";
 
 import { calcularDimensoes, type DimensoesImagem, type FormatoSaida, obterDimensoesImagem, redimensionarImagem } from "./resize-utils";
 
@@ -42,8 +46,6 @@ function nomeSemExtensao(nome: string) {
 }
 
 export default function RedimensionarImagemClient() {
-  const inputId = useId();
-  const addInputId = useId();
   const [itens, setItens] = useState<ItemImagem[]>([]);
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [modo, setModo] = useState<"pixels" | "porcentagem">("pixels");
@@ -55,7 +57,7 @@ export default function RedimensionarImagemClient() {
   const [naoAmpliar, setNaoAmpliar] = useState(false);
   const [formato, setFormato] = useState<FormatoSaida>("jpeg");
   const [qualidade, setQualidade] = useState(90);
-  const [arrastando, setArrastando] = useState(false);
+  const [etapa, setEtapa] = useState("Preparando imagens...");
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
   const itensRef = useRef<ItemImagem[]>([]);
@@ -88,6 +90,9 @@ export default function RedimensionarImagemClient() {
   }
 
   async function adicionarArquivos(arquivos: File[]) {
+    if (processando || !arquivos.length) return;
+    setProcessando(true);
+    setEtapa("Lendo imagens selecionadas...");
     setErro("");
     limparResultados();
     const novos: ItemImagem[] = [];
@@ -103,11 +108,12 @@ export default function RedimensionarImagemClient() {
         continue;
       }
       try {
+        const original = await obterDimensoesImagem(arquivo);
         novos.push({
           id: `${arquivo.name}-${arquivo.size}-${arquivo.lastModified}-${crypto.randomUUID()}`,
           arquivo,
           previewUrl: URL.createObjectURL(arquivo),
-          original: await obterDimensoesImagem(arquivo),
+          original,
         });
       } catch {
         setErro(`Não foi possível abrir “${arquivo.name}”.`);
@@ -121,6 +127,7 @@ export default function RedimensionarImagemClient() {
     }
 
     setItens((atuais) => [...atuais, ...novos]);
+    setProcessando(false);
   }
 
   function alterarLargura(novaLargura: number) {
@@ -176,7 +183,8 @@ export default function RedimensionarImagemClient() {
   }
 
   async function processar() {
-    if (!itens.length) return;
+    if (!itens.length || processando) return;
+    setEtapa("Redimensionando imagens...");
     setProcessando(true);
     setErro("");
     limparResultados();
@@ -207,23 +215,25 @@ export default function RedimensionarImagemClient() {
   }
 
   function baixar(resultado: Resultado) {
-    const link = document.createElement("a");
-    link.href = resultado.url;
-    link.download = resultado.nome;
-    link.click();
+    downloadBlob(resultado.blob, resultado.nome);
   }
 
   async function baixarTudo() {
+    if (processando || !resultados.length) return;
     if (resultados.length === 1) return baixar(resultados[0]);
-    const zip = new JSZip();
-    resultados.forEach((resultado) => zip.file(resultado.nome, resultado.blob));
-    const blob = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "imagens-redimensionadas.zip";
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setProcessando(true);
+    setEtapa("Preparando arquivo ZIP...");
+    setErro("");
+    try {
+      const zip = new JSZip();
+      resultados.forEach((resultado, index) => zip.file(String(index + 1) + "-" + resultado.nome, resultado.blob));
+      const blob = await zip.generateAsync({ type: "blob" });
+      downloadBlob(blob, "imagens-redimensionadas.zip");
+    } catch {
+      setErro("Não foi possível preparar o ZIP. Tente novamente ou baixe as imagens individualmente.");
+    } finally {
+      setProcessando(false);
+    }
   }
 
   return (
@@ -237,30 +247,14 @@ export default function RedimensionarImagemClient() {
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Redimensione JPG, PNG, WebP, GIF ou SVG por pixels ou porcentagem. Processe várias imagens de uma vez no seu dispositivo.</p>
         </header>
 
-        {!itens.length ? (
-          <div
-            onDragEnter={(event) => { event.preventDefault(); setArrastando(true); }}
-            onDragOver={(event) => event.preventDefault()}
-            onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setArrastando(false); }}
-            onDrop={(event) => { event.preventDefault(); setArrastando(false); void adicionarArquivos(Array.from(event.dataTransfer.files)); }}
-            className={cn("mx-auto flex min-h-80 max-w-4xl flex-col items-center justify-center border border-dashed px-5 py-12 text-center transition-colors", arrastando ? "border-primary bg-primary/10" : "border-border bg-card")}
-          >
-            <span className="flex size-16 items-center justify-center rounded-full bg-primary/15 text-primary"><Upload className="size-7" /></span>
-            <h2 className="mt-5 font-heading text-xl font-semibold">Selecione suas imagens</h2>
-            <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Escolha uma ou várias imagens da galeria, do app Arquivos ou do computador.</p>
-            <input id={inputId} type="file" accept={ACCEPT} multiple className="sr-only" onChange={(event) => { void adicionarArquivos(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
-            <label htmlFor={inputId} className={cn(buttonVariants({ size: "lg" }), "mt-6 min-h-12 cursor-pointer px-6 text-sm")}>Selecionar imagens</label>
-            <p className="mt-4 hidden text-xs text-muted-foreground sm:block">ou arraste e solte as imagens aqui</p>
-            <p className="mt-2 text-xs text-muted-foreground">Até 20 MB por arquivo</p>
-          </div>
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <ToolUploadArea accept={ACCEPT} formats="JPG, PNG, WebP, GIF e SVG" maxSizeLabel="20 MB por arquivo" multiple processingMode="local" compact={Boolean(itens.length)} label={itens.length ? "Adicionar imagens" : "Selecionar imagens"} disabled={processando} onFilesSelected={(files) => void adicionarArquivos(files)} className="mx-auto mb-5 max-w-5xl" />
+        <ToolProcessingStatus status={processando ? "processing" : "idle"} message={etapa} className="mb-4" />
+        {!!itens.length && (
+          <fieldset disabled={processando} className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <Card>
               <CardHeader className="flex-row items-center justify-between gap-3">
                 <div><CardTitle>{itens.length} {itens.length === 1 ? "imagem selecionada" : "imagens selecionadas"}</CardTitle><CardDescription>Confira as dimensões previstas antes de processar.</CardDescription></div>
                 <div className="flex gap-2">
-                  <input id={addInputId} type="file" accept={ACCEPT} multiple className="sr-only" onChange={(event) => { void adicionarArquivos(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
-                  <label htmlFor={addInputId} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "min-h-11 cursor-pointer sm:min-h-7")}><Plus />Adicionar</label>
                   <Button type="button" variant="outline" size="sm" className="min-h-11 sm:min-h-7" onClick={limparTudo}><Trash2 />Limpar</Button>
                 </div>
               </CardHeader>
@@ -297,15 +291,20 @@ export default function RedimensionarImagemClient() {
                 <Button type="button" size="lg" className="mt-6 min-h-12 w-full text-sm" disabled={processando} onClick={processar}>{processando ? <><LoaderCircle className="animate-spin" />Redimensionando...</> : <><ImageIcon />Redimensionar imagens</>}</Button>
               </CardContent>
             </Card>
-          </div>
+          </fieldset>
         )}
 
-        {erro && <p role="alert" className="mx-auto mt-4 max-w-4xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{erro}</p>}
+        <ToolErrorMessage message={erro} className="mx-auto mt-4 max-w-4xl" />
 
-        {!!resultados.length && <section aria-labelledby="resultados-titulo" className="mt-8 border border-border bg-card p-4 sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-medium uppercase tracking-wider text-primary">Concluído</p><h2 id="resultados-titulo" className="mt-1 font-heading text-xl font-semibold">{resultados.length} {resultados.length === 1 ? "imagem pronta" : "imagens prontas"}</h2></div><Button type="button" size="lg" className="min-h-12" onClick={() => void baixarTudo()}><Download />{resultados.length === 1 ? "Baixar imagem" : "Baixar tudo em ZIP"}</Button></div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{resultados.map((resultado) => <article key={resultado.id} className="border border-border bg-background p-3"><img src={resultado.url} alt={`Resultado de ${resultado.arquivo.name}`} className="aspect-video w-full bg-muted/20 object-contain" /><p className="mt-3 truncate text-sm font-medium">{resultado.nome}</p><p className="mt-1 text-xs text-muted-foreground">{resultado.largura} × {resultado.altura}px · {formatarTamanho(resultado.blob.size)}</p><Button type="button" variant="outline" className="mt-3 min-h-11 w-full" onClick={() => baixar(resultado)}><Download />Baixar</Button></article>)}</div>
-        </section>}
+        {!!resultados.length && <ToolResultCard
+          title={resultados.length + (resultados.length === 1 ? " imagem pronta" : " imagens prontas")}
+          className="mt-8"
+          preview={<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{resultados.map((resultado) => <article key={resultado.id} className="border border-border bg-background p-3"><img src={resultado.url} alt={"Resultado de " + resultado.arquivo.name} className="aspect-video w-full bg-muted/20 object-contain" /><p className="mt-3 truncate text-sm font-medium">{resultado.nome}</p><p className="mt-1 text-xs text-muted-foreground">{resultado.largura} × {resultado.altura}px · {formatarTamanho(resultado.blob.size)}</p><Button type="button" variant="outline" className="mt-3 min-h-11 w-full" disabled={processando} onClick={() => baixar(resultado)}><Download />Baixar</Button></article>)}</div>}
+          actions={<>
+            <Button size="lg" disabled={processando} onClick={() => void baixarTudo()}><Download />{resultados.length === 1 ? "Baixar imagem" : "Baixar tudo em ZIP"}</Button>
+            <Button size="lg" variant="outline" disabled={processando} onClick={limparTudo}>Começar novamente</Button>
+          </>}
+        />}
 
         <div className="mx-auto mt-8 max-w-5xl"><AdSlot variant="banner" /></div>
       </div>

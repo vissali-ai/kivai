@@ -5,9 +5,7 @@ import Link from "next/link";
 import { FileText, LayoutGrid, Loader2, Search, Wrench, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { archiveSearchItems } from "@/lib/archive-search-items";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
-import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import { toolCategories, tools } from "@/lib/tools";
 
 type SearchItemType = "tool" | "hub" | "article";
@@ -51,33 +49,6 @@ const toolItems: SearchItem[] = tools
     ].filter(Boolean),
   }));
 
-const archiveToolItems: SearchItem[] = archiveSearchItems.map((tool) => ({
-  id: `tool:${tool.slug}`,
-  type: "tool",
-  title: tool.name,
-  description: tool.description,
-  href: `/ferramentas/${tool.slug}`,
-  category: "Arquivos",
-  keywords: [tool.name, tool.description, "arquivos", ...tool.keywords],
-}));
-
-const metadataToolItem: SearchItem = {
-  id: `tool:${removedorMetadadosTool.slug}`,
-  type: "tool",
-  title: removedorMetadadosTool.name,
-  description: removedorMetadadosTool.description,
-  href: removedorMetadadosTool.href,
-  category: "Imagens",
-  keywords: [
-    removedorMetadadosTool.name,
-    removedorMetadadosTool.description,
-    removedorMetadadosTool.seoTitle,
-    removedorMetadadosTool.seoDescription,
-    removedorMetadadosTool.badge,
-    ...removedorMetadadosTool.keywords,
-  ],
-};
-
 const hubItems: SearchItem[] = searchableCategories.map((category) => ({
   id: `hub:${category.slug}`,
   type: "hub",
@@ -88,7 +59,7 @@ const hubItems: SearchItem[] = searchableCategories.map((category) => ({
   keywords: [category.name, category.description, category.slug],
 }));
 
-const staticItems = [...toolItems, ...archiveToolItems, metadataToolItem, ...hubItems];
+const staticItems = [...toolItems, ...hubItems];
 
 const typeLabels: Record<SearchItemType, string> = {
   tool: "Ferramenta",

@@ -26,7 +26,7 @@ input[type="file"][hidden] {
  * O seletor usa a borda tracejada que identifica os dropzones existentes,
  * mantendo estados vazios comuns (min-h-48) fora desta regra.
  */
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) {
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) {
   min-height: 22.5rem !important;
   width: 100%;
   border-width: 2px !important;
@@ -38,13 +38,13 @@ input[type="file"][hidden] {
   transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease !important;
 }
 
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):hover,
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):focus-within {
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]):hover,
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]):focus-within {
   border-color: var(--primary) !important;
   background: color-mix(in oklab, var(--primary) 8%, transparent) !important;
 }
 
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48)::before {
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload])::before {
   content: "";
   display: block;
   flex: 0 0 auto;
@@ -59,17 +59,17 @@ input[type="file"][hidden] {
 }
 
 /* Evita dois ícones quando a ferramenta antiga já possuía um. */
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) > svg:first-child,
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) > :is(div, span):first-child:has(> svg:only-child),
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) > div:first-child > :is(div, span):first-child:has(> svg:only-child) {
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) > svg:first-child,
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) > :is(div, span):first-child:has(> svg:only-child),
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) > div:first-child > :is(div, span):first-child:has(> svg:only-child) {
   display: none !important;
 }
 
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) > h2:first-of-type,
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not(:has(> h2)) > p:first-of-type,
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) > div:first-child > h2:first-of-type,
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) > div:first-child:not(:has(> h2)) > p:first-of-type,
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) > span:nth-of-type(2) {
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) > h2:first-of-type,
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]):not(:has(> h2)) > p:first-of-type,
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) > div:first-child > h2:first-of-type,
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) > div:first-child:not(:has(> h2)) > p:first-of-type,
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) > span:nth-of-type(2) {
   margin-top: 0 !important;
   font-family: var(--font-heading), sans-serif;
   font-size: clamp(1.125rem, 2vw, 1.375rem) !important;
@@ -78,7 +78,7 @@ input[type="file"][hidden] {
   color: var(--foreground) !important;
 }
 
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) [data-slot="button"] {
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) [data-slot="button"] {
   min-height: 3.25rem;
   margin-top: 1.75rem !important;
   border-radius: 0.75rem !important;
@@ -88,7 +88,7 @@ input[type="file"][hidden] {
 }
 
 /* Dropzones cujo contêiner inteiro era clicável recebem o mesmo botão visual. */
-:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not(:has([data-slot="button"])):not(:has(> span.bg-primary))::after {
+:where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]):not(:has([data-slot="button"])):not(:has(> span.bg-primary))::after {
   content: "Escolher arquivos";
   display: inline-flex;
   min-height: 3.25rem;
@@ -133,12 +133,12 @@ input[type="file"][hidden] {
 }
 
 @media (max-width: 640px) {
-  :where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48) {
+  :where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload]) {
     min-height: 19rem !important;
     padding: 1.5rem !important;
   }
 
-  :where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48)::before {
+  :where(main) :is(div, button, label)[class*="border-dashed"]:not(.min-h-48):not([data-tool-upload])::before {
     width: 3.75rem;
     height: 3.75rem;
     margin-bottom: 1.25rem;

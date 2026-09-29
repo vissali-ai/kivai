@@ -3,7 +3,6 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 import { getPageMetadata, SITE_URL } from "@/lib/seo";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
-import { removedorMetadadosTool } from "@/lib/removedor-metadados-tool";
 import {
   getToolHref,
   getToolsByCategory,
@@ -19,56 +18,14 @@ export const metadata = getPageMetadata({
   pathname: "/ferramentas",
 });
 
-const arquivosReviewedTools = [
-  {
-    slug: "descompactar-zip",
-    name: "Descompactar ZIP",
-    description: "Abra um arquivo ZIP, visualize seu conteúdo e baixe os arquivos diretamente no navegador.",
-  },
-  {
-    slug: "descompactar-rar",
-    name: "Descompactar RAR",
-    description: "Abra um arquivo RAR, visualize o conteúdo e extraia os arquivos diretamente no navegador.",
-  },
-  {
-    slug: "compactar-arquivos-zip",
-    name: "Compactar Arquivos em ZIP",
-    description: "Reúna vários arquivos em um único ZIP e faça o download diretamente no navegador.",
-  },
-  {
-    slug: "renomear-arquivos-em-lote",
-    name: "Renomear Arquivos em Lote",
-    description: "Padronize vários nomes com numeração automática, preserve as extensões e baixe as cópias em ZIP.",
-  },
-  {
-    slug: "adicionar-prefixo-sufixo-arquivos",
-    name: "Adicionar Prefixo ou Sufixo em Lote",
-    description: "Acrescente texto antes ou depois do nome de vários arquivos e baixe as cópias modificadas em ZIP.",
-  },
-];
-
-const standaloneReviewedTools = [
-  {
-    slug: removedorMetadadosTool.slug,
-    name: removedorMetadadosTool.name,
-    description: removedorMetadadosTool.description,
-  },
-];
-
 const reviewedTools = [
   ...tools.filter((tool) => isToolIndexable(tool.slug)).map((tool) => ({
     slug: tool.slug,
     name: tool.name,
     description: tool.description,
   })),
-  ...standaloneReviewedTools,
-  ...arquivosReviewedTools,
 ];
 const categories = [...toolCategories, ...plannedToolCategories];
-const standaloneSlugs = new Set([
-  ...arquivosReviewedTools.map((item) => item.slug),
-  ...standaloneReviewedTools.map((item) => item.slug),
-]);
 
 const schema = {
   "@context": "https://schema.org",
@@ -110,12 +67,7 @@ export default function FerramentasPage() {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => {
             const Icon = category.icon;
-            const isArquivos = category.slug === "arquivos";
-            const isImagens = category.slug === "imagens";
-            const registeredCount = isArquivos
-              ? 0
-              : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
-            const availableCount = isArquivos ? 5 : isImagens ? registeredCount + 1 : registeredCount;
+            const availableCount = getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
               <Link
@@ -158,7 +110,7 @@ export default function FerramentasPage() {
             {reviewedTools.map((tool) => (
               <Link
                 key={tool.slug}
-                href={standaloneSlugs.has(tool.slug) ? `/ferramentas/${tool.slug}` : getToolHref(tool.slug)}
+                href={getToolHref(tool.slug)}
                 prefetch={false}
                 className="group rounded-xl border border-border bg-background p-5 transition hover:border-primary/40"
               >

@@ -1,9 +1,11 @@
 "use client";
 
 import JSZip from "jszip";
-import { Download, FileText, RefreshCw, Scissors, Trash2, Upload } from "lucide-react";
+import { Download, FileText, RefreshCw, Scissors, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { ToolUploadArea } from "@/components/tools/tool-upload-area";
+import { ToolDownloadResult, type ToolDownload } from "@/components/tools/tool-download-result";
 import { ToolActionBar } from "@/components/tools/tool-action-bar";
 import { ToolErrorMessage } from "@/components/tools/tool-error-message";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
@@ -26,17 +28,18 @@ function friendlyError(error: unknown) {
 }
 
 export default function DividirPdfClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
   const replaceRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState(0);
+  const [result, setResult] = useState<ToolDownload | null>(null);
   const [status, setStatus] = useState<ToolStatus>("idle");
   const [stage, setStage] = useState("Lendo o PDF");
   const [error, setError] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
 
   function reset() {
+    if (status === "processing") return;
+    setResult(null);
     setFile(null);
     setPages(0);
     setStatus("idle");
@@ -48,6 +51,7 @@ export default function DividirPdfClient() {
     if (status === "processing") return;
 
     setError(null);
+    setResult(null);
 
     if (selected.name.split(".").pop()?.toLowerCase() !== "pdf") {
       setError("Selecione um arquivo no formato PDF.");
@@ -75,6 +79,7 @@ export default function DividirPdfClient() {
     if (!file || status === "processing") return;
 
     setError(null);
+    setResult(null);
     setStatus("processing");
     setStage("Separando as páginas do PDF");
 
@@ -88,18 +93,10 @@ export default function DividirPdfClient() {
 
       setStage("Preparando o arquivo ZIP");
       const blob = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `${file.name.replace(/\.pdf$/i, "")}-dividido.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setResult({ blob, name: `${file.name.replace(/\.pdf$/i, "")}-dividido.zip` });
 
       setStatus("success");
-      setStage("PDF dividido e download do ZIP iniciado");
+      setStage("ZIP pronto para baixar");
     } catch (reason) {
       setError(friendlyError(reason));
       setStatus("error");
@@ -126,52 +123,7 @@ export default function DividirPdfClient() {
 
         <CardContent className="space-y-6">
           {!file && status !== "processing" && (
-            <>
-              <input
-                id="dividir-pdf-file"
-                ref={inputRef}
-                type="file"
-                accept="application/pdf,.pdf"
-                className="sr-only"
-                onChange={(event) => {
-                  const selected = event.target.files?.[0];
-                  if (selected) void processFile(selected);
-                  event.target.value = "";
-                }}
-              />
-
-              <div
-                onClick={() => openFilePicker(inputRef.current)}
-                onDragEnter={(event) => {
-                  event.preventDefault();
-                  setDragging(true);
-                }}
-                onDragOver={(event) => event.preventDefault()}
-                onDragLeave={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false);
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  setDragging(false);
-                  const selected = event.dataTransfer.files?.[0];
-                  if (selected) void processFile(selected);
-                }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") openFilePicker(inputRef.current);
-                }}
-                className={`flex min-h-64 cursor-pointer flex-col items-center justify-center border border-dashed p-6 text-center outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 sm:p-10 ${
-                  dragging ? "border-primary bg-primary/5" : "border-border bg-muted/20 hover:bg-muted/40"
-                }`}
-              >
-                <span className="flex size-14 items-center justify-center border border-border bg-background">
-                  <Upload className="size-5" />
-                </span>
-                <p className="mt-5 font-heading text-lg font-medium">Clique ou arraste o PDF</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">Formato aceito: PDF</p>
-              </div>
-            </>
+            <ToolUploadArea accept="application/pdf,.pdf" formats="PDF" label="Selecionar PDF" processingMode="local" onFilesSelected={(files) => files[0] && void processFile(files[0])} />
           )}
 
           <ToolProcessingStatus status={status} message={stage} />
@@ -203,6 +155,7 @@ export default function DividirPdfClient() {
                   <input
                     ref={replaceRef}
                     type="file"
+                    disabled={status === "processing"}
                     accept="application/pdf,.pdf"
                     className="sr-only"
                     onChange={(event) => {
@@ -243,6 +196,7 @@ export default function DividirPdfClient() {
               </ToolActionBar>
             </>
           )}
+          {result && <ToolDownloadResult result={result} onReset={reset} label="Baixar ZIP" title="Páginas prontas para baixar" />}
         </CardContent>
       </Card>
     </ToolPageShell>
