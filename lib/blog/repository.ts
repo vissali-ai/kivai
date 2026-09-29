@@ -85,6 +85,14 @@ export async function listCategories() {
   return rows.map(mapCategory);
 }
 
+export async function listPublicCategories() {
+  const rows = await supabaseRest<DbCategory[]>(
+    "blog_categories?select=*&order=name.asc",
+    { allowMissingConfig: true, next: { revalidate: 300 } },
+  );
+  return rows.map(mapCategory);
+}
+
 export async function createCategory(input: { name: string; slug?: string; description?: string }) {
   const name = input.name.trim();
   const slug = slugify(input.slug || name);
@@ -149,11 +157,11 @@ export async function publishDueScheduledPosts() {
 
 export async function listPublishedPosts() {
   await publishDueScheduledPosts();
-  const posts = await listAllPosts();
-  const now = Date.now();
-  return posts
-    .filter((post) => post.status === "published" || (post.status === "scheduled" && Boolean(post.scheduledAt) && new Date(post.scheduledAt!).getTime() <= now))
-    .sort((left, right) => new Date(right.publishedAt ?? right.scheduledAt ?? right.createdAt).getTime() - new Date(left.publishedAt ?? left.scheduledAt ?? left.createdAt).getTime());
+  if (!isBlogDatabaseConfigured()) return [];
+  const rows = await supabaseRest<DbPost[]>(
+    `blog_posts?select=${encode(postSelect)}&status=eq.published&order=published_at.desc.nullslast,created_at.desc`,
+  );
+  return rows.map(mapPost);
 }
 
 export async function listFeaturedPosts() {
@@ -171,8 +179,11 @@ export async function getPostById(id: string) {
 }
 
 export async function getPublishedPostBySlug(slug: string) {
-  const posts = await listPublishedPosts();
-  return posts.find((post) => post.slug === slug) ?? null;
+  if (!isBlogDatabaseConfigured()) return null;
+  const rows = await supabaseRest<DbPost[]>(
+    `blog_posts?select=${encode(postSelect)}&status=eq.published&slug=eq.${encode(slug)}&limit=1`,
+  );
+  return rows[0] ? mapPost(rows[0]) : null;
 }
 
 export async function isSlugAvailable(slug: string, excludedId?: string) {
