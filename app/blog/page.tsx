@@ -5,7 +5,7 @@ import { listPublishedPosts } from "@/lib/blog/repository";
 import { getPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = getPageMetadata({ title: "Blog", description: "Guias, análises e conteúdos originais sobre ferramentas digitais, tecnologia, inteligência artificial, marketing e negócios.", pathname: "/blog" });
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function BlogPage() {
   const posts = filterIndexablePosts(await listPublishedPosts());
