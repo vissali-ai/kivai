@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Calculator, Check, Copy, RotateCcw } from "lucide-react";
 
 import { AdSlot } from "@/components/ads/AdSlot";
@@ -36,6 +36,35 @@ export default function CalculadoraDePorcentagemClient() {
   const [copied, setCopied] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const config = modes[mode];
+
+  useEffect(() => {
+    if (!first.trim() || !second.trim()) {
+      setResult(null);
+      setError("");
+      return;
+    }
+
+    const next = calculate(mode, first, second);
+    if ("error" in next) {
+      setResult(null);
+      setError("");
+      return;
+    }
+
+    setResult(next);
+    setError("");
+  }, [mode, first, second]);
+
+  function exampleLabel(a: string, b: string) {
+    if (mode === "percentageOfValue") return `${a}% de ${b}`;
+    if (mode === "whatPercentage") return `${a} de ${b}`;
+    if (mode === "percentageIncrease") return `${a} → ${b}`;
+    if (mode === "percentageDecrease") return `${a} → ${b}`;
+    if (mode === "increaseValue") return `${a} + ${b}%`;
+    if (mode === "decreaseValue") return `${a} - ${b}%`;
+    if (mode === "originalBeforeIncrease") return `Final ${a}, aumento ${b}%`;
+    return `Final ${a}, desconto ${b}%`;
+  }
 
   function reset() {
     setFirst("");
@@ -114,7 +143,7 @@ export default function CalculadoraDePorcentagemClient() {
           </h1>
 
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Calcule porcentagens, aumentos, reduções, descontos e valores originais em oito tipos de cálculo.
+            Calcule porcentagens, aumentos, reduções, descontos e valores originais em oito tipos de cálculo. O resultado aparece automaticamente enquanto você digita.
           </p>
         </div>
 
@@ -235,7 +264,7 @@ export default function CalculadoraDePorcentagemClient() {
                     </div>
                   ) : (
                     <div className="flex min-h-52 items-center justify-center text-center text-sm leading-6 text-muted-foreground">
-                      Preencha os dois campos e clique em Calcular. Você pode usar ponto ou vírgula como separador decimal.
+                      Preencha os dois campos para ver o resultado automaticamente. Você pode usar ponto ou vírgula como separador decimal.
                     </div>
                   )}
                 </div>
@@ -260,7 +289,7 @@ export default function CalculadoraDePorcentagemClient() {
                 className="h-auto min-h-10 whitespace-normal py-2 text-left"
                 onClick={() => example(a, b)}
               >
-                {a} e {b}
+{exampleLabel(a, b)}
               </Button>
             ))}
           </div>
