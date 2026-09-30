@@ -226,7 +226,7 @@ export default function ConsultaDeCnpjClient() {
       categoryName="Empresas"
       categoryHref="/ferramentas/empresas"
       processingMode="server"
-      privacyMessage="O CNPJ informado é enviado à BrasilAPI para consulta. O Kivai não salva o resultado da consulta."
+      privacyMessage="O CNPJ informado é enviado a fontes públicas de consulta cadastral. O Kivai não salva o resultado da consulta."
     >
       <Card>
         <CardHeader>
