@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check, LockKeyhole, ShieldCheck, UsersRound, Zap } from "lucide-react";
+import { Check, LockKeyhole, ShieldCheck, UsersRound, Zap } from "lucide-react";
 import { InstagramFollowAnalyzer } from "@/components/tools/instagram-follow-analyzer";
 import { getStoredSession } from "@/lib/user-auth";
 import type { InstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
@@ -46,12 +46,8 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
   ];
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-24 sm:px-6 lg:px-8">
-      <Link href="/ferramentas/social-media" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground">
-        <ArrowLeft className="size-4" /> Voltar para Social Media
-      </Link>
-
-      {show("hero") ? <section className="mt-8 max-w-4xl">
+    <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-36 sm:px-6 lg:px-8">
+      {show("hero") ? <section className="max-w-4xl">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">{config.eyebrow}</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">{config.pageTitle}</h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{config.heroDescription}</p>
