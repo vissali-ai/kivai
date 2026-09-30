@@ -36,7 +36,7 @@ export default async function AdminSubscriptionsPage() {
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Assinaturas</p>
         <h1 className="mt-2 text-3xl font-semibold">Pagamentos e ativações</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Solicitações criadas antes do cliente abrir a SumUp. Confira o pagamento recebido e confirme a ativação do plano por aqui.</p>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Solicitações criadas antes do cliente abrir o serviço de pagamento. Confira o pagamento recebido e confirme a ativação do plano por aqui.</p>
       </header>
 
       <section className="grid gap-3 sm:grid-cols-3">
