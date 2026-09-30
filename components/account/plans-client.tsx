@@ -143,7 +143,7 @@ export function PlansClient() {
         {isCurrent ? <div className="flex min-h-10 w-full items-center justify-center border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Este é o seu plano atual</div> : null}
         <Button className="h-12 w-full" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "monthly")}>{starting === `${plan.code}-monthly` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar mensal" : "Contratar mensal"}</Button>
         <Button variant="outline" className="h-12 w-full border-primary/30 text-primary" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "annual")}>{starting === `${plan.code}-annual` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar anual" : "Contratar anual"}</Button>
-        <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">Antes de abrir a SumUp, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento pelo administrador.</p>
+        <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">Antes de abrir o serviço de pagamento, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento.</p>
       </div>
     );
   }
@@ -170,7 +170,7 @@ export function PlansClient() {
       <section className="mt-14 grid gap-4 md:grid-cols-3">
         <div className="border border-white/10 bg-card p-5"><Zap className="size-5 text-primary" /><h2 className="mt-3 font-semibold">1. Escolha o plano</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Use o Grátis para análises pontuais ou escolha Pro/Agency quando quiser salvar histórico, comparar períodos e acompanhar perfis continuamente.</p></div>
         <div className="border border-white/10 bg-card p-5"><UsersRound className="size-5 text-primary" /><h2 className="mt-3 font-semibold">2. Solicitação registrada</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Antes do pagamento, o Kivai registra plano, valor e periodicidade vinculados à sua conta.</p></div>
-        <div className="border border-white/10 bg-card p-5"><ShieldCheck className="size-5 text-primary" /><h2 className="mt-3 font-semibold">3. Finalize pela SumUp</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">O pagamento abre na SumUp. Depois, informe no painel que pagou e aguarde a confirmação para ativação.</p></div>
+        <div className="border border-white/10 bg-card p-5"><ShieldCheck className="size-5 text-primary" /><h2 className="mt-3 font-semibold">3. Finalize o pagamento</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">O pagamento é concluído no serviço financeiro. Depois da confirmação, o plano é ativado conforme o fluxo da assinatura.</p></div>
       </section>
     </>
   );
