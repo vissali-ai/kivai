@@ -20,7 +20,7 @@ const paymentLinks: Record<PaidPlanCode, Record<BillingCycle, string>> = {
     annual: "https://invoice.infinitepay.io/plans/marcus-vinicius-ur8/VT0B8pt6kJ",
   },
   agency: {
-    monthly: "https://pay.sumup.com/b2c/QYY1WQHF",
+    monthly: "https://invoice.infinitepay.io/plans/marcus-vinicius-ur8/dAnbfNJKwq",
     annual: "https://invoice.infinitepay.io/plans/marcus-vinicius-ur8/fhAEKyUvaw",
   },
 };
