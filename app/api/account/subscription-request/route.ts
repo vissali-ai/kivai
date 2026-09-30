@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         plan_code: plan,
         billing_cycle: billing,
         amount_brl: prices[plan][billing],
-        payment_provider: "sumup",
+        payment_provider: "recurring_billing",
         payment_link: paymentLinks[plan][billing],
         status: "awaiting_payment",
       }),
