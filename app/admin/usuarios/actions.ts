@@ -8,6 +8,7 @@ import { deleteAuthCustomer } from "@/lib/admin/customer-users";
 import { isCustomerMarketingFlowKey } from "@/lib/marketing/customer-flows";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
 import { getOnboardingTemplate } from "@/lib/marketing/onboarding-templates";
+import { activateSubscriptionRequest } from "@/lib/billing/activate-subscription";
 
 function addDays(date: Date, days: number) { const copy = new Date(date); copy.setUTCDate(copy.getUTCDate() + days); return copy; }
 
@@ -74,9 +75,24 @@ export async function updateCustomerAccount(formData: FormData) {
   const profiles = await supabaseRest<Array<{ plan_code: "free" | "pro" | "agency"; full_name: string | null }>>(`user_profiles?select=plan_code,full_name&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
   const previousPlan = profiles[0]?.plan_code ?? "free";
   const firstName = profiles[0]?.full_name?.trim().split(/\s+/)[0] || "Olá";
-  const lifecycleStage = planCode === "free" ? "free" : "active";
   const now = new Date();
 
+  if (planCode === "pro" || planCode === "agency") {
+    const activeSubscriptions = await supabaseRest<Array<{ id: string; plan_code: "pro" | "agency"; status: string }>>(
+      `user_subscriptions?select=id,plan_code,status&user_id=eq.${encodeURIComponent(userId)}&status=eq.active&plan_code=eq.${encodeURIComponent(planCode)}&order=created_at.desc&limit=1`
+    );
+    if (!activeSubscriptions[0]) {
+      const pendingRequests = await supabaseRest<Array<{ id: string }>>(
+        `subscription_requests?select=id&user_id=eq.${encodeURIComponent(userId)}&plan_code=eq.${encodeURIComponent(planCode)}&status=in.(awaiting_payment,payment_reported)&order=created_at.desc&limit=1`
+      );
+      if (!pendingRequests[0]) {
+        throw new Error("Não é possível marcar a conta como paga sem uma assinatura ativa ou uma solicitação de pagamento pendente.");
+      }
+      await activateSubscriptionRequest(pendingRequests[0].id);
+    }
+  }
+
+  const lifecycleStage = planCode === "free" ? "free" : "active";
   await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: planCode, lifecycle_stage: lifecycleStage, contracted_services: services, admin_notes: notes || null, updated_at: now.toISOString() }) });
 
   if (planCode === "free" && previousPlan !== "free") {
