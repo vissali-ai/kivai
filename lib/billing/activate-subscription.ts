@@ -70,7 +70,7 @@ export async function activateSubscriptionRequest(requestId: string) {
     user_id: request.user_id,
     plan_code: request.plan_code,
     status: "active",
-    provider: "sumup_external",
+    provider: "external_recurring",
     billing_cycle: request.billing_cycle,
     provider_checkout_reference: request.id,
     current_period_start: periodStart.toISOString(),
