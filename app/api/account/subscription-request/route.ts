@@ -16,7 +16,7 @@ type RequestRow = {
 
 const paymentLinks: Record<PaidPlanCode, Record<BillingCycle, string>> = {
   pro: {
-    monthly: "https://pay.sumup.com/b2c/QCQIWOP0",
+    monthly: "https://invoice.infinitepay.io/plans/marcus-vinicius-ur8/0jWNqyIsSV",
     annual: "https://invoice.infinitepay.io/plans/marcus-vinicius-ur8/VT0B8pt6kJ",
   },
   agency: {
