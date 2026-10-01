@@ -18,8 +18,8 @@ const navigation = [
   { label: "Site", links: [{ href: "/admin/site", label: "Conteúdo do site", icon: PanelsTopLeft }] },
   { label: "Comercial", links: [
     { href: "/admin/usuarios", label: "Usuários e assinaturas", icon: UsersRound },
-    { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
-    { href: "/admin/marketing/email-marketing", label: "E-mail marketing", icon: MailPlus },
+    { href: "/admin/marketing", label: "Disparos", icon: Megaphone },
+    { href: "/admin/marketing/email-marketing", label: "Envio manual", icon: MailPlus },
     { href: "/admin/marketing/fila", label: "Fila de comunicações", icon: Repeat2 },
     { href: "https://trafego.kivai.com.br", label: "LP Tráfego Pago", icon: Megaphone, external: true },
   ]},
