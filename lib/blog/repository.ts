@@ -5,7 +5,6 @@ import { isBlogDatabaseConfigured } from "@/lib/blog/config";
 import { sanitizePostHtml, plainText } from "@/lib/blog/sanitize";
 import { slugify } from "@/lib/blog/slug";
 import { supabaseRest } from "@/lib/blog/supabase";
-import { queueNewPostCampaign } from "@/lib/marketing/blog-post-campaign";
 
 type DbCategory = { id: string; name: string; slug: string; description: string | null; created_at: string };
 type DbTag = { id: string; name: string; slug: string };
@@ -149,8 +148,6 @@ export async function publishDueScheduledPosts() {
       method: "PATCH",
       body: JSON.stringify({ status: "published", published_at: publishedAt, scheduled_at: null }),
     });
-    await queueNewPostCampaign({ id: post.id, title: post.title, slug: post.slug, excerpt: post.excerpt, publishedAt })
-      .catch((error) => console.error("scheduled_post_campaign_failed", post.id, error instanceof Error ? error.message : error));
   }));
   return eligible.length;
 }
@@ -277,10 +274,6 @@ export async function savePost(input: PostInput) {
   if (!rows[0]) throw new Error("Não foi possível salvar a matéria.");
   await syncPostTags(rows[0].id, input.tagNames);
   const saved = await getPostById(rows[0].id);
-  if (saved?.status === "published" && previous?.status !== "published") {
-    await queueNewPostCampaign({ id: saved.id, title: saved.title, slug: saved.slug, excerpt: saved.excerpt, publishedAt: saved.publishedAt })
-      .catch((error) => console.error("new_post_campaign_failed", saved.id, error instanceof Error ? error.message : error));
-  }
   return saved;
 }
 
