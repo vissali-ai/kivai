@@ -53,4 +53,21 @@ export async function listRegisteredEmailUsers() {
     .map((user) => ({ id: user.id, email: user.email!.trim().toLowerCase() }));
 }
 
+export async function listNewsletterRecipients() {
+  const [users, profiles, preferences] = await Promise.all([
+    listRegisteredEmailUsers(),
+    supabaseRest<Array<{ user_id: string; full_name: string | null }>>("user_profiles?select=user_id,full_name"),
+    supabaseRest<Array<{ user_id: string; marketing_opt_out: boolean }>>("customer_email_preferences?select=user_id,marketing_opt_out"),
+  ]);
+  const profileMap = new Map(profiles.map((row) => [row.user_id, row]));
+  const preferenceMap = new Map(preferences.map((row) => [row.user_id, row.marketing_opt_out]));
+  return users
+    .map((user) => ({
+      ...user,
+      name: profileMap.get(user.id)?.full_name ?? null,
+      marketingOptOut: preferenceMap.get(user.id) ?? false,
+    }))
+    .filter((user) => !user.marketingOptOut);
+}
+
 export async function deleteAuthCustomer(userId: string) { await authAdminFetch(`users/${encodeURIComponent(userId)}`, { method: "DELETE" }); }
