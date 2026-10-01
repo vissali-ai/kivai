@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BellRing, Mail, Pencil, Target } from "lucide-react";
-import { listAdminCustomers } from "@/lib/admin/customer-users";
+import { BellRing, Mail, Pencil, Plus, Send, Target, UsersRound } from "lucide-react";
+import { listAdminCustomers, listNewsletterRecipients } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { saveMarketingReminder } from "@/app/admin/marketing/actions";
 import { isAutomaticMarketingFlowKey } from "@/lib/marketing/customer-flows";
@@ -11,8 +11,8 @@ import { listOnboardingTemplates } from "@/lib/marketing/onboarding-templates";
 export const dynamic = "force-dynamic";
 
 export default async function MarketingPage() {
-  const [users, templates, onboardingTemplates, reminders] = await Promise.all([
-    listAdminCustomers(), listCustomerMarketingTemplates(), listOnboardingTemplates(), supabaseRest<Array<{ note: string }>>("admin_marketing_reminders?select=note&id=eq.1&limit=1"),
+  const [users, newsletterRecipients, templates, onboardingTemplates, reminders] = await Promise.all([
+    listAdminCustomers(), listNewsletterRecipients(), listCustomerMarketingTemplates(), listOnboardingTemplates(), supabaseRest<Array<{ note: string }>>("admin_marketing_reminders?select=note&id=eq.1&limit=1"),
   ]);
   const now = Date.now();
   const counts = {
@@ -24,9 +24,20 @@ export default async function MarketingPage() {
 
   return <div className="space-y-6">
     <section className="border border-white/10 bg-card p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Relacionamento e retenção</p><h1 className="mt-2 text-3xl font-semibold">Marketing de usuários</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Gerencie onboardings automáticos, modelos de relacionamento, campanhas e histórico recente de comunicações.</p></div><Target className="size-7 text-primary" /></div>
+      <div className="flex items-start justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Relacionamento e retenção</p><h1 className="mt-2 text-3xl font-semibold">Disparos</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Gerencie envios automáticos, nutrição, newsletters, campanhas e o histórico das comunicações.</p></div><Target className="size-7 text-primary" /></div>
       <form action={saveMarketingReminder} className="mt-5 grid gap-2 border border-primary/20 bg-primary/[0.04] p-4 md:grid-cols-[auto_1fr_auto]"><BellRing className="mt-2 size-5 text-primary" /><div><p className="text-xs font-semibold uppercase tracking-wider text-primary">Meu lembrete interno</p><textarea name="note" defaultValue={reminders[0]?.note ?? ""} rows={2} placeholder="Escreva aqui algo que você precisa lembrar..." className="mt-2 w-full border border-white/10 bg-background p-3 text-sm" /></div><button className="h-9 self-end border border-primary/30 bg-primary/10 px-4 text-xs font-semibold text-primary">Salvar lembrete</button></form>
       <div className="mt-5 grid gap-3 sm:grid-cols-4"><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Grátis</p><p className="mt-1 text-2xl font-semibold">{counts.free}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Assinantes ativos</p><p className="mt-1 text-2xl font-semibold text-primary">{counts.active}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Próximos da renovação</p><p className="mt-1 text-2xl font-semibold">{counts.expiring}</p></div><div className="border border-white/10 p-4"><p className="text-xs text-muted-foreground">Vencidos</p><p className="mt-1 text-2xl font-semibold">{counts.expired}</p></div></div>
+    </section>
+
+    <section className="border border-white/10 bg-card p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">News e novidades</p><h2 className="mt-1 text-xl font-semibold">Destinatários dos disparos automáticos</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Esta lista é usada somente nos disparos de novas publicações, resumos do blog e lançamentos de ferramentas. Usuários que cancelarem e-mails de marketing deixam de aparecer aqui automaticamente.</p></div>
+        <div className="flex flex-wrap gap-2"><Link href="/admin/marketing/automatico/novo" className="inline-flex h-9 items-center gap-2 border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary"><Plus className="size-4" /> Criar e-mail automático</Link><Link href="/admin/marketing/email-marketing" className="inline-flex h-9 items-center gap-2 border border-white/10 px-3 text-xs font-semibold text-muted-foreground hover:text-primary"><Send className="size-4" /> Envio manual</Link></div>
+      </div>
+      <div className="mt-4 flex items-center gap-2 text-sm"><UsersRound className="size-4 text-primary" /><strong>{newsletterRecipients.length}</strong><span className="text-muted-foreground">destinatário(s) ativo(s)</span></div>
+      <div className="mt-4 overflow-x-auto border border-white/10">
+        <table className="w-full min-w-[560px] text-left text-sm"><thead className="bg-white/[0.03] text-xs text-muted-foreground"><tr><th className="px-3 py-2">Nome</th><th className="px-3 py-2">E-mail</th><th className="px-3 py-2">Status</th></tr></thead><tbody className="divide-y divide-white/10">{newsletterRecipients.map((recipient) => <tr key={recipient.id}><td className="px-3 py-2">{recipient.name || "Sem nome"}</td><td className="px-3 py-2 text-muted-foreground">{recipient.email}</td><td className="px-3 py-2"><span className="border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-300">Recebe news</span></td></tr>)}</tbody></table>
+      </div>
     </section>
 
     <section className="border border-primary/25 bg-primary/[0.035] p-5 sm:p-6">
