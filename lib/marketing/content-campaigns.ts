@@ -1,6 +1,6 @@
 import "server-only";
 
-import { listRegisteredEmailUsers } from "@/lib/admin/customer-users";
+import { listNewsletterRecipients } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
 import { getCustomerMarketingTemplate } from "@/lib/marketing/templates";
@@ -91,7 +91,7 @@ async function markDispatched(sourceType: "blog" | "tool", sourceId: string, pub
 
 export async function processContentCampaigns() {
   const [users, dispatches, newPostTemplate, digestTemplate, newToolTemplate, blogPosts, cmsTools] = await Promise.all([
-    listRegisteredEmailUsers(),
+    listNewsletterRecipients(),
     supabaseRest<DispatchRow[]>("content_campaign_dispatches?select=source_type,source_id"),
     getCustomerMarketingTemplate("new_post"),
     getCustomerMarketingTemplate("blog_digest"),
