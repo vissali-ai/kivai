@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BellRing, Mail, Pencil, Plus, Send, Target, UsersRound } from "lucide-react";
+import { BellRing, Mail, Pencil, Send, Target, UsersRound } from "lucide-react";
 import { listAdminCustomers, listNewsletterRecipients } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { saveMarketingReminder } from "@/app/admin/marketing/actions";
@@ -32,7 +32,7 @@ export default async function MarketingPage() {
     <section className="border border-white/10 bg-card p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">News e novidades</p><h2 className="mt-1 text-xl font-semibold">Destinatários dos disparos automáticos</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Esta lista é usada somente nos disparos de novas publicações, resumos do blog e lançamentos de ferramentas. Usuários que cancelarem e-mails de marketing deixam de aparecer aqui automaticamente.</p></div>
-        <div className="flex flex-wrap gap-2"><Link href="/admin/fluxos-automaticos" className="inline-flex h-9 items-center gap-2 border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary"><Plus className="size-4" /> Criar fluxos automáticos</Link><Link href="/admin/marketing/email-marketing" className="inline-flex h-9 items-center gap-2 border border-white/10 px-3 text-xs font-semibold text-muted-foreground hover:text-primary"><Send className="size-4" /> Envio manual</Link></div>
+        <div className="flex flex-wrap gap-2"><Link href="/admin/marketing/email-marketing" className="inline-flex h-9 items-center gap-2 border border-white/10 px-3 text-xs font-semibold text-muted-foreground hover:text-primary"><Send className="size-4" /> Envio manual</Link></div>
       </div>
       <div className="mt-4 flex items-center gap-2 text-sm"><UsersRound className="size-4 text-primary" /><strong>{newsletterRecipients.length}</strong><span className="text-muted-foreground">destinatário(s) ativo(s)</span></div>
       <div className="mt-4 overflow-x-auto border border-white/10">
