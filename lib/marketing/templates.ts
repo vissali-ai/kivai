@@ -28,26 +28,26 @@ const defaultPlansOverview: CustomerMarketingTemplate = {
 <p>Os planos do Kivai combinam análise de perfis com recursos para organizar seus projetos de conteúdo.</p>
 <h2>Plano Grátis</h2>
 <ul>
-<li>Análise local de até 50 mil seguidores</li>
-<li>Calendário e briefing salvos neste navegador</li>
-<li>Exportações gratuitas das ferramentas</li>
+<li>Análise local de uma conta do Instagram por vez, com até 50 mil seguidores</li>
+<li>Calendário, briefing, QR Code, marca d’água e relatório Social Media disponíveis gratuitamente</li>
+<li>Rascunhos de calendário, briefing e relatório neste navegador; sem histórico do Instagram ou projetos salvos na conta</li>
 </ul>
 <h2>Plano Pro</h2>
 <ul>
 <li>Até 5 perfis do Instagram e 500 mil seguidores por perfil</li>
-<li>Histórico privado e comparação entre exportações da Meta</li>
-<li>Até 30 calendários e briefings salvos na conta</li>
-<li>Acesso aos projetos em outros dispositivos</li>
-<li>Duplicação de modelos e projetos</li>
+<li>Histórico privado e comparação entre exportações oficiais da Meta importadas por você</li>
+<li>Até 30 projetos no total: calendários, briefings, QR Codes, modelos de marca d’água e relatórios Social Media</li>
+<li>Projetos pessoais acessíveis em outros dispositivos, com duplicação de modelos e exportação JSON</li>
 </ul>
 <h2>Plano Agency</h2>
 <ul>
 <li>Até 20 perfis do Instagram</li>
 <li>Histórico e comparação separados por perfil</li>
-<li>Até 200 calendários e briefings salvos na conta</li>
-<li>Organização dos projetos por até 20 clientes</li>
-<li>Todos os recursos de projetos do Pro</li>
+<li>Até 200 projetos das cinco ferramentas acima salvos na conta</li>
+<li>Organização e filtro dos projetos por até 20 nomes de clientes</li>
+<li>Todos os recursos do Pro, com acesso aos projetos em outros dispositivos</li>
 </ul>
+<p>As análises do Instagram dependem de novas exportações da Meta; não há coleta automática. Os nomes de clientes são para organização e não incluem login ou aprovação externa.</p>
 <p>Escolha o plano que acompanha o tamanho da sua operação.</p>`,
   cta_label: "Conhecer os planos",
   cta_url: "https://www.kivai.com.br/planos",
