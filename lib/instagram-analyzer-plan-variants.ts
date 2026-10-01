@@ -119,14 +119,7 @@ function agencyFallback(base: InstagramAnalyzerConfig): InstagramAnalyzerConfig 
     audienceDescription:
       "Para agências, social medias, consultores e equipes que administram vários perfis do Instagram e precisam separar clientes, históricos e análises em uma única operação.",
     plansTitle: "Recursos do seu plano Agency",
-    agencyPlanDetail: [
-      "Gerencie até 20 perfis ou clientes em um único ambiente.",
-      "Mantenha histórico privado e separado para cada conta.",
-      "Compare exportações e identifique novos seguidores e unfollows por período.",
-      "Aproveite dados de curtidas, comentários, stories e insights quando estiverem presentes na exportação oficial da Meta.",
-      "Organize uma rotina recorrente de análise para operações de maior volume.",
-      "Processamento e estrutura preparados para uso profissional e múltiplos clientes.",
-    ],
+    agencyPlanDetail: base.agencyPlanDetail,
     faqTitle: "Dúvidas sobre o Agency",
     faqItems: [
       ...pro.faqItems,
