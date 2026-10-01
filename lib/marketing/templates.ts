@@ -22,51 +22,39 @@ const SELECT = "flow_key,title,subject,description,message,cta_label,cta_url,sec
 const defaultPlansOverview: CustomerMarketingTemplate = {
   flow_key: "plans_overview",
   title: "Conheça os planos Kivai",
-  subject: "Conheça os planos Kivai e acompanhe melhor seus perfis",
-  description: "Apresenta os três planos do Kivai em um único e-mail, destacando vantagens, limites, preços e o caminho para contratar.",
+  subject: "Conheça os planos Kivai e os novos recursos de projetos",
+  description: "Apresenta Grátis, Pro e Agency com os recursos atuais de análise e projetos.",
   message: `<p>Olá!</p>
-<p>Se você já usa o Kivai para analisar seu Instagram, os planos pagos permitem transformar uma consulta pontual em um acompanhamento contínuo dos seus perfis.</p>
+<p>Os planos do Kivai combinam análise de perfis com recursos para organizar seus projetos de conteúdo.</p>
 <h2>Plano Grátis</h2>
-<p><strong>R$ 0</strong></p>
 <ul>
-<li>1 conta por análise</li>
-<li>Até 50 mil seguidores</li>
-<li>Quem não segue você de volta</li>
-<li>Quem você não segue de volta</li>
-<li>Seguidores mútuos</li>
-<li>Análise atual, sem histórico privado</li>
+<li>Análise local de até 50 mil seguidores</li>
+<li>Calendário e briefing salvos neste navegador</li>
+<li>Exportações gratuitas das ferramentas</li>
 </ul>
 <h2>Plano Pro</h2>
-<p><strong>R$ 19,90/mês ou R$ 199/ano</strong></p>
 <ul>
-<li>Até 5 contas acompanhadas</li>
-<li>Até 500 mil seguidores por perfil</li>
-<li>Histórico privado de análises</li>
-<li>Comparação automática entre períodos</li>
-<li>Novos seguidores por período</li>
-<li>Identificação de quem deixou de seguir</li>
-<li>Evolução de seguidores e seguindo entre análises</li>
-<li>Área Pro exclusiva</li>
+<li>Até 5 perfis do Instagram e 500 mil seguidores por perfil</li>
+<li>Histórico privado e comparação entre exportações da Meta</li>
+<li>Até 30 calendários e briefings salvos na conta</li>
+<li>Acesso aos projetos em outros dispositivos</li>
+<li>Duplicação de modelos e projetos</li>
 </ul>
-<p>Ideal para quem quer acompanhar a evolução dos próprios perfis e não depender de análises isoladas.</p>
 <h2>Plano Agency</h2>
-<p><strong>R$ 59,90/mês ou R$ 599/ano</strong></p>
 <ul>
-<li>Até 20 contas ou clientes</li>
-<li>Histórico separado por perfil</li>
-<li>Comparações e acompanhamento contínuo</li>
-<li>Novos seguidores e unfollows por período</li>
-<li>Relatórios organizados por cliente</li>
-<li>Análise ampliada da exportação oficial da Meta</li>
+<li>Até 20 perfis do Instagram</li>
+<li>Histórico e comparação separados por perfil</li>
+<li>Até 200 calendários e briefings salvos na conta</li>
+<li>Organização dos projetos por até 20 clientes</li>
+<li>Todos os recursos de projetos do Pro</li>
 </ul>
-<p>É a opção indicada para agências, social medias e profissionais que gerenciam vários clientes.</p>
-<p>Escolha o plano que combina com sua rotina e use o Kivai para acompanhar seus perfis com mais organização, histórico e visão de evolução.</p>`,
+<p>Escolha o plano que acompanha o tamanho da sua operação.</p>`,
   cta_label: "Conhecer os planos",
   cta_url: "https://www.kivai.com.br/planos",
   secondary_cta_label: "Acessar minha conta",
   secondary_cta_url: "https://www.kivai.com.br/conta",
   enabled: true,
-  updated_at: "2026-09-24T00:00:00.000Z",
+  updated_at: "2026-10-01T09:40:00.000Z",
 };
 
 export async function listCustomerMarketingTemplates() {
