@@ -8,6 +8,8 @@ export const proWelcomeTemplate = {
     "Comparação automática entre exportações",
     "Identificação de novos seguidores e de quem deixou de seguir por período",
     "Leitura de curtidas, comentários e interações com stories quando esses dados estiverem presentes na exportação da Meta",
+    "Até 30 calendários editoriais e briefings salvos na conta",
+    "Projetos disponíveis em outros dispositivos e duplicação de modelos",
   ] as const,
 };
 
@@ -21,6 +23,9 @@ export const agencyWelcomeTemplate = {
     "Comparações entre exportações e períodos",
     "Identificação de novos seguidores e de quem deixou de seguir",
     "Leitura de curtidas, comentários, interações com stories e insights anteriores quando presentes na exportação da Meta",
+    "Até 200 calendários editoriais e briefings salvos na conta",
+    "Organização dos projetos por até 20 clientes",
+    "Todos os recursos de projetos do Plano Pro",
   ] as const,
 };
 
