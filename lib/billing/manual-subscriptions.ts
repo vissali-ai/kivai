@@ -3,13 +3,15 @@ import "server-only";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
 import { getCustomerMarketingTemplate, type CustomerMarketingTemplate } from "@/lib/marketing/templates";
+import { getOnboardingTemplate } from "@/lib/marketing/onboarding-templates";
+import { listAdminCustomers } from "@/lib/admin/customer-users";
 
 const DAY_MS = 86_400_000;
 const REMINDER_DAYS = [7, 3, 1] as const;
 const AUTOMATIC_GRACE_DELAY_DAYS = 7;
 const AUTOMATIC_GRACE_LENGTH_DAYS = 7;
 
-type SubscriptionRow = { id: string; user_id: string; plan_code: "pro" | "agency"; billing_cycle: "monthly" | "annual" | null; current_period_end: string | null; status: string; grace_until: string | null; automatic_grace_granted_at: string | null };
+type SubscriptionRow = { id: string; user_id: string; plan_code: "pro" | "agency"; billing_cycle: "monthly" | "annual" | null; current_period_end: string | null; status: string; grace_until: string | null; automatic_grace_granted_at: string | null; test_access?: boolean };
 type RequestRow = { customer_email: string; customer_name: string | null; plan_code: "free" | "pro" | "agency"; status: string };
 
 function daysBetween(now: Date, end: Date) { return Math.ceil((end.getTime() - now.getTime()) / DAY_MS); }
@@ -19,7 +21,7 @@ function renderTemplate(template: CustomerMarketingTemplate, values: Record<stri
 async function contactFor(userId: string) { const requests = await supabaseRest<RequestRow[]>(`subscription_requests?select=customer_email,customer_name,plan_code,status&user_id=eq.${encodeURIComponent(userId)}&order=created_at.desc&limit=1`); return requests[0]; }
 function hasPendingPayment(request: RequestRow | undefined, planCode: "pro" | "agency") { return request?.plan_code === planCode && ["awaiting_payment", "payment_reported"].includes(request.status); }
 
-async function sendTransactionalEmail(input: { userId: string; eventKey: string; subject: string; message: string; recipientEmail?: string; ctaLabel?: string | null; ctaUrl?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null; kind: "subscription_expiry_reminder" | "subscription_automatic_grace"; metadata: Record<string, unknown> }) {
+async function sendTransactionalEmail(input: { userId: string; eventKey: string; subject: string; message: string; recipientEmail?: string; ctaLabel?: string | null; ctaUrl?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null; kind: "subscription_expiry_reminder" | "subscription_automatic_grace" | "pro_test_expiry"; metadata: Record<string, unknown> }) {
   const rows = await supabaseRest<Array<{ id: string }>>("customer_communications?on_conflict=event_key,channel", {
     method: "POST",
     headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
@@ -28,6 +30,48 @@ async function sendTransactionalEmail(input: { userId: string; eventKey: string;
   if (!rows[0]) return "duplicate" as const;
   const result = await deliverCustomerEmail(rows[0].id);
   return result.status;
+}
+
+export async function sendProTestExpiryEmails() {
+  const template = await getOnboardingTemplate("pro_test_expiry");
+  if (!template?.enabled) return { checked: 0, sent: 0, skipped: 0 };
+
+  const [subscriptions, customers] = await Promise.all([
+    supabaseRest<SubscriptionRow[]>("user_subscriptions?select=id,user_id,plan_code,billing_cycle,current_period_end,status,grace_until,automatic_grace_granted_at,test_access&status=eq.active&plan_code=eq.pro&test_access=eq.true&current_period_end=not.is.null&limit=300"),
+    listAdminCustomers(),
+  ]);
+  const customerMap = new Map(customers.map((customer) => [customer.id, customer]));
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  let sent = 0;
+  let skipped = 0;
+
+  for (const subscription of subscriptions) {
+    if (!subscription.current_period_end) continue;
+    const endDate = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(subscription.current_period_end));
+    if (endDate !== today) continue;
+    const customer = customerMap.get(subscription.user_id);
+    if (!customer?.email) { skipped += 1; continue; }
+    const first = customer.fullName?.trim().split(/\s+/)[0] || "Olá";
+    const subject = template.subject.replaceAll("{{nome}}", first);
+    const message = template.message.replaceAll("{{nome}}", first);
+    const status = await sendTransactionalEmail({
+      userId: subscription.user_id,
+      eventKey: `pro_test_expiry_${subscription.id}_${today}`,
+      subject,
+      message,
+      recipientEmail: customer.email,
+      ctaLabel: template.cta_label,
+      ctaUrl: template.cta_url,
+      secondaryCtaLabel: template.secondary_cta_label,
+      secondaryCtaUrl: template.secondary_cta_url,
+      kind: "pro_test_expiry",
+      metadata: { subscription_id: subscription.id, plan_code: "pro", test_access: true, period_end: subscription.current_period_end },
+    });
+    if (status === "duplicate") skipped += 1;
+    else sent += 1;
+  }
+
+  return { checked: subscriptions.length, sent, skipped };
 }
 
 export async function expireDueExternalSubscriptions() {
