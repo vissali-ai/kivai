@@ -7,105 +7,41 @@ import { supabaseRest } from "@/lib/blog/supabase";
 import { deleteAuthCustomer } from "@/lib/admin/customer-users";
 import { isCustomerMarketingFlowKey } from "@/lib/marketing/customer-flows";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
-import { getOnboardingTemplate } from "@/lib/marketing/onboarding-templates";
-import { activateSubscriptionRequest } from "@/lib/billing/activate-subscription";
 
 function addDays(date: Date, days: number) { const copy = new Date(date); copy.setUTCDate(copy.getUTCDate() + days); return copy; }
 
 export async function grantProTest(formData: FormData) {
-  await assertAdminApi(); const userId = String(formData.get("userId") ?? ""); if (!userId) throw new Error("Usuário inválido.");
-  const now = new Date(); const end = addDays(now, 7);
-  const profiles = await supabaseRest<Array<{ full_name: string | null }>>(`user_profiles?select=full_name&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
-  const firstName = profiles[0]?.full_name?.trim().split(/\s+/)[0] || "Olá";
-  const existing = await supabaseRest<Array<{ id: string }>>(`user_subscriptions?select=id&user_id=eq.${encodeURIComponent(userId)}&order=created_at.desc&limit=1`);
-  const payload = { user_id: userId, plan_code: "pro", status: "active", provider: "admin_test", billing_cycle: "monthly", current_period_start: now.toISOString(), current_period_end: end.toISOString(), test_access: true, grace_until: null, automatic_grace_granted_at: null, automatic_grace_original_period_end: null, updated_at: now.toISOString() };
-  if (existing[0]) await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(existing[0].id)}`, { method: "PATCH", body: JSON.stringify(payload) }); else await supabaseRest("user_subscriptions", { method: "POST", body: JSON.stringify(payload) });
-  await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: "pro", lifecycle_stage: "trial", updated_at: now.toISOString() }) });
-
-  const eventKey = `pro_trial_started_${userId}_${end.toISOString()}`;
-  const communication = await supabaseRest<Array<{ id: string }>>("customer_communications?on_conflict=event_key,channel", {
-    method: "POST",
-    headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
-    body: JSON.stringify({
-      user_id: userId,
-      event_key: eventKey,
-      channel: "email",
-      status: "ready",
-      subject: "Seu acesso ao Kivai Pro foi liberado por 7 dias",
-      message: `${firstName}!
-
-Seu acesso ao Kivai Pro foi liberado gratuitamente por 7 dias.
-
-Durante esse período, você poderá testar os recursos disponíveis no Plano Pro e conhecer melhor tudo o que o Kivai pode oferecer.
-
-Seu acesso de teste ficará disponível até ${end.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}.
-
-Aproveite o período para explorar as ferramentas e recursos do seu plano.`,
-      cta_label: "Acessar meu painel",
-      cta_url: "https://www.kivai.com.br/conta",
-      scheduled_for: now.toISOString(),
-      metadata: { kind: "pro_trial_welcome", transactional: true, automated: true, plan_code: "pro", expires_at: end.toISOString() },
-    }),
-  });
-  if (communication[0]) await deliverCustomerEmail(communication[0].id);
-
-  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "pro_test_granted", description: "Acesso Pro de teste liberado por 7 dias pelo administrador e e-mail de boas-vindas processado.", metadata: { expires_at: end.toISOString(), communication_event_key: eventKey } }) });
-  revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta");
+  await assertAdminApi();
+  await supabaseRest("rpc/kivai_set_access", { method: "POST", body: JSON.stringify({ p_user_id: String(formData.get("userId") ?? ""), p_plan: "pro", p_until: addDays(new Date(), 7).toISOString(), p_source: "admin_test" }) });
+  revalidatePath("/admin/usuarios"); revalidatePath("/conta");
 }
-
 export async function grantGracePeriod(formData: FormData) {
-  await assertAdminApi(); const userId = String(formData.get("userId") ?? ""); const days = Math.max(1, Math.min(30, Number(formData.get("days") ?? 5))); if (!userId) throw new Error("Usuário inválido.");
-  const subscriptions = await supabaseRest<Array<{ id: string; plan_code: "pro" | "agency"; current_period_end: string | null }>>(`user_subscriptions?select=id,plan_code,current_period_end&user_id=eq.${encodeURIComponent(userId)}&order=created_at.desc&limit=1`);
-  const subscription = subscriptions[0]; if (!subscription) throw new Error("Usuário sem assinatura anterior.");
-  const now = new Date(); const graceUntil = addDays(now, days);
-  await supabaseRest(`user_subscriptions?id=eq.${encodeURIComponent(subscription.id)}`, { method: "PATCH", body: JSON.stringify({ status: "active", grace_until: graceUntil.toISOString(), current_period_end: graceUntil.toISOString(), provider: "admin_grace", updated_at: now.toISOString() }) });
-  await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: subscription.plan_code, lifecycle_stage: "trial", updated_at: now.toISOString() }) });
-  await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "grace_period_granted", description: `${days} dias de cortesia concedidos pelo administrador.`, metadata: { grace_until: graceUntil.toISOString() } }) });
-  revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta");
+  await assertAdminApi();
+  const userId = String(formData.get("userId") ?? "");
+  const days = Math.max(1, Math.min(30, Number(formData.get("days") ?? 5)));
+  const rows = await supabaseRest<Array<{plan_code: string; current_period_end: string | null}>>(
+    "user_subscriptions?select=plan_code,current_period_end&user_id=eq."+encodeURIComponent(userId)+"&order=updated_at.desc&limit=1");
+  if (!rows[0] || rows[0].plan_code === "free") throw new Error("Usuário sem assinatura paga anterior.");
+  const base = Math.max(Date.now(), Date.parse(rows[0].current_period_end ?? "") || 0);
+  await supabaseRest("rpc/kivai_set_access", { method: "POST", body: JSON.stringify({ p_user_id: userId, p_plan: rows[0].plan_code, p_until: addDays(new Date(base), days).toISOString(), p_source: "admin_grace" }) });
+  revalidatePath("/admin/usuarios"); revalidatePath("/conta");
 }
-
 export async function updateCustomerAccount(formData: FormData) {
   await assertAdminApi();
   const userId = String(formData.get("userId") ?? "");
-  const planCode = String(formData.get("planCode") ?? "free");
-  const services = String(formData.get("contractedServices") ?? "").split(",").map((value) => value.trim()).filter(Boolean).slice(0, 30);
+  const plan = String(formData.get("planCode") ?? "free");
+  const services = String(formData.get("contractedServices") ?? "").split(",").map(v => v.trim()).filter(Boolean).slice(0,30);
   const notes = String(formData.get("notes") ?? "").trim();
-  if (!userId || !["free", "pro", "agency"].includes(planCode)) throw new Error("Dados inválidos.");
-
-  const profiles = await supabaseRest<Array<{ plan_code: "free" | "pro" | "agency"; full_name: string | null }>>(`user_profiles?select=plan_code,full_name&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
-  const previousPlan = profiles[0]?.plan_code ?? "free";
-  const firstName = profiles[0]?.full_name?.trim().split(/\s+/)[0] || "Olá";
-  const now = new Date();
-
-  if (planCode === "pro" || planCode === "agency") {
-    const activeSubscriptions = await supabaseRest<Array<{ id: string; plan_code: "pro" | "agency"; status: string }>>(
-      `user_subscriptions?select=id,plan_code,status&user_id=eq.${encodeURIComponent(userId)}&status=eq.active&plan_code=eq.${encodeURIComponent(planCode)}&order=created_at.desc&limit=1`
-    );
-    if (!activeSubscriptions[0]) {
-      const pendingRequests = await supabaseRest<Array<{ id: string }>>(
-        `subscription_requests?select=id&user_id=eq.${encodeURIComponent(userId)}&plan_code=eq.${encodeURIComponent(planCode)}&status=in.(awaiting_payment,payment_reported)&order=created_at.desc&limit=1`
-      );
-      if (!pendingRequests[0]) {
-        throw new Error("Não é possível marcar a conta como paga sem uma assinatura ativa ou uma solicitação de pagamento pendente.");
-      }
-      await activateSubscriptionRequest(pendingRequests[0].id);
-    }
+  if (!userId || !["free", "pro", "agency"].includes(plan)) throw new Error("Dados inválidos.");
+  // Saving contact/notes does not replace a paid subscription with an admin grant.
+  if (formData.get("changeAccess") !== "on") {
+    await supabaseRest("user_profiles?user_id=eq."+encodeURIComponent(userId), {method:"PATCH",body:JSON.stringify({contracted_services:services,admin_notes:notes || null,updated_at:new Date().toISOString()})});
+  } else {
+    const date = String(formData.get("accessUntil") ?? "");
+    if (plan !== "free" && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("Informe a validade do acesso administrativo.");
+    await supabaseRest("rpc/kivai_set_access", {method:"POST",body:JSON.stringify({p_user_id:userId,p_plan:plan,p_until:plan==='free'?null:new Date(date+"T23:59:59-03:00").toISOString(),p_source:"admin_manual",p_services:services,p_notes:notes || null})});
   }
-
-  const lifecycleStage = planCode === "free" ? "free" : "active";
-  await supabaseRest(`user_profiles?user_id=eq.${encodeURIComponent(userId)}`, { method: "PATCH", body: JSON.stringify({ plan_code: planCode, lifecycle_stage: lifecycleStage, contracted_services: services, admin_notes: notes || null, updated_at: now.toISOString() }) });
-
-  if (planCode === "free" && previousPlan !== "free") {
-    const template = await getOnboardingTemplate("free_welcome");
-    if (template?.enabled) {
-      const message = template.message.replaceAll("{{nome}}", firstName);
-      const communication = await supabaseRest<Array<{ id: string }>>("customer_communications", { method: "POST", body: JSON.stringify({ user_id: userId, event_key: `free_welcome_${Date.now()}`, channel: "email", status: "ready", subject: template.subject.replaceAll("{{nome}}", firstName), message, cta_label: template.cta_label, cta_url: template.cta_url, scheduled_for: now.toISOString(), metadata: { kind: "free_welcome", transactional: true, previous_plan: previousPlan, plan_code: "free", source: "admin_plan_change" } }) });
-      if (communication[0]) await deliverCustomerEmail(communication[0].id);
-    }
-    await supabaseRest("customer_marketing_events", { method: "POST", body: JSON.stringify({ user_id: userId, event_type: "free_plan_activated", description: "Usuário alterado para o Plano Grátis e onboarding automático processado por e-mail.", metadata: { previous_plan: previousPlan } }) });
-  }
-
-  revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta"); revalidatePath("/conta/dados");
+  for (const path of ["/admin/usuarios", "/admin/marketing", "/conta", "/conta/pro", "/conta/dados"]) revalidatePath(path);
 }
 
 export async function sendCustomerPasswordReset(formData: FormData) {

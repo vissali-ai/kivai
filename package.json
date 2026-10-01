@@ -14,7 +14,9 @@
     "audit:maintenance": "node scripts/audit-project-maintenance.mjs",
     "audit:tools": "node scripts/audit-tools.mjs",
     "prepare:unrar-assets": "node scripts/copy-unrar-assets.mjs",
-    "verify:adsense": "node scripts/verify-adsense.mjs"
+    "verify:adsense": "node scripts/verify-adsense.mjs",
+    "test:billing": "node --test tests/billing/*.test.mjs",
+    "test:billing:browser": "playwright test -c playwright.billing.config.ts"
   },
   "dependencies": {
     "@aiden0z/pptx-renderer": "^1.2.4",
@@ -55,6 +57,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { blogConfig } from "@/lib/blog/config";
-import { supabaseRest } from "@/lib/blog/supabase";
+import { getAccountAccess } from "@/lib/billing/access";
 import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
 import { getInstagramAnalyzerPlanVariants } from "@/lib/instagram-analyzer-plan-variants";
 
 type AuthUser = { id: string };
-type PlanCode = "free" | "pro" | "agency";
 
 async function authenticate(request: Request): Promise<AuthUser> {
   const authorization = request.headers.get("authorization") ?? "";
@@ -25,10 +24,7 @@ async function authenticate(request: Request): Promise<AuthUser> {
 export async function GET(request: Request) {
   try {
     const user = await authenticate(request);
-    const profiles = await supabaseRest<Array<{ plan_code: PlanCode }>>(
-      `user_profiles?select=plan_code&user_id=eq.${encodeURIComponent(user.id)}&limit=1`,
-    );
-    const plan = profiles[0]?.plan_code ?? "free";
+    const { plan } = await getAccountAccess(user.id);
     if (plan !== "pro" && plan !== "agency") {
       return NextResponse.json({ error: "Conteúdo exclusivo de plano pago." }, { status: 403 });
     }

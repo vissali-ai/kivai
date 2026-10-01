@@ -13,7 +13,7 @@ export type AdminCustomer = {
 type AuthUser = { id: string; email?: string; created_at: string; last_sign_in_at?: string | null; app_metadata?: { provider?: string; providers?: string[] } };
 type AuthUsersResponse = { users?: AuthUser[] };
 type ProfileRow = { user_id: string; full_name: string | null; phone: string | null; plan_code: "free" | "pro" | "agency"; lifecycle_stage: string; customer_score: number; marketing_tags: string[] | null; contracted_services: string[] | null; admin_notes: string | null };
-type SubscriptionRow = { user_id: string; status: string; billing_cycle: "monthly" | "annual" | null; current_period_end: string | null; test_access: boolean };
+type SubscriptionRow = { user_id: string; plan_code: "free" | "pro" | "agency"; current_period_start: string | null; status: string; billing_cycle: "monthly" | "annual" | null; current_period_end: string | null; test_access: boolean };
 
 async function authAdminFetch(path: string, init: RequestInit = {}) {
   const response = await fetch(`${blogConfig.supabaseUrl}/auth/v1/admin/${path}`, { ...init, cache: "no-store", headers: { apikey: blogConfig.serviceRoleKey, Authorization: `Bearer ${blogConfig.serviceRoleKey}`, "Content-Type": "application/json", ...init.headers } });
@@ -27,7 +27,7 @@ export async function listAdminCustomers(): Promise<AdminCustomer[]> {
   const users = authData.users ?? [];
   const [profiles, subscriptions] = await Promise.all([
     supabaseRest<ProfileRow[]>("user_profiles?select=user_id,full_name,phone,plan_code,lifecycle_stage,customer_score,marketing_tags,contracted_services,admin_notes"),
-    supabaseRest<SubscriptionRow[]>("user_subscriptions?select=user_id,status,billing_cycle,current_period_end,test_access&order=created_at.desc"),
+    supabaseRest<SubscriptionRow[]>("user_subscriptions?select=user_id,plan_code,status,billing_cycle,current_period_start,current_period_end,test_access&order=updated_at.desc,created_at.desc,id.desc"),
   ]);
   const profileMap = new Map(profiles.map((row) => [row.user_id, row]));
   const subscriptionMap = new Map<string, SubscriptionRow>();
@@ -35,7 +35,7 @@ export async function listAdminCustomers(): Promise<AdminCustomer[]> {
   return users.map((user) => {
     const profile = profileMap.get(user.id); const subscription = subscriptionMap.get(user.id);
     const providers = user.app_metadata?.providers ?? (user.app_metadata?.provider ? [user.app_metadata.provider] : []);
-    return { id: user.id, email: user.email ?? "", createdAt: user.created_at, lastSignInAt: user.last_sign_in_at ?? null, fullName: profile?.full_name ?? null, phone: profile?.phone ?? null, planCode: profile?.plan_code ?? "free", lifecycleStage: profile?.lifecycle_stage ?? "free", customerScore: profile?.customer_score ?? 0, marketingTags: profile?.marketing_tags ?? [], subscriptionStatus: subscription?.status ?? null, billingCycle: subscription?.billing_cycle ?? null, periodEnd: subscription?.current_period_end ?? null, testAccess: Boolean(subscription?.test_access), authProvider: providers.includes("email") ? "email" : providers[0] ?? "unknown", contractedServices: profile?.contracted_services ?? [], adminNotes: profile?.admin_notes ?? null };
+    return { id: user.id, email: user.email ?? "", createdAt: user.created_at, lastSignInAt: user.last_sign_in_at ?? null, fullName: profile?.full_name ?? null, phone: profile?.phone ?? null, planCode: subscription?.status === "active" && Date.parse(subscription.current_period_end ?? "") > Date.now() && Date.parse(subscription.current_period_start ?? "") <= Date.now() ? subscription.plan_code : "free", lifecycleStage: profile?.lifecycle_stage ?? "free", customerScore: profile?.customer_score ?? 0, marketingTags: profile?.marketing_tags ?? [], subscriptionStatus: subscription?.status ?? null, billingCycle: subscription?.billing_cycle ?? null, periodEnd: subscription?.current_period_end ?? null, testAccess: Boolean(subscription?.test_access), authProvider: providers.includes("email") ? "email" : providers[0] ?? "unknown", contractedServices: profile?.contracted_services ?? [], adminNotes: profile?.admin_notes ?? null };
   });
 }
 

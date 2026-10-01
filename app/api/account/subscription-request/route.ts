@@ -107,7 +107,7 @@ export async function PATCH(request: Request) {
     if (row.status !== "awaiting_payment") return NextResponse.json({ error: "Esta solicitação não pode mais ser alterada." }, { status: 409 });
 
     const now = new Date().toISOString();
-    await supabaseRest(`subscription_requests?id=eq.${encodeURIComponent(row.id)}`, {
+    await supabaseRest(`subscription_requests?id=eq.${encodeURIComponent(row.id)}&user_id=eq.${encodeURIComponent(user.id)}&status=eq.awaiting_payment`, {
       method: "PATCH",
       body: JSON.stringify({ status: "payment_reported", payment_reported_at: now, updated_at: now }),
     });

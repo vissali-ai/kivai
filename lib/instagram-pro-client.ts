@@ -1,6 +1,8 @@
 "use client";
 
-import { getCurrentUser, getStoredSession, supabaseUserFetch } from "@/lib/user-auth";
+import { supabaseUserFetch } from "@/lib/user-auth";
+
+import { fetchAccountAccess } from "@/lib/billing/access-client";
 
 export type KivaiPlanCode = "free" | "pro" | "agency";
 
@@ -43,14 +45,7 @@ async function parseJsonResponse<T>(response: Response, fallback: T): Promise<T>
 }
 
 export async function getAuthenticatedPlan(): Promise<{ userId: string; plan: KivaiPlanCode } | null> {
-  const session = getStoredSession();
-  if (!session?.access_token) return null;
-  const user = await getCurrentUser(session);
-  if (!user?.id) return null;
-  const response = await supabaseUserFetch(`/rest/v1/user_profiles?select=plan_code&user_id=eq.${encodeURIComponent(user.id)}&limit=1`);
-  if (!response.ok) return { userId: user.id, plan: "free" };
-  const rows = await parseJsonResponse<Array<{ plan_code?: KivaiPlanCode }>>(response, []);
-  return { userId: user.id, plan: rows[0]?.plan_code ?? "free" };
+  return fetchAccountAccess();
 }
 
 async function getOrCreateAccount(params: {

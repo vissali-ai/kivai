@@ -1,4 +1,5 @@
 import "server-only";
+import { plansContent } from "@/lib/billing/plans-content";
 
 import { sanitizePostHtml, plainText } from "@/lib/blog/sanitize";
 import { slugify } from "@/lib/blog/slug";
@@ -64,6 +65,7 @@ function cleanStatus(value: unknown): SitePublicationStatus {
 }
 
 function expectedPath(type: SiteContentType, slug: string) {
+  if (type === "page" && slug === "planos") return "/planos";
   return type === "tool" ? `/ferramentas/${slug}` : type === "resource" ? `/recursos/${slug}` : `/paginas/${slug}`;
 }
 
@@ -201,7 +203,7 @@ export async function listManagedSiteContents(): Promise<ManagedSiteContent[]> {
       { key: "hub-filter", label: "Filtro do hub", type: "text", value: tool.hubFilter },
     ] }, publishedAt: null, createdAt: "", updatedAt: "", virtual: true,
   }));
-  return [...stored, ...virtual].sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+  return [...stored, ...virtual, ...(!stored.some(item => item.path === "/planos") ? [plansContent] : [])].sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
 }
 
 export async function getSiteContentById(id: string) {

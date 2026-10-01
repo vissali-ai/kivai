@@ -1,3 +1,4 @@
+import { retryActivationEmails } from "@/lib/billing/activation-emails";
 import { NextResponse } from "next/server";
 import { expireDueExternalSubscriptions } from "@/lib/billing/manual-subscriptions";
 import { cleanupExpiredCommunicationLogs } from "@/lib/marketing/communication-retention";
@@ -9,12 +10,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [subscriptions, communicationLogs] = await Promise.all([
+    const [subscriptions, communicationLogs, activationEmails] = await Promise.all([
       expireDueExternalSubscriptions(),
       cleanupExpiredCommunicationLogs(),
+      retryActivationEmails(),
     ]);
 
-    return NextResponse.json({ subscriptions, communicationLogs });
+    return NextResponse.json({ subscriptions, communicationLogs, activationEmails });
   } catch (error) {
     const message = error instanceof Error ? error.message : "scheduled_maintenance_failed";
     console.error("scheduled_maintenance_cron_failed", message);

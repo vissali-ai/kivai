@@ -5,6 +5,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, Copy, Download, List, Pencil, 
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SavedProjects } from "@/components/account/saved-projects";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "kivai:calendario-editorial:v1";
@@ -109,7 +110,8 @@ export default function CalendarioEditorialClient() {
     const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = "calendario-editorial-kivai.csv"; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
-  return <ToolPageShell title="Calendário Editorial para Redes Sociais" description="Planeje, organize e acompanhe publicações de diferentes redes sociais em um calendário mensal simples e completo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Seu calendário fica salvo somente neste navegador e neste dispositivo. Nenhum planejamento é enviado ao Kivai.">
+  return <ToolPageShell title="Calendário Editorial para Redes Sociais" description="Planeje, organize e acompanhe publicações de diferentes redes sociais em um calendário mensal simples e completo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O rascunho fica neste navegador. Ao escolher Salvar na conta, o projeto é enviado ao Kivai e fica privado na sua conta.">
+    <SavedProjects kind="calendar" payload={items} onLoad={value => { if (Array.isArray(value)) setItems(value.filter(validPublication)); }} />
     <Card className="mx-auto max-w-6xl">
       <CardHeader className="gap-3 sm:flex sm:flex-row sm:items-start sm:justify-between">
         <div><CardTitle className="text-base">Planejamento editorial</CardTitle><CardDescription>Crie quantas publicações precisar, acompanhe o status e exporte o planejamento em CSV.</CardDescription></div>

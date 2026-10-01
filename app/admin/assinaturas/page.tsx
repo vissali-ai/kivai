@@ -30,13 +30,15 @@ export default async function AdminSubscriptionsPage() {
   const pending = requests.filter((item) => ["awaiting_payment", "payment_reported"].includes(item.status));
   const reported = requests.filter((item) => item.status === "payment_reported").length;
   const active = requests.filter((item) => item.status === "active").length;
+  const communications = await supabaseRest<Array<{ status: string; metadata: { request_id?: string } }>>("customer_communications?select=status,metadata&metadata->>kind=eq.subscription_activation&order=created_at.desc&limit=200");
+  const delivery = new Map(communications.map(item => [item.metadata?.request_id, item.status]));
 
   return (
     <div className="space-y-6">
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Assinaturas</p>
         <h1 className="mt-2 text-3xl font-semibold">Pagamentos e ativações</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Solicitações criadas antes do cliente abrir o serviço de pagamento. Confira o pagamento recebido e confirme a ativação do plano por aqui.</p>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Confira o pagamento recebido e confirme a ativação por aqui. Perfil, assinatura e solicitação são atualizados juntos. Uma falha no e-mail não desfaz a ativação; a comunicação fica disponível para nova tentativa. Na renovação do mesmo plano, o período é somado ao vencimento atual. Na troca entre Pro e Agency, o novo período começa na confirmação.</p>
       </header>
 
       <section className="grid gap-3 sm:grid-cols-3">
@@ -67,6 +69,7 @@ export default async function AdminSubscriptionsPage() {
                   </div>
                   {request.payment_reported_at ? <p className="mt-3 flex items-center gap-2 text-xs text-primary"><CreditCard className="size-3.5" /> Cliente informou o pagamento em {new Date(request.payment_reported_at).toLocaleString("pt-BR")}</p> : null}
                   {request.confirmed_at ? <p className="mt-3 flex items-center gap-2 text-xs text-emerald-400"><CheckCircle2 className="size-3.5" /> Ativado em {new Date(request.confirmed_at).toLocaleString("pt-BR")}</p> : null}
+                  {request.status === "active" && delivery.has(request.id) ? <p className="mt-2 text-xs text-muted-foreground">{delivery.get(request.id) === "sent" ? "E-mail de confirmação enviado." : "Plano ativado. E-mail pendente; a rotina automática tentará o envio novamente."}</p> : null}
                 </div>
 
                 <div className="flex min-w-[220px] flex-col gap-2">

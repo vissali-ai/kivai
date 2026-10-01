@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import JSZip from "jszip";
 import { ArrowDown, ChevronDown, Crown, ExternalLink, History, Search, Upload, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { InstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
-import { getAuthenticatedPlan, saveProAnalysis, type KivaiPlanCode, type ProHistoryComparison } from "@/lib/instagram-pro-client";
+import { saveProAnalysis, type ProHistoryComparison } from "@/lib/instagram-pro-client";
+
+import { useAccountAccess } from "@/lib/billing/access-client";
 
 type AnalyzerResult = {
   followers: string[];
@@ -160,21 +162,15 @@ export function InstagramFollowAnalyzer({ config }: { config: InstagramAnalyzerC
   const [fileName, setFileName] = useState("");
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [expandedScreenshot, setExpandedScreenshot] = useState<number | null>(null);
-  const [plan, setPlan] = useState<KivaiPlanCode>("free");
-  const [userId, setUserId] = useState<string | null>(null);
+  const { access, loading: accessLoading, error: accessError } = useAccountAccess();
+  const plan = access?.plan ?? "free";
+  const userId = access?.userId;
   const [instagramUsername, setInstagramUsername] = useState("");
   const [history, setHistory] = useState<ProHistoryComparison | null>(null);
-  const [authLoaded, setAuthLoaded] = useState(false);
+  const authLoaded = !accessLoading;
   const show = (key: string) => config.sectionVisibility[key] !== false;
   const paid = plan === "pro" || plan === "agency";
 
-  useEffect(() => {
-    getAuthenticatedPlan().then((auth) => {
-      setUserId(auth?.userId ?? null);
-      setPlan(auth?.plan ?? "free");
-      setAuthLoaded(true);
-    }).catch(() => setAuthLoaded(true));
-  }, []);
 
   const currentList = result?.[activeTab] ?? [];
   const filtered = useMemo(() => {
@@ -184,6 +180,7 @@ export function InstagramFollowAnalyzer({ config }: { config: InstagramAnalyzerC
 
   async function handleFile(file?: File) {
     if (!file) return;
+    if (accessLoading || accessError) { setError(accessError || "Aguarde a consulta do plano."); return; }
     if (paid && !instagramUsername.trim()) {
       setError("Informe o @ do perfil que você quer acompanhar antes de importar o arquivo.");
       return;

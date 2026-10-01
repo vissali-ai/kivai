@@ -1,0 +1,26 @@
+-- Minimal isolated schema matching the deployed types/columns used by the migration.
+create role anon; create role authenticated; create role service_role bypassrls;
+create schema auth;
+create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+grant usage on schema auth to authenticated,service_role;
+grant execute on function auth.uid() to authenticated,service_role;
+create table auth.users(id uuid primary key);
+create type public.kivai_plan_code as enum('free','pro','agency');
+create type public.subscription_status as enum('inactive','pending','active','past_due','canceled');
+create table public.user_profiles(user_id uuid primary key references auth.users(id), plan_code kivai_plan_code default 'free',lifecycle_stage text default 'free',full_name text,avatar_url text,phone text,secondary_contact text,address_street text,address_number text,address_complement text,address_neighborhood text,address_city text,address_state text,address_postal_code text,whatsapp_opt_in boolean,email_marketing_opt_in boolean,contracted_services text[] default '{}',admin_notes text,updated_at timestamptz default now());
+create table public.user_subscriptions(id uuid primary key default gen_random_uuid(),user_id uuid references auth.users(id),plan_code kivai_plan_code,status subscription_status default 'inactive',provider text,billing_cycle text,current_period_start timestamptz,current_period_end timestamptz,provider_checkout_reference text,cancel_at_period_end boolean default false,grace_until timestamptz,automatic_grace_granted_at timestamptz,automatic_grace_original_period_end timestamptz,test_access boolean default false,created_at timestamptz default now(),updated_at timestamptz default now());
+create table public.subscription_requests(id uuid primary key default gen_random_uuid(),user_id uuid references auth.users(id),customer_email text,customer_name text,plan_code kivai_plan_code,billing_cycle text,status text,confirmed_at timestamptz,confirmed_by text,updated_at timestamptz default now());
+create table public.customer_communications(id uuid primary key default gen_random_uuid(),user_id uuid references auth.users(id),event_key text,channel text,status text,subject text,message text,cta_label text,cta_url text,metadata jsonb,unique(event_key,channel));
+create table public.customer_marketing_events(user_id uuid,event_type text,description text,metadata jsonb);
+create table public.customer_onboarding_templates(template_key text,enabled boolean,subject text,message text,cta_label text,cta_url text);
+create table public.social_accounts(id uuid primary key default gen_random_uuid(),user_id uuid,platform text default 'instagram',follower_count bigint);
+create table public.social_snapshots(id uuid primary key default gen_random_uuid(),user_id uuid,social_account_id uuid,follower_count bigint);
+create table public.site_contents(id uuid primary key default gen_random_uuid(),content_type text,slug text,path text unique,title text,short_description text,content_html text,seo_title text,seo_description text,tool_mode text,technical_status text,status text,indexable boolean,include_in_sitemap boolean,custom_data jsonb,published_at timestamptz);
+create table public.site_services(id uuid primary key default gen_random_uuid(),slug text unique,path text,title text,short_description text,content_html text,seo_title text,seo_description text,badge text,service_type text,audience text,cta_label text,cta_url text,status text,indexable boolean,include_in_sitemap boolean,show_in_services_index boolean,published_at timestamptz);
+grant all on all tables in schema public to service_role;
+grant select,update on public.user_profiles to authenticated;
+grant select on public.user_subscriptions to authenticated;
+alter table public.user_profiles enable row level security;
+alter table public.user_subscriptions enable row level security;
+create policy own_profile on public.user_profiles for all to authenticated using(auth.uid()=user_id) with check(auth.uid()=user_id);
+create policy own_subscription on public.user_subscriptions for select to authenticated using(auth.uid()=user_id);

@@ -6,6 +6,7 @@ import { ArrowDown, ArrowUp, Check, Clipboard, Download, Plus, Printer, RotateCc
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SavedProjects } from "@/components/account/saved-projects";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "kivai:planejador-conteudo-social-media:v1";
@@ -54,7 +55,8 @@ export default function PlanejadorClient() {
   function download() { const blob = new Blob([planText(plan, true)], { type: "text/plain;charset=utf-8" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "briefing-conteudo-social-media.txt"; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 0); }
   function clear() { setPlan(emptyPlan); setGenerated(false); setErrors({}); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
 
-  return <ToolPageShell title="Planejador de Conteúdo Social Media" description="Transforme uma ideia em um plano estruturado com objetivo, público, mensagem, formato, abordagem e briefing para produção." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Seu planejamento fica salvo somente neste navegador. Nenhuma informação é enviada ao Kivai.">
+  return <ToolPageShell title="Planejador de Conteúdo Social Media" description="Transforme uma ideia em um plano estruturado com objetivo, público, mensagem, formato, abordagem e briefing para produção." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O rascunho fica neste navegador. Ao escolher Salvar na conta, o briefing é enviado ao Kivai e fica privado na sua conta.">
+    <SavedProjects kind="briefing" payload={plan} onLoad={value => { if (isPlan(value)) { setPlan(value); setGenerated(true); } }} />
     <style>{`@media print { body > header, body > footer, nav, [data-print-hide], [data-ad-slot] { display:none !important } main { background:white !important; color:black !important } [data-print-plan] { display:block !important; border:0 !important; box-shadow:none !important } [data-print-plan] * { color:black !important } }`}</style>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,.75fr)]">
       <Card data-print-hide><CardHeader><CardTitle className="text-base">Estruture seu conteúdo</CardTitle><CardDescription>Preencha o essencial primeiro. Os demais campos ajudam a deixar o briefing mais claro para produção.</CardDescription></CardHeader><CardContent className="space-y-7">

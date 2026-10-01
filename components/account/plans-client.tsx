@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { ArrowRight, Check, Crown, ExternalLink, Loader2, ShieldCheck, UsersRound, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getCurrentUser, getStoredSession, supabaseUserFetch } from "@/lib/user-auth";
+import { getStoredSession } from "@/lib/user-auth";
+
+import { useAccountAccess } from "@/lib/billing/access-client";
+import type { SiteOriginalField } from "@/lib/site-cms/types";
+import { plansContent } from "@/lib/billing/plans-content";
+import { planBenefits } from "@/lib/billing/plan-benefits";
 
 type PlanCode = "free" | "pro" | "agency";
 type PaidPlanCode = Exclude<PlanCode, "free">;
@@ -79,37 +85,21 @@ const plans: readonly Plan[] = [
   },
 ];
 
-export function PlansClient() {
-  const [currentPlan, setCurrentPlan] = useState<PlanCode | null>(null);
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [checkedSession, setCheckedSession] = useState(false);
+export function PlansClient({ fields = plansContent.customData.originalFields ?? [] }: { fields?: SiteOriginalField[] }) {
+  const router = useRouter();
+  const { access, loading, error: accessError } = useAccountAccess();
+  const currentPlan = access?.plan;
+  const loggedIn = !!access?.userId;
+  const checkedSession = !loading;
+  const displayPlans = plans.map(plan => ({ ...plan, description: String(fields.find(f => f.key === `${plan.code}-description`)?.value ?? plan.description), features: String(fields.find(f => f.key === `${plan.code}-features`)?.value ?? planBenefits[plan.code].join("\n")).split("\n").filter(Boolean) }));
   const [starting, setStarting] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function loadCurrentPlan() {
-      const session = getStoredSession();
-      if (!session?.access_token) { setCheckedSession(true); return; }
-      try {
-        const user = await getCurrentUser(session);
-        if (!user?.id) { setCheckedSession(true); return; }
-        setLoggedIn(true);
-        const response = await supabaseUserFetch(`/rest/v1/user_profiles?select=plan_code&user_id=eq.${encodeURIComponent(user.id)}&limit=1`);
-        const rows = response.ok ? await response.json() as Array<{ plan_code?: PlanCode }> : [];
-        setCurrentPlan(rows[0]?.plan_code ?? "free");
-      } catch {
-        setCurrentPlan("free");
-      } finally {
-        setCheckedSession(true);
-      }
-    }
-    loadCurrentPlan();
-  }, []);
 
   async function startExternalPayment(plan: PaidPlanCode, billing: BillingCycle) {
     const session = getStoredSession();
     if (!session?.access_token) {
-      window.location.assign(`/conta/login?next=${encodeURIComponent("/planos")}`);
+      router.push(`/conta/login?next=${encodeURIComponent("/planos")}`);
       return;
     }
 
@@ -125,7 +115,7 @@ export function PlansClient() {
       const data = await response.json() as { error?: string; paymentLink?: string };
       if (!response.ok || !data.paymentLink) throw new Error(data.error || "Não foi possível registrar sua solicitação de contratação.");
       window.open(data.paymentLink, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => window.location.assign("/conta?pagamento=pendente"), 350);
+      window.setTimeout(() => router.push("/conta?pagamento=pendente"), 350);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível iniciar a contratação.");
     } finally {
@@ -143,16 +133,16 @@ export function PlansClient() {
         {isCurrent ? <div className="flex min-h-10 w-full items-center justify-center border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Este é o seu plano atual</div> : null}
         <Button className="h-12 w-full" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "monthly")}>{starting === `${plan.code}-monthly` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar mensal" : "Contratar mensal"}</Button>
         <Button variant="outline" className="h-12 w-full border-primary/30 text-primary" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "annual")}>{starting === `${plan.code}-annual` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar anual" : "Contratar anual"}</Button>
-        <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">Antes de abrir o serviço de pagamento, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento.</p>
+        <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">Antes de abrir o serviço de pagamento, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento pelo administrador.</p>
       </div>
     );
   }
 
   return (
     <>
-      {error ? <div className="mx-auto mt-8 max-w-2xl border border-red-500/30 bg-red-500/10 p-4 text-center text-sm text-red-200">{error}</div> : null}
+      {error || accessError ? <div className="mx-auto mt-8 max-w-2xl border border-red-500/30 bg-red-500/10 p-4 text-center text-sm text-red-200">{error || accessError}</div> : null}
       <div className="mt-12 grid gap-5 lg:grid-cols-3">
-        {plans.map((plan) => {
+        {displayPlans.map((plan) => {
           const isCurrent = checkedSession && currentPlan === plan.code;
           return (
             <article key={plan.code} className={`relative flex flex-col border p-6 ${isCurrent ? "border-primary bg-primary/[0.08] ring-1 ring-primary/30" : plan.highlighted ? "border-primary/40 bg-primary/[0.05]" : "border-white/10 bg-card"}`}>
@@ -168,9 +158,9 @@ export function PlansClient() {
         })}
       </div>
       <section className="mt-14 grid gap-4 md:grid-cols-3">
-        <div className="border border-white/10 bg-card p-5"><Zap className="size-5 text-primary" /><h2 className="mt-3 font-semibold">1. Escolha o plano</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Use o Grátis para análises pontuais ou escolha Pro/Agency quando quiser salvar histórico, comparar períodos e acompanhar perfis continuamente.</p></div>
+        <div className="border border-white/10 bg-card p-5"><Zap className="size-5 text-primary" /><h2 className="mt-3 font-semibold">1. Escolha o plano</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Use as ferramentas grátis ou escolha Pro/Agency para salvar projetos na conta, acompanhar histórico e organizar seu trabalho.</p></div>
         <div className="border border-white/10 bg-card p-5"><UsersRound className="size-5 text-primary" /><h2 className="mt-3 font-semibold">2. Solicitação registrada</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Antes do pagamento, o Kivai registra plano, valor e periodicidade vinculados à sua conta.</p></div>
-        <div className="border border-white/10 bg-card p-5"><ShieldCheck className="size-5 text-primary" /><h2 className="mt-3 font-semibold">3. Finalize o pagamento</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">O pagamento é concluído no serviço financeiro. Depois da confirmação, o plano é ativado conforme o fluxo da assinatura.</p></div>
+        <div className="border border-white/10 bg-card p-5"><ShieldCheck className="size-5 text-primary" /><h2 className="mt-3 font-semibold">3. Finalize o pagamento</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">O pagamento abre no serviço financeiro. Depois, informe no painel que pagou e aguarde a confirmação para ativação.</p></div>
       </section>
     </>
   );

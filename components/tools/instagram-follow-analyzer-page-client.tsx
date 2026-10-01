@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Check, LockKeyhole, ShieldCheck, UsersRound, Zap } from "lucide-react";
 import { InstagramFollowAnalyzer } from "@/components/tools/instagram-follow-analyzer";
+import { useAccountAccess } from "@/lib/billing/access-client";
 import { getStoredSession } from "@/lib/user-auth";
 import type { InstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
 
@@ -14,13 +15,14 @@ type Props = {
 };
 
 export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
-  const [plan, setPlan] = useState<Plan>("free");
+  const { access } = useAccountAccess();
+  const plan = access?.plan ?? "free";
   const [config, setConfig] = useState<InstagramAnalyzerConfig>(freeConfig);
 
   useEffect(() => {
     async function loadPaidExperience() {
       const session = getStoredSession();
-      if (!session?.access_token) return;
+      if (!session?.access_token || plan === "free") { setConfig(freeConfig); return; }
       try {
         const response = await fetch("/api/account/instagram-analyzer-config", {
           headers: { Authorization: `Bearer ${session.access_token}` },
@@ -29,14 +31,14 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
         if (!response.ok) return;
         const payload = (await response.json()) as { plan?: Plan; config?: InstagramAnalyzerConfig };
         if (!payload.config || (payload.plan !== "pro" && payload.plan !== "agency")) return;
-        setPlan(payload.plan);
+
         setConfig(payload.config);
       } catch {
         // O conteúdo público/grátis permanece como fallback seguro.
       }
     }
     loadPaidExperience();
-  }, []);
+  }, [plan, freeConfig]);
 
   const show = (key: string) => config.sectionVisibility[key] !== false;
   const plans = [
@@ -88,7 +90,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
             <h3 className="text-lg font-semibold">Quer mais recursos para acompanhar seu Instagram?</h3>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Compare os planos disponíveis e escolha a melhor opção para o seu uso.</p>
           </div>
-          <Link href={plan === "free" ? "/planos" : plan === "pro" ? "/conta/pro" : "/conta"} className="inline-flex shrink-0 items-center justify-center bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">
+          <Link href={plan === "free" ? "/planos" : "/conta/pro"} className="inline-flex shrink-0 items-center justify-center bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">
             {plan === "free" ? "Ver planos e assinar" : "Abrir meu painel"}
           </Link>
         </div>

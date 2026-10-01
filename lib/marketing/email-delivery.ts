@@ -134,7 +134,7 @@ export async function sendAdminCampaignTestEmail(input: {
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": `communication-${row.id}` },
       body: JSON.stringify({
         from: CUSTOMER_EMAIL_FROM, to: [recipient], reply_to: CUSTOMER_REPLY_TO, subject: `[TESTE] ${input.subject}`,
         text: `[TESTE DE CAMPANHA KIVAI]\n\n${messageToText(row)}`, html: renderCampaignHtml(row, null),
