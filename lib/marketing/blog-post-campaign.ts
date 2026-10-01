@@ -28,7 +28,7 @@ export async function deliverPendingBlogPostEmails(limit = 50) {
   return results;
 }
 
-export async function queueNewPostCampaign(post: PublishedPostCampaign) {
+export async function queueNewPostCampaign(post: PublishedPostCampaign, options: { deliverNow?: boolean } = {}) {
   const template = await getCustomerMarketingTemplate("new_post");
   if (!template?.enabled) return { queued: 0, delivery: null, disabled: true };
   const users = await listRegisteredEmailUsers();
@@ -50,6 +50,20 @@ export async function queueNewPostCampaign(post: PublishedPostCampaign) {
       metadata: { source: "automatic_blog_post", flow_key: "new_post", kind: "new_blog_post", layout: "kivai_campaign", secondary_cta_label: template.secondary_cta_label || "", secondary_cta_url: template.secondary_cta_url ? render(template.secondary_cta_url, post) : "", post_id: post.id, post_slug: post.slug, post_published_at: post.publishedAt, recipient_email: user.email, template_version: template.updated_at },
     }))),
   });
-  const delivery = await deliverPendingBlogPostEmails(50);
+  const delivery = options.deliverNow === false ? null : await deliverPendingBlogPostEmails(50);
   return { queued: rows.length, delivery, disabled: false };
+}
+
+export async function reconcileRecentPublishedBlogPostCampaigns(hours = 36) {
+  const cutoff = new Date(Date.now() - Math.max(1, hours) * 60 * 60 * 1000).toISOString();
+  const posts = await supabaseRest<Array<{ id: string; title: string; slug: string; excerpt: string; published_at: string | null }>>(
+    `blog_posts?select=id,title,slug,excerpt,published_at&status=eq.published&published_at=gte.${encodeURIComponent(cutoff)}&order=published_at.asc&limit=100`,
+  );
+  let queued = 0;
+  for (const post of posts) {
+    const result = await queueNewPostCampaign({ id: post.id, title: post.title, slug: post.slug, excerpt: post.excerpt, publishedAt: post.published_at }, { deliverNow: false });
+    queued += result.queued;
+  }
+  const delivery = await deliverPendingBlogPostEmails(250);
+  return { checkedPosts: posts.length, queued, delivery, cutoff };
 }
