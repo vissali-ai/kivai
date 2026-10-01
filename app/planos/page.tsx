@@ -6,7 +6,11 @@ import { listStoredSiteContents } from "@/lib/site-cms/repository";
 import { sanitizePostHtml } from "@/lib/blog/sanitize";
 import { SITE_URL } from "@/lib/seo";
 import { cache } from "react";
-const getContent = cache(async () => (await listStoredSiteContents()).find(item => item.path === "/planos") ?? plansContent);
+import { connection } from "next/server";
+const getContent = cache(async () => {
+  await connection();
+  return (await listStoredSiteContents()).find(item => item.path === "/planos") ?? plansContent;
+});
 export async function generateMetadata(): Promise<Metadata> {
   const item = await getContent();
   return { title: { absolute: item.seoTitle || item.title }, description: item.seoDescription || item.shortDescription, alternates: { canonical: item.canonicalUrl || `${SITE_URL}/planos` }, robots: { index: item.status === "published" && item.indexable, follow: item.indexable } };

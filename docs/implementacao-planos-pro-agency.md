@@ -30,10 +30,15 @@ Os testes não enviam e-mails nem modificam clientes reais. O adaptador HTTP é 
 
 ## Publicação
 
-A migration `supabase/migrations/20260930234728_plan_access_and_saved_projects.sql` foi gerada pela CLI e validada localmente. **Ainda não foi aplicada ao Supabase de produção; o código também não foi publicado.** As consultas remotas foram somente leitura de schema, permissões e advisors.
+A migration `supabase/migrations/20260930234728_plan_access_and_saved_projects.sql` foi gerada pela CLI e validada localmente. **Aplicada ao Supabase de produção em 01/10/2026, após autorização do usuário.** As permissões de execução, isolamento dos projetos e os dois registros no CMS foram conferidos. O código foi integrado sobre a versão de produção `c97e5b7`, preservando os links atuais da InfinitePay, notificações de cadastro e ajustes do analisador.
 
 Planejar a migration e o deploy como uma entrega conjunta: o código novo depende das novas funções/tabela. A migration também registra as explicações públicas; evitar intervalo em que a oferta nova apareça sem o código correspondente. Não publicar isoladamente apenas o frontend.
 
 Antes do rollout, conferir contas legadas com plano pago somente no perfil, sem assinatura ativa correspondente. A nova regra não inventa pagamentos ou datas para esses registros: conceder validade explícita em Admin/Usuários quando aplicável. As funções legadas de checkout automatizado SumUp não foram redesenhadas neste pacote; a contratação pública atual usa solicitação e confirmação manual.
 
 Depois do rollout: executar a mesma sequência em contas de homologação, confirmar RLS e permissões no banco implantado, acompanhar o cron e a fila de e-mails e verificar `/planos`, `/servicos/planos-kivai` e suas entradas no Admin.
+
+
+### Ajuste de publicação
+
+A primeira tentativa no Vercel falhou ao tentar pré-renderizar `/planos` consultando o Supabase. A página agora usa `connection()` antes da leitura do CMS, inclusive nos metadados, para executar a consulta durante a requisição. Build local com configuração de produção deve passar antes da nova publicação; a entrega só está concluída após deployment READY e conferência das páginas e Admin no domínio.
