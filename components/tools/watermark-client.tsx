@@ -16,6 +16,7 @@ import { Download, ImagePlus, Move, Scaling, Type, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageToolPageShell } from "@/components/tools/image-tool-page-shell";
+import { SavedProjects } from "@/components/account/saved-projects";
 import { canvasBlob, downloadBlob, IMAGE_TYPES, loadImage } from "@/lib/image-tools/canvas";
 
 type WatermarkType = "text" | "logo";
@@ -40,6 +41,7 @@ export function WatermarkClient() {
   const logoUrl = useRef<string | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [logo, setLogo] = useState<HTMLImageElement | null>(null);
+  const [logoDataUrl, setLogoDataUrl] = useState("");
   const [text, setText] = useState("Sua marca");
   const [type, setType] = useState<WatermarkType>("text");
   const [opacity, setOpacity] = useState(65);
@@ -96,6 +98,11 @@ export function WatermarkClient() {
       if (logoUrl.current) URL.revokeObjectURL(logoUrl.current);
       logoUrl.current = nextLogo.src;
       setLogo(nextLogo);
+      if (file.size <= 200000) {
+        const reader = new FileReader();
+        reader.onload = () => setLogoDataUrl(typeof reader.result === "string" ? reader.result : "");
+        reader.readAsDataURL(file);
+      } else setLogoDataUrl("");
       setType("logo");
       setPlacement({ x: 0.5, y: 0.78, scale: 0.22 });
       setError("");
@@ -168,6 +175,21 @@ export function WatermarkClient() {
     const output = document.createElement("canvas");
     drawComposition(output, image, type, text, logo, opacity, placement);
     downloadBlob(await canvasBlob(output), "imagem-com-marca-dagua.png");
+  }
+
+  const project = { text, type, opacity, placement, logoDataUrl };
+  function loadProject(payload: unknown) {
+    const saved = payload as typeof project;
+    setText(saved.text); setOpacity(saved.opacity); setPlacement(saved.placement);
+    if (saved.logoDataUrl) {
+      const nextLogo = new Image();
+      nextLogo.onload = () => { setLogo(nextLogo); setLogoDataUrl(saved.logoDataUrl); setType(saved.type); };
+      nextLogo.onerror = () => setError("Não foi possível abrir o logo salvo.");
+      nextLogo.src = saved.logoDataUrl;
+    } else {
+      setLogo(null); setLogoDataUrl(""); setType(saved.type === "logo" ? "text" : saved.type);
+      if (saved.type === "logo") setError("Reenvie o logo para usar este modelo. Imagens principais não são salvas na conta.");
+    }
   }
 
   return (
@@ -258,6 +280,8 @@ export function WatermarkClient() {
           {error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}
         </CardContent>
       </Card>
+      <p className="mx-auto max-w-6xl text-sm text-muted-foreground">A imagem principal permanece neste dispositivo. Ao salvar na conta, somente texto, posição, opacidade e logos de até 200 KB são armazenados.</p>
+      <SavedProjects kind="watermark" payload={project} onLoad={loadProject} />
     </ImageToolPageShell>
   );
 }

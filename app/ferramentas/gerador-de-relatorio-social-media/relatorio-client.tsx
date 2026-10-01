@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Clipboard, Copy, Download, FileBarChart, FolderOpen, Plus, Printer, Save, Trash2 } from "lucide-react";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
+import { SavedProjects } from "@/components/account/saved-projects";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -169,7 +170,7 @@ export default function RelatorioSocialMediaClient() {
     finally { setExporting(false); }
   }
 
-  return <ToolPageShell title="Gerador de Relatório Social Media" description="Organize métricas, compare períodos e crie um relatório visual de desempenho para redes sociais." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Os dados deste relatório ficam salvos neste navegador enquanto você trabalha e não são enviados ao Kivai.">
+  return <ToolPageShell title="Gerador de Relatório Social Media" description="Organize métricas, compare períodos e crie um relatório visual de desempenho para redes sociais." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Os dados deste relatório ficam neste navegador enquanto você trabalha. Só são enviados à sua conta Kivai se escolher Salvar na conta.">
     <style>{`@media print { @page { size:A4; margin:12mm } body * { visibility:hidden !important } [data-print-report], [data-print-report] * { visibility:visible !important } [data-print-report] { position:absolute !important; inset:0 auto auto 0 !important; width:100% !important; border:0 !important; background:#fff !important; color:#111 !important; box-shadow:none !important } [data-print-report] * { color:#111 !important; border-color:#bbb !important } [data-print-hide], [data-ad-slot] { display:none !important } [data-print-section] { break-inside:avoid; page-break-inside:avoid } }`}</style>
     <div data-print-hide className="border border-border bg-card p-3 sm:p-4">
       <ol aria-label="Etapas do relatório" className="grid grid-cols-2 gap-2 sm:grid-cols-5">{steps.map((step, index) => <li key={step}><button type="button" onClick={() => setActiveStep(index)} aria-current={activeStep === index ? "step" : undefined} className={cn("flex min-h-12 w-full items-center gap-2 border px-3 text-left text-xs font-medium transition-colors", activeStep === index ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50")}><span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-current">{index + 1}</span>{step}</button></li>)}</ol>
@@ -188,6 +189,8 @@ export default function RelatorioSocialMediaClient() {
       <Button variant="ghost" onClick={resetReport}>Novo relatório</Button>
       {feedback && <p role="status" className="w-full text-sm text-primary">{feedback}</p>}
     </div>
+
+    <div data-print-hide><SavedProjects kind="social_report" payload={report} onLoad={(payload) => { if (isReport(payload)) { setReport(payload); setActiveStep(0); } }} /></div>
 
     {duplicateTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="presentation"><div role="dialog" aria-modal="true" aria-labelledby="duplicate-title" className="w-full max-w-lg border border-border bg-background p-6"><h2 id="duplicate-title" className="text-xl font-semibold">Como deseja duplicar?</h2><p className="mt-2 text-sm text-muted-foreground">Você pode preservar todos os dados ou copiar apenas a estrutura e identificação para um novo período.</p><div className="mt-6 grid gap-2"><Button onClick={() => duplicateReport(duplicateTarget, true)}>Duplicar estrutura e limpar métricas</Button><Button variant="outline" onClick={() => duplicateReport(duplicateTarget, false)}>Duplicar mantendo métricas</Button><Button variant="ghost" onClick={() => setDuplicateTarget(null)}>Cancelar</Button></div></div></div>}
   </ToolPageShell>;

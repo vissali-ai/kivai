@@ -296,6 +296,7 @@ export function useQrCode() {
 
   return {
     tipo,
+    setTipo,
     url,
     setUrl,
     texto,
@@ -331,6 +332,7 @@ export function useQrCode() {
     nivelCorrecao,
     setNivelCorrecao,
     modeloVisual,
+    setModeloVisual,
     chamada,
     setChamada,
     nomeMarca,

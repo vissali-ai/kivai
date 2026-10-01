@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
 const db = new PGlite();
 const migration = fs.readFileSync(new URL('../../supabase/migrations/20260930234728_plan_access_and_saved_projects.sql', import.meta.url), 'utf8');
-before(async () => { await db.exec(fs.readFileSync(new URL('./schema-fixture.sql', import.meta.url), 'utf8')); await db.exec(migration); });
+const expansion = fs.readFileSync(new URL('../../supabase/migrations/20261001090000_expand_saved_project_kinds.sql', import.meta.url), 'utf8');
+before(async () => { await db.exec(fs.readFileSync(new URL('./schema-fixture.sql', import.meta.url), 'utf8')); await db.exec(migration); await db.exec(expansion); });
 after(async () => db.close());
 async function user(profile = true) { const id = crypto.randomUUID(); await db.query('insert into auth.users values($1)',[id]); if(profile) await db.query('insert into user_profiles(user_id) values($1)',[id]); return id; }
 async function request(id,plan='pro',cycle='monthly') { const r = await db.query("insert into subscription_requests(user_id,customer_email,plan_code,billing_cycle,status) values($1,'test@example.invalid',$2,$3,'payment_reported') returning id",[id,plan,cycle]); return r.rows[0].id; }
@@ -49,6 +50,16 @@ test('Instagram database limit enforced independently of browser',async()=>{
 test('Plans and explanatory service registered in CMS',async()=>{
  assert.equal((await db.query("select * from site_contents where path='/planos' and status='published'")).rows.length,1);
  assert.equal((await db.query("select * from site_services where slug='planos-kivai'")).rows.length,1);
+ assert.match((await db.query("select content_html from site_contents where path='/planos'")).rows[0].content_html,/QR Codes/);
+});
+test('New paid project kinds share the existing plan quota and Agency client organization',async()=>{
+ const id=await user();
+ for(const kind of ['qr_code','watermark','social_report']) await assert.rejects(db.query("select kivai_save_project($1,null,$2,'Modelo','','{}',0)",[id,kind]),/Plano pago/);
+ await grant(id,'agency');
+ for(const kind of ['qr_code','watermark','social_report']) {
+  const saved=(await db.query("select kivai_save_project($1,null,$2,'Modelo','Cliente A','{}',0) project",[id,kind])).rows[0].project;
+  assert.equal(saved.kind,kind); assert.equal(saved.client_name,'Cliente A');
+ }
 });
 test('Expired trials and manual courtesies have no access before cron runs',async()=>{
  for(const provider of ['admin_test','admin_grace']) {

@@ -27,9 +27,20 @@ import {
 import { TIPOS, NIVEIS_CORRECAO, MODELOS_QR_CODE } from "./qr-config";
 import { useQrCode } from "./use-qr-code";
 import { QrContentFields } from "./qr-content-fields";
+import { SavedProjects } from "@/components/account/saved-projects";
 
 export default function GeradorDeQrCodeClient() {
   const qr = useQrCode();
+  const project = { tipo: qr.tipo, url: qr.url, texto: qr.texto, whatsappNumero: qr.whatsappNumero, whatsappMensagem: qr.whatsappMensagem, telefone: qr.telefone, emailDestino: qr.emailDestino, emailAssunto: qr.emailAssunto, emailMensagem: qr.emailMensagem, wifiNome: qr.wifiNome, wifiSenha: qr.wifiSenha, wifiSeguranca: qr.wifiSeguranca, wifiOculta: qr.wifiOculta, corQr: qr.corQr, corFundo: qr.corFundo, tamanho: qr.tamanho, margem: qr.margem, nivelCorrecao: qr.nivelCorrecao, modeloVisual: qr.modeloVisual, chamada: qr.chamada, nomeMarca: qr.nomeMarca, logoDataUrl: qr.logoDataUrl.length <= 300000 ? qr.logoDataUrl : "" };
+  function loadProject(payload: unknown) {
+    const saved = payload as typeof project;
+    qr.setTipo(saved.tipo); qr.setUrl(saved.url); qr.setTexto(saved.texto);
+    qr.setWhatsappNumero(saved.whatsappNumero); qr.setWhatsappMensagem(saved.whatsappMensagem); qr.setTelefone(saved.telefone);
+    qr.setEmailDestino(saved.emailDestino); qr.setEmailAssunto(saved.emailAssunto); qr.setEmailMensagem(saved.emailMensagem);
+    qr.setWifiNome(saved.wifiNome); qr.setWifiSenha(saved.wifiSenha); qr.setWifiSeguranca(saved.wifiSeguranca); qr.setWifiOculta(saved.wifiOculta);
+    qr.setCorQr(saved.corQr); qr.setCorFundo(saved.corFundo); qr.setTamanho(saved.tamanho); qr.setMargem(saved.margem); qr.setNivelCorrecao(saved.nivelCorrecao); qr.setModeloVisual(saved.modeloVisual);
+    qr.setChamada(saved.chamada); qr.setNomeMarca(saved.nomeMarca); qr.setLogoDataUrl(saved.logoDataUrl);
+  }
   const {
     tipo,
     corQr,
@@ -109,7 +120,7 @@ export default function GeradorDeQrCodeClient() {
           </CardHeader>
 
           <CardContent>
-            <div className="mb-5"><ToolPrivacyNotice message="O QR Code é gerado no navegador. O conteúdo informado não é enviado ao Kivai." /></div>
+            <div className="mb-5"><ToolPrivacyNotice message="O QR Code é gerado no navegador. Se você escolher Salvar na conta, o conteúdo e as configurações, inclusive eventual senha Wi-Fi, serão enviados à sua conta Kivai. Logos grandes precisam ser reenviados ao abrir o projeto." /></div>
             <div>
               <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Tipo de QR Code
@@ -553,6 +564,7 @@ export default function GeradorDeQrCodeClient() {
           </CardContent>
         </Card>
 
+        <SavedProjects kind="qr_code" payload={project} onLoad={loadProject} />
         <div className="mx-auto mt-8 max-w-4xl">
           <AdSlot variant="banner" />
         </div>
