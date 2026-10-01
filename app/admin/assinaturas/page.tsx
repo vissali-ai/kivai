@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { confirmSubscriptionPayment, rejectSubscriptionPayment } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 type RequestRow = {
   id: string;
   user_id: string;
@@ -16,6 +18,19 @@ type RequestRow = {
   confirmed_at: string | null;
   created_at: string;
 };
+type CapacityMetrics = { databaseBytes: number; storageBytes: number; snapshotStorageBytes: number; projectCount: number; projectPayloadBytes: number; snapshotCount: number; activeSubscribers: number };
+
+const FREE_DATABASE_BYTES = 500 * 1024 * 1024;
+const FREE_STORAGE_BYTES = 1024 * 1024 * 1024;
+function formatBytes(value: number) { return `${(value / 1024 / 1024).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} MB`; }
+async function listPendingRequests() {
+  const all: RequestRow[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const page = await supabaseRest<RequestRow[]>(`subscription_requests?select=id,user_id,customer_email,customer_name,plan_code,billing_cycle,amount_brl,status,payment_reported_at,confirmed_at,created_at&status=in.(awaiting_payment,payment_reported)&order=created_at.desc&limit=1000&offset=${offset}`);
+    all.push(...page);
+    if (page.length < 1000) return all;
+  }
+}
 
 const statusLabel: Record<RequestRow["status"], string> = {
   awaiting_payment: "Aguardando pagamento",
@@ -26,11 +41,15 @@ const statusLabel: Record<RequestRow["status"], string> = {
 };
 
 export default async function AdminSubscriptionsPage() {
-  const requests = await supabaseRest<RequestRow[]>("subscription_requests?select=id,user_id,customer_email,customer_name,plan_code,billing_cycle,amount_brl,status,payment_reported_at,confirmed_at,created_at&order=created_at.desc&limit=100");
+  const [recent, allPending, communications, capacity] = await Promise.all([
+    supabaseRest<RequestRow[]>("subscription_requests?select=id,user_id,customer_email,customer_name,plan_code,billing_cycle,amount_brl,status,payment_reported_at,confirmed_at,created_at&order=created_at.desc&limit=100"),
+    listPendingRequests(),
+    supabaseRest<Array<{ status: string; metadata: { request_id?: string } }>>("customer_communications?select=status,metadata&metadata->>kind=eq.subscription_activation&order=created_at.desc&limit=200"),
+    supabaseRest<CapacityMetrics>("rpc/kivai_admin_capacity_metrics", { method: "POST", body: "{}" }),
+  ]);
+  const requests = [...new Map([...allPending, ...recent].map((item) => [item.id, item])).values()].sort((a, b) => b.created_at.localeCompare(a.created_at));
   const pending = requests.filter((item) => ["awaiting_payment", "payment_reported"].includes(item.status));
   const reported = requests.filter((item) => item.status === "payment_reported").length;
-  const active = requests.filter((item) => item.status === "active").length;
-  const communications = await supabaseRest<Array<{ status: string; metadata: { request_id?: string } }>>("customer_communications?select=status,metadata&metadata->>kind=eq.subscription_activation&order=created_at.desc&limit=200");
   const delivery = new Map(communications.map(item => [item.metadata?.request_id, item.status]));
 
   return (
@@ -44,7 +63,18 @@ export default async function AdminSubscriptionsPage() {
       <section className="grid gap-3 sm:grid-cols-3">
         <div className="border border-white/10 bg-card p-4"><p className="text-xs text-muted-foreground">Pendentes</p><p className="mt-2 text-2xl font-semibold">{pending.length}</p></div>
         <div className="border border-primary/20 bg-primary/[0.04] p-4"><p className="text-xs text-muted-foreground">Cliente informou pagamento</p><p className="mt-2 text-2xl font-semibold text-primary">{reported}</p></div>
-        <div className="border border-white/10 bg-card p-4"><p className="text-xs text-muted-foreground">Ativações confirmadas</p><p className="mt-2 text-2xl font-semibold">{active}</p></div>
+        <div className="border border-white/10 bg-card p-4"><p className="text-xs text-muted-foreground">Assinantes ativos</p><p className="mt-2 text-2xl font-semibold">{capacity.activeSubscribers}</p></div>
+      </section>
+
+      <section className="space-y-3 border border-white/10 bg-card p-5" aria-label="Capacidade de armazenamento">
+        <div><h2 className="text-lg font-semibold">Capacidade de armazenamento</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Medição atual do banco e dos arquivos no Supabase. Referência do plano Free: 500 MB de banco e 1 GB de arquivos. Confira o plano contratado no Supabase antes de usar esses limites como alerta.</p></div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="border border-white/10 p-3"><p className="text-xs text-muted-foreground">Banco de dados</p><p className="mt-1 text-xl font-semibold">{formatBytes(capacity.databaseBytes)}</p><p className="text-xs text-muted-foreground">{Math.round(capacity.databaseBytes / FREE_DATABASE_BYTES * 100)}% da referência Free</p></div>
+          <div className="border border-white/10 p-3"><p className="text-xs text-muted-foreground">Arquivos armazenados</p><p className="mt-1 text-xl font-semibold">{formatBytes(capacity.storageBytes)}</p><p className="text-xs text-muted-foreground">{Math.round(capacity.storageBytes / FREE_STORAGE_BYTES * 100)}% da referência Free</p></div>
+          <div className="border border-white/10 p-3"><p className="text-xs text-muted-foreground">Projetos pagos</p><p className="mt-1 text-xl font-semibold">{capacity.projectCount}</p><p className="text-xs text-muted-foreground">{formatBytes(capacity.projectPayloadBytes)} em conteúdo salvo</p></div>
+          <div className="border border-white/10 p-3"><p className="text-xs text-muted-foreground">Históricos do Instagram</p><p className="mt-1 text-xl font-semibold">{capacity.snapshotCount}</p><p className="text-xs text-muted-foreground">{formatBytes(capacity.snapshotStorageBytes)} em arquivos privados</p></div>
+        </div>
+        {capacity.databaseBytes >= FREE_DATABASE_BYTES * 0.7 || capacity.storageBytes >= FREE_STORAGE_BYTES * 0.7 ? <p role="status" className="text-sm text-amber-300">Uso acima de 70% de uma cota gratuita de referência. Confira o consumo e planeje a ampliação antes de atingir o limite.</p> : null}
       </section>
 
       <section className="space-y-3">

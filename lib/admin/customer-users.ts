@@ -21,33 +21,51 @@ async function authAdminFetch(path: string, init: RequestInit = {}) {
   return response;
 }
 
+async function listAuthUsers(): Promise<AuthUser[]> {
+  const users: AuthUser[] = [];
+  for (let page = 1; ; page += 1) {
+    const response = await authAdminFetch(`users?page=${page}&per_page=1000`);
+    const batch = ((await response.json()) as AuthUsersResponse).users ?? [];
+    users.push(...batch);
+    if (batch.length < 1000) return users;
+  }
+}
+
+async function listAllRows<T>(path: string): Promise<T[]> {
+  const rows: T[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const batch = await supabaseRest<T[]>(`${path}&limit=1000&offset=${offset}`);
+    rows.push(...batch);
+    if (batch.length < 1000) return rows;
+  }
+}
+
+function hasCurrentAccess(row: SubscriptionRow, now: number) {
+  return row.status === "active" && Date.parse(row.current_period_start ?? "") <= now && Date.parse(row.current_period_end ?? "") > now;
+}
+
 export async function listAdminCustomers(): Promise<AdminCustomer[]> {
-  const auth = await authAdminFetch("users?page=1&per_page=1000");
-  const authData = await auth.json() as AuthUsersResponse;
-  const users = authData.users ?? [];
-  const [profiles, subscriptions] = await Promise.all([
-    supabaseRest<ProfileRow[]>("user_profiles?select=user_id,full_name,phone,plan_code,lifecycle_stage,customer_score,marketing_tags,contracted_services,admin_notes"),
-    supabaseRest<SubscriptionRow[]>("user_subscriptions?select=user_id,plan_code,status,billing_cycle,current_period_start,current_period_end,test_access&order=updated_at.desc,created_at.desc,id.desc"),
+  const [users, profiles, subscriptions] = await Promise.all([
+    listAuthUsers(),
+    listAllRows<ProfileRow>("user_profiles?select=user_id,full_name,phone,plan_code,lifecycle_stage,customer_score,marketing_tags,contracted_services,admin_notes&order=user_id.asc"),
+    listAllRows<SubscriptionRow>("user_subscriptions?select=user_id,plan_code,status,billing_cycle,current_period_start,current_period_end,test_access&order=updated_at.desc,created_at.desc,id.desc"),
   ]);
   const profileMap = new Map(profiles.map((row) => [row.user_id, row]));
   const subscriptionMap = new Map<string, SubscriptionRow>();
-  for (const row of subscriptions) if (!subscriptionMap.has(row.user_id)) subscriptionMap.set(row.user_id, row);
+  const now = Date.now();
+  for (const row of subscriptions) {
+    const current = subscriptionMap.get(row.user_id);
+    if (!current || (!hasCurrentAccess(current, now) && hasCurrentAccess(row, now))) subscriptionMap.set(row.user_id, row);
+  }
   return users.map((user) => {
     const profile = profileMap.get(user.id); const subscription = subscriptionMap.get(user.id);
     const providers = user.app_metadata?.providers ?? (user.app_metadata?.provider ? [user.app_metadata.provider] : []);
-    return { id: user.id, email: user.email ?? "", createdAt: user.created_at, lastSignInAt: user.last_sign_in_at ?? null, fullName: profile?.full_name ?? null, phone: profile?.phone ?? null, planCode: subscription?.status === "active" && Date.parse(subscription.current_period_end ?? "") > Date.now() && Date.parse(subscription.current_period_start ?? "") <= Date.now() ? subscription.plan_code : "free", lifecycleStage: profile?.lifecycle_stage ?? "free", customerScore: profile?.customer_score ?? 0, marketingTags: profile?.marketing_tags ?? [], subscriptionStatus: subscription?.status ?? null, billingCycle: subscription?.billing_cycle ?? null, periodEnd: subscription?.current_period_end ?? null, testAccess: Boolean(subscription?.test_access), authProvider: providers.includes("email") ? "email" : providers[0] ?? "unknown", contractedServices: profile?.contracted_services ?? [], adminNotes: profile?.admin_notes ?? null };
+    return { id: user.id, email: user.email ?? "", createdAt: user.created_at, lastSignInAt: user.last_sign_in_at ?? null, fullName: profile?.full_name ?? null, phone: profile?.phone ?? null, planCode: subscription && hasCurrentAccess(subscription, now) ? subscription.plan_code : "free", lifecycleStage: profile?.lifecycle_stage ?? "free", customerScore: profile?.customer_score ?? 0, marketingTags: profile?.marketing_tags ?? [], subscriptionStatus: subscription?.status ?? null, billingCycle: subscription?.billing_cycle ?? null, periodEnd: subscription?.current_period_end ?? null, testAccess: Boolean(subscription?.test_access), authProvider: providers.includes("email") ? "email" : providers[0] ?? "unknown", contractedServices: profile?.contracted_services ?? [], adminNotes: profile?.admin_notes ?? null };
   });
 }
 
 export async function listRegisteredEmailUsers() {
-  const users: AuthUser[] = [];
-  for (let page = 1; ; page += 1) {
-    const auth = await authAdminFetch(`users?page=${page}&per_page=1000`);
-    const authData = await auth.json() as AuthUsersResponse;
-    const batch = authData.users ?? [];
-    users.push(...batch);
-    if (batch.length < 1000) break;
-  }
+  const users = await listAuthUsers();
   return users
     .filter((user) => Boolean(user.email?.trim()))
     .map((user) => ({ id: user.id, email: user.email!.trim().toLowerCase() }));
@@ -56,8 +74,8 @@ export async function listRegisteredEmailUsers() {
 export async function listNewsletterRecipients() {
   const [users, profiles, preferences] = await Promise.all([
     listRegisteredEmailUsers(),
-    supabaseRest<Array<{ user_id: string; full_name: string | null }>>("user_profiles?select=user_id,full_name"),
-    supabaseRest<Array<{ user_id: string; marketing_opt_out: boolean }>>("customer_email_preferences?select=user_id,marketing_opt_out"),
+    listAllRows<{ user_id: string; full_name: string | null }>("user_profiles?select=user_id,full_name&order=user_id.asc"),
+    listAllRows<{ user_id: string; marketing_opt_out: boolean }>("customer_email_preferences?select=user_id,marketing_opt_out&order=user_id.asc"),
   ]);
   const profileMap = new Map(profiles.map((row) => [row.user_id, row]));
   const preferenceMap = new Map(preferences.map((row) => [row.user_id, row.marketing_opt_out]));

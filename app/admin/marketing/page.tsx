@@ -10,16 +10,18 @@ import { listOnboardingTemplates } from "@/lib/marketing/onboarding-templates";
 
 export const dynamic = "force-dynamic";
 
+async function currentTimestamp() { return Date.now(); }
+
 export default async function MarketingPage() {
   const [users, newsletterRecipients, templates, onboardingTemplates, reminders] = await Promise.all([
     listAdminCustomers(), listNewsletterRecipients(), listCustomerMarketingTemplates(), listOnboardingTemplates(), supabaseRest<Array<{ note: string }>>("admin_marketing_reminders?select=note&id=eq.1&limit=1"),
   ]);
-  const now = Date.now();
+  const now = await currentTimestamp();
   const counts = {
     free: users.filter((u) => u.planCode === "free" && u.subscriptionStatus !== "past_due").length,
-    active: users.filter((u) => u.subscriptionStatus === "active").length,
-    expiring: users.filter((u) => { const end = u.periodEnd ? new Date(u.periodEnd).getTime() : null; const days = end ? Math.ceil((end - now) / 86400000) : null; return u.subscriptionStatus === "active" && days !== null && days <= 7 && days >= 0; }).length,
-    expired: users.filter((u) => u.subscriptionStatus === "past_due").length,
+    active: users.filter((u) => u.planCode !== "free").length,
+    expiring: users.filter((u) => { const end = u.periodEnd ? new Date(u.periodEnd).getTime() : null; const days = end ? Math.ceil((end - now) / 86400000) : null; return u.planCode !== "free" && days !== null && days <= 7 && days >= 0; }).length,
+    expired: users.filter((u) => u.subscriptionStatus === "past_due" || (u.subscriptionStatus === "active" && u.periodEnd && new Date(u.periodEnd).getTime() <= now)).length,
   };
 
   return <div className="space-y-6">

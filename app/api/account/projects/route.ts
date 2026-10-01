@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try {
     const user = await authenticateBillingUser(request);
     const raw = await request.text();
-    if (new TextEncoder().encode(raw).byteLength > 524288) return Response.json({ error: "O projeto excede 512 KB. Divida o calendário em projetos menores." }, { status: 413 });
+    if (new TextEncoder().encode(raw).byteLength > 524288) return Response.json({ error: "O projeto excede 512 KB. Reduza o conteúdo ou salve sem imagens grandes." }, { status: 413 });
     let json: unknown; try { json = JSON.parse(raw); } catch { return Response.json({ error: "Projeto inválido." }, { status: 400 }); }
     const parsed = projectInput.safeParse(json);
     if (!parsed.success) return Response.json({ error: "Revise o nome e os dados do projeto." }, { status: 400 });
