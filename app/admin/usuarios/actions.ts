@@ -4,16 +4,66 @@ import { revalidatePath } from "next/cache";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
-import { deleteAuthCustomer } from "@/lib/admin/customer-users";
+import { deleteAuthCustomer, listAdminCustomers } from "@/lib/admin/customer-users";
 import { isCustomerMarketingFlowKey } from "@/lib/marketing/customer-flows";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
+import { getOnboardingTemplate } from "@/lib/marketing/onboarding-templates";
 
 function addDays(date: Date, days: number) { const copy = new Date(date); copy.setUTCDate(copy.getUTCDate() + days); return copy; }
 
 export async function grantProTest(formData: FormData) {
   await assertAdminApi();
-  await supabaseRest("rpc/kivai_set_access", { method: "POST", body: JSON.stringify({ p_user_id: String(formData.get("userId") ?? ""), p_plan: "pro", p_until: addDays(new Date(), 7).toISOString(), p_source: "admin_test" }) });
-  revalidatePath("/admin/usuarios"); revalidatePath("/conta");
+  const userId = String(formData.get("userId") ?? "");
+  if (!userId) throw new Error("Usuário inválido.");
+  const accessUntil = addDays(new Date(), 7);
+  await supabaseRest("rpc/kivai_set_access", { method: "POST", body: JSON.stringify({ p_user_id: userId, p_plan: "pro", p_until: accessUntil.toISOString(), p_source: "admin_test" }) });
+
+  const [template, customers] = await Promise.all([
+    getOnboardingTemplate("pro_test_welcome"),
+    listAdminCustomers(),
+  ]);
+  const customer = customers.find((item) => item.id === userId);
+  if (template?.enabled && customer?.email) {
+    const communication = await supabaseRest<Array<{ id: string }>>("customer_communications", {
+      method: "POST",
+      body: JSON.stringify({
+        user_id: userId,
+        event_key: `pro_test_welcome_${userId}_${accessUntil.toISOString()}`,
+        channel: "email",
+        status: "ready",
+        subject: template.subject,
+        message: template.message,
+        cta_label: template.cta_label,
+        cta_url: template.cta_url,
+        scheduled_for: new Date().toISOString(),
+        metadata: {
+          source: "admin_test_access",
+          kind: "pro_test_welcome",
+          transactional: true,
+          layout: "kivai_campaign",
+          recipient_email: customer.email,
+          secondary_cta_label: template.secondary_cta_label ?? "",
+          secondary_cta_url: template.secondary_cta_url ?? "",
+          access_until: accessUntil.toISOString(),
+          template_version: template.updated_at,
+        },
+      }),
+    });
+    if (communication[0]) {
+      const delivery = await deliverCustomerEmail(communication[0].id);
+      await supabaseRest("customer_marketing_events", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          event_type: "pro_test_access_granted",
+          description: "Acesso de teste ao Plano Pro liberado e comunicação automática processada por e-mail.",
+          metadata: { access_until: accessUntil.toISOString(), email_delivery_status: delivery.status },
+        }),
+      });
+    }
+  }
+
+  revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing"); revalidatePath("/conta"); revalidatePath("/conta/pro");
 }
 export async function grantGracePeriod(formData: FormData) {
   await assertAdminApi();
