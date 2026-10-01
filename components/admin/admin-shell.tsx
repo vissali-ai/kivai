@@ -20,13 +20,14 @@ const navigation = [
     { href: "/admin/usuarios", label: "Usuários e assinaturas", icon: UsersRound },
     { href: "/admin/marketing", label: "Disparos", icon: Megaphone },
     { href: "/admin/marketing/email-marketing", label: "Envio manual", icon: MailPlus },
+    { href: "/admin/fluxos-automaticos", label: "Criar fluxos automáticos", icon: Repeat2 },
     { href: "/admin/marketing/fila", label: "Fila de comunicações", icon: Repeat2 },
     { href: "https://trafego.kivai.com.br", label: "LP Tráfego Pago", icon: Megaphone, external: true },
   ]},
   { label: "Sistema", links: [{ href: "/admin/blog/manutencao", label: "Manutenção", icon: Wrench }] },
 ];
 
-const originPanels = new Set(["/admin/blog", "/admin/blog/midias", "/admin/blog/categorias", "/admin/blog/agente", "/admin/site", "/admin/usuarios", "/admin/marketing", "/admin/marketing/email-marketing", "/admin/marketing/fila", "/admin/blog/manutencao"]);
+const originPanels = new Set(["/admin/blog", "/admin/blog/midias", "/admin/blog/categorias", "/admin/blog/agente", "/admin/site", "/admin/usuarios", "/admin/marketing", "/admin/marketing/email-marketing", "/admin/marketing/fila", "/admin/fluxos-automaticos", "/admin/blog/manutencao"]);
 
 function isAdminSaveRequest(input: RequestInfo | URL, init?: RequestInit) {
   const method = String(init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
