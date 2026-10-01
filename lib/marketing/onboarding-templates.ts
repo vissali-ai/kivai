@@ -2,7 +2,7 @@ import "server-only";
 
 import { supabaseRest } from "@/lib/blog/supabase";
 
-export type OnboardingTemplateKey = "account_welcome" | "free_welcome" | "pro_welcome" | "agency_welcome";
+export type OnboardingTemplateKey = "account_welcome" | "free_welcome" | "pro_welcome" | "agency_welcome" | "pro_test_welcome";
 
 export type OnboardingTemplate = {
   template_key: OnboardingTemplateKey;
@@ -18,7 +18,7 @@ export type OnboardingTemplate = {
   updated_at: string;
 };
 
-export const onboardingTemplateKeys: OnboardingTemplateKey[] = ["account_welcome", "free_welcome", "pro_welcome", "agency_welcome"];
+export const onboardingTemplateKeys: OnboardingTemplateKey[] = ["account_welcome", "free_welcome", "pro_welcome", "agency_welcome", "pro_test_welcome"];
 const SELECT = "template_key,title,subject,description,message,cta_label,cta_url,secondary_cta_label,secondary_cta_url,enabled,updated_at";
 
 export async function listOnboardingTemplates() {
