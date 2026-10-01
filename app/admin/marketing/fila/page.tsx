@@ -19,6 +19,7 @@ type Communication = {
   sent_at: string | null;
   error: string | null;
   created_at: string;
+  metadata: Record<string, unknown> | null;
 };
 
 function formatDate(value: string | null) {
@@ -30,7 +31,7 @@ export default async function CommunicationQueuePage() {
   const [users, communications] = await Promise.all([
     listAdminCustomers(),
     supabaseRest<Communication[]>(
-      "customer_communications?select=id,user_id,event_key,channel,status,subject,message,scheduled_for,sent_at,error,created_at&order=created_at.desc&limit=200",
+      "customer_communications?select=id,user_id,event_key,channel,status,subject,message,scheduled_for,sent_at,error,created_at,metadata&order=created_at.desc&limit=200",
     ),
   ]);
   const userMap = new Map(users.map((user) => [user.id, user]));
@@ -52,11 +53,13 @@ export default async function CommunicationQueuePage() {
           {communications.map((item) => {
             const user = userMap.get(item.user_id);
             const canRetry = item.channel === "email" && (item.status === "ready" || item.status === "failed");
+            const flowKey = typeof item.metadata?.flow_key === "string" ? item.metadata.flow_key : "";
+            const flowLabel = flowKey === "new_post" ? "News · Blog" : flowKey === "blog_digest" ? "News · Resumo do blog" : flowKey === "new_tool" ? "News · Nova ferramenta" : "";
             return (
               <article key={item.id} className="grid gap-4 py-5 lg:grid-cols-[180px_minmax(0,1fr)_220px]">
                 <div className="text-xs text-muted-foreground">
                   <p className="font-semibold text-foreground">{user?.email || item.user_id}</p>
-                  <p className="mt-1">{item.channel === "email" ? "E-mail" : item.channel === "whatsapp" ? "WhatsApp" : "Painel"}</p>
+                  <p className="mt-1">{item.channel === "email" ? "E-mail" : item.channel === "whatsapp" ? "WhatsApp" : "Painel"}</p>{flowLabel ? <p className="mt-2 inline-flex border border-primary/20 bg-primary/[0.05] px-2 py-1 text-[10px] font-semibold text-primary">{flowLabel}</p> : null}
                   <p className="mt-2">Criado em {formatDate(item.created_at)}</p>
                 </div>
                 <div>
