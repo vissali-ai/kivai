@@ -1,7 +1,7 @@
 "use server";
 
 import sanitizeHtml from "sanitize-html";
-import { listAdminCustomers } from "@/lib/admin/customer-users";
+import { listMarketingAudienceUsers, matchesMarketingAudience, type MarketingAudience } from "@/lib/admin/customer-users";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
@@ -41,19 +41,10 @@ function hasCampaignContent(html: string) {
   return Boolean(text || /<img\b/i.test(html) || /<hr\b/i.test(html));
 }
 
-function matchesAudience(user: Awaited<ReturnType<typeof listAdminCustomers>>[number], audience: string) {
-  if (audience === "free") return user.planCode === "free";
-  if (audience === "pro") return user.planCode === "pro";
-  if (audience === "agency") return user.planCode === "agency";
-  if (audience === "active") return user.subscriptionStatus === "active";
-  if (audience === "trial") return user.testAccess || user.lifecycleStage === "trial";
-  return true;
-}
-
 function readCampaignFields(formData: FormData) {
   return {
     campaignName: clean(formData.get("campaignName"), 120),
-    audience: clean(formData.get("audience"), 30) || "all",
+    audience: (clean(formData.get("audience"), 30) || "all") as MarketingAudience,
     subject: clean(formData.get("subject"), 180),
     preheader: clean(formData.get("preheader"), 220),
     eyebrow: clean(formData.get("eyebrow"), 80),
@@ -117,7 +108,7 @@ export async function sendCustomEmailCampaign(_previous: CampaignActionState, fo
   const confirmed = formData.get("confirmSend") === "on";
   if (!confirmed) return { ok: false, message: "Confirme explicitamente o envio antes de disparar a campanha." };
 
-  const users = (await listAdminCustomers()).filter((user) => user.email && matchesAudience(user, fields.audience));
+  const users = (await listMarketingAudienceUsers()).filter((user) => matchesMarketingAudience(user, fields.audience));
   if (!users.length) return { ok: false, message: "Nenhum usuário foi encontrado para este público." };
   if (users.length > MAX_RECIPIENTS_PER_SEND) {
     return { ok: false, message: `Este disparo possui ${users.length} destinatários. O limite seguro atual é ${MAX_RECIPIENTS_PER_SEND} por envio. Segmente a campanha antes de continuar.` };
