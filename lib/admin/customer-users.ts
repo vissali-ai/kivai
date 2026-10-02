@@ -10,6 +10,32 @@ export type AdminCustomer = {
   authProvider: string; contractedServices: string[]; adminNotes: string | null;
 };
 
+export type MarketingAudience = "all" | "free" | "trial" | "pro" | "agency";
+
+export function isActiveMarketingTrial(user: AdminCustomer, now = Date.now()) {
+  return Boolean(user.testAccess && user.subscriptionStatus === "active" && user.periodEnd && Date.parse(user.periodEnd) > now);
+}
+
+export function matchesMarketingAudience(user: AdminCustomer, audience: MarketingAudience, now = Date.now()) {
+  const trial = isActiveMarketingTrial(user, now);
+  if (audience === "trial") return trial;
+  if (audience === "pro") return !trial && user.planCode === "pro";
+  if (audience === "agency") return !trial && user.planCode === "agency";
+  if (audience === "free") return !trial && user.planCode === "free";
+  return true;
+}
+
+export function getMarketingAudienceCounts(users: AdminCustomer[]) {
+  const now = Date.now();
+  return {
+    all: users.length,
+    free: users.filter((user) => matchesMarketingAudience(user, "free", now)).length,
+    trial: users.filter((user) => matchesMarketingAudience(user, "trial", now)).length,
+    pro: users.filter((user) => matchesMarketingAudience(user, "pro", now)).length,
+    agency: users.filter((user) => matchesMarketingAudience(user, "agency", now)).length,
+  };
+}
+
 type AuthUser = { id: string; email?: string; created_at: string; last_sign_in_at?: string | null; app_metadata?: { provider?: string; providers?: string[] } };
 type AuthUsersResponse = { users?: AuthUser[] };
 type ProfileRow = { user_id: string; full_name: string | null; phone: string | null; plan_code: "free" | "pro" | "agency"; lifecycle_stage: string; customer_score: number; marketing_tags: string[] | null; contracted_services: string[] | null; admin_notes: string | null };
@@ -86,6 +112,12 @@ export async function listNewsletterRecipients() {
       marketingOptOut: preferenceMap.get(user.id) ?? false,
     }))
     .filter((user) => !user.marketingOptOut);
+}
+
+export async function listMarketingAudienceUsers() {
+  const [customers, recipients] = await Promise.all([listAdminCustomers(), listNewsletterRecipients()]);
+  const eligibleIds = new Set(recipients.map((recipient) => recipient.id));
+  return customers.filter((user) => Boolean(user.email) && eligibleIds.has(user.id));
 }
 
 export async function deleteAuthCustomer(userId: string) { await authAdminFetch(`users/${encodeURIComponent(userId)}`, { method: "DELETE" }); }
