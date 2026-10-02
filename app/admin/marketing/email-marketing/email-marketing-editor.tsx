@@ -5,7 +5,7 @@ import { MailCheck, Monitor, RotateCcw, Save, Send, Smartphone } from "lucide-re
 import { EmailRichTextEditor } from "./email-rich-text-editor";
 import { sendCustomEmailCampaign, sendCustomEmailTest, type CampaignActionState } from "./actions";
 
-type Counts = { all: number; free: number; pro: number; agency: number; active: number; trial: number };
+type Counts = { all: number; free: number; trial: number; pro: number; agency: number };
 type Draft = {
   campaignName: string;
   audience: string;
@@ -96,7 +96,7 @@ export function EmailMarketingEditor({ counts }: { counts: Counts }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-1.5 text-xs font-semibold">Nome interno da campanha<input name="campaignName" required value={draft.campaignName} onChange={(e) => field("campaignName", e.target.value)} placeholder="Ex.: Lançamento de nova ferramenta" className="h-10 border border-white/10 bg-background px-3 text-sm font-normal" /></label>
-        <label className="grid gap-1.5 text-xs font-semibold">Público<select name="audience" value={draft.audience} onChange={(e) => field("audience", e.target.value)} className="h-10 border border-white/10 bg-background px-3 text-sm font-normal"><option value="all">Todos os cadastros ({counts.all})</option><option value="free">Plano Grátis ({counts.free})</option><option value="pro">Plano Pro ({counts.pro})</option><option value="agency">Plano Agency ({counts.agency})</option><option value="active">Assinantes ativos ({counts.active})</option><option value="trial">Teste/cortesia ({counts.trial})</option></select></label>
+        <label className="grid gap-1.5 text-xs font-semibold">Público<select name="audience" value={draft.audience} onChange={(e) => field("audience", e.target.value)} className="h-10 border border-white/10 bg-background px-3 text-sm font-normal"><option value="all">Todos os destinatários ({counts.all})</option><option value="free">Plano Grátis ({counts.free})</option><option value="trial">Teste/cortesia ativos ({counts.trial})</option><option value="pro">Plano Pro ativo ({counts.pro})</option><option value="agency">Plano Agency ativo ({counts.agency})</option></select><span className="font-normal leading-5 text-muted-foreground">Os grupos são exclusivos: cada destinatário aparece em apenas uma categoria.</span></label>
       </div>
 
       <label className="grid gap-1.5 text-xs font-semibold">Assunto do e-mail<input name="subject" required maxLength={180} value={draft.subject} onChange={(e) => field("subject", e.target.value)} placeholder="O texto que aparecerá na caixa de entrada" className="h-10 border border-white/10 bg-background px-3 text-sm font-normal" /></label>
