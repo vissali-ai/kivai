@@ -33,15 +33,51 @@ function headerValue(headers: Record<string, string> | undefined, name: string) 
   return entry?.[1]?.trim() ?? "";
 }
 
-async function storeReceivedEmail(emailId: string, fallback: { created_at?: string; from?: string; to?: string[]; subject?: string; message_id?: string }) {
-  const apiKey = process.env.RESEND_API_KEY ?? "";
-  if (!apiKey) return;
+async function storeReceivedEmail(emailId: string, fallback: { created_at?: string; from?: string; to?: string[]; subject?: string; message_id?: string; attachments?: Array<Record<string, unknown>> }) {
+  const sender = parseAddress(fallback.from || "");
+  if (!sender.email) return;
+
+  const users = await listAdminCustomers().catch(() => []);
+  const user = users.find((item) => item.email.trim().toLowerCase() === sender.email);
+
+  // Persist the webhook payload first so a received email always appears in the admin inbox,
+  // even if the follow-up API request for the full body is unavailable.
+  await supabaseRest("customer_inbox_messages?on_conflict=resend_email_id", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({
+      resend_email_id: emailId,
+      user_id: user?.id ?? null,
+      communication_id: null,
+      from_email: sender.email,
+      from_name: sender.name,
+      to_emails: fallback.to ?? [],
+      subject: fallback.subject ?? "",
+      text_body: "",
+      html_body: "",
+      message_id: fallback.message_id ?? null,
+      in_reply_to: null,
+      references_header: null,
+      attachments: fallback.attachments ?? [],
+      received_at: fallback.created_at ?? new Date().toISOString(),
+      is_read: false,
+    }),
+  });
+
+  const apiKey = process.env.RESEND_INBOUND_API_KEY || process.env.RESEND_API_KEY || "";
+  if (!apiKey) {
+    console.warn("[resend webhook] Received email stored without body: API key unavailable.", { emailId });
+    return;
+  }
 
   const response = await fetch(`https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`, {
     cache: "no-store",
     headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
   });
-  if (!response.ok) return;
+  if (!response.ok) {
+    console.warn("[resend webhook] Received email stored without body: detail fetch failed.", { emailId, status: response.status });
+    return;
+  }
 
   const received = await response.json() as {
     id?: string;
@@ -56,13 +92,9 @@ async function storeReceivedEmail(emailId: string, fallback: { created_at?: stri
     created_at?: string;
   };
 
-  const sender = parseAddress(received.from || fallback.from || "");
-  if (!sender.email) return;
-
+  const fullSender = parseAddress(received.from || fallback.from || "");
   const inReplyTo = headerValue(received.headers, "in-reply-to");
   const references = headerValue(received.headers, "references");
-  const users = await listAdminCustomers().catch(() => []);
-  const user = users.find((item) => item.email.trim().toLowerCase() === sender.email);
 
   let communicationId: string | null = null;
   if (inReplyTo) {
@@ -72,15 +104,12 @@ async function storeReceivedEmail(emailId: string, fallback: { created_at?: stri
     communicationId = linked[0]?.id ?? null;
   }
 
-  await supabaseRest("customer_inbox_messages?on_conflict=resend_email_id", {
-    method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+  await supabaseRest(`customer_inbox_messages?resend_email_id=eq.${encodeURIComponent(emailId)}`, {
+    method: "PATCH",
     body: JSON.stringify({
-      resend_email_id: emailId,
-      user_id: user?.id ?? null,
       communication_id: communicationId,
-      from_email: sender.email,
-      from_name: sender.name,
+      from_email: fullSender.email || sender.email,
+      from_name: fullSender.name || sender.name,
       to_emails: received.to ?? fallback.to ?? [],
       subject: received.subject ?? fallback.subject ?? "",
       text_body: received.text ?? "",
@@ -88,7 +117,7 @@ async function storeReceivedEmail(emailId: string, fallback: { created_at?: stri
       message_id: received.message_id ?? fallback.message_id ?? null,
       in_reply_to: inReplyTo || null,
       references_header: references || null,
-      attachments: received.attachments ?? [],
+      attachments: received.attachments ?? fallback.attachments ?? [],
       received_at: received.created_at ?? fallback.created_at ?? new Date().toISOString(),
     }),
   });
@@ -108,6 +137,7 @@ export async function POST(request: Request) {
       from?: string;
       to?: string[];
       subject?: string;
+      attachments?: Array<Record<string, unknown>>;
       bounce?: { message?: string };
     };
   };
@@ -121,6 +151,7 @@ export async function POST(request: Request) {
       to: event.data?.to,
       subject: event.data?.subject,
       message_id: event.data?.message_id,
+      attachments: event.data?.attachments ?? [],
     });
     return NextResponse.json({ ok: true });
   }
