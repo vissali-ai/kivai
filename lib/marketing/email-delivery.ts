@@ -165,6 +165,7 @@ export async function deliverCustomerEmail(communicationId: string): Promise<Del
   if (!recipient) { const error = "E-mail do destinatário não encontrado."; await markFailed(row.id, error); return { status: "failed", error }; }
 
   const unsubscribeUrl = marketing && preference ? `${SITE_URL}/email/preferencias?token=${encodeURIComponent(preference.unsubscribe_token)}` : null;
+  const oneClickUnsubscribeUrl = marketing && preference ? `${SITE_URL}/api/email/unsubscribe?token=${encodeURIComponent(preference.unsubscribe_token)}` : null;
   const category = typeof row.metadata?.kind === "string" ? row.metadata.kind : marketing ? "marketing" : "transactional";
   const textMessage = messageToText(row);
 
@@ -176,7 +177,7 @@ export async function deliverCustomerEmail(communicationId: string): Promise<Del
         from: CUSTOMER_EMAIL_FROM, to: [recipient], reply_to: CUSTOMER_REPLY_TO, subject: row.subject || "Kivai",
         text: `${textMessage}\n\nFale com o Kivai no WhatsApp: ${WHATSAPP_URL}${unsubscribeUrl ? `\n\nNão quer mais receber e-mails de marketing? ${unsubscribeUrl}` : ""}`,
         html: renderHtml(row, unsubscribeUrl), tags: [{ name: "category", value: category.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64) }],
-        ...(unsubscribeUrl ? { headers: { "List-Unsubscribe": `<${unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}),
+        ...(oneClickUnsubscribeUrl ? { headers: { "List-Unsubscribe": `<${oneClickUnsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}),
       }),
     });
 
