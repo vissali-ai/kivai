@@ -1,6 +1,6 @@
 import "server-only";
 
-import { listNewsletterRecipients } from "@/lib/admin/customer-users";
+import { listMarketingAudienceUsers, matchesMarketingAudience, type MarketingAudience } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
 import { getCustomerMarketingTemplate } from "@/lib/marketing/templates";
@@ -90,8 +90,9 @@ async function markDispatched(sourceType: "blog" | "tool", sourceId: string, pub
 }
 
 export async function processContentCampaigns() {
-  const [users, dispatches, newPostTemplate, digestTemplate, newToolTemplate, blogPosts, cmsTools] = await Promise.all([
-    listNewsletterRecipients(),
+  const [eligibleUsers, settings, dispatches, newPostTemplate, digestTemplate, newToolTemplate, blogPosts, cmsTools] = await Promise.all([
+    listMarketingAudienceUsers(),
+    supabaseRest<Array<{ automatic_audience: MarketingAudience }>>("admin_marketing_reminders?select=automatic_audience&id=eq.1&limit=1"),
     supabaseRest<DispatchRow[]>("content_campaign_dispatches?select=source_type,source_id"),
     getCustomerMarketingTemplate("new_post"),
     getCustomerMarketingTemplate("blog_digest"),
@@ -99,6 +100,9 @@ export async function processContentCampaigns() {
     supabaseRest<BlogPostRow[]>("blog_posts?select=id,title,slug,excerpt,published_at&status=eq.published&order=published_at.desc.nullslast,created_at.desc&limit=100"),
     supabaseRest<CmsToolRow[]>("site_contents?select=slug,title,short_description,path,published_at&content_type=eq.tool&status=eq.published"),
   ]);
+
+  const selectedAudience = settings[0]?.automatic_audience ?? "all";
+  const users = eligibleUsers.filter((user) => matchesMarketingAudience(user, selectedAudience));
 
   const dispatchedBlogs = new Set(dispatches.filter((row) => row.source_type === "blog").map((row) => row.source_id));
   const dispatchedTools = new Set(dispatches.filter((row) => row.source_type === "tool").map((row) => row.source_id));
