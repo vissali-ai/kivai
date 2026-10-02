@@ -37,6 +37,12 @@ export default async function CommunicationQueueLayout({ children }: { children:
       <div className="grid gap-5 lg:grid-cols-[230px_minmax(0,1fr)]">
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <MailNavigation counts={counts} />
+          <Link
+            href="/admin/marketing/fila/descadastros"
+            className="mt-3 flex items-center justify-between border border-white/10 bg-background/20 px-3 py-3 text-xs font-medium text-muted-foreground hover:border-primary/20 hover:text-foreground"
+          >
+            Preferências de marketing
+          </Link>
         </aside>
         <section className="min-w-0">{children}</section>
       </div>
