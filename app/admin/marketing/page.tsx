@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BellRing, Mail, Pencil, Send, Target, UsersRound } from "lucide-react";
-import { listAdminCustomers, listNewsletterRecipients } from "@/lib/admin/customer-users";
+import { getMarketingAudienceCounts, listAdminCustomers, listMarketingAudienceUsers, matchesMarketingAudience, type MarketingAudience } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
-import { saveMarketingReminder } from "@/app/admin/marketing/actions";
+import { saveAutomaticAudience, saveMarketingReminder } from "@/app/admin/marketing/actions";
 import { isAutomaticMarketingFlowKey } from "@/lib/marketing/customer-flows";
 import { listCustomerMarketingTemplates } from "@/lib/marketing/templates";
 import { listOnboardingTemplates } from "@/lib/marketing/onboarding-templates";
@@ -13,10 +13,13 @@ export const dynamic = "force-dynamic";
 async function currentTimestamp() { return Date.now(); }
 
 export default async function MarketingPage() {
-  const [users, newsletterRecipients, templates, onboardingTemplates, reminders] = await Promise.all([
-    listAdminCustomers(), listNewsletterRecipients(), listCustomerMarketingTemplates(), listOnboardingTemplates(), supabaseRest<Array<{ note: string }>>("admin_marketing_reminders?select=note&id=eq.1&limit=1"),
+  const [users, eligibleRecipients, templates, onboardingTemplates, reminders] = await Promise.all([
+    listAdminCustomers(), listMarketingAudienceUsers(), listCustomerMarketingTemplates(), listOnboardingTemplates(), supabaseRest<Array<{ note: string; automatic_audience: MarketingAudience }>>("admin_marketing_reminders?select=note,automatic_audience&id=eq.1&limit=1"),
   ]);
   const now = await currentTimestamp();
+  const automaticAudience = reminders[0]?.automatic_audience ?? "all";
+  const audienceCounts = getMarketingAudienceCounts(eligibleRecipients);
+  const newsletterRecipients = eligibleRecipients.filter((user) => matchesMarketingAudience(user, automaticAudience, now));
   const counts = {
     free: users.filter((u) => u.planCode === "free" && u.subscriptionStatus !== "past_due").length,
     active: users.filter((u) => u.planCode !== "free").length,
@@ -36,9 +39,14 @@ export default async function MarketingPage() {
         <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">News e novidades</p><h2 className="mt-1 text-xl font-semibold">Destinatários dos disparos automáticos</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Esta lista é usada somente nos disparos de novas publicações, resumos do blog e lançamentos de ferramentas. Usuários que cancelarem e-mails de marketing deixam de aparecer aqui automaticamente.</p></div>
         <div className="flex flex-wrap gap-2"><Link href="/admin/marketing/email-marketing" className="inline-flex h-9 items-center gap-2 border border-white/10 px-3 text-xs font-semibold text-muted-foreground hover:text-primary"><Send className="size-4" /> Envio manual</Link></div>
       </div>
-      <div className="mt-4 flex items-center gap-2 text-sm"><UsersRound className="size-4 text-primary" /><strong>{newsletterRecipients.length}</strong><span className="text-muted-foreground">destinatário(s) ativo(s)</span></div>
+      <form action={saveAutomaticAudience} className="mt-4 grid gap-3 border border-white/10 bg-background/30 p-4 sm:grid-cols-[minmax(0,320px)_auto_1fr] sm:items-end">
+        <label className="grid gap-1.5 text-xs font-semibold">Público dos disparos<select name="audience" defaultValue={automaticAudience} className="h-10 border border-white/10 bg-background px-3 text-sm font-normal"><option value="all">Todos os destinatários ({audienceCounts.all})</option><option value="free">Plano Grátis ({audienceCounts.free})</option><option value="trial">Teste/cortesia ativos ({audienceCounts.trial})</option><option value="pro">Plano Pro ativo ({audienceCounts.pro})</option><option value="agency">Plano Agency ativo ({audienceCounts.agency})</option></select></label>
+        <button className="h-10 border border-primary/30 bg-primary/10 px-4 text-xs font-semibold text-primary">Salvar público</button>
+        <p className="text-xs leading-5 text-muted-foreground">Mesma lógica do envio manual. Os grupos são exclusivos e cada cadastro entra em apenas uma categoria.</p>
+      </form>
+      <div className="mt-4 flex items-center gap-2 text-sm"><UsersRound className="size-4 text-primary" /><strong>{newsletterRecipients.length}</strong><span className="text-muted-foreground">destinatário(s) neste público</span></div>
       <div className="mt-4 overflow-x-auto border border-white/10">
-        <table className="w-full min-w-[560px] text-left text-sm"><thead className="bg-white/[0.03] text-xs text-muted-foreground"><tr><th className="px-3 py-2">Nome</th><th className="px-3 py-2">E-mail</th><th className="px-3 py-2">Status</th></tr></thead><tbody className="divide-y divide-white/10">{newsletterRecipients.map((recipient) => <tr key={recipient.id}><td className="px-3 py-2">{recipient.name || "Sem nome"}</td><td className="px-3 py-2 text-muted-foreground">{recipient.email}</td><td className="px-3 py-2"><span className="border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-300">Recebe news</span></td></tr>)}</tbody></table>
+        <table className="w-full min-w-[560px] text-left text-sm"><thead className="bg-white/[0.03] text-xs text-muted-foreground"><tr><th className="px-3 py-2">Nome</th><th className="px-3 py-2">E-mail</th><th className="px-3 py-2">Status</th></tr></thead><tbody className="divide-y divide-white/10">{newsletterRecipients.map((recipient) => <tr key={recipient.id}><td className="px-3 py-2">{recipient.fullName || "Sem nome"}</td><td className="px-3 py-2 text-muted-foreground">{recipient.email}</td><td className="px-3 py-2"><span className="border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-300">Recebe news</span></td></tr>)}</tbody></table>
       </div>
     </section>
 
