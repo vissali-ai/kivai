@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { MarketingAudience } from "@/lib/admin/customer-users";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { isCustomerMarketingFlowKey } from "@/lib/marketing/customer-flows";
@@ -69,6 +70,17 @@ export async function saveMarketingTemplate(formData: FormData) {
   if (!validButton(ctaLabel, ctaUrl) || !validButton(secondaryCtaLabel, secondaryCtaUrl)) throw new Error("Cada botão precisa de texto e URL https:// válidos.");
   await supabaseRest(`customer_marketing_templates?flow_key=eq.${encodeURIComponent(flowKey)}`, { method: "PATCH", body: JSON.stringify({ title, subject, description, message, cta_label: ctaLabel, cta_url: ctaUrl, secondary_cta_label: secondaryCtaLabel, secondary_cta_url: secondaryCtaUrl, enabled: formData.get("enabled") === "on", updated_at: new Date().toISOString() }) });
   revalidatePath("/admin/marketing"); revalidatePath(`/admin/marketing/modelos/${flowKey}`);
+}
+
+export async function saveAutomaticAudience(formData: FormData) {
+  await assertAdminApi();
+  const audience = String(formData.get("audience") ?? "all") as MarketingAudience;
+  if (!["all", "free", "trial", "pro", "agency"].includes(audience)) throw new Error("Público inválido.");
+  await supabaseRest("admin_marketing_reminders?id=eq.1", {
+    method: "PATCH",
+    body: JSON.stringify({ automatic_audience: audience, updated_at: new Date().toISOString() }),
+  });
+  revalidatePath("/admin/marketing");
 }
 
 export async function saveMarketingReminder(formData: FormData) {
