@@ -5,7 +5,7 @@ import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
 
 const CUSTOMER_EMAIL_FROM = "Kivai <contato@kivai.com.br>";
-const CUSTOMER_REPLY_TO = "contato@kivai.com.br";
+const CUSTOMER_REPLY_TO = (process.env.RESEND_INBOUND_REPLY_TO || "contato@kivai.com.br").trim();
 const SITE_URL = "https://www.kivai.com.br";
 const WHATSAPP_URL = "https://wa.me/5531996205058?text=Ol%C3%A1%21%20Recebi%20um%20e-mail%20do%20Kivai%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es.";
 
