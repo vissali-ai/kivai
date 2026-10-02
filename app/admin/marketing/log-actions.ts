@@ -15,3 +15,29 @@ export async function deleteCommunicationLog(formData: FormData) {
 
   revalidatePath("/admin/marketing");
 }
+
+
+export async function markInboxMessageRead(formData: FormData) {
+  await assertAdminApi();
+  const messageId = String(formData.get("messageId") ?? "").trim();
+  if (!messageId) throw new Error("Mensagem inválida.");
+
+  await supabaseRest(`customer_inbox_messages?id=eq.${encodeURIComponent(messageId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ is_read: true }),
+  });
+
+  revalidatePath("/admin/marketing/fila");
+}
+
+export async function deleteInboxMessage(formData: FormData) {
+  await assertAdminApi();
+  const messageId = String(formData.get("messageId") ?? "").trim();
+  if (!messageId) throw new Error("Mensagem inválida.");
+
+  await supabaseRest(`customer_inbox_messages?id=eq.${encodeURIComponent(messageId)}`, {
+    method: "DELETE",
+  });
+
+  revalidatePath("/admin/marketing/fila");
+}
