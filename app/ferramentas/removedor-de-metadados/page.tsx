@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export default function RemovedorDeMetadadosLegacyPage() {
-  redirect("/ferramentas/removedor-de-metadados-de-ia");
+  permanentRedirect("/ferramentas/removedor-de-metadados-de-ia");
 }
