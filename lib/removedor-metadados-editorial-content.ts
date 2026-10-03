@@ -1,8 +1,8 @@
 export const removedorMetadadosEditorialContent = {
   overview: [
     "Imagens podem carregar informações incorporadas além dos pixels visíveis. Dependendo do arquivo e do dispositivo que o criou, esses dados podem incluir modelo da câmera, data, coordenadas de localização, software utilizado e outros campos técnicos.",
-    "O Removedor de Metadados de IA do Kivai recria a imagem a partir dos pixels decodificados e gera um novo arquivo no mesmo formato. Dessa forma, blocos herdados como EXIF, GPS, XMP, IPTC e estruturas de procedência C2PA/Content Credentials, quando presentes, não são copiados para a nova imagem.",
-    "Em imagens geradas por ferramentas como o ChatGPT, a remoção dessas credenciais pode fazer com que um rótulo de IA deixe de aparecer quando a plataforma estiver usando esses metadados como sinal. O resultado pode variar, porque alguns sistemas também utilizam sinais incorporados ao próprio conteúdo.",
+    "O Removedor de Metadados e Rótulos de IA do Kivai recria a imagem a partir dos pixels decodificados e gera um novo arquivo no mesmo formato. Dessa forma, blocos herdados como EXIF, GPS, XMP, IPTC e estruturas de procedência C2PA/Content Credentials, quando presentes, não são copiados para a nova imagem.",
+    "Em imagens geradas por ferramentas como o ChatGPT, a remoção dessas credenciais pode fazer com que um rótulo de IA deixe de aparecer quando a rede social estiver usando esses metadados como sinal. O resultado pode variar, porque algumas plataformas também utilizam outros métodos de identificação além dos metadados.",
   ],
   useCases: [
     { title: "Compartilhar fotos com mais privacidade", description: "Crie uma nova cópia antes de enviar fotografias que possam conter localização, data ou dados do dispositivo." },
