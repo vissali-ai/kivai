@@ -149,7 +149,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "compactar-arquivos-zip",
   "renomear-arquivos-em-lote",
   "adicionar-prefixo-sufixo-arquivos",
-  "removedor-de-metadados-de-ia",
+  "removedor-de-metadados-e-rotulos-de-ia",
   "adicionar-marca-dagua",
   "ajustar-velocidade-video",
   "alterar-volume-video",
@@ -293,7 +293,7 @@ export const tools: Tool[] = [
     icon: Archive,
   },
   {
-    slug: "removedor-de-metadados-de-ia",
+    slug: "removedor-de-metadados-e-rotulos-de-ia",
     name: "Removedor de Metadados e Rótulos de IA",
     description: "Remova metadados e credenciais de procedência de imagens JPG, PNG e WebP que podem gerar rótulos de IA em redes sociais, incluindo EXIF, XMP, IPTC e C2PA quando presentes.",
     category: "imagens",
