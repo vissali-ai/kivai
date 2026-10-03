@@ -399,7 +399,7 @@ export default function RemovedorDeMetadadosClient() {
         <div className="mb-8 max-w-3xl sm:mb-10">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary sm:text-sm">IMAGENS</p>
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-            Removedor de Metadados
+            Removedor de Metadados e Rótulos de IA
           </h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Remova metadados e credenciais de procedência que podem gerar rótulos de IA ao publicar imagens em redes sociais.
