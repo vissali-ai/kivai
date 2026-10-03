@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PrinterCatalogEditor } from "@/components/admin/printer-catalog-editor";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, ExternalLink, Plus, Save, Trash2, Upload, X } from "lucide-react";
@@ -175,6 +176,8 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
               </article>
             ))}</div> : <p className="border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">Esta publicação ainda não possui campos específicos cadastrados.</p>}
           </section>
+
+          {draft.existingToolSlug === "imprimir-frente-e-verso" && <PrinterCatalogEditor value={draft.customData.printers} onChange={printers => setDraft(current => ({ ...current, customData: { ...current.customData, printers } }))} />}
 
           <section className="min-w-0 rounded-xl border border-white/10 bg-card p-3 sm:p-6"><h2 className="font-semibold">Conteúdo original da publicação</h2><p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">Edite somente o conteúdo que realmente pertence à página.</p><RichTextEditor value={draft.contentHtml} onChange={(contentHtml) => setDraft((current) => ({ ...current, contentHtml }))} /></section>
 
