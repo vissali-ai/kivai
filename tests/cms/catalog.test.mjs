@@ -88,7 +88,7 @@ test("all available tools have exactly one Admin entry, including the six former
   const { tools } = load("@/lib/tools");
   const repository = load("@/lib/site-cms/repository");
   const managed = await repository.listManagedSiteContents();
-  assert.equal(tools.filter((tool) => tool.available).length, 75);
+  assert.equal(tools.filter((tool) => tool.available).length, 76);
   for (const tool of tools) assert.equal(managed.filter((item) => item.existingToolSlug === tool.slug).length, 1);
   for (const slug of slugs) {
     const entry = await repository.getSiteContentById(`existing:${slug}`);
@@ -181,4 +181,34 @@ test("archive visibility is cached, but private reads and mutations remain uncac
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+test("duplex printing is managed, editable and validates printer data through Admin API", async () => {
+  const { load } = createCms();
+  const repo = load("@/lib/site-cms/repository");
+  const initial = await repo.getSiteContentById("existing:imprimir-frente-e-verso");
+  assert.equal(initial.title, "Imprimir Frente e Verso");
+  assert.match(initial.contentHtml, /Como imprimir frente e verso/);
+  assert.equal(initial.customData.printers.length, 6);
+  const api = load("@/app/api/admin/site-content/[id]/route");
+  const changed = { ...initial, title: "Impressão editada", customData: { ...initial.customData, printers: initial.customData.printers.map(p => ({ ...p, notes: "Orientação editada no Admin" })) } };
+  const response = await api.PUT(new Request("http://localhost/api", { method: "PUT", body: JSON.stringify(changed) }), { params: Promise.resolve({ id: initial.id }) });
+  assert.equal(response.status, 200);
+  const published = await repo.getPublishedToolOverride(initial.slug);
+  assert.equal(published.title, "Impressão editada");
+  assert.equal(published.customData.printers[0].notes, "Orientação editada no Admin");
+  await assert.rejects(repo.updateSiteContent(published.id, { ...published, customData: { printers: [{ ...initial.customData.printers[0], status: "confirmed", source: "" }] } }), /Cadastro de impressoras inválido/);
+});
+
+
+test("duplex public page consumes Admin edits and hides draft content", async () => {
+  const { load } = createCms();
+  const repo = load("@/lib/site-cms/repository");
+  const initial = await repo.getSiteContentById("existing:imprimir-frente-e-verso");
+  const saved = await repo.updateSiteContent(initial.id, { ...initial, title: "Duplex personalizado", customData: { ...initial.customData, printers: [] } });
+  const page = load("@/app/ferramentas/imprimir-frente-e-verso/page").default;
+  const result = await page();
+  assert.equal(result.props.title, "Duplex personalizado");
+  assert.deepEqual(result.props.children.props.printers, []);
+  await repo.updateSiteContent(saved.id, { ...saved, status: "draft" });
+  await assert.rejects(page(), /NEXT_HTTP_ERROR_FALLBACK;404/);
 });

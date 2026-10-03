@@ -1,3 +1,4 @@
+import { duplexEditorial } from "@/lib/duplex-print/catalog";
 import { archiveToolEditorialContent } from "@/lib/archive-tool-editorial-content";
 import { removedorMetadadosEditorialContent } from "@/lib/removedor-metadados-editorial-content";
 import { generalToolEditorialContent } from "@/lib/general-tool-editorial-content";
@@ -63,6 +64,7 @@ export function inferToolMode(slug: string): ToolImplementationMode {
 }
 
 export function getExistingToolEditorialHtml(slug: string) {
+  if (slug === "imprimir-frente-e-verso") return duplexEditorial;
   const content = sources.find((source) => source[slug])?.[slug];
   if (!content) return "";
   return [

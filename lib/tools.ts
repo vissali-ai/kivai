@@ -143,6 +143,7 @@ export interface Tool {
 }
 
 export const INDEXABLE_TOOL_SLUGS = [
+  "imprimir-frente-e-verso",
   "descompactar-zip",
   "descompactar-rar",
   "compactar-arquivos-zip",
@@ -227,6 +228,15 @@ export function isToolIndexable(slug: string) {
 }
 
 export const tools: Tool[] = [
+  {
+    slug: "imprimir-frente-e-verso",
+    name: "Imprimir Frente e Verso",
+    description: "Prepare PDFs para impressão frente e verso automática ou manual, com testes de orientação e ordem das folhas.",
+    category: "pdf", hubFilter: "Editar", badge: "PDF", icon: FileText, available: true,
+    seoTitle: "Imprimir Frente e Verso PDF Online | Kivai",
+    seoDescription: "Aprenda como imprimir frente e verso manualmente, teste a orientação do papel e prepare seu PDF em duas etapas.",
+    keywords: ["imprimir frente e verso", "imprimir frente e verso PDF", "como virar a folha", "impressora sem duplex"],
+  },
   {
     slug: "descompactar-zip",
     name: "Descompactar ZIP",

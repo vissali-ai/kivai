@@ -1,4 +1,5 @@
 import "server-only";
+import { defaultPrinters, printersSchema } from "@/lib/duplex-print/catalog";
 import { plansContent } from "@/lib/billing/plans-content";
 
 import { sanitizePostHtml, plainText } from "@/lib/blog/sanitize";
@@ -91,6 +92,10 @@ function cleanContentInput(value: Partial<SiteContentInput>): SiteContentInput {
   const slug = slugify(String(value.slug ?? ""));
   const title = plainText(String(value.title ?? "")).slice(0, 180);
   if (!slug || title.length < 2) throw new Error("Informe um título e um slug válidos.");
+  if (value.existingToolSlug === "imprimir-frente-e-verso" && value.customData?.printers !== undefined) {
+    const result = printersSchema.safeParse(value.customData.printers);
+    if (!result.success) throw new Error("Cadastro de impressoras inválido: " + result.error.issues[0].message);
+  }
   const requestedStatus = cleanStatus(value.status);
   const technicalStatus = contentType !== "tool" ? "not_applicable" : value.existingToolSlug ? "ready" : value.technicalStatus === "ready" ? "ready" : "pending";
   const status = technicalStatus === "pending" ? "draft" : requestedStatus;
@@ -198,7 +203,7 @@ export async function listManagedSiteContents(): Promise<ManagedSiteContent[]> {
     seoDescription: tool.seoDescription ?? tool.description, canonicalUrl: "", hubId: hubBySlug.get(categoryHub[tool.category]) ?? null,
     existingToolSlug: tool.slug, toolMode: inferToolMode(tool.slug), technicalStatus: "ready", status: "published", indexable: isToolIndexable(tool.slug),
     displayLocation: "direct", showInMostUsed: defaultMostUsed.has(tool.slug), displayOrder: defaultMostUsed.get(tool.slug) ?? 100,
-    includeInSitemap: isToolIndexable(tool.slug), customData: { originalFields: [
+    includeInSitemap: isToolIndexable(tool.slug), customData: { ...(tool.slug === "imprimir-frente-e-verso" ? { printers: defaultPrinters } : {}), originalFields: [
       { key: "badge", label: "Selo / badge", type: "text", value: tool.badge },
       { key: "hub-filter", label: "Filtro do hub", type: "text", value: tool.hubFilter },
     ] }, publishedAt: null, createdAt: "", updatedAt: "", virtual: true,

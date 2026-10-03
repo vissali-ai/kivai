@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PrinterCatalogEditor } from "@/components/admin/printer-catalog-editor";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AlertTriangle, ArrowLeft, Check, Copy, ExternalLink, Save, Trash2 } from "lucide-react";
@@ -106,6 +107,7 @@ export function SiteContentEditor({ initialContent, hubs }: { initialContent: Ma
 
         {!isDeleted("content") ? <section className="min-w-0 rounded-xl border border-white/10 bg-card p-3 sm:p-6"><h2 className="font-semibold">Conteúdo editorial completo</h2><p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">O modelo inclui sobre, como usar, casos de uso, formatos, privacidade, limitações, perguntas frequentes e ferramentas relacionadas.</p><RichTextEditor value={draft.contentHtml} onChange={(contentHtml) => setDraft((current) => ({ ...current, contentHtml }))} /></section> : null}
 
+        {draft.existingToolSlug === "imprimir-frente-e-verso" && <PrinterCatalogEditor value={draft.customData.printers} onChange={printers => setDraft(current => ({ ...current, customData: { ...current.customData, printers } }))} />}
         <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6"><div className="sm:col-span-2"><h2 className="font-semibold">SEO e compartilhamento</h2><p className="mt-1 text-xs text-muted-foreground">Campos usados pelo Google e por redes sociais.</p></div><label className={fieldClass}><span>Título SEO *</span><Input required value={draft.seoTitle} onChange={(e) => setDraft({ ...draft, seoTitle: e.target.value })} /></label><label className={fieldClass}><span>URL canônica personalizada</span><Input type="url" value={draft.canonicalUrl} onChange={(e) => setDraft({ ...draft, canonicalUrl: e.target.value })} placeholder="Deixe vazio para usar a URL do Kivai" /></label><label className={`${fieldClass} sm:col-span-2`}><span>Descrição SEO *</span><textarea required className={textareaClass} value={draft.seoDescription} onChange={(e) => setDraft({ ...draft, seoDescription: e.target.value })} /></label></section>
       </div>
 
