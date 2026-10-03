@@ -35,6 +35,12 @@ type CleanResult = {
   blob: Blob;
   url: string;
   fileName: string;
+  verification: VerificationResult;
+};
+
+type VerificationResult = {
+  clean: boolean;
+  found: string[];
 };
 
 function formatBytes(bytes: number) {
@@ -78,6 +84,144 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string) {
       quality,
     );
   });
+}
+
+function readAscii(bytes: Uint8Array, start: number, length: number) {
+  let value = "";
+  const end = Math.min(start + length, bytes.length);
+  for (let index = start; index < end; index += 1) {
+    value += String.fromCharCode(bytes[index]);
+  }
+  return value;
+}
+
+function verifyJpeg(bytes: Uint8Array) {
+  const found = new Set<string>();
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) {
+    return ["Estrutura JPEG inválida"];
+  }
+
+  let offset = 2;
+  while (offset + 3 < bytes.length) {
+    if (bytes[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+
+    let markerOffset = offset;
+    while (markerOffset < bytes.length && bytes[markerOffset] === 0xff) markerOffset += 1;
+    const marker = bytes[markerOffset];
+
+    if (marker === 0xd9 || marker === 0xda) break;
+    if (marker === 0x00 || marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7)) {
+      offset = markerOffset + 1;
+      continue;
+    }
+
+    if (markerOffset + 2 >= bytes.length) break;
+    const length = (bytes[markerOffset + 1] << 8) | bytes[markerOffset + 2];
+    if (length < 2 || markerOffset + 1 + length > bytes.length) break;
+
+    const payloadStart = markerOffset + 3;
+    const payloadLength = length - 2;
+    const header = readAscii(bytes, payloadStart, Math.min(payloadLength, 96));
+
+    if (marker === 0xe1) {
+      if (header.startsWith("Exif\u0000\u0000")) found.add("EXIF/GPS");
+      else if (header.includes("xap/1.0") || header.includes("xmp")) found.add("XMP");
+      else found.add("APP1");
+    } else if (marker === 0xe2) {
+      found.add(header.includes("ICC_PROFILE") ? "Perfil ICC" : "APP2");
+    } else if (marker === 0xeb) {
+      found.add("JUMBF/C2PA (APP11)");
+    } else if (marker === 0xed) {
+      found.add("IPTC/APP13");
+    } else if (marker === 0xfe) {
+      found.add("Comentário JPEG");
+    }
+
+    offset = markerOffset + 1 + length;
+  }
+
+  return [...found];
+}
+
+function verifyPng(bytes: Uint8Array) {
+  const found = new Set<string>();
+  const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+  if (bytes.length < 8 || !signature.every((value, index) => bytes[index] === value)) {
+    return ["Estrutura PNG inválida"];
+  }
+
+  let offset = 8;
+  while (offset + 12 <= bytes.length) {
+    const length =
+      ((bytes[offset] << 24) >>> 0) +
+      (bytes[offset + 1] << 16) +
+      (bytes[offset + 2] << 8) +
+      bytes[offset + 3];
+    const type = readAscii(bytes, offset + 4, 4);
+
+    if (["eXIf", "iTXt", "tEXt", "zTXt", "iCCP", "caBX"].includes(type)) {
+      const labels: Record<string, string> = {
+        eXIf: "EXIF",
+        iTXt: "Texto/XMP (iTXt)",
+        tEXt: "Texto PNG",
+        zTXt: "Texto comprimido PNG",
+        iCCP: "Perfil ICC",
+        caBX: "C2PA/Content Credentials",
+      };
+      found.add(labels[type] ?? type);
+    }
+
+    offset += 12 + length;
+    if (type === "IEND") break;
+  }
+
+  return [...found];
+}
+
+function verifyWebp(bytes: Uint8Array) {
+  const found = new Set<string>();
+  if (
+    bytes.length < 12 ||
+    readAscii(bytes, 0, 4) !== "RIFF" ||
+    readAscii(bytes, 8, 4) !== "WEBP"
+  ) {
+    return ["Estrutura WebP inválida"];
+  }
+
+  let offset = 12;
+  while (offset + 8 <= bytes.length) {
+    const type = readAscii(bytes, offset, 4);
+    const length =
+      bytes[offset + 4] +
+      (bytes[offset + 5] << 8) +
+      (bytes[offset + 6] << 16) +
+      ((bytes[offset + 7] << 24) >>> 0);
+
+    if (type === "EXIF") found.add("EXIF/GPS");
+    if (type === "XMP ") found.add("XMP");
+    if (type === "ICCP") found.add("Perfil ICC");
+
+    offset += 8 + length + (length % 2);
+  }
+
+  return [...found];
+}
+
+async function verifyCleanBlob(blob: Blob): Promise<VerificationResult> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let found: string[] = [];
+
+  if (blob.type === "image/jpeg") found = verifyJpeg(bytes);
+  if (blob.type === "image/png") found = verifyPng(bytes);
+  if (blob.type === "image/webp") found = verifyWebp(bytes);
+
+  return {
+    clean: found.length === 0,
+    found,
+  };
 }
 
 export default function RemovedorDeMetadadosClient() {
@@ -192,16 +336,26 @@ export default function RemovedorDeMetadadosClient() {
         throw new Error("O navegador não oferece exportação no formato original.");
       }
 
+      const verification = await verifyCleanBlob(blob);
+      if (!verification.clean) {
+        throw new Error(
+          `O navegador manteve dados estruturais no arquivo final: ${verification.found.join(", ")}.`,
+        );
+      }
+
       const url = URL.createObjectURL(blob);
 
       setResult({
         blob,
         url,
         fileName: outputName(blob.type),
+        verification,
       });
-    } catch {
+    } catch (caughtError) {
       setError(
-        "Não foi possível recriar a imagem neste formato. Tente outro navegador moderno ou converta a imagem para JPG, PNG ou WebP antes de repetir a operação.",
+        caughtError instanceof Error && caughtError.message.startsWith("O navegador manteve dados estruturais")
+          ? caughtError.message
+          : "Não foi possível recriar a imagem neste formato. Tente outro navegador moderno ou converta a imagem para JPG, PNG ou WebP antes de repetir a operação.",
       );
     } finally {
       bitmap?.close();
@@ -331,7 +485,7 @@ export default function RemovedorDeMetadadosClient() {
                   <div className="flex gap-3">
                     <ShieldOff className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                     <p>
-                      A ferramenta decodifica os pixels e gera um novo arquivo. Com isso, os blocos de metadados herdados do original, como EXIF, GPS, XMP e IPTC quando presentes, não são copiados para a nova imagem.
+                      A ferramenta decodifica os pixels e gera um novo arquivo. Em seguida, verifica a cópia final para confirmar que blocos conhecidos de EXIF, GPS, XMP, IPTC, perfis ICC, comentários e estruturas de procedência como JUMBF/C2PA não permaneceram no arquivo.
                     </p>
                   </div>
                 </div>
@@ -371,6 +525,10 @@ export default function RemovedorDeMetadadosClient() {
                         ? ` · ${reduction >= 0 ? `${reduction.toFixed(1)}% menor` : `${Math.abs(reduction).toFixed(1)}% maior`}`
                         : ""}
                     </p>
+                    <p className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                      <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
+                      Verificação concluída: nenhum metadado estrutural conhecido foi detectado.
+                    </p>
                   </div>
                   <Button className="w-full sm:w-auto" onClick={downloadResult}>
                     <Download className="size-4" aria-hidden="true" />
@@ -391,7 +549,7 @@ export default function RemovedorDeMetadadosClient() {
           <div className="rounded-xl border border-border bg-muted/10 p-4">
             <ShieldOff className="size-5 text-primary" aria-hidden="true" />
             <p className="mt-3 text-sm font-medium">Sem dados herdados</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">O novo arquivo não reutiliza os blocos de metadados do original.</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">A cópia final é recriada e verificada antes do download para evitar dados estruturais herdados.</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/10 p-4">
             <FileImage className="size-5 text-primary" aria-hidden="true" />
