@@ -392,7 +392,7 @@ export default function RemovedorDeMetadadosClient() {
             { label: "Início", href: "/" },
             { label: "Ferramentas", href: "/ferramentas" },
             { label: "Imagens", href: "/ferramentas/imagens" },
-            { label: "Removedor de Metadados" },
+            { label: "Removedor de Metadados de IA" },
           ]}
         />
 
@@ -402,7 +402,7 @@ export default function RemovedorDeMetadadosClient() {
             Removedor de Metadados
           </h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Crie uma nova cópia da imagem sem carregar os metadados incorporados do arquivo original.
+            Remova metadados, credenciais de procedência e estruturas conhecidas associadas a imagens comuns ou geradas por IA.
           </p>
           <p className="mt-3 flex max-w-xl items-start gap-2 text-sm leading-6 text-muted-foreground sm:items-center">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary sm:mt-0" aria-hidden="true" />
