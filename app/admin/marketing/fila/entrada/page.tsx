@@ -13,19 +13,20 @@ type InboxMessage = {
   from_name: string | null;
   subject: string;
   text_body: string;
+  html_body: string;
   received_at: string;
   is_read: boolean;
 };
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleString("pt-BR");
+  return new Date(value).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 }
 
 export default async function InboxPage() {
   const [users, inbox] = await Promise.all([
     listAdminCustomers(),
     supabaseRest<InboxMessage[]>(
-      "customer_inbox_messages?select=id,user_id,from_email,from_name,subject,text_body,received_at,is_read&discarded_at=is.null&order=received_at.desc&limit=200"
+      "customer_inbox_messages?select=id,user_id,from_email,from_name,subject,text_body,html_body,received_at,is_read&discarded_at=is.null&order=received_at.desc&limit=200"
     ),
   ]);
   const userMap = new Map(users.map((user) => [user.id, user]));
@@ -44,7 +45,15 @@ export default async function InboxPage() {
       <div className="divide-y divide-white/10">
         {inbox.map((item) => {
           const user = item.user_id ? userMap.get(item.user_id) : null;
-          const preview = item.text_body?.replace(/\s+/g, " ").trim() || "Mensagem recebida sem prévia de texto.";
+          const htmlPreview = item.html_body
+            ?.replace(/<style[\s\S]*?<\/style>/gi, " ")
+            .replace(/<script[\s\S]*?<\/script>/gi, " ")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/&nbsp;/gi, " ")
+            .replace(/&amp;/gi, "&")
+            .replace(/\s+/g, " ")
+            .trim();
+          const preview = item.text_body?.replace(/\s+/g, " ").trim() || htmlPreview || "Mensagem recebida sem prévia de texto.";
           return (
             <article key={item.id} className={item.is_read ? "group" : "group bg-primary/[0.025]"}>
               <div className="grid items-center gap-3 p-4 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)_auto]">
