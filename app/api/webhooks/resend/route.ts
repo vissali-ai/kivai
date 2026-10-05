@@ -64,18 +64,36 @@ async function storeReceivedEmail(emailId: string, fallback: { created_at?: stri
     }),
   });
 
-  const apiKey = process.env.RESEND_INBOUND_API_KEY || process.env.RESEND_API_KEY || "";
-  if (!apiKey) {
+  const apiKeys = Array.from(
+    new Set(
+      [process.env.RESEND_INBOUND_API_KEY, process.env.RESEND_API_KEY]
+        .map((value) => value?.trim())
+        .filter((value): value is string => Boolean(value))
+    )
+  );
+  if (!apiKeys.length) {
     console.warn("[resend webhook] Received email stored without body: API key unavailable.", { emailId });
     return;
   }
 
-  const response = await fetch(`https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`, {
-    cache: "no-store",
-    headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
-  });
-  if (!response.ok) {
-    console.warn("[resend webhook] Received email stored without body: detail fetch failed.", { emailId, status: response.status });
+  let response: Response | null = null;
+  for (const apiKey of apiKeys) {
+    const candidate = await fetch(`https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`, {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
+    });
+    if (candidate.ok) {
+      response = candidate;
+      break;
+    }
+    console.warn("[resend webhook] Received email detail fetch attempt failed.", {
+      emailId,
+      status: candidate.status,
+    });
+  }
+
+  if (!response) {
+    console.warn("[resend webhook] Received email stored without body: all detail fetch attempts failed.", { emailId });
     return;
   }
 
