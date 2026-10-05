@@ -16,6 +16,7 @@ type InboxMessage = {
   to_emails: string[];
   subject: string;
   text_body: string;
+  html_body: string;
   message_id: string | null;
   in_reply_to: string | null;
   attachments: Array<{ filename?: string; content_type?: string }> | null;
@@ -27,7 +28,7 @@ export default async function InboxMessagePage({ params }: { params: Promise<{ m
   const { messageId } = await params;
   const [rows, users] = await Promise.all([
     supabaseRest<InboxMessage[]>(
-      `customer_inbox_messages?select=id,user_id,communication_id,from_email,from_name,to_emails,subject,text_body,message_id,in_reply_to,attachments,received_at,is_read&id=eq.${encodeURIComponent(messageId)}&discarded_at=is.null&limit=1`
+      `customer_inbox_messages?select=id,user_id,communication_id,from_email,from_name,to_emails,subject,text_body,html_body,message_id,in_reply_to,attachments,received_at,is_read&id=eq.${encodeURIComponent(messageId)}&discarded_at=is.null&limit=1`
     ),
     listAdminCustomers(),
   ]);
@@ -36,6 +37,27 @@ export default async function InboxMessagePage({ params }: { params: Promise<{ m
 
   const user = message.user_id ? users.find((item) => item.id === message.user_id) : null;
   const attachmentNames = Array.isArray(message.attachments) ? message.attachments.map((item) => item.filename).filter(Boolean) : [];
+  const senderLabel = message.from_name || user?.fullName || message.from_email;
+  const senderDisplay = senderLabel.trim().toLowerCase() === message.from_email.trim().toLowerCase()
+    ? message.from_email
+    : `${senderLabel} <${message.from_email}>`;
+  const htmlAsText = message.html_body
+    ?.replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n\s*\n\s*\n+/g, "\n\n")
+    .trim();
+  const bodyText = message.text_body?.trim() || htmlAsText || "";
 
   return (
     <article className="border border-white/10 bg-card">
@@ -46,9 +68,9 @@ export default async function InboxMessagePage({ params }: { params: Promise<{ m
         <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-xl font-semibold">{message.subject || "(sem assunto)"}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">De: <span className="text-foreground">{message.from_name || user?.fullName || message.from_email}</span> &lt;{message.from_email}&gt;</p>
+            <p className="mt-2 text-sm text-muted-foreground">De: <span className="text-foreground">{senderDisplay}</span></p>
             <p className="mt-1 text-xs text-muted-foreground">Para: {message.to_emails.join(", ") || "contato@kivai.com.br"}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{new Date(message.received_at).toLocaleString("pt-BR")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{new Date(message.received_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {!message.is_read ? (
@@ -71,7 +93,7 @@ export default async function InboxMessagePage({ params }: { params: Promise<{ m
 
       <div className="p-5 sm:p-6">
         <div className="whitespace-pre-wrap text-sm leading-7 text-foreground">
-          {message.text_body || "Mensagem recebida sem versão de texto disponível."}
+          {bodyText || "Mensagem recebida sem conteúdo disponível."}
         </div>
         {message.communication_id ? <p className="mt-6 inline-flex border border-primary/20 bg-primary/[0.05] px-2 py-1 text-[10px] font-semibold text-primary">Resposta vinculada a um envio do Kivai</p> : null}
         {attachmentNames.length ? <p className="mt-5 text-xs text-muted-foreground">Anexos: {attachmentNames.join(", ")}</p> : null}
