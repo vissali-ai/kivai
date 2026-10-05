@@ -68,7 +68,9 @@ export async function supabaseRest<T>(path: string, options: RequestOptions = {}
     throw new Error(`Supabase (${response.status}): ${detail}`);
   }
   if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
+  const payload = await response.text();
+  if (!payload.trim()) return undefined as T;
+  return JSON.parse(payload) as T;
 }
 
 export async function supabaseStorage(path: string, options: RequestInit) {
