@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { supabaseRest } from "@/lib/blog/supabase";
 
@@ -74,6 +75,7 @@ export async function discardInboxMessage(formData: FormData) {
   });
 
   revalidateCommunicationQueue();
+  redirect("/admin/marketing/fila/entrada");
 }
 
 export async function deleteInboxMessage(formData: FormData) {
