@@ -6,6 +6,7 @@ import "./globals.css";
 import "./mobile-file-inputs.css";
 
 import { Footer } from "@/components/marketing/footer";
+import { WhatsappSupportButton } from "@/components/marketing/whatsapp-support-button";
 import { Navbar } from "@/components/marketing/navbar";
 import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provider";
 import StructuredData from "@/components/seo/structured-data";
@@ -169,6 +170,7 @@ export default function RootLayout({
           <Navbar />
           {children}
           <Footer />
+          <WhatsappSupportButton />
         </CookieConsentProvider>
       </body>
     </html>
