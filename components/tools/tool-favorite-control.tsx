@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { Star } from "lucide-react";
@@ -10,51 +10,15 @@ import { getCurrentUser, getStoredSession, supabaseUserFetch } from "@/lib/user-
 
 type AccountState = "loading" | "guest" | "member";
 
-// Os textos destacam usos reais e diferentes de cada ferramenta, sem repetir o mesmo bloco editorial.
-const specificInvitations: Record<string, string> = {
-  "removedor-de-fundo": "Gostou do Removedor de Fundo? Salve nos favoritos para usar novamente.",
-  "conversor-de-imagens": "Converte JPG, PNG ou WebP? Guarde este conversor nos favoritos.",
-  "compressor-de-imagens": "Comprime fotos com frequência? Favorite esta ferramenta para voltar depois.",
-  "redimensionar-imagem": "Ajusta o tamanho de imagens? Salve este atalho no seu painel.",
-  "recortar-imagem": "Costuma recortar fotos? Adicione esta ferramenta aos favoritos.",
-  "conversor-heic": "Recebe imagens em HEIC? Salve este conversor para a próxima vez.",
-  "gerador-de-qr-code": "Cria QR Codes com frequência? Guarde o gerador no seu painel.",
-  "removedor-de-metadados-e-rotulos-de-ia": "Revisa metadados de imagens? Favorite esta ferramenta.",
-  "pdf-para-imagens": "Converte PDFs em imagens? Deixe esta ferramenta nos seus favoritos.",
-  "imagens-para-pdf": "Transforma fotos em PDF? Salve este recurso no seu painel.",
-  "unir-pdfs": "Junta documentos em PDF? Favorite Unir PDFs para acessar rapidamente.",
-  "dividir-pdf": "Separa páginas de PDF? Salve Dividir PDF nos favoritos.",
-  "compactar-pdf": "Precisa reduzir PDFs? Guarde o compressor nos seus atalhos.",
-  "editar-pdf": "Faz edições em PDF? Deixe esta ferramenta entre suas favoritas.",
-  "imprimir-frente-e-verso": "Imprime frente e verso? Salve este guia para consultar depois.",
-  "calculadora-de-margem": "Calcula margens de vendas? Favorite a calculadora para voltar depois.",
-  "calculadora-de-markup": "Define preços por markup? Guarde esta calculadora no painel.",
-  "calculadora-de-roas": "Acompanha campanhas? Salve a calculadora de ROAS nos favoritos.",
-  "calculadora-de-roi": "Avalia seus investimentos? Favorite a calculadora de ROI.",
-  "contador-de-palavras": "Revisa textos? Salve o Contador de Palavras para usar novamente.",
-  "consulta-cnpj": "Faz consultas de CNPJ? Guarde esta ferramenta nos favoritos.",
-  "verificador-de-dominio-br": "Verifica domínios .br? Salve este atalho na sua conta.",
-  "analisador-de-seguidores-instagram": "Analisa seguidores do Instagram? Favorite esta ferramenta.",
-  "calendario-editorial-redes-sociais": "Organiza publicações? Salve o Calendário Editorial no seu painel.",
-  "gerador-de-relatorio-social-media": "Prepara relatórios de redes sociais? Favorite este gerador.",
-  "radar-de-tendencias": "Acompanha as tendências do mercado? Salve o Radar nos favoritos.",
-};
-
-function invitationText(slug: string, name: string) {
-  if (specificInvitations[slug]) return specificInvitations[slug];
-  const variants = [
-    `Gostou de ${name}? Salve esta ferramenta nos favoritos.`,
-    `Usa ${name} com frequência? Guarde o atalho no seu painel.`,
-    `Quer acessar ${name} novamente? Adicione aos favoritos.`,
-    `Mantenha ${name} por perto. Favorite esta ferramenta.`,
-    `Achou ${name} útil? Salve na sua conta Kivai.`,
-    `Volte a ${name} com facilidade: adicione aos favoritos.`,
-    `Precisa de ${name} no dia a dia? Guarde nos favoritos.`,
-    `Organize seus acessos: salve ${name} no seu painel.`,
-  ];
-  let hash = 0;
-  for (const char of slug) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  return variants[hash % variants.length];
+// Texto curto e dinâmico conforme a ferramenta e o estado da conta.
+function invitationText(name: string, accountState: AccountState, saved: boolean) {
+  if (accountState === "guest") {
+    return `Faça login e salve ${name} nos favoritos do seu painel. Explore o Kivai e monte sua coleção de ferramentas.`;
+  }
+  if (accountState === "member" && saved) {
+    return `${name} já está no seu painel. Explore o Kivai e favorite outras ferramentas.`;
+  }
+  return `Salve ${name} nos favoritos do seu painel. Explore o Kivai e monte sua coleção de ferramentas.`;
 }
 
 export function ToolFavoriteControl() {
@@ -72,7 +36,7 @@ export function ToolFavoriteControl() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const invitation = useMemo(() => invitationText(slug, title), [slug, title]);
+  const invitation = invitationText(title, state, saved);
 
   // O slot está abaixo do processamento e antes do conteúdo editorial completo.
   // Ferramentas antigas sem slot recebem o convite após a área principal.
