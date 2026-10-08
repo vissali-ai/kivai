@@ -60,6 +60,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
       </section> : null}
 
       <div className={show("hero") ? "mt-10" : "mt-8"}><InstagramFollowAnalyzer config={config} /></div>
+      <div data-kivai-favorite-slot className="mt-5" />
 
       {show("summaryPlans") ? <section className="mt-12 grid gap-4 md:grid-cols-3">
         <div className="border border-white/10 bg-card p-5"><h2 className="font-semibold">{config.freeTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.freeDescription}</p></div>

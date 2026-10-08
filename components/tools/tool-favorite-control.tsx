@@ -12,66 +12,49 @@ type AccountState = "loading" | "guest" | "member";
 
 // Os textos destacam usos reais e diferentes de cada ferramenta, sem repetir o mesmo bloco editorial.
 const specificInvitations: Record<string, string> = {
-  "removedor-de-fundo": "Remove fundos de fotos com frequência? Guarde o Removedor de Fundo no seu painel e encontre a ferramenta pronta para a próxima imagem.",
-  "conversor-de-imagens": "Precisa alternar entre JPG, PNG e WebP? Favoritar o Conversor de Imagens deixa esse atalho sempre à mão na sua conta.",
-  "compressor-de-imagens": "Costuma reduzir o peso de fotos para publicar ou enviar? Deixe o Compressor de Imagens entre os seus acessos rápidos.",
-  "redimensionar-imagem": "Ajusta tamanhos de fotos para lojas e redes sociais? Salve o Redimensionador de Imagens e volte aqui em poucos cliques.",
-  "recortar-imagem": "Recorta imagens em diferentes proporções? Adicione esta ferramenta aos favoritos para agilizar as próximas edições.",
-  "conversor-heic": "Recebe fotos de iPhone em HEIC? Mantenha o Conversor HEIC nos favoritos e encontre a conversão quando precisar.",
-  "gerador-de-qr-code": "Cria QR Codes para links, produtos ou contatos? Adicione o Gerador de QR Code ao seu painel para reutilizá-lo facilmente.",
-  "removedor-de-metadados-e-rotulos-de-ia": "Precisa revisar metadados de imagens com frequência? Salve esta ferramenta e mantenha o acesso organizado.",
-  "pdf-para-imagens": "Transforma PDFs em imagens para compartilhar ou editar? Guarde PDF para Imagens em suas ferramentas favoritas.",
-  "imagens-para-pdf": "Monta documentos PDF a partir de fotos? Adicione Imagens para PDF aos favoritos e retorne quando tiver novos arquivos.",
-  "unir-pdfs": "Junta documentos em um só arquivo? Salve Unir PDFs no seu painel para repetir essa tarefa sem procurar pela ferramenta.",
-  "dividir-pdf": "Separa páginas de documentos com frequência? Favorite Dividir PDF e deixe a ferramenta ao alcance da sua conta.",
-  "compactar-pdf": "Precisa enviar PDFs menores? Mantenha Compactar PDF entre suas ferramentas preferidas para acessar novamente.",
-  "editar-pdf": "Faz ajustes em documentos PDF? Organize o acesso ao Editor de PDF salvando esta ferramenta em seus favoritos.",
-  "imprimir-frente-e-verso": "Imprime documentos dos dois lados da folha? Salve o guia de impressão frente e verso para consultar sempre que precisar.",
-  "calculadora-de-margem": "Confere a margem dos produtos antes de vender? Salve a Calculadora de Margem para suas próximas decisões de preço.",
-  "calculadora-de-markup": "Define preços usando markup? Adicione esta calculadora ao seu painel e agilize os próximos cálculos.",
-  "calculadora-de-roas": "Analisa o retorno do investimento em anúncios? Deixe a Calculadora de ROAS salva para conferir novas campanhas.",
-  "calculadora-de-roi": "Avalia o retorno de investimentos com frequência? Favorite a Calculadora de ROI e encontre-a diretamente na sua conta.",
-  "contador-de-palavras": "Revisa o tamanho de textos e conteúdos? Adicione o Contador de Palavras aos favoritos para consultar sempre que precisar.",
-  "consulta-cnpj": "Pesquisa empresas pelo CNPJ? Guarde a Consulta de CNPJ no seu painel e agilize futuras verificações.",
-  "verificador-de-dominio-br": "Costuma conferir a disponibilidade de domínios .br? Salve o Verificador de Domínio entre seus atalhos.",
-  "analisador-de-seguidores-instagram": "Acompanha seguidores e contas seguidas no Instagram? Favorite o Analisador para encontrá-lo nas próximas análises.",
-  "calendario-editorial-redes-sociais": "Planeja publicações nas redes sociais? Deixe o Calendário Editorial salvo entre suas ferramentas mais utilizadas.",
-  "gerador-de-relatorio-social-media": "Produz relatórios para redes sociais? Guarde o Gerador de Relatório no painel para acessá-lo quando precisar.",
-  "radar-de-tendencias": "Gosta de acompanhar tendências e notícias do mercado? Salve o Radar de Tendências para voltar sempre que quiser.",
+  "removedor-de-fundo": "Gostou do Removedor de Fundo? Salve nos favoritos para usar novamente.",
+  "conversor-de-imagens": "Converte JPG, PNG ou WebP? Guarde este conversor nos favoritos.",
+  "compressor-de-imagens": "Comprime fotos com frequência? Favorite esta ferramenta para voltar depois.",
+  "redimensionar-imagem": "Ajusta o tamanho de imagens? Salve este atalho no seu painel.",
+  "recortar-imagem": "Costuma recortar fotos? Adicione esta ferramenta aos favoritos.",
+  "conversor-heic": "Recebe imagens em HEIC? Salve este conversor para a próxima vez.",
+  "gerador-de-qr-code": "Cria QR Codes com frequência? Guarde o gerador no seu painel.",
+  "removedor-de-metadados-e-rotulos-de-ia": "Revisa metadados de imagens? Favorite esta ferramenta.",
+  "pdf-para-imagens": "Converte PDFs em imagens? Deixe esta ferramenta nos seus favoritos.",
+  "imagens-para-pdf": "Transforma fotos em PDF? Salve este recurso no seu painel.",
+  "unir-pdfs": "Junta documentos em PDF? Favorite Unir PDFs para acessar rapidamente.",
+  "dividir-pdf": "Separa páginas de PDF? Salve Dividir PDF nos favoritos.",
+  "compactar-pdf": "Precisa reduzir PDFs? Guarde o compressor nos seus atalhos.",
+  "editar-pdf": "Faz edições em PDF? Deixe esta ferramenta entre suas favoritas.",
+  "imprimir-frente-e-verso": "Imprime frente e verso? Salve este guia para consultar depois.",
+  "calculadora-de-margem": "Calcula margens de vendas? Favorite a calculadora para voltar depois.",
+  "calculadora-de-markup": "Define preços por markup? Guarde esta calculadora no painel.",
+  "calculadora-de-roas": "Acompanha campanhas? Salve a calculadora de ROAS nos favoritos.",
+  "calculadora-de-roi": "Avalia seus investimentos? Favorite a calculadora de ROI.",
+  "contador-de-palavras": "Revisa textos? Salve o Contador de Palavras para usar novamente.",
+  "consulta-cnpj": "Faz consultas de CNPJ? Guarde esta ferramenta nos favoritos.",
+  "verificador-de-dominio-br": "Verifica domínios .br? Salve este atalho na sua conta.",
+  "analisador-de-seguidores-instagram": "Analisa seguidores do Instagram? Favorite esta ferramenta.",
+  "calendario-editorial-redes-sociais": "Organiza publicações? Salve o Calendário Editorial no seu painel.",
+  "gerador-de-relatorio-social-media": "Prepara relatórios de redes sociais? Favorite este gerador.",
+  "radar-de-tendencias": "Acompanha as tendências do mercado? Salve o Radar nos favoritos.",
 };
 
-function invitationText(slug: string, name: string, description?: string, category?: string) {
+function invitationText(slug: string, name: string) {
   if (specificInvitations[slug]) return specificInvitations[slug];
-  const context = (description ?? "").replace(/\s+/g, " ").split(/[.!?]/)[0].trim();
-  const purpose = context && context.length <= 115 ? context + "." : "";
   const variants = [
-    `Gostou de ${name}? Adicione esta ferramenta à sua coleção pessoal para encontrá-la rapidamente na próxima visita.`,
-    `Usa ${name} no dia a dia? Favoritar é uma maneira simples de deixar este recurso sempre ao alcance da sua conta.`,
-    `Quer voltar a ${name} sem pesquisar outra vez? Guarde esta página em Minhas Ferramentas no Kivai.`,
-    `Trabalha com ${name} com frequência? Crie seu atalho pessoal no painel e economize tempo nos próximos acessos.`,
-    `Achou ${name} útil? Salve esta ferramenta na sua conta para reencontrá-la quando surgir uma nova tarefa.`,
-    `Mantenha ${name} por perto. Com um favorito, você abre esta ferramenta diretamente do seu painel Kivai.`,
-    `Pretende usar ${name} novamente? Organize seus acessos preferidos em Minhas Ferramentas, na sua conta.`,
-    `Facilite sua rotina com ${name}. Adicione a ferramenta aos favoritos para voltar a ela sem procurar.`,
+    `Gostou de ${name}? Salve esta ferramenta nos favoritos.`,
+    `Usa ${name} com frequência? Guarde o atalho no seu painel.`,
+    `Quer acessar ${name} novamente? Adicione aos favoritos.`,
+    `Mantenha ${name} por perto. Favorite esta ferramenta.`,
+    `Achou ${name} útil? Salve na sua conta Kivai.`,
+    `Volte a ${name} com facilidade: adicione aos favoritos.`,
+    `Precisa de ${name} no dia a dia? Guarde nos favoritos.`,
+    `Organize seus acessos: salve ${name} no seu painel.`,
   ];
   let hash = 0;
-  for (const c of slug) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
-  const variant = variants[hash % variants.length];
-  if (purpose && (category === "empresas" || category === "social" || category === "video" || category === "audio")) {
-    return `${purpose} ${variant}`;
-  }
-  return variant;
-}
-
-function findDescriptionAnchor(): HTMLElement | null {
-  const heading = document.querySelector<HTMLElement>("main h1") ?? document.querySelector<HTMLElement>("section h1");
-  if (!heading) return null;
-  const parent = heading.parentElement;
-  if (!parent) return heading;
-  const siblings = Array.from(parent.children);
-  const headingIndex = siblings.indexOf(heading);
-  const firstDescription = siblings.slice(headingIndex + 1).find((element) => element.tagName.toLowerCase() === "p");
-  return firstDescription as HTMLElement | undefined ?? heading;
+  for (const char of slug) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return variants[hash % variants.length];
 }
 
 export function ToolFavoriteControl() {
@@ -82,54 +65,58 @@ export function ToolFavoriteControl() {
   const eligible = Boolean(slug) && !isHub;
   const tool = getToolBySlug(slug);
   const defaultTitle = tool?.name || slug.split("-").map((part) => part[0]?.toUpperCase() + part.slice(1)).join(" ");
-  const [title, setTitle] = useState(defaultTitle);
+  const title = defaultTitle;
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [state, setState] = useState<AccountState>("loading");
   const [userId, setUserId] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const invitation = useMemo(
-    () => invitationText(slug, title, tool?.description, tool?.category),
-    [slug, title, tool?.description, tool?.category]
-  );
+  const invitation = useMemo(() => invitationText(slug, title), [slug, title]);
 
-  // O destaque participa do fluxo da página, após a descrição, sem posição fixa.
-  // O portal evita alterações nos processadores das dezenas de ferramentas existentes.
+  // O slot está abaixo do processamento e antes do conteúdo editorial completo.
+  // Ferramentas antigas sem slot recebem o convite após a área principal.
   useEffect(() => {
-    if (!eligible) { setPortalTarget(null); return; }
-    let anchor: HTMLElement | null = null;
-    let container: HTMLDivElement | null = null;
+    if (!eligible) {
+      setPortalTarget(null);
+      return;
+    }
+    let fallback: HTMLDivElement | null = null;
+    let current: HTMLElement | null = null;
+
+    const position = () => {
+      const slot = document.querySelector<HTMLElement>("[data-kivai-favorite-slot]");
+      if (slot) {
+        if (fallback) { fallback.remove(); fallback = null; }
+        if (current !== slot) { current = slot; setPortalTarget(slot); }
+        return;
+      }
+      const toolArea = document.querySelector<HTMLElement>("main")
+        ?? document.querySelector<HTMLElement>("body > section.min-h-screen");
+      if (!toolArea) return;
+      if (!fallback) {
+        fallback = document.createElement("div");
+        fallback.className = "mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8";
+        fallback.setAttribute("data-kivai-favorite-fallback", slug);
+        toolArea.insertAdjacentElement("afterend", fallback);
+      }
+      if (current !== fallback) { current = fallback; setPortalTarget(fallback); }
+    };
+
     const observer = new MutationObserver(() => {
-      if (container?.isConnected) return;
-      const next = findDescriptionAnchor();
-      if (!next) return;
-      anchor = next;
-      container = document.createElement("div");
-      container.setAttribute("data-kivai-favorite-invitation", slug);
-      next.insertAdjacentElement("afterend", container);
-      const heading = document.querySelector<HTMLElement>("main h1") ?? document.querySelector<HTMLElement>("section h1");
-      setTitle(heading?.textContent?.trim() || defaultTitle);
-      setPortalTarget(container);
+      if (!current?.isConnected || (!document.querySelector("[data-kivai-favorite-slot]") && !fallback)
+          || (fallback && document.querySelector("[data-kivai-favorite-slot]"))) {
+        position();
+      }
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    const immediate = findDescriptionAnchor();
-    if (immediate) {
-      anchor = immediate;
-      container = document.createElement("div");
-      container.setAttribute("data-kivai-favorite-invitation", slug);
-      immediate.insertAdjacentElement("afterend", container);
-      const heading = document.querySelector<HTMLElement>("main h1") ?? document.querySelector<HTMLElement>("section h1");
-      setTitle(heading?.textContent?.trim() || defaultTitle);
-      setPortalTarget(container);
-    }
+    position();
     return () => {
       observer.disconnect();
+      fallback?.remove();
       setPortalTarget(null);
-      container?.remove();
-      anchor = null;
     };
-  }, [slug, eligible, defaultTitle]);
+  }, [slug, eligible]);
 
   useEffect(() => {
     if (!eligible) return;
@@ -194,26 +181,25 @@ export function ToolFavoriteControl() {
   const returnPath = pathname + "?favorite=1";
   const query = encodeURIComponent(returnPath);
   return createPortal(
-    <aside aria-label="Salvar ferramenta no painel" className="mt-4 rounded-xl border border-primary/25 bg-primary/[0.045] p-3 text-left sm:p-4">
-      <div className="flex items-start gap-2.5">
-        <Star className={`mt-0.5 size-4 shrink-0 text-primary ${saved ? "fill-primary" : ""}`} aria-hidden="true" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm leading-6 text-foreground">{invitation}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {state === "guest" ? <>
-              <Link className="inline-flex min-h-9 items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 sm:text-sm" href={`/conta/login?next=${query}`}>Entrar e favoritar</Link>
-              <Link className="inline-flex min-h-9 items-center justify-center rounded-lg border border-primary/25 px-3 py-2 text-xs font-medium text-foreground hover:bg-primary/10 sm:text-sm" href={`/conta/cadastro?next=${query}`}>Criar conta grátis</Link>
-            </> : state === "member" ? (
-              <button type="button" disabled={saving || !userId} onClick={toggle} aria-pressed={saved} className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 sm:text-sm">
-                <Star aria-hidden="true" className={`size-4 ${saved ? "fill-current" : ""}`} />
-                {saving ? "Salvando..." : saved ? "Remover dos favoritos" : "Salvar nos favoritos"}
-              </button>
-            ) : <span className="text-xs text-muted-foreground">Verificando sua conta...</span>}
-          </div>
-          {state === "guest" ? <p className="mt-2 text-xs leading-5 text-muted-foreground">Ao entrar ou criar sua conta, esta ferramenta ficará salva em Minhas Ferramentas.</p> : null}
-          {error ? <p role="alert" className="mt-2 text-xs text-red-400">{error}</p> : null}
+    <aside aria-label="Adicionar ferramenta aos favoritos" className="rounded-lg border border-primary/20 bg-primary/[0.035] px-3 py-2.5 text-left sm:px-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 items-start gap-2">
+          <Star className={`mt-0.5 size-4 shrink-0 text-primary ${saved ? "fill-primary" : ""}`} aria-hidden="true" />
+          <p className="text-xs leading-5 text-foreground sm:text-sm">{invitation}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2 pl-6 sm:pl-0">
+          {state === "guest" ? <>
+            <Link className="inline-flex min-h-8 items-center rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90" href={`/conta/login?next=${query}`}>Entrar e salvar</Link>
+            <Link className="inline-flex min-h-8 items-center rounded-md border border-primary/25 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-primary/10" href={`/conta/cadastro?next=${query}`}>Criar conta</Link>
+          </> : state === "member" ? (
+            <button type="button" disabled={saving || !userId} onClick={toggle} aria-pressed={saved} className="inline-flex min-h-8 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
+              <Star aria-hidden="true" className={`size-3.5 ${saved ? "fill-current" : ""}`} />
+              {saving ? "Salvando..." : saved ? "Remover favorito" : "Salvar favorito"}
+            </button>
+          ) : <span className="text-xs text-muted-foreground">Verificando sua conta...</span>}
         </div>
       </div>
+      {error ? <p role="alert" className="mt-1 pl-6 text-xs text-red-400">{error}</p> : null}
     </aside>,
     portalTarget
   );

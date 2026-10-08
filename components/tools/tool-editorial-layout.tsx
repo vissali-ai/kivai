@@ -53,12 +53,15 @@ export async function ToolEditorialLayout({
   afterFaq,
 }: ToolEditorialLayoutProps) {
   const override = await getPublishedToolOverride(slug);
+  const favoritesSlot = <div data-kivai-favorite-slot className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8" />;
 
   if (override?.contentHtml) {
-    return <section className="border-t border-border bg-muted/10 py-12 sm:py-16"><article className="cms-public-content mx-auto w-full max-w-6xl px-4 leading-7 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></section>;
+    return <>{favoritesSlot}<section className="border-t border-border bg-muted/10 py-12 sm:py-16"><article className="cms-public-content mx-auto w-full max-w-6xl px-4 leading-7 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></section></>;
   }
 
   return (
+    <>
+    {favoritesSlot}
     <section className="border-t border-border bg-muted/10 py-12 sm:py-16">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
         <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
@@ -170,5 +173,6 @@ export async function ToolEditorialLayout({
         </div>
       </div>
     </section>
+    </>
   );
 }
