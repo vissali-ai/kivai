@@ -9,6 +9,8 @@ import { getCurrentUser, getStoredSession, signOut, supabaseUserFetch } from "@/
 import { useAccountAccess } from "@/lib/billing/access-client";
 import { planBenefits } from "@/lib/billing/plan-benefits";
 import { SavedProjects } from "@/components/account/saved-projects";
+import { MyFavoriteTools } from "@/components/account/my-favorite-tools";
+import { AccountNotifications } from "@/components/account/account-notifications";
 
 type Profile = { full_name: string | null; avatar_url: string | null; plan_code: "free" | "pro" | "agency" };
 type Snapshot = { id: string; analyzed_at: string; follower_count: number; following_count: number; new_followers_count: number | null; unfollowers_count: number | null; social_account_id: string };
@@ -96,6 +98,8 @@ export function AccountDashboard() {
     </section>
 
     <section className="rounded-2xl border border-primary/25 bg-card p-5"><h2 className="text-xl font-semibold">Seus benefícios {plan === 'free' ? 'Grátis' : plan === 'pro' ? 'Pro' : 'Agency'}</h2><ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">{planBenefits[plan].map(item => <li key={item} className="flex gap-2"><CheckCircle2 className="size-4 shrink-0 text-primary" />{item}</li>)}</ul>{plan !== 'free' ? <><p className="mt-3 text-sm text-muted-foreground">Válido até {access?.subscription?.current_period_end ? new Date(access.subscription.current_period_end).toLocaleDateString('pt-BR') : '—'}{access?.subscription?.provider?.startsWith('admin_') ? ' · Acesso concedido pelo administrador' : ''}</p><Button asChild className="mt-4"><Link href="/conta/pro">Abrir Área {plan === 'agency' ? 'Agency' : 'Pro'} <ArrowRight /></Link></Button></> : <Button asChild className="mt-4"><Link href="/planos">Conhecer benefícios pagos</Link></Button>}</section>
+    <AccountNotifications />
+    <MyFavoriteTools />
     <SavedProjects />
     {pendingRequest ? <section className="rounded-2xl border border-primary/25 bg-primary/[0.035] p-5 sm:p-6"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Contratação em andamento</p><h2 className="mt-2 text-xl font-semibold">Plano {pendingRequest.plan_code === "pro" ? "Pro" : "Agency"} {pendingRequest.billing_cycle === "monthly" ? "mensal" : "anual"}</h2><p className="mt-2 text-sm text-muted-foreground">Valor: R$ {Number(pendingRequest.amount_brl).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{pendingRequest.status === "payment_reported" ? "Pagamento informado. Aguardando confirmação e ativação." : "Depois de concluir o pagamento, informe aqui para destacar a solicitação no Admin."}</p></div><div className="flex min-w-[220px] flex-col gap-2">{pendingRequest.status === "awaiting_payment" ? <><Button onClick={reportPayment} disabled={reportingPayment}>{reportingPayment ? "Registrando..." : "Já realizei o pagamento"}</Button></> : <div className="flex items-center justify-center gap-2 border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-medium text-primary"><CheckCircle2 className="size-4" /> Aguardando confirmação</div>}<Button asChild variant="outline"><a href={pendingRequest.payment_link} target="_blank" rel="noopener noreferrer">Acessar o Link de Pagamento Novamente</a></Button><Button asChild variant="outline"><Link href="/planos">Trocar de Plano</Link></Button></div></div></section> : null}
 
