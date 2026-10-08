@@ -23,7 +23,7 @@ export function UserSignupForm() {
   const [pending, setPending] = useState(false);
 
   function validatePhone() {
-    if (!validWhatsapp(phone)) {
+    if (phone.trim() && !validWhatsapp(phone)) {
       setError("Informe um WhatsApp válido com DDD.");
       return false;
     }
@@ -60,7 +60,7 @@ export function UserSignupForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block space-y-1.5 text-sm"><span>Nome</span><Input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required className="h-11" /></label>
         <label className="block space-y-1.5 text-sm"><span>E-mail</span><Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" required className="h-11" /></label>
-        <label className="block space-y-1.5 text-sm"><span>WhatsApp</span><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="(31) 99999-0000" required className="h-11" /></label>
+        <label className="block space-y-1.5 text-sm"><span>WhatsApp (opcional)</span><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="(31) 99999-0000" className="h-11" /><span className="block text-xs text-muted-foreground">Informe para facilitar o suporte e receber avisos, se você autorizar.</span></label>
         <label className="block space-y-1.5 text-sm"><span>Senha</span><Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" autoComplete="new-password" required className="h-11" /></label>
         <label className="block space-y-1.5 text-sm"><span>Confirmar senha</span><Input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" autoComplete="new-password" required className="h-11" /></label>
         {error ? <p className="border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</p> : null}
