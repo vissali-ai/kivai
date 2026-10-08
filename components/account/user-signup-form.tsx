@@ -12,7 +12,7 @@ function validWhatsapp(value: string) {
   return digits.length === 10 || digits.length === 11 || (digits.startsWith("55") && (digits.length === 12 || digits.length === 13));
 }
 
-export function UserSignupForm() {
+export function UserSignupForm({ next = "/conta" }: { next?: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -39,8 +39,8 @@ export function UserSignupForm() {
     setPending(true);
     try {
       const result = await signUpWithPassword(name, email, password, phone);
-      if (result.access_token) { window.location.assign("/conta"); return; }
-      setMessage("Conta criada. Confira seu e-mail para confirmar o cadastro e depois faça login.");
+      if (result.access_token) { window.location.assign(next.startsWith("/") && !next.startsWith("//") ? next : "/conta"); return; }
+      setMessage("Conta criada. Confira seu e-mail para confirmar o cadastro e depois faça login pelo link abaixo.");
     } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível criar sua conta."); }
     finally { setPending(false); }
   }
@@ -48,7 +48,7 @@ export function UserSignupForm() {
   function handleGoogle() {
     setError("");
     if (!validatePhone()) return;
-    signInWithGoogle("/conta", phone);
+    signInWithGoogle(next, phone);
   }
 
   return (
@@ -68,7 +68,7 @@ export function UserSignupForm() {
         <Button type="submit" disabled={pending} className="h-11 w-full"><UserPlus /> {pending ? "Criando..." : "Criar conta"}</Button>
       </form>
 
-      <p className="text-center text-sm text-muted-foreground">Já tem conta? <Link href="/conta/login" className="font-medium text-primary hover:underline">Entrar</Link></p>
+      <p className="text-center text-sm text-muted-foreground">Já tem conta? <Link href={`/conta/login?next=${encodeURIComponent(next)}`} className="font-medium text-primary hover:underline">Entrar</Link></p>
     </div>
   );
 }
