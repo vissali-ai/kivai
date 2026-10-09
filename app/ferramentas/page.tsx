@@ -1,3 +1,4 @@
+import { ToolCardLink } from "@/components/tools/tool-card-link";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
@@ -108,7 +109,7 @@ export default function FerramentasPage() {
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {reviewedTools.map((tool) => (
-              <Link
+              <ToolCardLink toolTitle={tool.name}
                 key={tool.slug}
                 href={getToolHref(tool.slug)}
                 prefetch={false}
@@ -125,7 +126,7 @@ export default function FerramentasPage() {
                   Abrir ferramenta
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </span>
-              </Link>
+              </ToolCardLink>
             ))}
           </div>
         </div>

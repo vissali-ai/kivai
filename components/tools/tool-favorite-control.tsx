@@ -23,6 +23,10 @@ function invitationText(name: string, accountState: AccountState, saved: boolean
 
 export function ToolFavoriteControl() {
   const pathname = usePathname();
+  return <ToolFavoriteForPath key={pathname} pathname={pathname} />;
+}
+
+function ToolFavoriteForPath({ pathname }: { pathname: string }) {
   const match = /^\/ferramentas\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/.exec(pathname);
   const slug = match?.[1] ?? "";
   const isHub = toolCategories.some((category) => category.href === pathname);
@@ -36,15 +40,13 @@ export function ToolFavoriteControl() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
   const invitation = invitationText(title, state, saved);
 
   // O slot está abaixo do processamento e antes do conteúdo editorial completo.
   // Ferramentas antigas sem slot recebem o convite após a área principal.
   useEffect(() => {
-    if (!eligible) {
-      setPortalTarget(null);
-      return;
-    }
+    if (!eligible) return;
     let fallback: HTMLDivElement | null = null;
     let current: HTMLElement | null = null;
 
@@ -57,7 +59,7 @@ export function ToolFavoriteControl() {
       }
       const toolArea = document.querySelector<HTMLElement>("main")
         ?? document.querySelector<HTMLElement>("body > section.min-h-screen");
-      if (!toolArea) return;
+      if (!toolArea || !tool) return;
       if (!fallback) {
         fallback = document.createElement("div");
         fallback.className = "mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8";
@@ -74,29 +76,32 @@ export function ToolFavoriteControl() {
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    position();
+    const frame = window.requestAnimationFrame(position);
     return () => {
       observer.disconnect();
+      window.cancelAnimationFrame(frame);
       fallback?.remove();
       setPortalTarget(null);
     };
-  }, [slug, eligible]);
+  }, [slug, eligible, tool]);
 
   useEffect(() => {
     if (!eligible) return;
     let alive = true;
     async function load() {
       setState("loading"); setSaved(false); setUserId(""); setError("");
-      const session = getStoredSession();
-      if (!session?.access_token) { if (alive) setState("guest"); return; }
       try {
+        const session = getStoredSession();
+        if (!session?.access_token) { if (alive) setState("guest"); return; }
         const user = await getCurrentUser(session);
+        if (!alive) return;
         if (!user?.id) { if (alive) setState("guest"); return; }
         const response = await supabaseUserFetch(
           `/rest/v1/user_tool_favorites?select=tool_slug&user_id=eq.${encodeURIComponent(user.id)}&tool_slug=eq.${encodeURIComponent(slug)}&limit=1`
         );
         if (!response.ok) throw new Error("Não foi possível carregar seus favoritos.");
         const rows = await response.json() as Array<{ tool_slug: string }>;
+        if (!alive) return;
         let isSaved = rows.length > 0;
         if (new URLSearchParams(window.location.search).get("favorite") === "1") {
           if (!isSaved) {
@@ -108,6 +113,7 @@ export function ToolFavoriteControl() {
             if (!add.ok) throw new Error("Não foi possível salvar a ferramenta.");
             isSaved = true;
           }
+          if (!alive) return;
           const url = new URL(window.location.href);
           url.searchParams.delete("favorite");
           window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
@@ -118,9 +124,16 @@ export function ToolFavoriteControl() {
         if (alive) { setState("member"); setError(cause instanceof Error ? cause.message : "Falha ao consultar favoritos."); }
       }
     }
-    void load();
-    return () => { alive = false; };
-  }, [slug, eligible, title]);
+    const timer = window.setTimeout(() => void load(), 0);
+    return () => { alive = false; window.clearTimeout(timer); };
+  }, [slug, eligible, title, retry]);
+
+  useEffect(() => {
+    const refresh = () => setRetry((value) => value + 1);
+    window.addEventListener("focus", refresh);
+    window.addEventListener("kivai-favorites-changed", refresh);
+    return () => { window.removeEventListener("focus", refresh); window.removeEventListener("kivai-favorites-changed", refresh); };
+  }, []);
 
   if (!eligible || !portalTarget) return null;
 
@@ -137,6 +150,7 @@ export function ToolFavoriteControl() {
         });
       if (!response.ok) throw new Error("Não foi possível atualizar os favoritos.");
       setSaved(!saved);
+      window.dispatchEvent(new Event("kivai-favorites-changed"));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Erro ao salvar.");
     } finally { setSaving(false); }
@@ -163,7 +177,8 @@ export function ToolFavoriteControl() {
           ) : <span className="text-xs text-muted-foreground">Verificando sua conta...</span>}
         </div>
       </div>
-      {error ? <p role="alert" className="mt-1 pl-6 text-xs text-red-400">{error}</p> : null}
+      {state === "member" && saved ? <Link href="/conta#my-tools-title" className="mt-2 inline-block pl-6 text-xs font-medium text-primary hover:underline">Abrir Minhas Ferramentas →</Link> : null}
+      {error ? <p role="alert" className="mt-1 pl-6 text-xs text-red-400">{error} <button type="button" onClick={() => setRetry((value) => value + 1)} className="underline">Tentar novamente</button></p> : null}
     </aside>,
     portalTarget
   );

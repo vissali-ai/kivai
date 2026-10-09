@@ -15,8 +15,8 @@ export function AccountNotifications() {
 
   const refresh = useCallback(async () => {
     const token = getStoredSession()?.access_token;
-    if (!token) { setLoading(false); return; }
     try {
+      if (!token) throw new Error("Faça login para consultar os avisos.");
       const response = await fetch("/api/account/announcements", {
         headers: { Authorization: `Bearer ${token}` }, cache: "no-store",
       });
@@ -27,7 +27,10 @@ export function AccountNotifications() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => void refresh(), 0);
+    return () => window.clearTimeout(timer);
+  }, [refresh]);
   const unread = items.filter((item) => !item.read).length;
 
   async function markRead(id: string) {
@@ -39,7 +42,7 @@ export function AccountNotifications() {
       const response = await fetch("/api/account/announcements", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id }), keepalive: true,
       });
       if (!response.ok) throw new Error("Não foi possível marcar como lido.");
       setItems((current) => current.map((item) => item.id === id ? { ...item, read: true } : item));
@@ -69,7 +72,7 @@ export function AccountNotifications() {
       {items.map((notice) => <article key={notice.id} className={`rounded-xl border p-4 ${notice.read ? "border-white/10" : "border-primary/35 bg-primary/[0.04]"}`}>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h3 className="font-semibold">{notice.title}</h3>
-          {!notice.read ? <button type="button" disabled={busy === notice.id} onClick={() => void markRead(notice.id)} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-primary hover:bg-primary/10 disabled:opacity-50"><Check className="size-3.5" /> Marcar como lido</button> : <span className="text-xs text-muted-foreground">Lido</span>}
+          {!notice.read ? <button type="button" disabled={Boolean(busy)} onClick={() => void markRead(notice.id)} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-primary hover:bg-primary/10 disabled:opacity-50"><Check className="size-3.5" /> Marcar como lido</button> : <span className="text-xs text-muted-foreground">Lido</span>}
         </div>
         <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{notice.body}</p>
         {notice.link_url ? <Link href={notice.link_url} onClick={() => { if (!notice.read) void markRead(notice.id); }} className="mt-3 inline-block text-sm font-medium text-primary hover:underline">Saiba mais →</Link> : null}

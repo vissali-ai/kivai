@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { ToolCardLink } from "@/components/tools/tool-card-link";
+
 import { ArrowRight, Wrench } from "lucide-react";
 import { getToolHref, tools } from "@/lib/tools";
 import { listPublishedFeaturedTools } from "@/lib/site-cms/repository";
@@ -22,7 +23,7 @@ export async function FeaturedToolsSection() {
             const Icon = tool.icon;
 
             return (
-              <Link
+              <ToolCardLink toolTitle={tool.name}
                 key={tool.slug}
                 href={getToolHref(tool.slug)}
                 className="group relative min-w-0 overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-4 ring-1 ring-primary/20 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055]"
@@ -53,7 +54,7 @@ export async function FeaturedToolsSection() {
                     {tool.available && <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />}
                   </div>
                 </div>
-              </Link>
+              </ToolCardLink>
             );
           })}
         </div>

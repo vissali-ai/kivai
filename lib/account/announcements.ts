@@ -27,20 +27,21 @@ export async function listAdminAnnouncements(): Promise<AccountAnnouncement[]> {
 }
 
 export async function listUserAnnouncements(userId: string): Promise<UserAnnouncement[]> {
-  const [access, notices, reads] = await Promise.all([
-    getAccountAccess(userId),
-    supabaseRest<AccountAnnouncement[]>("account_announcements?select=*&enabled=eq.true&order=created_at.desc&limit=150"),
-    supabaseRest<ReadRow[]>(
-      `account_announcement_reads?select=announcement_id&user_id=eq.${encodeURIComponent(userId)}&limit=500`
-    ),
-  ]);
+  const access = await getAccountAccess(userId);
+  const now = new Date().toISOString();
+  // Filter before limiting: expired or other-plan notices must not hide eligible ones.
+  const query = new URLSearchParams({
+    select: "*", enabled: "eq.true", audience: `in.(all,${access.plan})`,
+    and: `(or(start_at.is.null,start_at.lte.${now}),or(end_at.is.null,end_at.gt.${now}))`,
+    order: "created_at.desc", limit: "150",
+  });
+  const notices = await supabaseRest<AccountAnnouncement[]>(`account_announcements?${query}`);
+  if (!notices.length) return [];
+  const reads = await supabaseRest<ReadRow[]>(
+    `account_announcement_reads?select=announcement_id&user_id=eq.${encodeURIComponent(userId)}&announcement_id=in.(${notices.map((notice) => notice.id).join(",")})&limit=150`
+  );
   const readIds = new Set(reads.map((row) => row.announcement_id));
-  const now = Date.now();
-  return notices.filter((notice) =>
-    (notice.audience === "all" || notice.audience === access.plan) &&
-    (!notice.start_at || Date.parse(notice.start_at) <= now) &&
-    (!notice.end_at || Date.parse(notice.end_at) > now)
-  ).map((notice) => ({ ...notice, read: readIds.has(notice.id) }));
+  return notices.map((notice) => ({ ...notice, read: readIds.has(notice.id) }));
 }
 
 export async function readAnnouncement(userId: string, announcementId: string): Promise<void> {

@@ -13,6 +13,7 @@ export function MyFavoriteTools() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [removing, setRemoving] = useState("");
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -20,19 +21,28 @@ export function MyFavoriteTools() {
       .then(async (response) => {
         if (!response.ok) throw new Error("Não foi possível carregar as ferramentas favoritas.");
         const rows = await response.json() as Favorite[];
-        if (alive) setItems(rows);
+        if (alive) { setItems(rows); setError(""); }
       })
       .catch((cause) => { if (alive) setError(cause instanceof Error ? cause.message : "Erro ao carregar favoritos."); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
+  }, [retry]);
+
+  useEffect(() => {
+    const refresh = () => { setLoading(true); setRetry((value) => value + 1); };
+    window.addEventListener("focus", refresh);
+    window.addEventListener("kivai-favorites-changed", refresh);
+    return () => { window.removeEventListener("focus", refresh); window.removeEventListener("kivai-favorites-changed", refresh); };
   }, []);
 
   async function remove(item: Favorite) {
+    if (removing) return;
     setRemoving(item.tool_slug); setError("");
     try {
-      const response = await supabaseUserFetch(`/rest/v1/user_tool_favorites?tool_slug=eq.${encodeURIComponent(item.tool_slug)}`, { method: "DELETE" });
+      const response = await supabaseUserFetch(`/rest/v1/user_tool_favorites?user_id=eq.${encodeURIComponent(item.user_id)}&tool_slug=eq.${encodeURIComponent(item.tool_slug)}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Não foi possível remover a ferramenta.");
       setItems((current) => current.filter((entry) => entry.tool_slug !== item.tool_slug));
+      window.dispatchEvent(new Event("kivai-favorites-changed"));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Erro ao remover favorito.");
     } finally { setRemoving(""); }
@@ -56,13 +66,13 @@ export function MyFavoriteTools() {
             <span className="block truncate text-sm font-semibold">{item.tool_title}</span>
             <span className="mt-1 block text-xs text-muted-foreground">Abrir ferramenta</span>
           </Link>
-          <button type="button" aria-label={`Remover ${item.tool_title} dos favoritos`} disabled={removing === item.tool_slug}
+          <button type="button" aria-label={`Remover ${item.tool_title} dos favoritos`} disabled={Boolean(removing)}
             onClick={() => void remove(item)} className="rounded-lg p-2 text-muted-foreground hover:bg-white/5 hover:text-red-400 disabled:opacity-40">
             <Trash2 aria-hidden="true" className="size-4" />
           </button>
         </div>)}
       </div> : null}
-      {error ? <p role="alert" className="mt-3 text-sm text-red-400">{error}</p> : null}
+      {error ? <p role="alert" className="mt-3 text-sm text-red-400">{error} <button type="button" onClick={() => setRetry((value) => value + 1)} className="underline">Tentar novamente</button></p> : null}
     </section>
   );
 }

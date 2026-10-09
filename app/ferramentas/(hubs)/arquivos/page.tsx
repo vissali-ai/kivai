@@ -1,5 +1,6 @@
 "use client";
 
+import { ToolCardLink } from "@/components/tools/tool-card-link";
 import Link from "next/link";
 import { useState } from "react";
 import { Archive, ArrowLeft, ArrowRight } from "lucide-react";
@@ -68,7 +69,7 @@ export default function ArquivosPage() {
 
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {filteredTools.map((tool) => (
-              <Link
+              <ToolCardLink toolTitle={tool.name}
                 key={tool.name}
                 href={tool.href}
                 className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4"
@@ -87,7 +88,7 @@ export default function ArquivosPage() {
                     <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                   </div>
                 </div>
-              </Link>
+              </ToolCardLink>
             ))}
           </div>
 

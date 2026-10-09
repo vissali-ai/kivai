@@ -8,6 +8,7 @@ import "./mobile-file-inputs.css";
 import { Footer } from "@/components/marketing/footer";
 import { WhatsappSupportButton } from "@/components/marketing/whatsapp-support-button";
 import { ToolFavoriteControl } from "@/components/tools/tool-favorite-control";
+import { CardFavoritesProvider } from "@/components/tools/tool-card-link";
 import { Navbar } from "@/components/marketing/navbar";
 import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provider";
 import StructuredData from "@/components/seo/structured-data";
@@ -168,11 +169,13 @@ export default function RootLayout({
         ) : null}
 
         <CookieConsentProvider>
+          <CardFavoritesProvider>
           <Navbar />
           {children}
           <Footer />
           <WhatsappSupportButton />
           <ToolFavoriteControl />
+          </CardFavoritesProvider>
         </CookieConsentProvider>
       </body>
     </html>

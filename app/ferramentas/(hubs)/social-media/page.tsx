@@ -1,5 +1,6 @@
 "use client";
 
+import { ToolCardLink } from "@/components/tools/tool-card-link";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -72,14 +73,14 @@ export default function SocialMediaPage() {
               );
 
               return tool.available ? (
-                <Link
+                <ToolCardLink toolTitle={tool.name}
                   key={tool.slug}
                   href={getToolHref(tool.slug)}
                   prefetch={false}
                   className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4"
                 >
                   {content}
-                </Link>
+                </ToolCardLink>
               ) : (
                 <article
                   key={tool.slug}

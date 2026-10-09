@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { BellRing, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,11 @@ export function AccountAnnouncementsAdmin({ initialNotices }: { initialNotices: 
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   function startNew() { setEditingId(null); setDraft({ ...blank }); setFeedback(""); }
   function startEdit(notice: AccountAnnouncement) {
@@ -81,7 +86,7 @@ export function AccountAnnouncementsAdmin({ initialNotices }: { initialNotices: 
         <h2 className="flex items-center gap-2 text-xl font-semibold"><BellRing className="size-5 text-primary" /> Avisos no painel dos usuários</h2>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">Crie avisos internos para todos ou para um plano específico, sem modificar permissões ou benefícios.</p>
       </div>
-      <Button size="sm" variant="outline" type="button" onClick={startNew}><Plus className="size-4" /> Novo aviso</Button>
+      <Button size="sm" variant="outline" type="button" disabled={busy} onClick={startNew}><Plus className="size-4" /> Novo aviso</Button>
     </div>
     <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <form onSubmit={save} className="grid content-start gap-3 rounded-xl border border-white/10 p-4">
@@ -122,10 +127,10 @@ export function AccountAnnouncementsAdmin({ initialNotices }: { initialNotices: 
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{notice.title}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{audienceLabels[notice.audience]} · {notice.enabled ? "Ativo" : "Desativado"}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{audienceLabels[notice.audience]} · {!notice.enabled ? "Desativado" : notice.end_at && Date.parse(notice.end_at) <= now ? "Encerrado" : notice.start_at && Date.parse(notice.start_at) > now ? "Agendado" : "Ativo"}</p>
               </div>
               <div className="flex shrink-0 gap-1">
-                <button type="button" aria-label={`Editar ${notice.title}`} onClick={() => startEdit(notice)} className="rounded-lg p-2 text-muted-foreground hover:text-primary"><Pencil className="size-4" /></button>
+                <button type="button" disabled={busy} aria-label={`Editar ${notice.title}`} onClick={() => startEdit(notice)} className="rounded-lg p-2 text-muted-foreground hover:text-primary"><Pencil className="size-4" /></button>
                 <button type="button" disabled={busy} aria-label={`Excluir ${notice.title}`} onClick={() => void remove(notice.id)} className="rounded-lg p-2 text-muted-foreground hover:text-red-400 disabled:opacity-50"><Trash2 className="size-4" /></button>
               </div>
             </div>
