@@ -65,10 +65,10 @@ export async function POST(request: Request) {
     return Response.json({ analysis: validated.data }, { headers: responseHeaders });
   } catch (cause) {
     if (cause instanceof GeminiRequestError && cause.status === 429) {
-      return error("A cota gratuita do Gemini está temporariamente limitada.", 429, 120);
+      return error("O limite de análises com IA está temporariamente indisponível.", 429, 120);
     }
     if (cause instanceof GeminiRequestError && cause.status === 404) {
-      return error("Os modelos do Gemini não estão disponíveis para este projeto. Tente novamente mais tarde.", 503, 60);
+      return error("O serviço de IA está temporariamente indisponível. Tente novamente mais tarde.", 503, 60);
     }
     console.error("[kivai-ai] Análise Social Media indisponível");
     return error("Não foi possível gerar a análise agora. Tente novamente mais tarde.", 503, 30);
