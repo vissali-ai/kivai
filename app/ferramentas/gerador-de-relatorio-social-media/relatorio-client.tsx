@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Clipboard, Copy, Download, FileBarChart, FolderOpen, Plus, Printer, Save, Trash2 } from "lucide-react";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { SavedProjects } from "@/components/account/saved-projects";
+import { SocialReportAi } from "@/components/tools/social-report-ai";
+import type { SocialReportAiInput } from "@/lib/ai/social-report";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -103,6 +105,41 @@ export default function RelatorioSocialMediaClient() {
     return { interactions, formatTotal, publications, followerDelta, followerGrowth, base, engagement, trafficClicks, ctr, paid };
   }, [report]);
 
+  // Only aggregate numeric data is included in Gemini requests.
+  const aiInput = useMemo<SocialReportAiInput>(() => {
+    const numeric = (raw: string) => informed(raw) ? value(raw) : null;
+    const clickKeys: (keyof Metrics)[] = ["linkClicks", "profileClicks", "siteVisits", "contactClicks", "otherClicks"];
+    const recordedInteractions = interactionKeys.some((key) => informed(report.metrics[key]));
+    const recordedContent = contentKeys.some((key) => informed(report.metrics[key]));
+    const recordedClicks = clickKeys.some((key) => informed(report.metrics[key]));
+    return {
+      network: (report.network || "Outra") as SocialReportAiInput["network"],
+      startDate: report.startDate,
+      endDate: report.endDate,
+      engagementMethod: report.engagementMethod,
+      metrics: {
+        followersStart: numeric(report.metrics.followersStart),
+        followersEnd: numeric(report.metrics.followersEnd),
+        reach: numeric(report.metrics.reach),
+        impressions: numeric(report.metrics.impressions),
+        interactions: recordedInteractions ? calculations.interactions : null,
+        publications: informed(report.metrics.publications) || recordedContent ? calculations.publications : null,
+        clicks: recordedClicks ? calculations.trafficClicks : null,
+        investment: numeric(report.metrics.investment),
+        leads: numeric(report.metrics.leads),
+        revenue: numeric(report.metrics.revenue),
+        engagementRate: recordedInteractions ? calculations.engagement : null,
+        ctr: recordedClicks ? calculations.ctr : null,
+        roas: calculations.paid.roas,
+      },
+      previous: report.compare ? {
+        reach: numeric(report.previous.reach),
+        impressions: numeric(report.previous.impressions),
+        interactions: numeric(report.previous.interactions),
+      } : null,
+    };
+  }, [report, calculations]);
+
   const rankedHighlights = useMemo(() => [...report.highlights].sort((a, b) => {
     const score = (item: Highlight) => report.rankBy === "rate" ? (value(item.reach) > 0 ? value(item.interactions) / value(item.reach) : 0) : value(item[report.rankBy]);
     return score(b) - score(a);
@@ -170,7 +207,7 @@ export default function RelatorioSocialMediaClient() {
     finally { setExporting(false); }
   }
 
-  return <ToolPageShell title="Gerador de Relatório Social Media" description="Organize métricas, compare períodos e crie um relatório visual de desempenho para redes sociais." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Os dados deste relatório ficam neste navegador enquanto você trabalha. Só são enviados à sua conta Kivai se escolher Salvar na conta.">
+  return <ToolPageShell title="Gerador de Relatório Social Media" description="Organize métricas, compare períodos e crie um relatório visual de desempenho para redes sociais." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Os dados do relatório ficam neste navegador. Se optar por salvar na conta, serão enviados ao Kivai; se solicitar a análise com IA, apenas métricas agregadas serão enviadas ao Gemini.">
     <style>{`@media print { @page { size:A4; margin:12mm } body * { visibility:hidden !important } [data-print-report], [data-print-report] * { visibility:visible !important } [data-print-report] { position:absolute !important; inset:0 auto auto 0 !important; width:100% !important; border:0 !important; background:#fff !important; color:#111 !important; box-shadow:none !important } [data-print-report] * { color:#111 !important; border-color:#bbb !important } [data-print-hide], [data-ad-slot] { display:none !important } [data-print-section] { break-inside:avoid; page-break-inside:avoid } }`}</style>
     <div data-print-hide className="border border-border bg-card p-3 sm:p-4">
       <ol aria-label="Etapas do relatório" className="grid grid-cols-2 gap-2 sm:grid-cols-5">{steps.map((step, index) => <li key={step}><button type="button" onClick={() => setActiveStep(index)} aria-current={activeStep === index ? "step" : undefined} className={cn("flex min-h-12 w-full items-center gap-2 border px-3 text-left text-xs font-medium transition-colors", activeStep === index ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50")}><span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-current">{index + 1}</span>{step}</button></li>)}</ol>
@@ -181,6 +218,7 @@ export default function RelatorioSocialMediaClient() {
     {activeStep === 2 && <ComparisonStep report={report} update={update} updatePrevious={updatePrevious} calculations={calculations} />}
     {activeStep === 3 && <HighlightsStep report={report} update={update} add={addHighlight} change={updateHighlight} remove={removeHighlight} />}
     {activeStep === 4 && <ReportPreview ref={reportRef} report={report} calculations={calculations} ranked={rankedHighlights} />}
+    {activeStep === 4 && <SocialReportAi input={aiInput} />}
 
     <div data-print-hide className="flex flex-wrap items-center gap-2 border border-border bg-card p-4">
       {activeStep > 0 && <Button variant="outline" onClick={() => setActiveStep((current) => current - 1)}>Voltar</Button>}
