@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
   // Separate explicit user consent prevents accidental transfers to the provider.
   if (!json || typeof json !== "object" || !("consent" in json) || json.consent !== true) {
-    return failure("Autorize o envio dos arquivos ao Gemini antes de continuar.", 400);
+    return failure("Autorize o envio dos arquivos ao serviço de IA antes de continuar.", 400);
   }
   const parsed = socialImportRequestSchema.safeParse(json);
   if (!parsed.success) return failure("Revise o tipo, quantidade ou tamanho dos arquivos.", 400);
@@ -114,10 +114,10 @@ export async function POST(request: Request) {
     return Response.json({ extracted: validated.data }, { headers: noStore });
   } catch (cause) {
     if (cause instanceof GeminiRequestError && cause.status === 429) {
-      return failure("A cota gratuita do Gemini foi atingida. Tente novamente mais tarde.", 429, 120);
+      return failure("O limite de análises com IA foi atingido. Tente novamente mais tarde.", 429, 120);
     }
     if (cause instanceof GeminiRequestError && cause.status === 404) {
-      return failure("O modelo Gemini não está disponível neste projeto.", 503, 60);
+      return failure("O serviço de IA está temporariamente indisponível.", 503, 60);
     }
     console.error("[kivai-ai] Importação de relatório indisponível");
     return failure("Não foi possível interpretar os arquivos agora. Tente novamente mais tarde.", 503, 30);
