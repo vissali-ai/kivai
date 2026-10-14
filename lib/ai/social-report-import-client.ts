@@ -4,7 +4,7 @@ import type { SocialImportRequest } from "@/lib/ai/social-report-import";
 
 export type PreparedSocialImportFile = SocialImportRequest["files"][number];
 
-const MAX_IMAGE = 950_000;
+const MAX_IMAGE = 700_000; // 3 screenshots stay within Vercel body and server-wide limits
 const MAX_PDF = 2_000_000;
 const MAX_SOURCE = 2_000_000;
 
@@ -136,7 +136,7 @@ function excelCell(value: unknown): string {
 async function excelToText(file: File) {
   const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(new Uint8Array(await file.arrayBuffer()) as unknown as Buffer);
+  await workbook.xlsx.load(new Uint8Array(await file.arrayBuffer()) as unknown as Parameters<typeof workbook.xlsx.load>[0]);
   const sections: string[] = [];
   for (const sheet of workbook.worksheets.slice(0, 3)) {
     const rows: string[][] = [];
