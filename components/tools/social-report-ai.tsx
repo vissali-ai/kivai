@@ -73,7 +73,7 @@ export function SocialReportAi({ input }: { input: SocialReportAiInput }) {
         </Button>
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
-        Teste no ambiente Preview. Apenas indicadores agregados, período e rede social são enviados ao Google Gemini após seu clique.
+        Somente indicadores agregados, período e rede social são enviados ao Google Gemini após seu clique.
         Não enviamos nomes de clientes, perfis, observações ou links. A modalidade gratuita pode utilizar dados enviados para melhorar os produtos do Google.
         A análise pode conter erros e não substitui a avaliação profissional.
       </p>
