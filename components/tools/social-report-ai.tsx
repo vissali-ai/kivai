@@ -56,30 +56,33 @@ export function SocialReportAi({ input }: { input: SocialReportAiInput }) {
   }
 
   return (
-    <section data-print-hide className="space-y-4 border border-border bg-card p-4 sm:p-6" aria-labelledby="social-report-ai-heading">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="social-report-ai-heading" className="flex items-center gap-2 text-lg font-semibold">
-            <Sparkles className="size-5 text-primary" aria-hidden="true" />
-            Análise inteligente com IA
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Receba uma leitura dos indicadores e sugestões práticas. Os cálculos continuam sendo feitos pelo Kivai.
-          </p>
-        </div>
+    <section data-print-hide className="space-y-4" aria-labelledby="social-report-ai-heading">
+      <div className="border border-border bg-card p-4 sm:p-6">
+        <h2 id="social-report-ai-heading" className="flex items-center gap-2 text-lg font-semibold">
+          <Sparkles className="size-5 text-primary" aria-hidden="true" />
+          Análise inteligente com IA
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+          Receba uma leitura dos indicadores e sugestões práticas.
+        </p>
+      </div>
+      <div className="flex justify-end">
         <Button type="button" onClick={analyze} disabled={loading || !hasMetrics} className="w-full sm:w-auto">
           {loading ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Sparkles className="size-4" aria-hidden="true" />}
           {loading ? "Analisando…" : visible ? "Atualizar análise" : "Analisar com IA"}
         </Button>
       </div>
-      <p className="text-xs leading-5 text-muted-foreground">
-        Somente indicadores agregados, período e rede social são enviados ao Google Gemini após seu clique.
-        Não enviamos nomes de clientes, perfis, observações ou links. A modalidade gratuita pode utilizar dados enviados para melhorar os produtos do Google.
-        A análise pode conter erros e não substitui a avaliação profissional.
-      </p>
+      <details className="text-xs leading-5 text-muted-foreground">
+        <summary className="cursor-pointer font-medium">Privacidade e uso dos dados</summary>
+        <p className="mt-2">
+          Somente indicadores agregados, período e rede social são enviados ao Google Gemini após seu clique.
+          Não enviamos nomes de clientes, perfis, observações ou links. A modalidade gratuita pode utilizar dados enviados para melhorar os produtos do Google.
+          A análise pode conter erros e não substitui a avaliação profissional.
+        </p>
+      </details>
       {error && <p role="alert" className="border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
       {visible && (
-        <div className="space-y-4 border-t border-border pt-4" aria-live="polite">
+        <div className="space-y-4 border border-border bg-card p-4 sm:p-6" aria-live="polite">
           <div>
             <h3 className="font-semibold">Resumo dos resultados</h3>
             <p className="mt-1 text-sm leading-6">{visible.summary}</p>
