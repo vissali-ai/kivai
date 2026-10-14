@@ -14,7 +14,7 @@ export function SocialReportAi({ input }: { input: SocialReportAiInput }) {
   const [error, setError] = useState("");
   const fingerprint = JSON.stringify(input);
   const visible = result?.fingerprint === fingerprint ? result.analysis : null;
-  const hasMetrics = Object.values(input.metrics).some((metric) => metric !== null);
+  const hasMetrics = [input.metrics.reach, input.metrics.impressions, input.metrics.followersEnd, input.metrics.interactions, input.metrics.publications, input.metrics.leads, input.metrics.revenue].some((metric) => metric !== null);
 
   async function analyze() {
     setError("");
