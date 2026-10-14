@@ -5,6 +5,7 @@ import { supabaseRest } from "@/lib/blog/supabase";
 export const FREE_AI_CREDITS_MONTHLY = 10;
 
 export type AiCreditBalance = {
+  plan_code: "free" | "pro" | "agency";
   free_limit: number;
   free_remaining: number;
   purchased_remaining: number;
