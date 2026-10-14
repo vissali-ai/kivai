@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHmac } from "node:crypto";
 import { blogConfig } from "@/lib/blog/config";
+import { supabaseRest } from "@/lib/blog/supabase";
 import { consumeRadarRateLimit } from "@/lib/news-radar/repository";
 
 // Preview pilot: reuse the existing atomic, persistent Supabase limiter with
@@ -29,4 +30,22 @@ export async function reserveAiRequest(userId: string): Promise<boolean> {
     GLOBAL_REQUESTS_PER_HOUR,
     3600,
   );
+}
+
+type HourLimitRow = { request_count: number; window_started_at: string };
+
+// Read-only view of the same limiter used for actual AI requests.
+export async function getAiHourlyStatus(userId: string) {
+  const rows = await supabaseRest<HourLimitRow[]>(
+    `news_radar_rate_limits?select=request_count,window_started_at&identifier_hash=eq.${identifier(`user:${userId}`)}&limit=1`
+  );
+  const row = rows[0];
+  const expiresAt = row ? new Date(row.window_started_at).getTime() + 3_600_000 : 0;
+  const active = expiresAt > Date.now();
+  const count = active ? row.request_count : 0;
+  return {
+    limit: USER_REQUESTS_PER_HOUR,
+    remaining: Math.max(0, USER_REQUESTS_PER_HOUR - count),
+    renews_at: active ? new Date(expiresAt).toISOString() : null,
+  };
 }
