@@ -7,6 +7,7 @@ import { getStoredSession } from "@/lib/user-auth";
 
 export type AiCreditsInfo = {
   wallet: {
+    plan_code: "free" | "pro" | "agency";
     free_limit: number;
     free_remaining: number;
     purchased_remaining: number;
