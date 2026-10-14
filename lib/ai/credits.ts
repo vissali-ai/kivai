@@ -20,7 +20,15 @@ type ReservationResult = {
   purchased_remaining?: number;
 };
 
+async function recoverInterruptedRequests(userId: string) {
+  await supabaseRest<number>("rpc/recover_stale_ai_credit_operations", {
+    method: "POST",
+    body: JSON.stringify({ p_user_id: userId }),
+  });
+}
+
 export async function getAiCreditBalance(userId: string): Promise<AiCreditBalance> {
+  await recoverInterruptedRequests(userId);
   return supabaseRest<AiCreditBalance>("rpc/get_ai_credit_balance", {
     method: "POST",
     body: JSON.stringify({ p_user_id: userId }),
