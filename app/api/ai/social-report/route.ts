@@ -32,17 +32,12 @@ function error(message: string, status: number, retryAfter?: number) {
 }
 
 export async function POST(request: Request) {
-  // A preview-only pilot cannot be invoked on the production deployment.
-  if (process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview") {
-    return error("Recurso indisponível neste ambiente.", 404);
-  }
-
   // Authenticate BEFORE consuming any quota or contacting Gemini.
   let userId: string;
   try {
     userId = (await authenticateBillingUser(request)).id;
   } catch {
-    return error("Faça login no Kivai para testar a análise com IA.", 401);
+    return error("Faça login no Kivai para utilizar a análise com IA.", 401);
   }
 
   const raw = await request.text();
@@ -63,7 +58,7 @@ export async function POST(request: Request) {
 
   try {
     const allowed = await reserveAiRequest(userId);
-    if (!allowed) return error("Limite de testes com IA atingido. Tente novamente mais tarde.", 429, 3600);
+    if (!allowed) return error("Limite de análises com IA atingido. Tente novamente mais tarde.", 429, 3600);
     const result = await requestGeminiJson(instructions, parsed.data);
     const validated = socialReportInsightSchema.safeParse(result);
     if (!validated.success) return error("A análise não pôde ser validada. Tente novamente.", 503, 30);
