@@ -66,10 +66,13 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
 
   function handlePaste(event: ClipboardEvent<HTMLTextAreaElement>) {
     const clipboard = event.clipboardData;
-    const images = Array.from(clipboard.items)
+    const items = clipboard.items ? Array.from(clipboard.items) : [];
+    const fromItems = items
       .filter(item => item.kind === "file" && item.type.startsWith("image/"))
       .map(item => item.getAsFile())
       .filter((file): file is File => file !== null);
+    const fromFiles = Array.from(clipboard.files || []).filter(file => file.type.startsWith("image/"));
+    const images = fromItems.length ? fromItems : fromFiles;
     if (!images.length) {
       event.preventDefault();
       setError("A área de transferência não contém um print. Copie uma imagem ou selecione um arquivo.");
