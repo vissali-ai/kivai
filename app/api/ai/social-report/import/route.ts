@@ -1,6 +1,7 @@
 import { authenticateBillingUser } from "@/lib/billing/sumup";
 import { GeminiRequestError, requestGeminiJsonParts, type GeminiInputPart } from "@/lib/ai/gemini";
 import { reserveAiRequest } from "@/lib/ai/limits";
+import { reserveAiCredits, finalizeAiCredits } from "@/lib/ai/credits";
 import {
   IMPORTABLE_SOCIAL_METRICS,
   socialImportRequestSchema,
@@ -101,7 +102,20 @@ export async function POST(request: Request) {
     parts.push({ inlineData: { mimeType: file.mimeType, data: file.data } });
   }
 
+  const creditOperationId = crypto.randomUUID();
+  let creditReserved = false;
+
   try {
+    const reservation = await reserveAiCredits({
+      userId,
+      operationId: creditOperationId,
+      kind: "import",
+      cost: parsed.data.files.some((file) => file.kind === "binary") ? 2 : 1,
+    });
+    if (!reservation.allowed) {
+      return failure("Seus créditos acabaram. Veja os pacotes disponíveis para continuar.", 402);
+    }
+    creditReserved = true;
     const available = await reserveAiRequest(userId);
     if (!available) return failure("Limite de análises com IA atingido. Tente novamente mais tarde.", 429, 3600);
 
@@ -111,6 +125,8 @@ export async function POST(request: Request) {
     if (!validated.data.metrics.length) {
       return failure("Não localizamos números de desempenho confiáveis. Envie uma tela de Insights com as métricas visíveis.", 422);
     }
+    await finalizeAiCredits(userId, creditOperationId, true);
+    creditReserved = false;
     return Response.json({ extracted: validated.data }, { headers: noStore });
   } catch (cause) {
     if (cause instanceof GeminiRequestError && cause.status === 429) {
@@ -121,5 +137,13 @@ export async function POST(request: Request) {
     }
     console.error("[kivai-ai] Importação de relatório indisponível");
     return failure("Não foi possível interpretar os arquivos agora. Tente novamente mais tarde.", 503, 30);
+    } finally {
+    if (creditReserved) {
+      try {
+        await finalizeAiCredits(userId, creditOperationId, false);
+      } catch {
+        console.error("[kivai-ai] Could not refund failed credit reservation");
+      }
+    }
   }
 }
