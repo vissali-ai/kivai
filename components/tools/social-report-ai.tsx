@@ -76,8 +76,8 @@ export function SocialReportAi({ input, onInsert }: { input: SocialReportAiInput
       <details className="text-xs leading-5 text-muted-foreground">
         <summary className="cursor-pointer font-medium">Privacidade e uso dos dados</summary>
         <p className="mt-2">
-          Somente indicadores agregados, período e rede social são enviados ao Google Gemini após seu clique.
-          Não enviamos nomes de clientes, perfis, observações ou links. A modalidade gratuita pode utilizar dados enviados para melhorar os produtos do Google.
+          Somente indicadores agregados, período e rede social são enviados a um serviço externo de IA após seu clique.
+          Não enviamos nomes de clientes, perfis, observações ou links. Na modalidade gratuita, o provedor pode utilizar os dados enviados para melhorar seus produtos.
           A análise pode conter erros e não substitui a avaliação profissional.
         </p>
       </details>
