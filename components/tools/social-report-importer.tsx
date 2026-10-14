@@ -67,7 +67,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
   async function extract() {
     setError("");
     setResult(null);
-    if (!consent) { setError("Confirme o consentimento para enviar os arquivos ao Gemini."); return; }
+    if (!consent) { setError("Confirme a autorização para analisar os arquivos com IA."); return; }
     const session = getStoredSession();
     if (!session?.access_token) { setError("Faça login no Kivai para importar indicadores com IA."); return; }
     setLoading(true);
@@ -155,7 +155,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
       <label className="flex items-start gap-3 border border-border bg-muted/30 p-3 text-xs leading-5">
         <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 size-4 shrink-0" />
         <span><ShieldCheck className="mr-1 inline size-4" aria-hidden="true" />
-          Autorizo enviar o conteúdo selecionado ao Google Gemini para extrair as métricas. Entendo que a modalidade gratuita pode usar os dados para melhorar produtos Google.
+          Autorizo o envio do conteúdo selecionado a um provedor externo de IA para extrair as métricas. Entendo que, na modalidade gratuita, esse provedor pode utilizar os dados para melhorar seus produtos.
           Vou ocultar nomes, identificadores e dados pessoais desnecessários antes de importar. O Kivai não salva os arquivos enviados nesta ferramenta.
         </span>
       </label>
