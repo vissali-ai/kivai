@@ -64,12 +64,12 @@ export function AiCreditBalance() {
               <p className="text-sm">
                 <strong>{info.wallet.total_remaining}</strong> disponíveis
                 <span className="text-muted-foreground">
-                  {" "}({info.wallet.free_remaining} grátis + {info.wallet.purchased_remaining} adicionais)
+                  {" "}({info.wallet.free_remaining} do plano {info.wallet.plan_code === "agency" ? "Agency" : info.wallet.plan_code === "pro" ? "Pro" : "Free"} + {info.wallet.purchased_remaining} adicionais)
                 </span>
               </p>
               <p className="text-xs leading-5 text-muted-foreground">
                 {info.hourly.remaining} de {info.hourly.limit} solicitações nesta hora.
-                Os {info.wallet.free_limit} créditos grátis renovam em {renewal} e não acumulam.
+                Seus {info.wallet.free_limit} créditos mensais renovam em {renewal} e não acumulam.
               </p>
             </>
           ) : <p className="text-xs text-muted-foreground">{message || "Consultando seu saldo..."}</p>}
