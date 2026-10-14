@@ -8,8 +8,9 @@ import type { SocialReportAiInput, SocialReportAiInsight } from "@/lib/ai/social
 
 type Result = { fingerprint: string; analysis: SocialReportAiInsight };
 
-export function SocialReportAi({ input }: { input: SocialReportAiInput }) {
+export function SocialReportAi({ input, onInsert }: { input: SocialReportAiInput; onInsert: (analysis: SocialReportAiInsight) => void }) {
   const [result, setResult] = useState<Result | null>(null);
+  const [insertedFingerprint, setInsertedFingerprint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const fingerprint = JSON.stringify(input);
@@ -102,6 +103,15 @@ export function SocialReportAi({ input }: { input: SocialReportAiInput }) {
           <div>
             <h3 className="font-semibold">Próximas ações sugeridas</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6">{visible.actions.map((item, index) => <li key={index}>{item}</li>)}</ul>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+            <p className="flex-1 text-xs text-muted-foreground">
+              A análise é uma sugestão. Revise os textos antes de exportar ou apresentar ao cliente.
+            </p>
+            <Button type="button" variant="outline" disabled={insertedFingerprint === fingerprint}
+              onClick={() => { onInsert(visible); setInsertedFingerprint(fingerprint); }}>
+              {insertedFingerprint === fingerprint ? "Adicionado ao relatório" : "Inserir diagnóstico e plano no relatório"}
+            </Button>
           </div>
         </div>
       )}

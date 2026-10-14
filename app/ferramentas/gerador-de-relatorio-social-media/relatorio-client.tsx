@@ -5,7 +5,8 @@ import { Clipboard, Copy, Download, FileBarChart, FolderOpen, Plus, Printer, Sav
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { SavedProjects } from "@/components/account/saved-projects";
 import { SocialReportAi } from "@/components/tools/social-report-ai";
-import type { SocialReportAiInput } from "@/lib/ai/social-report";
+import { SocialReportImporter, type SocialReportImportApply } from "@/components/tools/social-report-importer";
+import type { SocialReportAiInput, SocialReportAiInsight } from "@/lib/ai/social-report";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -146,6 +147,38 @@ export default function RelatorioSocialMediaClient() {
   }), [report.highlights, report.rankBy]);
 
   function update<K extends keyof Report>(key: K, next: Report[K]) { setReport((current) => ({ ...current, [key]: next })); if (errors[key]) setErrors((current) => ({ ...current, [key]: "" })); }
+  function applyImportedMetrics(payload: SocialReportImportApply) {
+    setReport((current) => {
+      const metrics = { ...current.metrics };
+      for (const [key, amount] of Object.entries(payload.metrics)) {
+        if (amount === undefined || !Number.isFinite(amount)) continue;
+        metrics[key as keyof Metrics] = String(amount);
+      }
+      return {
+        ...current,
+        metrics,
+        ...(payload.network ? { network: payload.network } : {}),
+        ...(payload.startDate && payload.endDate ? { startDate: payload.startDate, endDate: payload.endDate } : {}),
+      };
+    });
+    setActiveStep(1);
+    showFeedback("Indicadores importados. Confira as métricas e conclua o relatório.");
+  }
+
+  function insertAiInsight(analysis: SocialReportAiInsight) {
+    setReport((current) => ({
+      ...current,
+      notes: [current.notes, "Análise com IA (revise antes de entregar)", analysis.summary,
+        analysis.strengths.length ? "Pontos positivos:\\n" + analysis.strengths.map((a) => "• " + a).join("\\n") : "",
+        analysis.attention.length ? "Pontos de atenção:\\n" + analysis.attention.map((a) => "• " + a).join("\\n") : "",
+      ].filter(Boolean).join("\\n\\n"),
+      nextSteps: [current.nextSteps, "Plano de ação sugerido pela IA",
+        ...analysis.actions.map((action, index) => `${index + 1}. ${action}`),
+      ].filter(Boolean).join("\\n"),
+    }));
+    showFeedback("Diagnóstico e plano de ação adicionados ao relatório. Revise antes de exportar.");
+  }
+
   function updateMetric(key: keyof Metrics, next: string) { setReport((current) => ({ ...current, metrics: { ...current.metrics, [key]: cleanNumber(next) } })); }
   function updatePrevious(key: keyof Previous, next: string) { setReport((current) => ({ ...current, previous: { ...current.previous, [key]: cleanNumber(next) } })); }
   function showFeedback(message: string) { setFeedback(message); window.setTimeout(() => setFeedback(""), 6000); }
@@ -207,18 +240,23 @@ export default function RelatorioSocialMediaClient() {
     finally { setExporting(false); }
   }
 
-  return <ToolPageShell title="Gerador de Relatório Social Media" description="Organize métricas, compare períodos e crie um relatório visual de desempenho para redes sociais." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Os dados do relatório ficam neste navegador. Se optar por salvar na conta, serão enviados ao Kivai; se solicitar a análise com IA, apenas métricas agregadas serão enviadas ao Gemini.">
+  return <ToolPageShell title="Gerador de Relatório Social Media" description="Organize métricas, compare períodos e crie um relatório visual de desempenho para redes sociais." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Os dados do relatório ficam neste navegador. Ao salvar na conta, são enviados ao Kivai. Ao solicitar uma análise com IA, enviamos métricas agregadas; ao autorizar uma importação, o arquivo escolhido será enviado ao Google Gemini.">
     <style>{`@media print { @page { size:A4; margin:12mm } body * { visibility:hidden !important } [data-print-report], [data-print-report] * { visibility:visible !important } [data-print-report] { position:absolute !important; inset:0 auto auto 0 !important; width:100% !important; border:0 !important; background:#fff !important; color:#111 !important; box-shadow:none !important } [data-print-report] * { color:#111 !important; border-color:#bbb !important } [data-print-hide], [data-ad-slot] { display:none !important } [data-print-section] { break-inside:avoid; page-break-inside:avoid } }`}</style>
     <div data-print-hide className="border border-border bg-card p-3 sm:p-4">
       <ol aria-label="Etapas do relatório" className="grid grid-cols-2 gap-2 sm:grid-cols-5">{steps.map((step, index) => <li key={step}><button type="button" onClick={() => setActiveStep(index)} aria-current={activeStep === index ? "step" : undefined} className={cn("flex min-h-12 w-full items-center gap-2 border px-3 text-left text-xs font-medium transition-colors", activeStep === index ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50")}><span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-current">{index + 1}</span>{step}</button></li>)}</ol>
     </div>
 
-    {activeStep === 0 && <Identification report={report} update={update} errors={errors} saved={saved} loadReport={loadReport} deleteReport={deleteReport} duplicate={(item) => setDuplicateTarget(item)} />}
+    {activeStep === 0 && <div className="space-y-6">
+      <SocialReportImporter currentMetrics={report.metrics} currentNetwork={report.network}
+        currentStartDate={report.startDate} currentEndDate={report.endDate} onApply={applyImportedMetrics} />
+      <Identification report={report} update={update} errors={errors} saved={saved}
+        loadReport={loadReport} deleteReport={deleteReport} duplicate={(item) => setDuplicateTarget(item)} />
+    </div>}
     {activeStep === 1 && <MetricsStep report={report} update={update} updateMetric={updateMetric} calculations={calculations} />}
     {activeStep === 2 && <ComparisonStep report={report} update={update} updatePrevious={updatePrevious} calculations={calculations} />}
     {activeStep === 3 && <HighlightsStep report={report} update={update} add={addHighlight} change={updateHighlight} remove={removeHighlight} />}
     {activeStep === 4 && <ReportPreview ref={reportRef} report={report} calculations={calculations} ranked={rankedHighlights} />}
-    {activeStep === 4 && <SocialReportAi input={aiInput} />}
+    {activeStep === 4 && <SocialReportAi input={aiInput} onInsert={insertAiInsight} />}
 
     <div data-print-hide className="flex flex-wrap items-center gap-2 border border-border bg-card p-4">
       {activeStep > 0 && <Button variant="outline" onClick={() => setActiveStep((current) => current - 1)}>Voltar</Button>}

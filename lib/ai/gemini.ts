@@ -17,7 +17,17 @@ type GeminiResponse = {
   }>;
 };
 
+export type GeminiInputPart = { text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png" | "image/webp" | "application/pdf"; data: string } };
+
 export async function requestGeminiJson(systemInstruction: string, payload: unknown): Promise<unknown> {
+  return requestGeminiJsonParts(systemInstruction, [{ text: JSON.stringify(payload) }]);
+}
+
+export async function requestGeminiJsonParts(
+  systemInstruction: string,
+  parts: GeminiInputPart[],
+  maxOutputTokens = 2048,
+): Promise<unknown> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new GeminiRequestError(503);
 
@@ -33,10 +43,10 @@ export async function requestGeminiJson(systemInstruction: string, payload: unkn
           signal: AbortSignal.timeout(22_000),
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemInstruction }] },
-            contents: [{ role: "user", parts: [{ text: JSON.stringify(payload) }] }],
+            contents: [{ role: "user", parts }],
             generationConfig: {
               responseMimeType: "application/json",
-              maxOutputTokens: 2048,
+              maxOutputTokens: Math.min(Math.max(maxOutputTokens, 512), 4096),
             },
           }),
         },
