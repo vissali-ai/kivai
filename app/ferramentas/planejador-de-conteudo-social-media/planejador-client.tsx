@@ -7,6 +7,8 @@ import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SavedProjects } from "@/components/account/saved-projects";
+import { PlannerAi } from "@/components/tools/planner-ai";
+import { assistantCopy, assistantSlugs, type AssistantCopy } from "@/lib/ai/content-assistant-copy";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "kivai:planejador-conteudo-social-media:v1";
@@ -29,7 +31,7 @@ function planText(plan: Plan, briefing = false) {
   return `${briefing ? "BRIEFING DE CONTEÚDO" : "PLANO DE CONTEÚDO"}\n\nTema: ${plan.theme || "Não informado"}\nObjetivo: ${plan.objective || "Não informado"}\nPúblico: ${plan.audience || "Não informado"}\nRede social: ${plan.networks.join(", ") || "Não informada"}\nMensagem principal: ${plan.message || "Não informada"}\nPilar: ${plan.pillar || "Não informado"}\nFormato: ${plan.format || "Não informado"}\nAbordagem: ${plan.approach || "Não informada"}\nGancho: ${plan.hook || "Não informado"}\n\nPontos principais:\n${topics}\n\nCTA: ${plan.cta || plan.ctaType || "Nenhum CTA"}\nTom de comunicação: ${plan.tone || "Não informado"}\nStatus: ${plan.status || "Não informado"}`;
 }
 
-export default function PlanejadorClient() {
+export default function PlanejadorClient({ aiCopy = assistantCopy(assistantSlugs.planner) }: { aiCopy?: AssistantCopy }) {
   const [plan, setPlan] = useState<Plan>(emptyPlan); const [ready, setReady] = useState(false); const [errors, setErrors] = useState<Record<string, string>>({});
   const [generated, setGenerated] = useState(false); const [feedback, setFeedback] = useState(""); const [confirmClear, setConfirmClear] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -55,8 +57,17 @@ export default function PlanejadorClient() {
   function download() { const blob = new Blob([planText(plan, true)], { type: "text/plain;charset=utf-8" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "briefing-conteudo-social-media.txt"; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 0); }
   function clear() { setPlan(emptyPlan); setGenerated(false); setErrors({}); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
 
-  return <ToolPageShell title="Planejador de Conteúdo Social Media" description="Transforme uma ideia em um plano estruturado com objetivo, público, mensagem, formato, abordagem e briefing para produção." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O rascunho fica neste navegador. Ao escolher Salvar na conta, o briefing é enviado ao Kivai e fica privado na sua conta.">
+  return <ToolPageShell title="Planejador de Conteúdo Social Media" description="Transforme uma ideia em um plano estruturado com objetivo, público, mensagem, formato, abordagem e briefing para produção." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O rascunho fica neste navegador. Ao salvar na conta, o briefing é enviado ao Kivai. Ao autorizar a geração com IA, tema, público, objetivo, redes, formato, tom e mensagem são enviados ao provedor externo.">
     <SavedProjects kind="briefing" payload={plan} onLoad={value => { if (isPlan(value)) { setPlan(value); setGenerated(true); } }} />
+    <PlannerAi plan={plan} copy={aiCopy} onApply={(suggestion, replace) => {
+      setPlan(current => ({ ...current,
+        message: replace || !current.message.trim() ? suggestion.message : current.message,
+        hook: replace || !current.hook.trim() ? suggestion.hook : current.hook,
+        topics: replace || !current.topics.some(value => value.trim()) ? suggestion.topics : current.topics,
+        cta: replace || !current.cta.trim() ? suggestion.cta : current.cta,
+      }));
+      setGenerated(true);
+    }} />
     <style>{`@media print { body > header, body > footer, nav, [data-print-hide], [data-ad-slot] { display:none !important } main { background:white !important; color:black !important } [data-print-plan] { display:block !important; border:0 !important; box-shadow:none !important } [data-print-plan] * { color:black !important } }`}</style>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,.75fr)]">
       <Card data-print-hide><CardHeader><CardTitle className="text-base">Estruture seu conteúdo</CardTitle><CardDescription>Preencha o essencial primeiro. Os demais campos ajudam a deixar o briefing mais claro para produção.</CardDescription></CardHeader><CardContent className="space-y-7">

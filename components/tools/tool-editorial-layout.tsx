@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { getPublishedToolOverride } from "@/lib/site-cms/repository";
+import { ToolFavoriteSlot } from "@/components/tools/tool-favorite-slot";
 
 export type ToolEditorialUseCase = {
   title: string;
@@ -55,13 +56,13 @@ export async function ToolEditorialLayout({
   const override = await getPublishedToolOverride(slug);
 
   if (override?.contentHtml) {
-    return <section className="border-t border-border bg-muted/10 py-12 sm:py-16"><div data-kivai-favorite-slot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" /><article className="cms-public-content mx-auto w-full max-w-6xl px-4 leading-7 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></section>;
+    return <section className="border-t border-border bg-muted/10 py-12 sm:py-16"><ToolFavoriteSlot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" /><article className="cms-public-content mx-auto w-full max-w-6xl px-4 leading-7 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></section>;
   }
 
   return (
     <section className="border-t border-border bg-muted/10 py-12 sm:py-16">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-        <div data-kivai-favorite-slot />
+        <ToolFavoriteSlot />
         <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
           <h2 className="text-2xl font-semibold">Sobre esta ferramenta</h2>
           <div className="mt-4 space-y-4 leading-7 text-muted-foreground">

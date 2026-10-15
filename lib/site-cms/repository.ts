@@ -1,6 +1,8 @@
 import "server-only";
 import { defaultPrinters, printersSchema } from "@/lib/duplex-print/catalog";
 import { plansContent } from "@/lib/billing/plans-content";
+import { creditsContent } from "@/lib/billing/credits-content";
+import { withAssistantFields, assistantFields } from "@/lib/ai/content-assistant-copy";
 
 import { sanitizePostHtml, plainText } from "@/lib/blog/sanitize";
 import { slugify } from "@/lib/blog/slug";
@@ -57,7 +59,7 @@ function contentFromRow(row: ContentRow): SiteContent {
     existingToolSlug: row.existing_tool_slug, status: row.status, indexable: row.indexable,
     toolMode: row.tool_mode, technicalStatus: row.technical_status,
     displayLocation: row.display_location, showInMostUsed: row.show_in_most_used, displayOrder: row.display_order,
-    includeInSitemap: row.include_in_sitemap, customData: row.custom_data ?? {}, publishedAt: row.published_at,
+    includeInSitemap: row.include_in_sitemap, customData: { ...row.custom_data, originalFields: withAssistantFields(row.existing_tool_slug ?? row.slug, row.custom_data?.originalFields) }, publishedAt: row.published_at,
     createdAt: row.created_at, updatedAt: row.updated_at };
 }
 
@@ -66,7 +68,7 @@ function cleanStatus(value: unknown): SitePublicationStatus {
 }
 
 function expectedPath(type: SiteContentType, slug: string) {
-  if (type === "page" && slug === "planos") return "/planos";
+  if (type === "page" && (slug === "planos" || slug === "creditos")) return `/${slug}`;
   return type === "tool" ? `/ferramentas/${slug}` : type === "resource" ? `/recursos/${slug}` : `/paginas/${slug}`;
 }
 
@@ -206,9 +208,10 @@ export async function listManagedSiteContents(): Promise<ManagedSiteContent[]> {
     includeInSitemap: isToolIndexable(tool.slug), customData: { ...(tool.slug === "imprimir-frente-e-verso" ? { printers: defaultPrinters } : {}), originalFields: [
       { key: "badge", label: "Selo / badge", type: "text", value: tool.badge },
       { key: "hub-filter", label: "Filtro do hub", type: "text", value: tool.hubFilter },
+      ...assistantFields(tool.slug),
     ] }, publishedAt: null, createdAt: "", updatedAt: "", virtual: true,
   }));
-  return [...stored, ...virtual, ...(!stored.some(item => item.path === "/planos") ? [plansContent] : [])].sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+  return [...stored, ...virtual, ...[plansContent, creditsContent].filter(page => !stored.some(item => item.path === page.path))].sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
 }
 
 export async function getSiteContentById(id: string) {

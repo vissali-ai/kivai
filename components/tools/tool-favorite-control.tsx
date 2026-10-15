@@ -57,6 +57,7 @@ function ToolFavoriteForPath({ pathname }: { pathname: string }) {
         if (current !== slot) { current = slot; setPortalTarget(slot); }
         return;
       }
+      if (document.querySelector("[data-kivai-favorite-pending]")) return;
       const toolArea = document.querySelector<HTMLElement>("main")
         ?? document.querySelector<HTMLElement>("body > section.min-h-screen");
       if (!toolArea || !tool) return;
@@ -75,7 +76,7 @@ function ToolFavoriteForPath({ pathname }: { pathname: string }) {
         position();
       }
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-kivai-favorite-slot"] });
     const frame = window.requestAnimationFrame(position);
     return () => {
       observer.disconnect();

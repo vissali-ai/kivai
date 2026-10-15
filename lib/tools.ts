@@ -917,7 +917,7 @@ export const tools: Tool[] = [
   {
     slug: "calendario-editorial-redes-sociais",
     name: "Calendário Editorial para Redes Sociais",
-    description: "Planeje publicações por data, rede, formato, objetivo e status em um calendário mensal.",
+    description: "Organize publicações e gere sugestões com IA: pautas, legendas e CTAs para revisar e adicionar ao calendário.",
     category: "social",
     hubFilter: "Planejar",
     badge: "Social Media",
@@ -943,7 +943,7 @@ export const tools: Tool[] = [
   {
     slug: "planejador-de-conteudo-social-media",
     name: "Planejador de Conteúdo Social Media",
-    description: "Estruture objetivos, público, temas, formatos e ideias para organizar a criação de conteúdos para redes sociais.",
+    description: "Estruture seu briefing e use IA para sugerir mensagem, gancho, roteiro e CTA, com revisão antes de aplicar.",
     category: "social",
     hubFilter: "Planejar",
     badge: "Social Media",
