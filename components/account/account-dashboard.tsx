@@ -11,6 +11,7 @@ import { planBenefits } from "@/lib/billing/plan-benefits";
 import { SavedProjects } from "@/components/account/saved-projects";
 import { MyFavoriteTools } from "@/components/account/my-favorite-tools";
 import { AccountNotifications } from "@/components/account/account-notifications";
+import { AccountWelcome } from "@/components/account/account-welcome";
 
 type Profile = { full_name: string | null; avatar_url: string | null; plan_code: "free" | "pro" | "agency" };
 type Snapshot = { id: string; analyzed_at: string; follower_count: number; following_count: number; new_followers_count: number | null; unfollowers_count: number | null; social_account_id: string };
@@ -23,6 +24,7 @@ export function AccountDashboard() {
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [snapshots, setSnapshots] = useState<Array<Snapshot & { username?: string }>>([]);
   const [pendingRequest, setPendingRequest] = useState<SubscriptionRequest | null>(null);
@@ -35,6 +37,7 @@ export function AccountDashboard() {
       const user = await getCurrentUser(session);
       if (!user?.id) { await signOut(); window.location.replace("/conta/login?next=/conta"); return; }
       setEmail(user.email ?? "");
+      setUserId(user.id);
       const [profileResponse, accountsResponse, snapshotsResponse, requestResponse] = await Promise.all([
         supabaseUserFetch(`/rest/v1/user_profiles?select=full_name,avatar_url,plan_code&user_id=eq.${encodeURIComponent(user.id)}&limit=1`),
         supabaseUserFetch("/rest/v1/social_accounts?select=id,username&platform=eq.instagram"),
@@ -96,6 +99,8 @@ export function AccountDashboard() {
         </div>
       </div>
     </section>
+
+    {userId ? <AccountWelcome userId={userId} firstName={firstName} /> : null}
 
     <section className="rounded-2xl border border-primary/25 bg-card p-5"><h2 className="text-xl font-semibold">Seus benefícios {plan === 'free' ? 'Grátis' : plan === 'pro' ? 'Pro' : 'Agency'}</h2><ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">{planBenefits[plan].map(item => <li key={item} className="flex gap-2"><CheckCircle2 className="size-4 shrink-0 text-primary" />{item}</li>)}</ul>{plan !== 'free' ? <><p className="mt-3 text-sm text-muted-foreground">Válido até {access?.subscription?.current_period_end ? new Date(access.subscription.current_period_end).toLocaleDateString('pt-BR') : '—'}{access?.subscription?.provider?.startsWith('admin_') ? ' · Acesso concedido pelo administrador' : ''}</p><Button asChild className="mt-4"><Link href="/conta/pro">Abrir Área {plan === 'agency' ? 'Agency' : 'Pro'} <ArrowRight /></Link></Button></> : <Button asChild className="mt-4"><Link href="/planos">Conhecer benefícios pagos</Link></Button>}</section>
     <AccountNotifications />
