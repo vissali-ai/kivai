@@ -42,7 +42,7 @@ export function CreditPacksClient() {
       });
       const json = await response.json() as { checkoutUrl?: string; error?: string };
       if (!response.ok || !json.checkoutUrl ||
-          !/^https:\/\/checkout\.sumup\.com\//.test(json.checkoutUrl)) {
+          !/^https:\/\/(checkout\.infinitepay\.com\.br|checkout\.infinitepay\.io|buy\.infinitepay\.io)\//.test(json.checkoutUrl)) {
         throw new Error(json.error || "O pagamento não pôde ser iniciado.");
       }
       window.location.assign(json.checkoutUrl);
