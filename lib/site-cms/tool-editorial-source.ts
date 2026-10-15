@@ -24,7 +24,7 @@ type EditorialSource = {
 
 const sources: Array<Record<string, EditorialSource>> = [
   archiveToolEditorialContent,
-  { "removedor-de-metadados": removedorMetadadosEditorialContent },
+  { "removedor-de-metadados": removedorMetadadosEditorialContent, "removedor-de-metadados-e-rotulos-de-ia": removedorMetadadosEditorialContent },
   generalToolEditorialContent,
   imageToolEditorialContent,
   pdfOfficeToolEditorialContent,

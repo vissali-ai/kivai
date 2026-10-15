@@ -66,7 +66,25 @@ function createCms({ realTransport = false } = {}) {
   return { load, rows, revalidated };
 }
 
-const slugs = ["descompactar-zip", "descompactar-rar", "compactar-arquivos-zip", "renomear-arquivos-em-lote", "adicionar-prefixo-sufixo-arquivos", "removedor-de-metadados"];
+const slugs = ["descompactar-zip", "descompactar-rar", "compactar-arquivos-zip", "renomear-arquivos-em-lote", "adicionar-prefixo-sufixo-arquivos", "removedor-de-metadados-e-rotulos-de-ia"];
+
+test("AI tools and credit page can be edited through the CMS and read publicly", async () => {
+  const { load } = createCms();
+  const repo = load("@/lib/site-cms/repository");
+  for (const slug of ["planejador-de-conteudo-social-media", "calendario-editorial-redes-sociais"]) {
+    const initial = await repo.getSiteContentById(`existing:${slug}`);
+    assert.ok(initial.customData.originalFields.some(field => field.key === "ai-title"));
+    const fields = initial.customData.originalFields.map(field => field.key === "ai-title" ? { ...field, value: "Meu assistente" } : field);
+    await repo.updateSiteContent(initial.id, { ...initial, customData: { originalFields: fields } });
+    const published = await repo.getPublishedToolOverride(slug);
+    assert.equal(published.customData.originalFields.find(field => field.key === "ai-title").value, "Meu assistente");
+  }
+  const credits = await repo.getSiteContentById("existing:creditos");
+  assert.ok(credits.contentHtml.includes("Calendário Editorial"));
+  const saved = await repo.updateSiteContent(credits.id, { ...credits, title: "Créditos editados" });
+  assert.equal(saved.path, "/creditos");
+  assert.equal((await repo.getPublishedSiteContentByPath("/creditos")).title, "Créditos editados");
+});
 
 test("Admin API lists and opens the six entries using the production handlers", async () => {
   const { load } = createCms();
@@ -93,7 +111,7 @@ test("all available tools have exactly one Admin entry, including the six former
   for (const slug of slugs) {
     const entry = await repository.getSiteContentById(`existing:${slug}`);
     assert.equal(entry.path, `/ferramentas/${slug}`);
-    assert.equal(entry.hubId, slug === "removedor-de-metadados" ? "imagens" : "arquivos");
+    assert.equal(entry.hubId, slug === "removedor-de-metadados-e-rotulos-de-ia" ? "imagens" : "arquivos");
     assert.match(entry.contentHtml, /<h2>Como usar<\/h2>/);
     assert.match(entry.contentHtml, /<h2>Perguntas frequentes<\/h2>/);
   }
