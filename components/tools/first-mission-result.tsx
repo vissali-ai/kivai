@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { getFirstMission } from "@/lib/account/first-mission";
+import { recordSuccessfulToolUse } from "@/lib/pwa/install-eligibility";
 import { getCurrentUser, getStoredSession, supabaseUserFetch } from "@/lib/user-auth";
 
 type MissionState = "hidden" | "checking" | "complete" | "error";
@@ -20,6 +21,10 @@ export function FirstMissionResult() {
   const slug = /^\/ferramentas\/([a-z0-9-]+)\/?$/.exec(pathname)?.[1] ?? "";
   const [state, setState] = useState<MissionState>("hidden");
   const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    if (slug) recordSuccessfulToolUse(slug);
+  }, [slug]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !slug || new URLSearchParams(window.location.search).get("missao") !== "1") return;
