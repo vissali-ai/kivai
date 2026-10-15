@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Star } from "lucide-react";
 import { getToolBySlug, toolCategories } from "@/lib/tools";
 import { getCurrentUser, getStoredSession, supabaseUserFetch } from "@/lib/user-auth";
+import { rememberRecentTool } from "@/lib/account/recent-tool-visits";
 
 type AccountState = "loading" | "guest" | "member";
 
@@ -97,6 +98,7 @@ function ToolFavoriteForPath({ pathname }: { pathname: string }) {
         const user = await getCurrentUser(session);
         if (!alive) return;
         if (!user?.id) { if (alive) setState("guest"); return; }
+        if (tool?.available) rememberRecentTool(user.id, slug);
         const response = await supabaseUserFetch(
           `/rest/v1/user_tool_favorites?select=tool_slug&user_id=eq.${encodeURIComponent(user.id)}&tool_slug=eq.${encodeURIComponent(slug)}&limit=1`
         );

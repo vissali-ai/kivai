@@ -84,12 +84,12 @@ export function AccountDashboard() {
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary"><LayoutDashboard className="size-4" /> Meu painel</span>
+            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary"><LayoutDashboard className="size-4" /> Meu Kivai</span>
             <Button asChild variant="ghost" size="sm"><Link href="/conta/dados" title="Configurações da conta"><Settings className="size-4" /> Configurações</Link></Button>
             <Button variant="ghost" size="sm" onClick={handleLogout}><LogOut className="size-4" /> Sair da conta</Button>
           </div>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Olá, {firstName}.</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Este é o seu espaço de trabalho. Acesse suas ferramentas, acompanhe seu plano e consulte sua conta em um só lugar.</p>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Seu espaço para retomar ferramentas recentes, encontrar favoritos e descobrir recursos úteis para sua rotina.</p>
           <div className="mt-5"><Button asChild variant="outline"><Link href="/"><Home /> Voltar para a Home</Link></Button></div>
         </div>
         <div className="min-w-[230px] rounded-2xl border border-primary/20 bg-primary/[0.05] p-5">
