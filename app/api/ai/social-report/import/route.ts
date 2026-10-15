@@ -125,7 +125,7 @@ export async function POST(request: Request) {
     if (!validated.data.metrics.length) {
       return failure("Não localizamos números de desempenho confiáveis. Envie uma tela de Insights com as métricas visíveis.", 422);
     }
-    await finalizeAiCredits(userId, creditOperationId, true);
+    if (!(await finalizeAiCredits(userId, creditOperationId, true))) throw new Error("CREDIT_FINALIZATION_FAILED");
     creditReserved = false;
     return Response.json({ extracted: validated.data }, { headers: noStore });
   } catch (cause) {

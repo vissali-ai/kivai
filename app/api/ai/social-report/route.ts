@@ -9,7 +9,7 @@ import {
 } from "@/lib/ai/social-report";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const responseHeaders = { "Cache-Control": "private, no-store" };
 const instructions = [
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     const result = await requestGeminiJson(instructions, parsed.data);
     const validated = socialReportInsightSchema.safeParse(result);
     if (!validated.success) return error("A análise não pôde ser validada. Tente novamente.", 503, 30);
-    await finalizeAiCredits(userId, creditOperationId, true);
+    if (!(await finalizeAiCredits(userId, creditOperationId, true))) throw new Error("CREDIT_FINALIZATION_FAILED");
     creditReserved = false;
     return Response.json({ analysis: validated.data }, { headers: responseHeaders });
   } catch (cause) {

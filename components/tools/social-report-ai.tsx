@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Sparkles, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
@@ -13,12 +13,14 @@ export function SocialReportAi({ input, onInsert }: { input: SocialReportAiInput
   const [result, setResult] = useState<Result | null>(null);
   const [insertedFingerprint, setInsertedFingerprint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const inFlight = useRef(false);
   const [error, setError] = useState("");
   const fingerprint = JSON.stringify(input);
   const visible = result?.fingerprint === fingerprint ? result.analysis : null;
   const hasMetrics = [input.metrics.reach, input.metrics.impressions, input.metrics.followersEnd, input.metrics.interactions, input.metrics.publications, input.metrics.leads, input.metrics.revenue].some((metric) => metric !== null);
 
   async function analyze() {
+    if (inFlight.current) return;
     setError("");
     const session = getStoredSession();
     if (!session?.access_token) {
@@ -30,6 +32,7 @@ export function SocialReportAi({ input, onInsert }: { input: SocialReportAiInput
       return;
     }
 
+    inFlight.current = true;
     setLoading(true);
     try {
       const response = await fetch("/api/ai/social-report", {
@@ -50,9 +53,11 @@ export function SocialReportAi({ input, onInsert }: { input: SocialReportAiInput
         return;
       }
       setResult({ fingerprint, analysis: payload.analysis });
+      setInsertedFingerprint(null);
     } catch {
       setError("Falha de conexão. Tente novamente.");
     } finally {
+      inFlight.current = false;
       setLoading(false);
       window.dispatchEvent(new Event("kivai:ai-credit-update"));
     }
