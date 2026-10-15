@@ -83,7 +83,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
       [file], `print-colado-${Date.now()}-${i + 1}.${file.type === "image/jpeg" ? "jpg" : file.type === "image/webp" ? "webp" : "png"}`,
       { type: file.type, lastModified: Date.now() }
     ));
-    const canAppend = files.length > 0 && files.every(file => /\\.(png|jpe?g|webp)$/i.test(file.name));
+    const canAppend = files.length > 0 && files.every(file => /\.(png|jpe?g|webp)$/i.test(file.name));
     choose(canAppend ? [...files, ...pasted] : pasted);
   }
 
@@ -91,8 +91,8 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
     event.preventDefault();
     const dropped = Array.from(event.dataTransfer.files);
     if (!dropped.length) return;
-    const canAppend = dropped.every(file => /\\.(png|jpe?g|webp)$/i.test(file.name)) &&
-      files.length > 0 && files.every(file => /\\.(png|jpe?g|webp)$/i.test(file.name));
+    const canAppend = dropped.every(file => /\.(png|jpe?g|webp)$/i.test(file.name)) &&
+      files.length > 0 && files.every(file => /\.(png|jpe?g|webp)$/i.test(file.name));
     choose(canAppend ? [...files, ...dropped] : dropped);
   }
 
@@ -161,25 +161,23 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1.5 text-sm font-medium">
-          Origem do relatório
-          <select className="min-h-11 w-full border border-input bg-background px-3 text-sm" value={source}
-            onChange={(event) => { setSource(event.target.value as SocialImportSource); setResult(null); }}>
-            {socialImportSources.map(value => <option value={value} key={value}>{value}</option>)}
-          </select>
-        </label>
-        <div className="space-y-1.5">
-          <span className="block text-sm font-medium">Arquivo ou capturas de tela</span>
-          <input ref={picker} className="block w-full min-w-0 text-sm file:mr-3 file:min-h-10 file:border file:border-input file:bg-background file:px-3 file:py-2 file:text-sm file:font-medium"
-            type="file" accept=".png,.jpg,.jpeg,.webp,.pdf,.csv,.xlsx,image/png,image/jpeg,image/webp,application/pdf" multiple
-            aria-label="Selecionar arquivos de métricas"
-            onChange={(event) => choose(Array.from(event.currentTarget.files || []))} />
-        </div>
-      </div>
+      <label className="block max-w-md space-y-1.5 text-sm font-medium">
+        Origem do relatório
+        <select className="min-h-11 w-full border border-input bg-background px-3 text-sm" value={source}
+          onChange={(event) => { setSource(event.target.value as SocialImportSource); setResult(null); }}>
+          {socialImportSources.map(value => <option value={value} key={value}>{value}</option>)}
+        </select>
+      </label>
 
       <div onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}
-        className="space-y-2 border border-dashed border-border bg-muted/20 p-3 sm:p-4">
+        className="space-y-3 border border-dashed border-border bg-muted/20 p-3 sm:p-4">
+        <input ref={picker} id="social-report-file-picker" className="sr-only"
+          type="file" accept=".png,.jpg,.jpeg,.webp,.pdf,.csv,.xlsx,image/png,image/jpeg,image/webp,application/pdf" multiple
+          aria-label="Escolher arquivos para importar métricas"
+          onChange={(event) => {
+            choose(Array.from(event.currentTarget.files || []));
+            event.currentTarget.value = "";
+          }} />
         <label htmlFor="kivai-ai-clipboard" className="flex items-center gap-2 text-sm font-medium">
           <ClipboardPaste className="size-4 text-primary" aria-hidden="true" />
           Arraste, solte ou cole prints copiados
@@ -192,6 +190,10 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
         <p className="text-xs leading-5 text-muted-foreground">
           Até 3 prints juntos. Colagens sucessivas acrescentam imagens ao lote. Também aceitamos 1 PDF (até 2 MB), CSV ou Excel.
         </p>
+        <Button type="button" variant="outline" onClick={() => picker.current?.click()} disabled={loading}
+          className="min-h-11 w-full sm:w-auto">
+          Escolher arquivos
+        </Button>
       </div>
       {files.length > 0 && <p className="text-xs text-muted-foreground">Selecionados: {files.map(file => file.name).join(", ")}</p>}
       <AiCreditBalance />
