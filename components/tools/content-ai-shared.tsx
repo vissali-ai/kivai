@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Sparkles, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,19 @@ import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 import { getStoredSession } from "@/lib/user-auth";
 import type { ContentAssistantInput, ContentAssistantResult } from "@/lib/ai/content-assistant";
 import type { AssistantCopy } from "@/lib/ai/content-assistant-copy";
+
+function subscribeSession(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener("focus", onChange);
+  window.addEventListener("kivai:ai-credit-update", onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener("focus", onChange);
+    window.removeEventListener("kivai:ai-credit-update", onChange);
+  };
+}
+const hasStoredSession = () => Boolean(getStoredSession()?.access_token);
+const unknownSession = () => null;
 
 export function useContentAi() {
   const [loading, setLoading] = useState(false);
@@ -44,6 +57,7 @@ export function ContentAiFrame({ copy, consent, onConsent, loading, error, disab
   copy: AssistantCopy; consent: boolean; onConsent: (value: boolean) => void; loading: boolean; error: string;
   disabled: boolean; onGenerate: () => void; children: React.ReactNode;
 }) {
+  const authenticated = useSyncExternalStore<boolean | null>(subscribeSession, hasStoredSession, unknownSession);
   return <section data-print-hide className="space-y-4 border border-primary/25 bg-primary/5 p-4 sm:p-6" aria-label={copy.title}>
     <h2 className="flex items-center gap-2 text-lg font-semibold"><Sparkles className="size-5 shrink-0 text-primary" aria-hidden="true" />{copy.title}</h2>
     <p className="text-sm leading-6 text-muted-foreground">{copy.description}</p>
@@ -53,7 +67,7 @@ export function ContentAiFrame({ copy, consent, onConsent, loading, error, disab
     <p className="text-xs leading-5 text-muted-foreground">Na modalidade gratuita do provedor, os dados podem ser usados para melhorar seus produtos. Revise os rascunhos: a IA pode errar. Gerar custa 1 crédito da sua franquia ou saldo avulso; editar e aplicar o resultado não consome novos créditos. Limites de solicitações também se aplicam.</p>
     <div className="flex flex-wrap items-center gap-3">
       <Button type="button" onClick={onGenerate} disabled={disabled || !consent || loading}>{loading ? <LoaderCircle className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{loading ? "Gerando sugestões…" : "Gerar sugestões · 1 crédito"}</Button>
-      <Link className="text-sm text-primary underline" href="/conta/login">Entrar na conta</Link>
+      {authenticated === false && <Link className="text-sm text-primary underline" href="/conta/login">Entrar na conta</Link>}
       {/^https:\/\//.test(copy.tutorialUrl) && <a className="text-sm text-primary underline" href={copy.tutorialUrl} target="_blank" rel="noopener noreferrer">Ver tutorial</a>}
     </div>
     {error && <p role="alert" className="border border-destructive/30 p-3 text-sm text-destructive">{error}</p>}
