@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   try {
     const user = await authenticateBillingUser(request);
     const rows = await supabaseRest<ReminderRow[]>(`user_routine_reminders?select=enabled,weekday,hour,time_zone,tool_slug&user_id=eq.${encodeURIComponent(user.id)}&limit=1`);
-    return Response.json({ preference: rows[0] ?? defaultReminder, vapidPublicKey: isPushConfigured() ? getVapidPublicKey() : "" }, { headers });
+    return Response.json({ preference: rows[0] ?? defaultReminder, vapidPublicKey: isPushConfigured() && process.env.REMINDER_SCHEDULER_ENABLED === "true" ? getVapidPublicKey() : "" }, { headers });
   } catch (cause) {
     return error(cause instanceof Error && cause.message === "UNAUTHORIZED" ? "Faça login para continuar." : "Não foi possível carregar seus lembretes.", cause instanceof Error && cause.message === "UNAUTHORIZED" ? 401 : 503);
   }
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       await supabaseRest(`user_routine_push_subscriptions?user_id=eq.${encodeURIComponent(user.id)}`, { method: "DELETE" });
       return Response.json({ enabled: false }, { headers });
     }
-    if (body.action !== "save" || !isPushConfigured()) return error("Notificações indisponíveis no momento.", 503);
+    if (body.action !== "save" || !isPushConfigured() || process.env.REMINDER_SCHEDULER_ENABLED !== "true") return error("Notificações indisponíveis no momento.", 503);
     const weekday = body.weekday, hour = body.hour, zone = body.time_zone, slug = body.tool_slug;
     const subscription = body.subscription as SubscriptionInput | undefined;
     if (typeof weekday !== "number" || !Number.isInteger(weekday) || weekday < 0 || weekday > 6 ||
