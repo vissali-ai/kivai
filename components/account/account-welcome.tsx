@@ -8,6 +8,7 @@ import { supabaseUserFetch } from "@/lib/user-auth";
 import { getToolBySlug } from "@/lib/tools";
 import { readRecentToolSlugs } from "@/lib/account/recent-tool-visits";
 import { getFirstMission } from "@/lib/account/first-mission";
+import { AccountProgress } from "@/components/account/account-progress";
 
 type Goal = "images" | "documents" | "sales" | "social";
 type WelcomeState = "loading" | "choose" | "saved" | "done" | "error";
@@ -142,6 +143,7 @@ export function AccountWelcome({ userId, firstName }: { userId: string; firstNam
             </>
           )}
         </div>
+        <div className="mt-5"><AccountProgress userId={userId} firstMissionDone={Boolean(missionCompletedAt)} /></div>
         {recentTools.length > 0 ? (
           <div className="mt-5">
             <h3 className="flex items-center gap-2 text-sm font-semibold"><Clock3 className="size-4 text-primary" /> Acessadas recentemente</h3>

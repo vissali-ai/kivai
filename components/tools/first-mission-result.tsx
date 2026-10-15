@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { getFirstMission } from "@/lib/account/first-mission";
+import { getToolBySlug } from "@/lib/tools";
 import { recordSuccessfulToolUse } from "@/lib/pwa/install-eligibility";
 import { getCurrentUser, getStoredSession, supabaseUserFetch } from "@/lib/user-auth";
 
@@ -23,7 +24,17 @@ export function FirstMissionResult() {
   const [retry, setRetry] = useState(0);
 
   useEffect(() => {
-    if (slug) recordSuccessfulToolUse(slug);
+    if (!slug || !getToolBySlug(slug)?.available) return;
+    recordSuccessfulToolUse(slug);
+    // O componente só é montado após a geração efetiva de um resultado.
+    // Os registros são idempotentes por ferramenta/dia e não afetam o processamento.
+    if (!getStoredSession()?.access_token) return;
+    void supabaseUserFetch("/rest/v1/rpc/record_kivai_tool_completion", {
+      method: "POST",
+      body: JSON.stringify({ p_slug: slug }),
+    }).then((response) => {
+      if (response.ok) window.dispatchEvent(new Event("kivai-progress-updated"));
+    }).catch(() => undefined);
   }, [slug]);
 
   useEffect(() => {
