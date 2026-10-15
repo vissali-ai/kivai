@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sparkles, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
+import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 import type { SocialReportAiInput, SocialReportAiInsight } from "@/lib/ai/social-report";
 
 type Result = { fingerprint: string; analysis: SocialReportAiInsight };
@@ -53,6 +54,7 @@ export function SocialReportAi({ input, onInsert }: { input: SocialReportAiInput
       setError("Falha de conexão. Tente novamente.");
     } finally {
       setLoading(false);
+      window.dispatchEvent(new Event("kivai:ai-credit-update"));
     }
   }
 
@@ -67,10 +69,11 @@ export function SocialReportAi({ input, onInsert }: { input: SocialReportAiInput
           Receba uma leitura dos indicadores e sugestões práticas.
         </p>
       </div>
+      <AiCreditBalance />
       <div className="flex justify-end">
         <Button type="button" onClick={analyze} disabled={loading || !hasMetrics} className="w-full sm:w-auto">
           {loading ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Sparkles className="size-4" aria-hidden="true" />}
-          {loading ? "Analisando…" : visible ? "Atualizar análise" : "Analisar com IA"}
+          {loading ? "Analisando…" : visible ? "Atualizar análise · 1 crédito" : "Analisar com IA · 1 crédito"}
         </Button>
       </div>
       <details className="text-xs leading-5 text-muted-foreground">

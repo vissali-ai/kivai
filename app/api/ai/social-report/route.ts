@@ -1,6 +1,7 @@
 import { authenticateBillingUser } from "@/lib/billing/sumup";
 import { GeminiRequestError, requestGeminiJson } from "@/lib/ai/gemini";
 import { reserveAiRequest } from "@/lib/ai/limits";
+import { reserveAiCredits, finalizeAiCredits } from "@/lib/ai/credits";
 import {
   hasAnalyzableMetrics,
   socialReportInputSchema,
@@ -56,12 +57,27 @@ export async function POST(request: Request) {
     return error("Informe indicadores válidos para iniciar a análise.", 400);
   }
 
+  const creditOperationId = crypto.randomUUID();
+  let creditReserved = false;
+
   try {
+    const reservation = await reserveAiCredits({
+      userId,
+      operationId: creditOperationId,
+      kind: "insight",
+      cost: 1,
+    });
+    if (!reservation.allowed) {
+      return error("Seus créditos acabaram. Veja os pacotes disponíveis para continuar.", 402);
+    }
+    creditReserved = true;
     const allowed = await reserveAiRequest(userId);
     if (!allowed) return error("Limite de análises com IA atingido. Tente novamente mais tarde.", 429, 3600);
     const result = await requestGeminiJson(instructions, parsed.data);
     const validated = socialReportInsightSchema.safeParse(result);
     if (!validated.success) return error("A análise não pôde ser validada. Tente novamente.", 503, 30);
+    await finalizeAiCredits(userId, creditOperationId, true);
+    creditReserved = false;
     return Response.json({ analysis: validated.data }, { headers: responseHeaders });
   } catch (cause) {
     if (cause instanceof GeminiRequestError && cause.status === 429) {
@@ -72,5 +88,13 @@ export async function POST(request: Request) {
     }
     console.error("[kivai-ai] Análise Social Media indisponível");
     return error("Não foi possível gerar a análise agora. Tente novamente mais tarde.", 503, 30);
+    } finally {
+    if (creditReserved) {
+      try {
+        await finalizeAiCredits(userId, creditOperationId, false);
+      } catch {
+        console.error("[kivai-ai] Could not refund failed credit reservation");
+      }
+    }
   }
 }

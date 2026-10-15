@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Check, FileSpreadsheet, ImageUp, LoaderCircle, ShieldCheck, Sparkles, Upload } from "lucide-react";
+import { useRef, useState, type ClipboardEvent, type DragEvent } from "react";
+import { Check, ClipboardPaste, FileSpreadsheet, ImageUp, LoaderCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
 import {
@@ -12,6 +12,7 @@ import {
   type SocialImportSource,
 } from "@/lib/ai/social-report-import";
 import { prepareSocialImportFiles, validateSocialImportSelection } from "@/lib/ai/social-report-import-client";
+import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 
 export type SocialReportImportApply = {
   metrics: Partial<Record<SocialImportMetricKey, number>>;
@@ -32,7 +33,6 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
   const picker = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState<SocialImportSource>("Instagram Insights");
   const [files, setFiles] = useState<File[]>([]);
-  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<SocialImportResult | null>(null);
@@ -64,10 +64,41 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
     }
   }
 
+  function handlePaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+    const clipboard = event.clipboardData;
+    const items = clipboard.items ? Array.from(clipboard.items) : [];
+    const fromItems = items
+      .filter(item => item.kind === "file" && item.type.startsWith("image/"))
+      .map(item => item.getAsFile())
+      .filter((file): file is File => file !== null);
+    const fromFiles = Array.from(clipboard.files || []).filter(file => file.type.startsWith("image/"));
+    const images = fromItems.length ? fromItems : fromFiles;
+    if (!images.length) {
+      event.preventDefault();
+      setError("A área de transferência não contém um print. Copie uma imagem ou selecione um arquivo.");
+      return;
+    }
+    event.preventDefault();
+    const pasted = images.map((file, i) => new File(
+      [file], `print-colado-${Date.now()}-${i + 1}.${file.type === "image/jpeg" ? "jpg" : file.type === "image/webp" ? "webp" : "png"}`,
+      { type: file.type, lastModified: Date.now() }
+    ));
+    const canAppend = files.length > 0 && files.every(file => /\\.(png|jpe?g|webp)$/i.test(file.name));
+    choose(canAppend ? [...files, ...pasted] : pasted);
+  }
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const dropped = Array.from(event.dataTransfer.files);
+    if (!dropped.length) return;
+    const canAppend = dropped.every(file => /\\.(png|jpe?g|webp)$/i.test(file.name)) &&
+      files.length > 0 && files.every(file => /\\.(png|jpe?g|webp)$/i.test(file.name));
+    choose(canAppend ? [...files, ...dropped] : dropped);
+  }
+
   async function extract() {
     setError("");
     setResult(null);
-    if (!consent) { setError("Confirme a autorização para analisar os arquivos com IA."); return; }
     const session = getStoredSession();
     if (!session?.access_token) { setError("Faça login no Kivai para importar indicadores com IA."); return; }
     setLoading(true);
@@ -97,6 +128,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
       setError(err instanceof Error ? err.message : "Falha ao interpretar o documento.");
     } finally {
       setLoading(false);
+      window.dispatchEvent(new Event("kivai:ai-credit-update"));
     }
   }
 
@@ -113,7 +145,6 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
     });
     setResult(null);
     setFiles([]);
-    setConsent(false);
     setSelected([]);
     if (picker.current) picker.current.value = "";
   }
@@ -147,23 +178,33 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
         </div>
       </div>
 
-      <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-        <FileSpreadsheet className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        Até 3 prints na mesma análise, ou 1 PDF (até 2 MB), CSV ou Excel (.xlsx). Para evitar erros, envie somente dados da mesma rede e período.
-      </p>
+      <div onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}
+        className="space-y-2 border border-dashed border-border bg-muted/20 p-3 sm:p-4">
+        <label htmlFor="kivai-ai-clipboard" className="flex items-center gap-2 text-sm font-medium">
+          <ClipboardPaste className="size-4 text-primary" aria-hidden="true" />
+          Arraste, solte ou cole prints copiados
+        </label>
+        <textarea id="kivai-ai-clipboard" rows={2} value="" onChange={() => {}}
+          onPaste={handlePaste} autoComplete="off" autoCorrect="off" spellCheck={false}
+          className="w-full resize-none border border-input bg-background p-3 text-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
+          placeholder="Clique aqui e pressione Ctrl+V ou Cmd+V. No celular, toque e use Colar."
+          aria-label="Área para colar imagens copiadas" />
+        <p className="text-xs leading-5 text-muted-foreground">
+          Até 3 prints juntos. Colagens sucessivas acrescentam imagens ao lote. Também aceitamos 1 PDF (até 2 MB), CSV ou Excel.
+        </p>
+      </div>
       {files.length > 0 && <p className="text-xs text-muted-foreground">Selecionados: {files.map(file => file.name).join(", ")}</p>}
-      <label className="flex items-start gap-3 border border-border bg-muted/30 p-3 text-xs leading-5">
-        <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 size-4 shrink-0" />
-        <span><ShieldCheck className="mr-1 inline size-4" aria-hidden="true" />
-          Autorizo o envio do conteúdo selecionado a um provedor externo de IA para extrair as métricas. Entendo que, na modalidade gratuita, esse provedor pode utilizar os dados para melhorar seus produtos.
-          Vou ocultar nomes, identificadores e dados pessoais desnecessários antes de importar. O Kivai não salva os arquivos enviados nesta ferramenta.
-        </span>
-      </label>
+      <AiCreditBalance />
+      <p className="text-xs leading-5 text-muted-foreground">
+        Ao clicar em Identificar indicadores, você solicita o envio dos arquivos selecionados a um serviço externo de IA.
+        No nível gratuito, o provedor pode utilizar esses dados para melhorar seus produtos.
+        Oculte informações pessoais ou confidenciais antes de enviar. O Kivai não armazena os arquivos desta importação.
+      </p>
 
       <div className="flex justify-end">
-        <Button type="button" className="w-full sm:w-auto" onClick={extract} disabled={loading || !files.length || !consent}>
+        <Button type="button" className="w-full sm:w-auto" onClick={extract} disabled={loading || !files.length}>
           {loading ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Sparkles className="size-4" aria-hidden="true" />}
-          {loading ? "Lendo indicadores…" : "Identificar indicadores"}
+          {loading ? "Lendo indicadores…" : `Identificar indicadores · ${files.some(file => /\.(png|jpe?g|webp|pdf)$/i.test(file.name)) ? 2 : 1} crédito(s)`}
         </Button>
       </div>
 
