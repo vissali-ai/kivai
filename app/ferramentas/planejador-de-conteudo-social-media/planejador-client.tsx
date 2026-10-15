@@ -7,6 +7,7 @@ import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SavedProjects } from "@/components/account/saved-projects";
+import { FirstMissionResult } from "@/components/tools/first-mission-result";
 import { PlannerAi } from "@/components/tools/planner-ai";
 import { assistantCopy, assistantSlugs, type AssistantCopy } from "@/lib/ai/content-assistant-copy";
 import { cn } from "@/lib/utils";
@@ -33,7 +34,7 @@ function planText(plan: Plan, briefing = false) {
 
 export default function PlanejadorClient({ aiCopy = assistantCopy(assistantSlugs.planner) }: { aiCopy?: AssistantCopy }) {
   const [plan, setPlan] = useState<Plan>(emptyPlan); const [ready, setReady] = useState(false); const [errors, setErrors] = useState<Record<string, string>>({});
-  const [generated, setGenerated] = useState(false); const [feedback, setFeedback] = useState(""); const [confirmClear, setConfirmClear] = useState(false);
+  const [generated, setGenerated] = useState(false); const [missionGenerated, setMissionGenerated] = useState(false); const [feedback, setFeedback] = useState(""); const [confirmClear, setConfirmClear] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     try {
@@ -50,12 +51,12 @@ export default function PlanejadorClient({ aiCopy = assistantCopy(assistantSlugs
   useEffect(() => { if (ready) localStorage.setItem(STORAGE_KEY, JSON.stringify(plan)); }, [plan, ready]);
   const update = <K extends keyof Plan>(key: K, value: Plan[K]) => { setPlan((current) => ({ ...current, [key]: value })); if (errors[key]) setErrors((current) => ({ ...current, [key]: "" })); };
   const validTopics = useMemo(() => plan.topics.filter((topic) => topic.trim()), [plan.topics]);
-  function generate() { const next: Record<string, string> = {}; if (!plan.theme.trim()) next.theme = "Informe o tema do conteúdo."; if (!plan.objective) next.objective = "Escolha um objetivo."; if (!plan.networks.length) next.networks = "Selecione ao menos uma rede social."; if (!plan.audience.trim()) next.audience = "Informe o público do conteúdo."; setErrors(next); if (!Object.keys(next).length) { setGenerated(true); window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); } }
+  function generate() { const next: Record<string, string> = {}; if (!plan.theme.trim()) next.theme = "Informe o tema do conteúdo."; if (!plan.objective) next.objective = "Escolha um objetivo."; if (!plan.networks.length) next.networks = "Selecione ao menos uma rede social."; if (!plan.audience.trim()) next.audience = "Informe o público do conteúdo."; setErrors(next); if (!Object.keys(next).length) { setGenerated(true); setMissionGenerated(true); window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); } }
   function topic(index: number, value: string) { update("topics", plan.topics.map((item, itemIndex) => itemIndex === index ? value : item)); }
   function moveTopic(index: number, offset: number) { const target = index + offset; if (target < 0 || target >= plan.topics.length) return; const next = [...plan.topics]; [next[index], next[target]] = [next[target], next[index]]; update("topics", next); }
   async function copy(briefing = false) { try { await navigator.clipboard.writeText(planText(plan, briefing)); setFeedback(briefing ? "Briefing copiado." : "Planejamento copiado."); window.setTimeout(() => setFeedback(""), 2500); } catch { setFeedback("Não foi possível copiar. Selecione o texto e tente novamente."); } }
   function download() { const blob = new Blob([planText(plan, true)], { type: "text/plain;charset=utf-8" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "briefing-conteudo-social-media.txt"; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 0); }
-  function clear() { setPlan(emptyPlan); setGenerated(false); setErrors({}); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
+  function clear() { setPlan(emptyPlan); setGenerated(false); setMissionGenerated(false); setErrors({}); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
 
   return <ToolPageShell title="Planejador de Conteúdo Social Media" description="Transforme uma ideia em um plano estruturado com objetivo, público, mensagem, formato, abordagem e briefing para produção." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O rascunho fica neste navegador. Ao salvar na conta, o briefing é enviado ao Kivai. Ao autorizar a geração com IA, tema, público, objetivo, redes, formato, tom e mensagem são enviados ao provedor externo.">
     <SavedProjects kind="briefing" payload={plan} onLoad={value => { if (isPlan(value)) { setPlan(value); setGenerated(true); } }} />
@@ -79,7 +80,7 @@ export default function PlanejadorClient({ aiCopy = assistantCopy(assistantSlugs
       </CardContent></Card>
       <aside className="hidden lg:sticky lg:top-24 lg:block"><PlanResult plan={plan} topics={validTopics} compact /></aside>
     </div>
-    {generated && <div ref={resultRef} className="scroll-mt-24"><PlanResult plan={plan} topics={validTopics} actions onCopy={copy} onDownload={download} feedback={feedback} /></div>}
+    {generated && <div ref={resultRef} className="scroll-mt-24"><PlanResult plan={plan} topics={validTopics} actions onCopy={copy} onDownload={download} feedback={feedback} />{missionGenerated && generated ? <FirstMissionResult /> : null}</div>}
     <section data-print-hide className="border border-primary/20 bg-primary/5 p-5"><h2 className="text-lg font-semibold">Organize também suas datas de publicação</h2><p className="mt-2 text-sm text-muted-foreground">Depois de estruturar cada pauta, distribua os conteúdos no mês e acompanhe a produção.</p><Button asChild variant="outline" className="mt-4"><Link href="/ferramentas/calendario-editorial-redes-sociais">Abrir Calendário Editorial</Link></Button></section>
     {confirmClear && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmClear(false); }}><div role="dialog" aria-modal="true" aria-labelledby="clear-title" className="w-full max-w-md border border-border bg-background p-6"><h2 id="clear-title" className="text-xl font-semibold">Começar novo planejamento?</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Os dados preenchidos atualmente serão apagados deste navegador.</p><div className="mt-6 flex justify-end gap-2"><Button variant="outline" onClick={() => setConfirmClear(false)}>Cancelar</Button><Button variant="destructive" onClick={clear}>Limpar planejamento</Button></div></div></div>}
   </ToolPageShell>;

@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Clock3, FileText, Image, Megaphone, ShoppingBag, Sparkles, Star } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock3, FileText, Image, Megaphone, ShoppingBag, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabaseUserFetch } from "@/lib/user-auth";
 import { getToolBySlug } from "@/lib/tools";
 import { readRecentToolSlugs } from "@/lib/account/recent-tool-visits";
+import { getFirstMission } from "@/lib/account/first-mission";
 
 type Goal = "images" | "documents" | "sales" | "social";
 type WelcomeState = "loading" | "choose" | "saved" | "done" | "error";
-type RecordRow = { goal: Goal | null; status: "completed" | "skipped" };
+type RecordRow = { goal: Goal | null; status: "completed" | "skipped"; first_mission_completed_at: string | null; first_mission_tool_slug: string | null };
 
 const goals: { value: Goal; title: string; caption: string; url: string }[] = [
   { value: "images", title: "Imagens", caption: "Editar e preparar fotos", url: "/ferramentas/imagens" },
@@ -33,6 +34,8 @@ export function AccountWelcome({ userId, firstName }: { userId: string; firstNam
   const [savedGoal, setSavedGoal] = useState<Goal | null>(null);
   const [hasPreference, setHasPreference] = useState(false);
   const [recentSlugs, setRecentSlugs] = useState<string[]>([]);
+  const [missionCompletedAt, setMissionCompletedAt] = useState<string | null>(null);
+  const [missionToolSlug, setMissionToolSlug] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -40,7 +43,7 @@ export function AccountWelcome({ userId, firstName }: { userId: string; firstNam
     let active = true;
     const load = async () => {
       try {
-        const response = await supabaseUserFetch(`/rest/v1/user_onboarding?select=goal,status&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
+        const response = await supabaseUserFetch(`/rest/v1/user_onboarding?select=goal,status,first_mission_completed_at,first_mission_tool_slug&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
         if (!response.ok) throw new Error("Não foi possível verificar suas preferências.");
         const rows = await response.json() as RecordRow[];
         if (active) {
@@ -48,6 +51,8 @@ export function AccountWelcome({ userId, firstName }: { userId: string; firstNam
           setSavedGoal(goal);
           setSelection(goal);
           setHasPreference(rows.length > 0);
+          setMissionCompletedAt(rows[0]?.first_mission_completed_at ?? null);
+          setMissionToolSlug(rows[0]?.first_mission_tool_slug ?? null);
           setStatus(rows.length ? "done" : "choose");
         }
       } catch (error) {
@@ -95,6 +100,7 @@ export function AccountWelcome({ userId, firstName }: { userId: string; firstNam
 
   const chosen = goals.find((item) => item.value === selection);
   const preferred = goals.find((item) => item.value === savedGoal);
+  const mission = getFirstMission(savedGoal);
   const recentTools = recentSlugs.map((slug) => getToolBySlug(slug)).filter((tool) => tool?.available).slice(0, 4);
   const suggestions = (savedGoal ? suggestedByGoal[savedGoal] : starterSuggestions)
     .map((slug) => getToolBySlug(slug))
@@ -115,6 +121,26 @@ export function AccountWelcome({ userId, firstName }: { userId: string; firstNam
           <Button type="button" variant="outline" size="sm" onClick={() => { setSelection(savedGoal); setMessage(""); setStatus("choose"); }}>
             {preferred ? "Alterar interesse" : "Escolher interesse"}
           </Button>
+        </div>
+        <div className="mt-5 rounded-xl border border-primary/25 bg-primary/[0.035] p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">{missionCompletedAt ? "Primeira missão concluída" : "Sua primeira missão"}</p>
+          {missionCompletedAt ? (
+            <>
+              <h3 className="mt-1.5 flex items-center gap-2 text-base font-semibold"><CheckCircle2 className="size-4 text-primary" aria-hidden="true" /> Você já completou sua primeira tarefa!</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{getToolBySlug(missionToolSlug ?? "")?.name ?? "Sua ferramenta"} ajudou você a começar. Explore outras ferramentas ou retome seus favoritos.</p>
+            </>
+          ) : (
+            <>
+              <h3 className="mt-1.5 text-base font-semibold">{mission.title}</h3>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">{mission.instruction}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <Link href={`/ferramentas/${mission.slug}?missao=1`} className="inline-flex min-h-9 items-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90">
+                  Começar minha missão <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+                <span className="text-xs text-muted-foreground">O progresso é registrado quando você concluir a tarefa.</span>
+              </div>
+            </>
+          )}
         </div>
         {recentTools.length > 0 ? (
           <div className="mt-5">

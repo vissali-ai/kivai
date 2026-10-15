@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { AdSlot } from "@/components/ads/AdSlot";
+import { FirstMissionResult } from "@/components/tools/first-mission-result";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -275,6 +276,7 @@ export default function CalculadoraDeMarkupClient() {
                     </p>
                   </div>
                 )}
+                {resultado && custoTotal.trim() && markup.trim() ? <FirstMissionResult /> : null}
               </div>
             </div>
           </CardContent>
