@@ -15,7 +15,8 @@ test("manifest exposes standalone install metadata and correctly sized PNG icons
   assert.equal(manifest.display, "standalone");
   assert.equal(manifest.start_url, "/");
   assert.equal(manifest.scope, "/");
-  assert.deepEqual(manifest.icons.map((item) => item.sizes), ["192x192", "512x512"]);
+  assert.deepEqual(manifest.icons.filter((item) => item.purpose === "any").map((item) => item.sizes), ["192x192", "512x512"]);
+  assert.ok(manifest.icons.some((item) => item.sizes === "512x512" && item.purpose === "maskable"));
 });
 
 test("service worker never intercepts file uploads, downloads or private API requests", () => {
