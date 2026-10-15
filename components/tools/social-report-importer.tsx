@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ClipboardEvent, type DragEvent } from "react";
-import { Check, ClipboardPaste, FileSpreadsheet, ImageUp, LoaderCircle, Sparkles } from "lucide-react";
+import { Check, ClipboardPaste, ImageUp, LoaderCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
 import {
@@ -31,6 +31,7 @@ type Props = {
 
 export function SocialReportImporter({ currentMetrics, currentNetwork, currentStartDate, currentEndDate, onApply }: Props) {
   const picker = useRef<HTMLInputElement>(null);
+  const inFlight = useRef(false);
   const [source, setSource] = useState<SocialImportSource>("Instagram Insights");
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,6 +52,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
     (networkDiffers && !replaceNetwork && !confirmMismatch);
 
   function choose(next: File[]) {
+    if (inFlight.current) return;
     setError("");
     setResult(null);
     setSelected([]);
@@ -97,10 +99,12 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
   }
 
   async function extract() {
+    if (inFlight.current) return;
     setError("");
     setResult(null);
     const session = getStoredSession();
     if (!session?.access_token) { setError("Faça login no Kivai para importar indicadores com IA."); return; }
+    inFlight.current = true;
     setLoading(true);
     try {
       const ready = await prepareSocialImportFiles(files);
@@ -127,6 +131,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao interpretar o documento.");
     } finally {
+      inFlight.current = false;
       setLoading(false);
       window.dispatchEvent(new Event("kivai:ai-credit-update"));
     }
@@ -163,7 +168,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
 
       <label className="block max-w-md space-y-1.5 text-sm font-medium">
         Origem do relatório
-        <select className="min-h-11 w-full border border-input bg-background px-3 text-sm" value={source}
+        <select disabled={loading} className="min-h-11 w-full border border-input bg-background px-3 text-sm" value={source}
           onChange={(event) => { setSource(event.target.value as SocialImportSource); setResult(null); }}>
           {socialImportSources.map(value => <option value={value} key={value}>{value}</option>)}
         </select>
@@ -172,7 +177,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
       <div onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}
         className="space-y-3 border border-dashed border-border bg-muted/20 p-3 sm:p-4">
         <input ref={picker} id="social-report-file-picker" className="sr-only"
-          type="file" accept=".png,.jpg,.jpeg,.webp,.pdf,.csv,.xlsx,image/png,image/jpeg,image/webp,application/pdf" multiple
+          type="file" disabled={loading} accept=".png,.jpg,.jpeg,.webp,.pdf,.csv,.xlsx,image/png,image/jpeg,image/webp,application/pdf" multiple
           aria-label="Escolher arquivos para importar métricas"
           onChange={(event) => {
             choose(Array.from(event.currentTarget.files || []));
@@ -182,7 +187,7 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
           <ClipboardPaste className="size-4 text-primary" aria-hidden="true" />
           Arraste, solte ou cole prints copiados
         </label>
-        <textarea id="kivai-ai-clipboard" rows={2} value="" onChange={() => {}}
+        <textarea id="kivai-ai-clipboard" disabled={loading} rows={2} value="" onChange={() => {}}
           onPaste={handlePaste} autoComplete="off" autoCorrect="off" spellCheck={false}
           className="w-full resize-none border border-input bg-background p-3 text-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
           placeholder="Clique aqui e pressione Ctrl+V ou Cmd+V. No celular, toque e use Colar."

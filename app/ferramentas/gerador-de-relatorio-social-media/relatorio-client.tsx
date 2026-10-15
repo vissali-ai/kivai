@@ -169,12 +169,12 @@ export default function RelatorioSocialMediaClient() {
     setReport((current) => ({
       ...current,
       notes: [current.notes, "Análise com IA (revise antes de entregar)", analysis.summary,
-        analysis.strengths.length ? "Pontos positivos:\\n" + analysis.strengths.map((a) => "• " + a).join("\\n") : "",
-        analysis.attention.length ? "Pontos de atenção:\\n" + analysis.attention.map((a) => "• " + a).join("\\n") : "",
-      ].filter(Boolean).join("\\n\\n"),
+        analysis.strengths.length ? "Pontos positivos:\n" + analysis.strengths.map((a) => "• " + a).join("\n") : "",
+        analysis.attention.length ? "Pontos de atenção:\n" + analysis.attention.map((a) => "• " + a).join("\n") : "",
+      ].filter(Boolean).join("\n\n"),
       nextSteps: [current.nextSteps, "Plano de ação sugerido pela IA",
         ...analysis.actions.map((action, index) => `${index + 1}. ${action}`),
-      ].filter(Boolean).join("\\n"),
+      ].filter(Boolean).join("\n"),
     }));
     showFeedback("Diagnóstico e plano de ação adicionados ao relatório. Revise antes de exportar.");
   }
