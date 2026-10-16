@@ -265,3 +265,105 @@ públicos, anúncios, força do anúncio,
 títulos/descrições com Gemini, recursos e palavras-chave recusados, análise de
 concorrentes, CRM e plano persistido, MCC, alertas automatizados, notificações,
 permissões granulares, testes end-to-end e publicação/indexação revisada.
+
+
+## Beta Google Ads: proporção diária e 30 créditos de IA
+
+### Regra de avaliação: último dia concluído
+
+- A meta do mês deve ser comparada ao acumulado **até o último dia fechado** da conta, sem
+  incluir o dia atual incompleto.
+- Usar o fuso da conta Google Ads (campo customer.time_zone quando a API estiver ligada).
+  Na importação manual, o usuário confirma as datas do arquivo; o Kivai pode sugerir o
+  período do primeiro dia do mês até ontem em America/Sao_Paulo.
+- Comparação linear: **meta acumulada = meta mensal × dias concluídos ÷ dias do mês**.
+  Guardar precisão integral para cálculos, arredondar somente no texto/valor exibido.
+- Ex.: 16/10/2026, exportação 01/10 a 15/10, outubro com 31 dias:
+  meta 100 leads => 48,387096774... ≈ **48,39 leads**; realizado 50 => **+1,61 lead**,
+  ou **+3,33%** sobre a meta acumulada.
+  Orçamento mensal R$ 2.000 => gasto proporcional esperado R$ 967,7419... ≈ **R$ 967,74**.
+  CPL contratado R$ 20 permanece **R$ 20**, não R$ 9,68.
+- Aplicar a regra a **volumes e valores acumulados** (investimento, leads, compras,
+  conversões qualificadas, receita atribuída), desde que o mesmo período e ação de
+  conversão tenham sido confirmados.
+- Não proporcionalizar **razões e taxas**: CPC, CPL, CPA, CTR, taxa de conversão ou ROAS.
+- Uma variação em relação ao ritmo linear **não é prova** de desempenho ruim:
+  a entrega é variável e há atrasos de conversões e sazonalidade.
+- Quando o relatório é parcial ou não começa no dia 1, não confrontar com toda a meta
+  mensal; sinalizar a necessidade de dados faltantes ou meta específica para o recorte.
+- Não misturar métricas de clientes, moedas ou objetivos distintos.
+
+Referências:
+https://developers.google.com/google-ads/api/docs/conversions/reporting
+https://developers.google.com/google-ads/api/fields/v26/customer
+https://support.google.com/google-ads/answer/10486637?hl=pt-BR
+
+### Beta de 30 créditos
+
+- Concessão **uma vez por usuário Kivai com e-mail confirmado**.
+- Cota **isolada** de 30 créditos para diagnósticos Gemini do Analisador Google Ads.
+  A cota não altera saldos existentes Free, Pro, Agency, créditos comprados ou
+  regras de crédito de outras ferramentas.
+- **1 crédito = 1 diagnóstico com Gemini concluído e validado.**
+- **Cálculo de métricas e importação local de relatórios são gratuitos.**
+- Reserva por RPC transacional com idempotência, saldo protegido contra concorrência;
+  falha de geração ou validação restitui a unidade.
+- A cota não é mensal e não renova automaticamente. Proteções antiautomação:
+  confirmação de e-mail, limite horário por usuário e limite global compartilhado de IA.
+- Informar claramente quando as 30 análises tiverem acabado. Pacotes/planos pagos
+  são uma evolução comercial futura, não consumir créditos comprados sem permissão.
+- O saldo é visto apenas por usuário autenticado; não expor serviço ou chave no cliente.
+
+Módulos da implementação:
+- \`supabase/migrations/20261016220000_traffic_beta_credits.sql\`
+- \`lib/ai/traffic-beta.ts\`
+- \`app/api/ai/traffic-beta/route.ts\`
+- \`app/api/ai/traffic-beta/analyze/route.ts\`
+- \`components/tools/traffic-beta-assistant.tsx\`
+- \`lib/ai/traffic-analysis.ts\`
+
+**Ativação pública obrigatória**:
+- Migrar o banco de dados via processo oficial sem sobrescrever tabelas existentes.
+- Verificar novos RPCs de concessão/reserva/finalização e se o usuário deslogado
+  e não confirmado não recebe bônus.
+- Confirmar GEMINI_API_KEY no servidor, validação de JSON, controle de custo e
+  retorno do crédito se o provedor falhar.
+- Testar múltiplos usuários e 30 solicitações com reserva concorrente de idempotência.
+- Testar os relatórios reais de todas as modalidades; cada diagnóstico descreve
+  com precisão o que foi ou não lido.
+- Só liberar indexação e sitemap da página depois de garantir que o beta prometido
+  está funcional e o conteúdo foi revisado.
+- Garantir noindex para saldos, análises privadas e dados dos clientes.
+- Revisar proteção de abuso e quotas se a aquisição orgânica crescer.
+
+### Estratégia híbrida API + relatório manual
+
+A Google Ads API atende a vários recursos via GAQL e \`SearchStream\`,
+incluindo campanhas, recomendações, dados de conversões, anúncios, recursos,
+palavras-chave, segmentos, mudanças recentes e Performance Max com views próprias.
+O acesso depende de OAuth e developer token com nível aprovado.
+As métricas detalhadas de **Auction Insights** são marcadas como não
+disponíveis publicamente. Campos personalizados da interface também não são
+recuperáveis via API. Há dados omitidos por privacidade ou ausência de
+amostras em relatórios de pesquisa.
+
+Cada módulo do analisador deverá consultar capacidade do conector:
+1. Dados suportados e acessíveis: buscar automaticamente em leitura.
+2. Não disponíveis, incompletos ou sem autorização: oferecer importação
+   manual do relatório ou planilha correspondente.
+3. Relatório manual: preparar no navegador, mostrar tipo, período e limitações;
+   enviar ao Gemini só após consentimento explícito.
+4. Ao integrar IA, anexar os dados usados e sinais de confiança; nunca apresentar
+   conteúdo importado como se viesse diretamente da API.
+
+Importações beta existentes: CSV de campanhas, termos de pesquisa,
+dois CSVs de Informações do leilão e até três arquivos complementares
+CSV/TSV/XLSX (trechos textuais de até 12 mil caracteres cada).
+Se o arquivo for maior, a ferramenta informa que o conteúdo está parcial.
+Não há execução automática de alterações de campanha.
+
+Fontes:
+https://developers.google.com/google-ads/api/docs/reporting/overview
+https://developers.google.com/google-ads/api/docs/productionize/access-levels
+https://developers.google.com/google-ads/api/docs/conversions/reporting
+https://developers.google.com/google-ads/api/fields/v26/metrics
