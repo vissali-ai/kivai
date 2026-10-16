@@ -82,7 +82,7 @@ const questions = [
   },
   {
     q: "É possível analisar campanhas sem conectar a conta Google Ads?",
-    a: "Sim. A versão inicial trabalha com relatórios CSV importados no navegador. A ferramenta não envia esses arquivos ao servidor. Dados que não estiverem no relatório não podem ser diagnosticados como se fossem conhecidos.",
+    a: "Sim. Os módulos básicos importam relatórios CSV no navegador. Se você optar pela análise com Gemini e autorizar, o resumo de desempenho e trechos dos relatórios selecionados serão enviados ao serviço de IA. Dados ausentes não são considerados conhecidos.",
   },
   {
     q: "Qual a diferença entre CPL, CPA e ROAS?",
