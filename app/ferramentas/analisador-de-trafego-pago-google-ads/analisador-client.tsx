@@ -139,6 +139,11 @@ export default function GoogleAdsTrafficAnalyzerClient() {
       .sort((a, b) => b.cost - a.cost);
   }, [terms, minClicks, minCost]);
 
+  const keywordCandidates = useMemo(() => terms
+    .filter((term) => term.conversions > 0 && term.clicks > 0)
+    .sort((a, b) => b.conversions - a.conversions || (a.cost / a.conversions) - (b.cost / b.conversions))
+    .slice(0, 50), [terms]);
+
   const totals = useMemo(() => terms.reduce((acc, term) => ({
     clicks: acc.clicks + term.clicks, cost: acc.cost + term.cost, conversions: acc.conversions + term.conversions,
   }), { clicks: 0, cost: 0, conversions: 0 }), [terms]);
@@ -331,6 +336,36 @@ export default function GoogleAdsTrafficAnalyzerClient() {
                     </tbody>
                   </table>
                   {!candidates.length ? <p className="p-4 text-sm text-muted-foreground">Nenhum termo atende aos limites definidos.</p> : null}
+                </div>
+                <div className="mt-7 rounded-xl border border-white/10 bg-background p-4">
+                  <h3 className="text-base font-semibold">Termos com potencial para novas palavras-chave</h3>
+                  <p className="mt-2 text-xs leading-6 text-muted-foreground">
+                    Consultas que já geraram conversões merecem análise como possíveis palavras-chave.
+                    A ferramenta não pode verificar neste CSV se já estão cadastradas, nem se a conversão
+                    representa um lead ou uma venda qualificada.
+                  </p>
+                  {keywordCandidates.length > 0 ? (
+                    <div className="mt-4 overflow-x-auto">
+                      <table className="min-w-[520px] w-full text-left text-xs">
+                        <thead className="text-muted-foreground">
+                          <tr><th className="pb-3 pr-3">Termo de pesquisa</th><th className="pb-3 pr-3">Conversões</th><th className="pb-3 pr-3">Custo/conv.</th></tr>
+                        </thead>
+                        <tbody>
+                          {keywordCandidates.map((term, index) => (
+                            <tr key={term.term + index} className="border-t border-white/10">
+                              <td className="py-3 pr-3">{term.term}</td>
+                              <td className="py-3 pr-3 tabular-nums">{formatCount(term.conversions)}</td>
+                              <td className="py-3 pr-3 tabular-nums">{money(term.cost / term.conversions)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : <p className="mt-3 text-xs text-muted-foreground">Nenhum termo com conversões no relatório importado.</p>}
+                  <p className="mt-3 text-xs leading-6 text-muted-foreground">
+                    Antes de adicionar: revise intenção, serviço anunciado, palavras-chave já existentes,
+                    tipo de correspondência, volume da amostra e risco de competição interna.
+                  </p>
                 </div>
                 <button onClick={exportReview} type="button" disabled={!candidates.length} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                   <Download className="size-4" aria-hidden="true" /> Exportar termos para revisão
