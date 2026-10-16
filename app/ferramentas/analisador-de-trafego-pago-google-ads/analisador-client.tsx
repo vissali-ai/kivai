@@ -5,6 +5,8 @@ import { useMemo, useState, type ChangeEvent } from "react";
 import { ArrowLeft, ArrowRight, Download, FileSpreadsheet, ShieldCheck, Target } from "lucide-react";
 import { CampaignReportSection } from "@/components/tools/google-ads-campaign-report";
 import { GoogleAdsAuctionCompare } from "@/components/tools/google-ads-auction-compare";
+import { TrafficBetaAssistant } from "@/components/tools/traffic-beta-assistant";
+import type { TrafficAnalysisRequest } from "@/lib/ai/traffic-analysis";
 import { parseDelimited, parseReportNumber as numberFromInput } from "@/lib/google-ads/csv-utils";
 import { normalizeReportLabel as normalize } from "@/lib/google-ads/campaign-types";
 
@@ -93,6 +95,7 @@ function Field({ label, value, onChange, placeholder, type = "text" }: {
 }
 
 export default function GoogleAdsTrafficAnalyzerClient() {
+  const [trafficSnapshot, setTrafficSnapshot] = useState<TrafficAnalysisRequest["snapshot"] | null>(null);
   const [client, setClient] = useState("");
   const [segment, setSegment] = useState("");
   const [city, setCity] = useState("");
@@ -287,7 +290,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           </div>
         </section>
 
-        <CampaignReportSection goals={{
+        <CampaignReportSection onSnapshot={setTrafficSnapshot} goals={{
           budget: positiveOrNull(budget),
           leads: positiveOrNull(targetLeads),
           maxCpl: positiveOrNull(maxCpl),
@@ -376,6 +379,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           </div>
         </section>
         <GoogleAdsAuctionCompare />
+        <TrafficBetaAssistant snapshot={trafficSnapshot} />
         <div className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="size-4" aria-hidden="true" />
           Nenhum dado de cliente ou arquivo é enviado ao servidor nesta ferramenta.
