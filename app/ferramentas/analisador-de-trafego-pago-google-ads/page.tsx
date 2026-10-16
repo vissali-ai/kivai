@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getPageMetadata, noIndexRobots } from "@/lib/seo";
 import GoogleAdsTrafficAnalyzerClient from "./analisador-client";
+import { GoogleAdsAnalyzerEditorial } from "@/components/tools/google-ads-analyzer-editorial";
 
 const base = getPageMetadata({
   title: "Analisador de Tráfego Pago Google Ads",
@@ -12,5 +13,5 @@ const base = getPageMetadata({
 export const metadata: Metadata = { ...base, robots: noIndexRobots };
 
 export default function AnalisadorDeTrafegoPagoGoogleAdsPage() {
-  return <GoogleAdsTrafficAnalyzerClient />;
+  return <><GoogleAdsTrafficAnalyzerClient /><GoogleAdsAnalyzerEditorial /></>;
 }
