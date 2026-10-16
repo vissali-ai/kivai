@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { authenticateBillingUser } from "@/lib/billing/sumup";
 import { googleAdsCampaignReport, GoogleAdsConnectionError } from "@/lib/google-ads/oauth";
-import { firstDayOfMonthISO, lastCompletedDayInTimeZone } from "@/lib/google-ads/dates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +11,6 @@ const requestSchema = z.object({
   connectionId: z.uuid(),
   customerId: z.string().regex(/^\d{10}$/),
   loginCustomerId: z.string().regex(/^\d{10}$/).nullable(),
-  timeZone: z.string().min(2).max(120),
 }).strict();
 
 export async function POST(request: Request) {
@@ -27,8 +25,7 @@ export async function POST(request: Request) {
 
   const input = parsed.data;
   try {
-    // A timezone enviada é apenas uma sugestão; a timezone autorizada
-    // é novamente lida da API antes de calcular o período no serviço.
+    // O servidor descobre o fuso da conta autorizada na Google Ads API.
     const response = await googleAdsCampaignReport(
       input.connectionId, userId, input.customerId, input.loginCustomerId,
     );
