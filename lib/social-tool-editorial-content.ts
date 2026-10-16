@@ -163,7 +163,7 @@ export const socialAdvancedEditorialContent: Record<SocialAdvancedEditorialSlug,
       { label: "Exportação", value: "O card de preview pode ser baixado em PNG sem os controles da ferramenta." },
       { label: "Conta social", value: "Nenhuma conta ou credencial de rede social é necessária." },
     ],
-    privacy: "As imagens selecionadas são utilizadas localmente no navegador para montar a simulação. A ferramenta não conecta contas, não publica conteúdo e não envia as imagens para redes sociais.",
+    privacy: "A simulação é local. O assistente opcional envia a legenda e, se selecionada, uma cópia reduzida da imagem do post ao provedor externo após autorização. Custa 1 crédito só com texto ou 2 com imagem. Não envia foto nem dados do perfil, não conecta contas e não publica nas redes. O provedor gratuito pode usar os dados para melhorar seus produtos.",
     limitations: [
       "O preview não é uma reprodução oficial e pode diferir da interface real das plataformas.",
       "Cortes, tipografia e espaçamentos podem variar conforme dispositivo e atualizações dos aplicativos.",

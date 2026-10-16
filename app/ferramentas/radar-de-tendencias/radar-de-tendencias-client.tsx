@@ -1,5 +1,6 @@
 "use client";
 
+import { NewsAi } from "@/components/tools/news-ai";
 import { useMemo, useState } from "react";
 import { AlertTriangle, Clock3, ExternalLink, Flame, LoaderCircle, Radar, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -203,6 +204,7 @@ export function RadarDeTendenciasClient() {
             ) : null}
           </section>
         ) : null}
+        {result && result.items.length > 0 && <NewsAi items={result.items}/>}
       </CardContent>
     </Card>
   );

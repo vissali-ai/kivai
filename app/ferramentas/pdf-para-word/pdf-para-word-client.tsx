@@ -1,4 +1,5 @@
 "use client";
+import { DocumentAi } from "@/components/tools/document-ai";
 
 import { useState } from "react";
 import { Download, FileText, RotateCcw, Trash2 } from "lucide-react";
@@ -88,7 +89,7 @@ export default function PdfParaWordClient() {
   }
 
   return (
-    <ToolPageShell title="PDF para Word" description="Extraia o texto de PDFs digitais e gere documentos DOCX editáveis, com reconstrução aproximada de títulos, parágrafos, listas e quebras de página." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="A conversão acontece localmente no seu navegador. Seus PDFs não são enviados ao Kivai.">
+    <ToolPageShell title="PDF para Word" description="Extraia o texto de PDFs digitais e gere documentos DOCX editáveis, com reconstrução aproximada de títulos, parágrafos, listas e quebras de página." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="A conversão normal é local. O modo opcional de IA envia somente as páginas escolhidas ao provedor após sua autorização.">
       <Card className="mx-auto max-w-5xl">
         <CardHeader><CardTitle>Selecione seus arquivos PDF</CardTitle><CardDescription>Adicione um ou vários PDFs digitais com texto selecionável para gerar documentos DOCX editáveis.</CardDescription></CardHeader>
         <CardContent className="space-y-6">
@@ -103,6 +104,7 @@ export default function PdfParaWordClient() {
           {status === "success" && <ToolResultCard title={results.length > 1 ? "Documentos prontos" : "Documento pronto"} description={results.length > 1 ? `${results.length} arquivos DOCX foram reunidos em um ZIP. Toque em baixar para salvar no dispositivo.` : "O DOCX está pronto. Revise a estrutura e a formatação depois do download."} actions={<><Button onClick={() => downloadResult && downloadBlob(downloadResult.blob, downloadResult.name)} disabled={!downloadResult}><Download className="size-4" />{results.length > 1 ? "Baixar ZIP" : "Baixar DOCX"}</Button><Button variant="outline" onClick={reset}><RotateCcw className="size-4" />Converter outro arquivo</Button></>} />}
         </CardContent>
       </Card>
+    <DocumentAi files={files.map(item=>item.file)} format="docx"/>
     </ToolPageShell>
   );
 }

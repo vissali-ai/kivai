@@ -1,5 +1,6 @@
 "use client";
 
+import { CaptionAi } from "@/components/tools/caption-ai";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { BarChart3, Bell, Bookmark, Copy, Download, Globe2, Heart, Home, ImagePlus, MessageCircle, MoreHorizontal, Repeat2, RotateCcw, Search, Send, Share2, ThumbsUp, Trash2, UsersRound } from "lucide-react";
 import { ToolPageShell } from "@/components/tools/tool-page-shell";
@@ -55,7 +56,7 @@ export default function PreviewClient() {
   }
   function clearAll() { remove("avatar"); remove("post"); setSettings(initial); setError(""); setFeedback(""); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
   const hasChanges = avatar || postImage || JSON.stringify(settings) !== JSON.stringify(initial);
-  return <ToolPageShell title="Preview de Post para Redes Sociais" description="Visualize perfil, imagem e legenda em uma simulação de publicação antes de apresentar ou postar seu conteúdo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="As imagens são usadas somente no seu navegador para montar a visualização e não são enviadas ao Kivai.">
+  return <ToolPageShell title="Preview de Post para Redes Sociais" description="Visualize perfil, imagem e legenda em uma simulação de publicação antes de apresentar ou postar seu conteúdo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O preview é local. O assistente opcional envia a legenda e a imagem do post ao serviço de IA somente após autorização.">
     <Card><CardHeader><CardTitle className="text-base">Escolha a plataforma</CardTitle><CardDescription>A troca atualiza a simulação imediatamente, sem recarregar a página.</CardDescription></CardHeader><CardContent><div className="flex flex-wrap gap-2" role="group" aria-label="Plataforma do preview">{platforms.map((platform) => <Button key={platform} variant={settings.platform === platform ? "default" : "outline"} aria-pressed={settings.platform === platform} onClick={() => update("platform", platform)}>{platform}</Button>)}</div></CardContent></Card>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(340px,1.2fr)]">
       <Card><CardHeader><CardTitle className="text-base">Configuração do post</CardTitle><CardDescription>Personalize os dados usados somente nesta visualização.</CardDescription></CardHeader><CardContent className="space-y-5">
@@ -66,6 +67,7 @@ export default function PreviewClient() {
       </CardContent></Card>
       <div className="space-y-4 lg:sticky lg:top-24"><div ref={previewRef} className="mx-auto w-full max-w-[620px]"><PostPreview settings={settings} avatar={avatar} postImage={postImage} /></div><p className="mx-auto max-w-[620px] text-xs leading-5 text-muted-foreground">Esta visualização é uma simulação. O layout final pode variar conforme atualizações da plataforma, dispositivo e formato da publicação.</p><Button className="w-full max-w-[620px]" onClick={downloadPreview} disabled={isExporting}><Download />{isExporting ? "Preparando PNG…" : "Baixar preview em PNG"}</Button></div>
     </div>
+    <CaptionAi text={settings.caption} image={postImage} onApply={caption=>update("caption",caption)}/>
     {confirmClear && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmClear(false); }}><div role="dialog" aria-modal="true" aria-labelledby="clear-preview-title" className="w-full max-w-md border border-border bg-background p-6"><h2 id="clear-preview-title" className="text-xl font-semibold">Limpar este preview?</h2><p className="mt-3 text-sm text-muted-foreground">Textos, preferências e imagens selecionadas serão removidos.</p><div className="mt-6 flex justify-end gap-2"><Button variant="outline" onClick={() => setConfirmClear(false)}>Cancelar</Button><Button variant="destructive" onClick={clearAll}>Limpar preview</Button></div></div></div>}
   </ToolPageShell>;
 }

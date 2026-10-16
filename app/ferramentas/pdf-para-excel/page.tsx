@@ -1,3 +1,4 @@
+import { ToolAiContent } from "@/components/tools/tool-ai-content";
 import { PdfOfficeToolEditorialV2 } from "@/components/tools/pdf-office-tool-editorial-v2";
 import { getToolMetadataAsync } from "@/lib/seo";
 
@@ -8,7 +9,7 @@ export async function generateMetadata() { return getToolMetadataAsync("pdf-para
 export default function PdfParaExcelPage() {
   return (
     <>
-      <PdfParaExcelClient />
+      <ToolAiContent slug="pdf-para-excel"><PdfParaExcelClient /></ToolAiContent>
       <PdfOfficeToolEditorialV2 slug="pdf-para-excel" />
     </>
   );

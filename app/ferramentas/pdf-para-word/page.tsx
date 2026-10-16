@@ -1,3 +1,4 @@
+import { ToolAiContent } from "@/components/tools/tool-ai-content";
 import type { Metadata } from "next";
 
 import { PdfOfficeToolEditorialV2 } from "@/components/tools/pdf-office-tool-editorial-v2";
@@ -26,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function PdfParaWordPage() {
   return (
     <>
-      <PdfParaWordClient />
+      <ToolAiContent slug="pdf-para-word"><PdfParaWordClient /></ToolAiContent>
       <PdfOfficeToolEditorialV2 slug="pdf-para-word" />
     </>
   );

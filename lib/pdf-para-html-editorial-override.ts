@@ -21,9 +21,9 @@ export const pdfParaHtmlEditorialOverride = {
     { label: "Modo estruturado", value: "Reconstrói títulos, parágrafos, listas e tenta identificar tabelas simples por heurística de espaçamento." },
     { label: "Modo visual", value: "Reposiciona o texto extraído por coordenadas para aproximar o layout, sem reconstruir imagens, vetores ou fundos." },
   ],
-  privacy: "A inspeção, a extração de texto e a geração do HTML acontecem localmente no navegador. O PDF não precisa ser enviado ao Kivai para essa conversão.",
+  privacy: "A conversão normal acontece localmente. O modo opcional de IA envia até 3 páginas escolhidas (até 2 MB) ao provedor após autorização, por 2 créditos. Confira números, texto e possíveis omissões antes de baixar o resultado separado. O provedor gratuito pode usar os dados para melhorar seus produtos.",
   limitations: [
-    "A versão atual não executa OCR; PDFs compostos somente por imagens precisam de reconhecimento de texto antes.",
+    "A conversão normal não executa OCR. O modo opcional de IA pode tentar ler páginas digitalizadas; revise o texto e possíveis omissões.",
     "Imagens, vetores, fundos e outros elementos gráficos do PDF não são reconstruídos no HTML.",
     "A identificação de tabelas é heurística e funciona melhor em estruturas simples com colunas visualmente separadas.",
     "Múltiplas colunas, fontes específicas, elementos sobrepostos e layouts complexos podem exigir revisão manual.",
@@ -31,7 +31,7 @@ export const pdfParaHtmlEditorialOverride = {
   ],
   faqs: [
     { question: "O HTML gerado pode ser editado?", answer: "Sim. A ferramenta permite revisar o código, fazer pequenos ajustes, desfazer e refazer alterações e restaurar a versão originalmente gerada." },
-    { question: "PDF digitalizado funciona?", answer: "Não diretamente quando a página contém apenas imagem. Esta versão não inclui OCR." },
+    { question: "PDF digitalizado funciona?", answer: "A conversão normal exige texto extraível. O modo opcional de IA pode tentar ler até 3 páginas digitalizadas, com revisão antes do download." },
     { question: "Posso converter apenas algumas páginas?", answer: "Sim. São aceitos números, listas e intervalos, como 1-5,8." },
     { question: "O layout ficará idêntico ao PDF?", answer: "Não. O modo visual apenas reposiciona o texto extraído para aproximar o layout; imagens, gráficos, vetores e fundos não são reconstruídos." },
     { question: "A ferramenta converte tabelas?", answer: "Ela tenta reconhecer tabelas simples usando espaçamento e alinhamento dos textos. Estruturas complexas podem não ser identificadas corretamente." },
