@@ -63,7 +63,7 @@ export default function AnalisadorDePostsPage() {
         { label: "Redes", value: "Reconhece links de YouTube, Instagram, TikTok, Facebook, LinkedIn, X, Threads e Pinterest. A leitura automática varia por plataforma." },
         { label: "Arquivos", value: "Até 8 imagens ou 1 vídeo por análise, limite de 40 MB por arquivo na leitura local." },
         { label: "Vídeos enviados", value: "Nesta versão são extraídos três quadros no navegador. O áudio e o movimento contínuo não são enviados, portanto não são examinados." },
-        { label: "YouTube", value: "Tenta análise audiovisual do vídeo público pelo link via Gemini. Em caso de indisponibilidade, utiliza apenas metadados acessíveis." },
+        { label: "YouTube", value: "Tenta análise audiovisual de vídeos públicos de até 3 minutos quando a duração puder ser confirmada, ou Shorts. Nos demais casos, utiliza metadados acessíveis." },
         { label: "IA e créditos", value: "Login necessário. Utiliza 1 crédito para análise por link e 2 créditos quando houver imagens ou quadros de vídeo enviados." },
         { label: "Relatório", value: "Pontos fortes, problemas, ajustes, legenda, ganchos, CTA, sugestões de edição e limitações encontradas." },
       ]}
