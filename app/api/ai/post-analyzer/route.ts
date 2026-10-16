@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
   const operationId = crypto.randomUUID();
   const wantsVideo = Boolean(link?.network === "youtube" && link.videoId && !input.images.length);
-  const cost: 1 | 2 = input.images.length || wantsVideo ? 2 : 1;
+  const cost: 1 | 2 = input.images.length ? 2 : 1;
   let reserved = false;
   try {
     const reserve = await reserveAiCredits({ userId, operationId, kind: cost === 2 ? "import" : "insight", cost });
