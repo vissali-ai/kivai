@@ -112,7 +112,7 @@ export function RadarDeTendenciasClient() {
 
   return (
     <Card className="mx-auto max-w-5xl" aria-busy={status === "loading"}>
-      <SavedProjects kind="trend_radar" payload={{ category, result }} onLoad={value => { const p=value as { category?: NewsRadarCategory; result?: RadarResponse }; if(p?.category && NEWS_RADAR_CATEGORIES.some(c => c.value === p.category)) setCategory(p.category); if(p?.result && Array.isArray(p.result.items)) { setResult(p.result); setStatus("success"); } }} />
+      <SavedProjects kind="trend_radar" payload={{ category, result }} onLoad={value => { const p=value as { category?: NewsRadarCategory; result?: RadarResponse }; if(p?.category && NEWS_RADAR_CATEGORIES.some(c => c.slug === p.category)) setCategory(p.category); if(p?.result && Array.isArray(p.result.items)) { setResult(p.result); setStatus("success"); } }} />
 
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
