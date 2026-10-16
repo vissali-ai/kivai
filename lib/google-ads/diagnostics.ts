@@ -45,6 +45,44 @@ export type DiagnosticInput = {
   lastMajorChangeOn?: string;
 };
 
+export type AccumulatedPace = {
+  label: string;
+  unit: "count" | "currency";
+  monthlyTarget: number;
+  expectedToDate: number;
+  actual: number;
+  difference: number;
+  differencePct: number;
+  achievedPct: number;
+  remainingMonthly: number;
+  periodPct: number;
+};
+
+/**
+ * Comparação de quantidade ou valor acumulado, mantendo precisão completa
+ * para cálculos e arredondando exclusivamente na apresentação.
+ * Não utilizar esta função para CPL, CPC, CTR, CPA ou ROAS.
+ */
+export function compareAccumulatedGoal(
+  label: string,
+  unit: AccumulatedPace["unit"],
+  target: number | null,
+  actual: number,
+  period: PeriodInfo,
+): AccumulatedPace | null {
+  if (!period.valid || !period.fullMonthToDate || target === null ||
+      !Number.isFinite(target) || target <= 0 || !Number.isFinite(actual) || actual < 0) return null;
+  const expectedToDate = target * period.ratio;
+  return {
+    label, unit, monthlyTarget: target, expectedToDate, actual,
+    difference: actual - expectedToDate,
+    differencePct: (actual / expectedToDate - 1) * 100,
+    achievedPct: (actual / target) * 100,
+    remainingMonthly: Math.max(0, target - actual),
+    periodPct: period.ratio * 100,
+  };
+}
+
 export type PeriodInfo = {
   valid: boolean;
   fullMonthToDate: boolean;
@@ -95,10 +133,21 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
   insights: Diagnostic[];
   period: PeriodInfo;
   metrics: { cpl: number | null; roas: number | null; budgetPacing: number | null; leadsPacing: number | null };
+  pacing: { leads: AccumulatedPace | null; investment: AccumulatedPace | null; revenue: AccumulatedPace | null };
 } {
   const { goals, totals } = input;
   const period = inspectPeriod(input.start, input.end);
   const insights: Diagnostic[] = [];
+  const pacing = {
+    leads: goals.conversionsAreLeads
+      ? compareAccumulatedGoal("Leads", "count", goals.leads, totals.conversions, period)
+      : null,
+    investment: compareAccumulatedGoal("Investimento", "currency", goals.budget, totals.cost, period),
+    revenue: goals.conversionValueIsRevenue && totals.conversionValue !== null
+      ? compareAccumulatedGoal("Receita atribuída", "currency", goals.monthlyRevenue, totals.conversionValue, period)
+      : null,
+  };
+
   const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const number = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
   const cpl = totals.conversions > 0 && goals.conversionsAreLeads ? totals.cost / totals.conversions : null;
@@ -337,5 +386,5 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
   const order: Record<DiagnosticLevel, number> = { critical: 0, attention: 1, observe: 2, positive: 3, missing: 4 };
   insights.sort((a, b) => order[a.level] - order[b.level]);
 
-  return { insights, period, metrics: { cpl, roas, budgetPacing, leadsPacing } };
+  return { insights, period, metrics: { cpl, roas, budgetPacing, leadsPacing }, pacing };
 }
