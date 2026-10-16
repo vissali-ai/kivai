@@ -5,7 +5,7 @@ import { BellRing, BellOff, Check, Clock } from "lucide-react";
 import { getStoredSession } from "@/lib/user-auth";
 import { defaultReminder, reminderToolChoices, reminderWeekdays, type ReminderPreference } from "@/lib/account/routine-reminder-options";
 
-type ReminderResponse = { preference: ReminderPreference; vapidPublicKey: string; emailAvailable: boolean; emailAddress: string; whatsappAvailable: boolean };
+type ReminderResponse = { preference: ReminderPreference; vapidPublicKey: string; emailAvailable: boolean; emailAddress: string };
 
 function publicKeyBytes(encoded: string) {
   const raw = atob(encoded.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - encoded.length % 4) % 4));
@@ -28,7 +28,7 @@ async function api(method: "GET" | "POST", body?: object): Promise<ReminderRespo
 export function RoutineReminderSettings() {
   const [preference, setPreference] = useState<ReminderPreference>(defaultReminder);
   const [publicKey, setPublicKey] = useState("");
-  const [channel, setChannel] = useState<"browser" | "email" | "whatsapp">("browser");
+  const [channel, setChannel] = useState<"browser" | "email">("browser");
   const [emailAvailable, setEmailAvailable] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [emailConsent, setEmailConsent] = useState(false);
@@ -66,7 +66,6 @@ export function RoutineReminderSettings() {
     if (busy) return;
     setBusy(true); setError(""); setFeedback("");
     try {
-      if (channel === "whatsapp") throw new Error("O WhatsApp ainda não está disponível. Precisamos concluir a conexão oficial de mensagens do Kivai.");
       if (channel === "email") {
         if (!emailAvailable) throw new Error("O envio por e-mail ainda não está disponível nesta conta.");
         if (!emailConsent) throw new Error("Confirme que deseja receber os lembretes por e-mail.");
@@ -145,11 +144,10 @@ export function RoutineReminderSettings() {
           </div>
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium">Onde deseja receber o lembrete?</legend>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2">
               {[
                 { value: "browser" as const, label: "Navegador", detail: "Notificação no dispositivo" },
                 { value: "email" as const, label: "E-mail", detail: emailAddress || "E-mail da sua conta" },
-                { value: "whatsapp" as const, label: "WhatsApp", detail: "Aguardando integração oficial" },
               ].map(option => (
                 <label key={option.value} className={`flex min-w-0 cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition-colors ${channel === option.value ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}>
                   <input type="radio" name="reminder-channel" className="mt-0.5 shrink-0 accent-primary" checked={channel === option.value} onChange={() => { setChannel(option.value); setError(""); setFeedback(""); }} />
@@ -164,10 +162,9 @@ export function RoutineReminderSettings() {
               <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1 shrink-0" checked={emailConsent} onChange={e => setEmailConsent(e.target.checked)} />Autorizo o Kivai a me enviar um lembrete semanal por e-mail, referente à atividade escolhida.</label>
             </div>
           ) : null}
-          {channel === "whatsapp" ? <p className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-muted-foreground">O WhatsApp estará disponível após a configuração da API oficial da Meta e a aprovação do modelo de mensagem. Esse canal pode ter custos de envio. Por enquanto, escolha E-mail ou Navegador.</p> : null}
           <p className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="size-3.5" /> Fuso horário: {preference.time_zone}. Um lembrete por semana, próximo ao horário escolhido.</p>
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" disabled={busy || channel === "whatsapp" || (channel === "browser" && (!supported || !publicKey)) || (channel === "email" && (!emailAvailable || !emailConsent))} onClick={() => void enable()}
+            <button type="button" disabled={busy || (channel === "browser" && (!supported || !publicKey)) || (channel === "email" && (!emailAvailable || !emailConsent))} onClick={() => void enable()}
               className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
               {preference.enabled ? <Check className="size-4" /> : <BellRing className="size-4" />}
               {busy ? "Salvando..." : preference.enabled ? "Atualizar lembrete" : "Ativar lembrete"}
