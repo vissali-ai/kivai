@@ -1,4 +1,5 @@
 "use client";
+import { SavedProjects } from "@/components/account/saved-projects";
 
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -185,6 +186,7 @@ export default function AnalisadorDePostsClient() {
   const cost = files.length && !skipFile ? 2 : 1;
 
   return <div className="space-y-6">
+    <SavedProjects kind="post_analysis" payload={{ report }} onLoad={value => { const p=value as { report?: Report }; if(p?.report?.result) setReport(p.report); }} />
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Sparkles className="size-5 text-primary" /> Nova análise</CardTitle>
