@@ -64,7 +64,7 @@ export default function AnalisadorDePostsPage() {
         { label: "Arquivos", value: "Até 8 imagens ou 1 vídeo por análise, limite de 40 MB por arquivo na leitura local." },
         { label: "Vídeos enviados", value: "Nesta versão são extraídos três quadros no navegador. O áudio e o movimento contínuo não são enviados, portanto não são examinados." },
         { label: "YouTube", value: "Tenta análise audiovisual do vídeo público pelo link via Gemini. Em caso de indisponibilidade, utiliza apenas metadados acessíveis." },
-        { label: "IA e créditos", value: "Login necessário. Utiliza 1 crédito para texto e 2 créditos quando houver imagens ou tentativa de análise de vídeo público do YouTube." },
+        { label: "IA e créditos", value: "Login necessário. Utiliza 1 crédito para análise por link e 2 créditos quando houver imagens ou quadros de vídeo enviados." },
         { label: "Relatório", value: "Pontos fortes, problemas, ajustes, legenda, ganchos, CTA, sugestões de edição e limitações encontradas." },
       ]}
       privacy="O Kivai verifica metadados disponíveis em serviços externos. Com consentimento, envia textos e imagens otimizadas ou quadros extraídos de vídeo para um serviço de IA. O arquivo original continua no seu dispositivo durante esse fluxo. A ferramenta exige autenticação e aplica limites por usuário. Evite enviar conteúdo pessoal ou confidencial."
