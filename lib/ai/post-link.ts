@@ -2,7 +2,7 @@ import "server-only";
 
 export type SocialNetwork = "youtube" | "instagram" | "tiktok" | "facebook" | "linkedin" | "x" | "threads" | "pinterest";
 export type SocialLink = { network: SocialNetwork; url: string; videoId?: string };
-export type SocialEvidence = { title: string; caption: string; author: string; source: string };
+export type SocialEvidence = { title: string; caption: string; author: string; source: string; durationSeconds?: number };
 
 const hosts: Array<[SocialNetwork, string[]]> = [
   ["youtube", ["youtube.com", "youtu.be", "youtube-nocookie.com"]],
@@ -33,7 +33,7 @@ export function parseSocialLink(value: string): SocialLink | null {
   } catch { return null; }
 }
 
-type YoutubeData = { items?: Array<{ snippet?: { title?: string; description?: string; channelTitle?: string } }> };
+type YoutubeData = { items?: Array<{ snippet?: { title?: string; description?: string; channelTitle?: string }; contentDetails?: { duration?: string } }> };
 type OembedData = { title?: string; author_name?: string };
 const timeout = 7_000;
 
@@ -52,9 +52,13 @@ export async function getSocialEvidence(link: SocialLink): Promise<SocialEvidenc
   if (link.network === "youtube" && link.videoId) {
     const apiKey = process.env.YOUTUBE_API_KEY || process.env.GEMINI_API_KEY;
     if (apiKey) {
-      const data = await jsonOrNull<YoutubeData>(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(link.videoId)}&key=${encodeURIComponent(apiKey)}`);
+      const data = await jsonOrNull<YoutubeData>(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails&id=${encodeURIComponent(link.videoId)}&key=${encodeURIComponent(apiKey)}`);
       const snippet = data?.items?.[0]?.snippet;
-      if (snippet) return { title: (snippet.title || "").slice(0, 200), caption: (snippet.description || "").slice(0, 8000), author: (snippet.channelTitle || "").slice(0, 200), source: "YouTube Data API" };
+      if (snippet) {
+        const duration = data?.items?.[0]?.contentDetails?.duration?.match(/^PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?$/);
+        const durationSeconds = duration ? Number(duration[1] || 0) * 3600 + Number(duration[2] || 0) * 60 + Number(duration[3] || 0) : undefined;
+        return { title: (snippet.title || "").slice(0, 200), caption: (snippet.description || "").slice(0, 8000), author: (snippet.channelTitle || "").slice(0, 200), source: "YouTube Data API", durationSeconds };
+      }
     }
     const data = await jsonOrNull<OembedData>(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent("https://www.youtube.com/watch?v=" + link.videoId)}`);
     if (data?.title) return { title: data.title.slice(0, 200), caption: "", author: (data.author_name || "").slice(0, 200), source: "YouTube oEmbed (sem descrição)" };
