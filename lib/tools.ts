@@ -51,7 +51,8 @@ export type ToolCategory =
   | "seo"
   | "ia"
   | "utilitarios"
-  | "empresas";
+  | "empresas"
+  | "trafego";
 
 export interface ToolCategoryDefinition {
   slug: ToolCategory;
@@ -124,6 +125,14 @@ export const toolCategories: ToolCategoryDefinition[] = [
       "Consulte CNPJ, CNAE, NCM, bancos e domínios .BR para apoiar pesquisas empresariais e comerciais.",
     href: "/ferramentas/empresas",
     icon: Building2,
+  },
+  {
+    slug: "trafego",
+    name: "Tráfego Pago",
+    description:
+      "Planeje campanhas, acompanhe metas e analise relatórios Google Ads com ferramentas para gestores.",
+    href: "/ferramentas/trafego-pago",
+    icon: BarChart3,
   },
 ];
 
@@ -229,6 +238,19 @@ export function isToolIndexable(slug: string) {
 }
 
 export const tools: Tool[] = [
+  {
+    slug: "ads-intelligence",
+    name: "Kivai Ads Intelligence",
+    description: "Crie cenários de investimento e revise termos de pesquisa de campanhas Google Ads a partir de relatórios CSV.",
+    category: "trafego",
+    hubFilter: "Gestão",
+    badge: "Google Ads",
+    icon: BarChart3,
+    available: true,
+    seoTitle: "Planejamento e Análise de Tráfego Pago Google Ads | Kivai",
+    seoDescription: "Planeje orçamento e metas de campanhas e analise relatórios de termos de pesquisa com o Kivai Ads Intelligence.",
+    keywords: ["tráfego pago", "google ads", "planejamento de campanhas", "termos de pesquisa", "orçamento de anúncios", "gestor de tráfego"],
+  },
   {
     slug: "imprimir-frente-e-verso",
     name: "Imprimir Frente e Verso",
