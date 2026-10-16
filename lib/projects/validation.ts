@@ -9,5 +9,13 @@ export const projectInput = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("qr_code"), payload: z.object({ tipo: z.string().max(30), url: text, texto: text, whatsappNumero: text, whatsappMensagem: text, telefone: text, emailDestino: text, emailAssunto: text, emailMensagem: text, wifiNome: text, wifiSenha: text, wifiSeguranca: z.string().max(20), wifiOculta: z.boolean(), corQr: z.string().max(20), corFundo: z.string().max(20), tamanho: z.number(), margem: z.number(), nivelCorrecao: z.string().max(10), modeloVisual: z.string().max(30), chamada: text, nomeMarca: text, logoDataUrl: z.string().max(300000) }) }),
   z.object({ ...common, kind: z.literal("watermark"), payload: z.object({ text, type: z.enum(["text", "logo"]), opacity: z.number().min(10).max(100), placement: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1), scale: z.number().min(0).max(1) }), logoDataUrl: z.string().max(300000) }) }),
   z.object({ ...common, kind: z.literal("social_report"), payload: z.object({ id: text, reportName: text, client: text, profileName: text, username: text, network: text, responsible: text, startDate: text, endDate: text, compare: z.boolean(), previousStartDate: text, previousEndDate: text, engagementMethod: z.enum(["followers", "reach", "impressions"]), metrics: z.record(z.string(), text), previous: z.record(z.string(), text), notes: text, nextSteps: text, highlights: z.array(z.object({ id: text, title: text, format: text, reach: text, interactions: text, clicks: text, link: text })).max(6), rankBy: z.enum(["reach", "interactions", "rate", "clicks"]) }) }),
+  z.object({ ...common, kind: z.literal("preview_post"), payload: z.record(z.string(), z.unknown()) }),
+  z.object({ ...common, kind: z.literal("engagement"), payload: z.record(z.string(), z.unknown()) }),
+  z.object({ ...common, kind: z.literal("roas"), payload: z.record(z.string(), z.unknown()) }),
+  z.object({ ...common, kind: z.literal("roi"), payload: z.record(z.string(), z.unknown()) }),
+  z.object({ ...common, kind: z.literal("post_analysis"), payload: z.record(z.string(), z.unknown()) }),
+  z.object({ ...common, kind: z.literal("trend_radar"), payload: z.record(z.string(), z.unknown()) }),
+  z.object({ ...common, kind: z.literal("margin"), payload: z.record(z.string(), z.unknown()) }),
+  z.object({ ...common, kind: z.literal("markup"), payload: z.record(z.string(), z.unknown()) }),
 ]);
-export type SavedProject = { id: string; kind: "calendar" | "briefing" | "qr_code" | "watermark" | "social_report"; title: string; client_name: string; payload: unknown; revision: number; updated_at: string };
+export type SavedProject = { id: string; kind: "calendar" | "briefing" | "qr_code" | "watermark" | "social_report" | "preview_post" | "engagement" | "roas" | "roi" | "post_analysis" | "trend_radar" | "margin" | "markup"; title: string; client_name: string; payload: unknown; revision: number; updated_at: string };
