@@ -12,7 +12,7 @@ export const postAnalyzerInput = z.object({
   audience: brief.default(""),
   caption: z.string().trim().max(8000).default(""),
   consent: z.literal(true),
-  images: z.array(z.object({ mimeType: z.literal("image/jpeg"), data: base64 })).max(4).default([]),
+  images: z.array(z.object({ mimeType: z.literal("image/jpeg"), data: base64 })).max(8).default([]),
   videoFrames: z.boolean().default(false),
 });
 export type PostAnalyzerInput = z.infer<typeof postAnalyzerInput>;
