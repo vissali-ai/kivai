@@ -57,3 +57,29 @@ test("temporary auth outage preserves session and allows retry", async ({ page }
   await expect(page.getByText("104", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Atualizar painel" })).toHaveCount(0);
 });
+
+test("dashboard shortcuts reach visible sections by keyboard and touch", async ({ page }, testInfo) => {
+  await mockAccount(page);
+  await page.goto("/conta");
+  const navigation = page.getByRole("navigation", { name: "Atalhos do painel" });
+  await expect(navigation).toBeVisible();
+  await expect(page.getByRole("link", { name: "Todas as ferramentas", exact: true })).toHaveAttribute("href", "/ferramentas");
+  await expect(navigation.getByRole("link", { name: "Configurações" })).toHaveAttribute("href", "/conta/dados");
+  for (const label of ["Favoritos", "Meus projetos", "Créditos de IA", "Meu plano", "Avisos", "Lembretes", "Histórico"]) {
+    const link = navigation.getByRole("link", { name: label, exact: true });
+    const href = await link.getAttribute("href");
+    expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    if (label === "Favoritos") { await link.focus(); await page.keyboard.press("Enter"); }
+    else await link.click();
+    const target = page.locator(href!);
+    await expect(target).toBeFocused();
+    await expect.poll(async () => (await target.boundingBox())!.y).toBeGreaterThanOrEqual(64);
+    await expect.poll(async () => (await target.boundingBox())!.y).toBeLessThan(180);
+  }
+  await page.getByRole("link", { name: "Voltar ao início do painel" }).click();
+  await expect(page.locator("#painel-inicio")).toBeFocused();
+  await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
+  await expectNoOverflow(page);
+  await navigation.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("dashboard-navigation.png") });
+});
