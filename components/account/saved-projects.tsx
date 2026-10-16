@@ -100,12 +100,21 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     {kind && userId ? <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nome do projeto<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={120} value={title} onChange={e => setTitle(e.target.value)} /></label>{plan === "agency" ? <label className="text-sm">Cliente (opcional)<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={100} value={client} onChange={e => setClient(e.target.value)} /><span className="text-xs text-muted-foreground">Até 20 nomes de clientes em seus projetos.</span></label> : null}<div className="flex flex-wrap gap-2 sm:col-span-2"><Button disabled={busy || !title.trim() || !!accessError || (plan === "pro" && !!selected?.client_name)} onClick={() => save(false)}>Salvar na conta</Button><Button variant="outline" disabled={busy || !title.trim() || !!accessError} onClick={() => save(true)}>Salvar como novo projeto</Button></div></div> : null}
     <div className="space-y-3">
       {showInstagramHighlight ? <h3 className="text-sm font-medium">Ferramentas que você pode salvar projetos.</h3> : null}
-      <nav aria-label="Ferramentas com projetos salvos" className="flex flex-wrap gap-2 text-sm">
-        <Link className={shortcutClass} href={routes.calendar}>Abrir calendário</Link>
-        <Link className={shortcutClass} href={routes.briefing}>Abrir planejador</Link>
-        <Link className={shortcutClass} href={routes.qr_code}>QR Code</Link>
-        <Link className={shortcutClass} href={routes.watermark}>Marca d’água</Link>
-        <Link className={shortcutClass} href={routes.social_report}>Relatório Social Media</Link>
+      <nav aria-label="Ferramentas com projetos salvos" className="space-y-4">
+        {([
+          { heading: "Social Media", tools: ["calendar", "briefing", "social_report", "preview_post", "engagement", "post_analysis", "trend_radar"] },
+          { heading: "Marketing e performance", tools: ["roas", "roi", "margin", "markup"] },
+          { heading: "Imagens e utilidades", tools: ["qr_code", "watermark"] },
+        ] as const).map(group => (
+          <div key={group.heading} className="space-y-2">
+            <h4 className="text-sm font-medium text-muted-foreground">{group.heading}</h4>
+            <div className="flex flex-wrap gap-2 text-sm">
+              {group.tools.map(tool => (
+                <Link key={tool} className={shortcutClass} href={routes[tool]}>{labels[tool]}</Link>
+              ))}
+            </div>
+          </div>
+        ))}
         {plan === "free" ? <Link className={shortcutClass} href="/planos">Conhecer planos</Link> : null}
       </nav>
     </div>
