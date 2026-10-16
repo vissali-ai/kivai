@@ -4,22 +4,10 @@ import Link from "next/link";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { ArrowLeft, ArrowRight, Download, FileSpreadsheet, ShieldCheck, Target } from "lucide-react";
 import { CampaignReportSection } from "@/components/tools/google-ads-campaign-report";
+import { parseDelimited, parseReportNumber as numberFromInput } from "@/lib/google-ads/csv-utils";
+import { normalizeReportLabel as normalize } from "@/lib/google-ads/campaign-types";
 
 type SearchTerm = { term: string; clicks: number; cost: number; conversions: number };
-
-function numberFromInput(value: string) {
-  if (!value.trim()) return NaN;
-  const cleaned = value.trim().replace(/[^\d,.-]/g, "");
-  if (!cleaned) return NaN;
-  const lastComma = cleaned.lastIndexOf(",");
-  const lastDot = cleaned.lastIndexOf(".");
-  if (lastComma > lastDot) return Number(cleaned.replace(/\./g, "").replace(",", "."));
-  if (lastDot > lastComma && lastComma >= 0) return Number(cleaned.replace(/,/g, ""));
-  if (lastComma >= 0) return Number(cleaned.replace(",", "."));
-  // Em pt-BR, um ponto seguido por três dígitos costuma indicar milhar (ex.: 3.000).
-  if (/^\d{1,3}(\.\d{3})+$/.test(cleaned)) return Number(cleaned.replace(/\./g, ""));
-  return Number(cleaned);
-}
 
 function money(value: number) {
   return Number.isFinite(value) ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "Não calculado";
@@ -27,33 +15,6 @@ function money(value: number) {
 
 function formatCount(value: number) {
   return Number.isFinite(value) ? value.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) : "Não calculado";
-}
-
-function normalize(value: string) {
-  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-}
-
-function parseDelimited(text: string, delimiter: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [], cell = "", quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (char === '"') {
-      if (quoted && text[i + 1] === '"') { cell += '"'; i++; } else { quoted = !quoted; }
-    } else if (char === delimiter && !quoted) {
-      row.push(cell); cell = "";
-    } else if ((char === "\n" || char === "\r") && !quoted) {
-      if (char === "\r" && text[i + 1] === "\n") i++;
-      row.push(cell); cell = "";
-      if (row.some((value) => value.trim())) rows.push(row);
-      row = [];
-    } else {
-      cell += char;
-    }
-  }
-  row.push(cell);
-  if (row.some((value) => value.trim())) rows.push(row);
-  return rows;
 }
 
 function parseSearchTerms(text: string): SearchTerm[] {
