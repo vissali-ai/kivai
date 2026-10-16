@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, Instagram, Sparkles } from "lucide-react";
+import { ArrowRight, Users, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
@@ -81,7 +81,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-1 items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary">
-              <Instagram className="size-5" aria-hidden="true" />
+              <Users className="size-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
               <div className="mb-2 flex flex-wrap items-center gap-2">
