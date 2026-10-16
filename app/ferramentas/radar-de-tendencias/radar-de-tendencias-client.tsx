@@ -1,5 +1,7 @@
 "use client";
 
+
+import { SavedProjects } from "@/components/account/saved-projects";
 import { NewsAi } from "@/components/tools/news-ai";
 import { useMemo, useState } from "react";
 import { AlertTriangle, Clock3, ExternalLink, Flame, LoaderCircle, Radar, Search } from "lucide-react";
@@ -110,6 +112,8 @@ export function RadarDeTendenciasClient() {
 
   return (
     <Card className="mx-auto max-w-5xl" aria-busy={status === "loading"}>
+      <SavedProjects kind="trend_radar" payload={{ category, result }} onLoad={value => { const p=value as { category?: NewsRadarCategory; result?: RadarResponse }; if(p?.category && NEWS_RADAR_CATEGORIES.some(c => c.value === p.category)) setCategory(p.category); if(p?.result && Array.isArray(p.result.items)) { setResult(p.result); setStatus("success"); } }} />
+
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Radar className="size-5 text-primary" aria-hidden="true" />
