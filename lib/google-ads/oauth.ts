@@ -4,6 +4,7 @@ import {
   createCipheriv, createDecipheriv, createHash, randomBytes,
 } from "node:crypto";
 import { supabaseRest } from "@/lib/blog/supabase";
+import { firstDayOfMonthISO, lastCompletedDayInTimeZone } from "@/lib/google-ads/dates";
 
 export const GOOGLE_ADS_SCOPE = "https://www.googleapis.com/auth/adwords";
 export const GOOGLE_ADS_API_VERSION = "v26";
@@ -351,7 +352,6 @@ function safeMetric(value: unknown): number {
 export async function googleAdsCampaignReport(
   connectionId: string, userId: string,
   customerIdInput: string, loginCustomerIdInput: string | null,
-  from: string, to: string,
 ) {
   const customerId = googleAdsId(customerIdInput);
   const loginCustomerId = loginCustomerIdInput ? googleAdsId(loginCustomerIdInput) : null;
@@ -361,6 +361,14 @@ export async function googleAdsCampaignReport(
   const account = discovered.accounts.find(x =>
     x.customerId === customerId && x.loginCustomerId === loginCustomerId && !x.manager);
   if (!account) throw new GoogleAdsConnectionError("CUSTOMER_NOT_AUTHORIZED", 403);
+  const timeZone = account.timeZone || "America/Sao_Paulo";
+  let to: string;
+  try {
+    to = lastCompletedDayInTimeZone(timeZone);
+  } catch {
+    throw new GoogleAdsConnectionError("INVALID_TIME_ZONE", 400);
+  }
+  const from = firstDayOfMonthISO(to);
   const token = await getGoogleAdsAccessToken(connectionId, userId);
 
   const query = "SELECT campaign.id, campaign.name, campaign.advertising_channel_type, " +
