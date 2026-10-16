@@ -42,22 +42,21 @@ export default function TrafegoPagoHub() {
             Ferramenta principal
             <span className="rounded-full border border-primary/20 px-2 py-0.5 text-[10px]">Versão inicial</span>
           </div>
-          <h2 className="mt-4 text-2xl font-semibold">Kivai Ads Intelligence</h2>
+          <h2 className="mt-4 text-2xl font-semibold">Analisador de Tráfego Pago Google Ads</h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
-            Prepare um plano mensal de investimento e metas com premissas editáveis.
-            Importe um relatório CSV de termos de pesquisa do Google Ads e veja indicadores e termos que merecem revisão.
-            Nesta primeira versão, o arquivo é analisado no navegador, sem conexão à conta Google Ads.
+            Planeje investimento e metas, importe relatórios gerais de qualquer tipo de campanha Google Ads e identifique pontos de atenção.
+            A revisão de termos de pesquisa é um recurso complementar. Nesta primeira versão, a análise ocorre no navegador, sem conexão à conta Google Ads ou diagnósticos por IA.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={getToolHref("ads-intelligence")} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">
-              Abrir Ads Intelligence <ArrowRight className="size-4" aria-hidden="true" />
+            <Link href={getToolHref("analisador-de-trafego-pago-google-ads")} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">
+              Abrir analisador <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </div>
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
             {[
               { icon: Target, label: "Planejamento mensal", text: "Metas e estimativas condicionadas aos dados informados." },
-              { icon: FileSearch, label: "Análise por CSV", text: "Leitura de termos e indicadores de campanhas exportadas." },
-              { icon: BarChart3, label: "Revisão de desempenho", text: "Priorização de termos para conferir antes de negativar." },
+              { icon: FileSearch, label: "Campanhas Google Ads", text: "Resumo por tipo de campanha, incluindo Pesquisa e Performance Max." },
+              { icon: BarChart3, label: "Diagnóstico progressivo", text: "Métricas gerais agora; auditorias específicas de cada tipo nas próximas etapas." },
             ].map((item) => {
               const Icon = item.icon;
               return (
