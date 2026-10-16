@@ -37,7 +37,6 @@ export async function POST(request: Request) {
   if (input.videoFrames && !input.images.length) return fail("Não foi possível extrair quadros do vídeo. Tente outro arquivo.", 400);
 
   const operationId = crypto.randomUUID();
-  const wantsVideo = Boolean(link?.network === "youtube" && link.videoId && !input.images.length);
   const cost: 1 | 2 = input.images.length ? 2 : 1;
   let reserved = false;
   try {
@@ -47,6 +46,10 @@ export async function POST(request: Request) {
     if (!(await reserveAiRequest(userId))) return fail("Limite temporário de IA atingido. Seu crédito será devolvido.", 429);
 
     const evidence = link ? await getSocialEvidence(link) : { title: "", caption: "", author: "", source: "Rascunho fornecido pelo usuário" };
+    // Analyze full YouTube video only when its short duration is known, to bound variable AI costs.
+    const wantsVideo = Boolean(link?.network === "youtube" && link.videoId && !input.images.length &&
+      ((evidence.durationSeconds !== undefined && evidence.durationSeconds > 0 && evidence.durationSeconds <= 180) ||
+       new URL(link.url).pathname.startsWith("/shorts/")));
     const hasText = Boolean(evidence.title || evidence.caption || input.caption);
     const hasImages = Boolean(input.images.length);
     if (!hasText && !hasImages && !wantsVideo) {
@@ -80,6 +83,7 @@ export async function POST(request: Request) {
       ...(input.videoFrames ? ["Foram analisados quadros estáticos do vídeo, não seu áudio ou movimento contínuo."] : []),
       ...(!covered.visuals ? ["Não houve acesso ao conteúdo visual para esta análise."] : []),
       ...(!covered.audio && (wantsVideo || input.videoFrames) ? ["Falas, trilha sonora e ritmo audiovisual não foram verificados."] : []),
+      ...(!audiovisual && link?.network === "youtube" && !wantsVideo ? ["A análise audiovisual por URL é limitada a vídeos de até 3 minutos com duração verificável ou Shorts."] : []),
       "Dados privados de retenção e alcance não estão disponíveis sem acesso autorizado à conta.",
     ];
     return Response.json({
