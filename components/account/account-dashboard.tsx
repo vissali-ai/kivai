@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Building2, CheckCircle2, Crown, History, Home, LayoutDashboard, LogOut, Settings, Sparkles, UserRound } from "lucide-react";
+import { ArrowRight, ArrowUp, Building2, CheckCircle2, Crown, History, LayoutDashboard, LogOut, Settings, Sparkles, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession, signOut, supabaseUserFetch } from "@/lib/user-auth";
 import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
@@ -105,7 +105,7 @@ export function AccountDashboard() {
   const displayName = profile?.full_name?.trim() || email.split("@")[0] || "Usuário Kivai";
   const firstName = displayName.split(/\s+/)[0];
 
-  return <div className="space-y-6">
+  return <div id="painel-inicio" tabIndex={-1} className="scroll-mt-28 space-y-6">
     {accessError || loadError ? <div role="alert" className="rounded border p-4"><p>{accessError || loadError}</p><Button variant="outline" size="sm" className="mt-3" onClick={() => window.location.reload()}>Atualizar painel</Button></div> : null}
     <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-card p-6 sm:p-8">
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -117,7 +117,7 @@ export function AccountDashboard() {
           </div>
           <h1 className="mt-3 break-words text-3xl font-semibold tracking-tight sm:text-4xl">Olá, {firstName}.</h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Seu espaço para retomar ferramentas recentes, encontrar favoritos e descobrir recursos úteis para sua rotina.</p>
-          <div className="mt-5"><Button asChild variant="outline"><Link href="/"><Home /> Voltar para a Home</Link></Button></div>
+          <div className="mt-5"><Button asChild variant="outline"><Link href="/ferramentas"><LayoutDashboard /> Todas as ferramentas</Link></Button></div>
         </div>
         <div className="w-full min-w-0 rounded-2xl border border-primary/20 bg-primary/[0.05] p-5 lg:w-80 lg:shrink-0">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">Seu plano atual</p>
@@ -127,24 +127,42 @@ export function AccountDashboard() {
       </div>
     </section>
 
-    {userId ? <AiCreditBalance /> : null}
-    {userId ? <AccountWelcome userId={userId} firstName={firstName} /> : null}
+    <nav aria-label="Atalhos do painel" className="rounded-2xl border border-border bg-card p-4">
+      <p className="mb-3 text-sm font-semibold">Ir direto para</p>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {[
+          { id: "painel-favoritos", label: "Favoritos" },
+          { id: "painel-projetos", label: "Meus projetos" },
+          ...(userId ? [{ id: "painel-creditos", label: "Créditos de IA" }] : []),
+          ...(plan ? [{ id: "painel-plano", label: "Meu plano" }] : []),
+          { id: "painel-avisos", label: "Avisos" },
+          { id: "painel-lembretes", label: "Lembretes" },
+          { id: "painel-historico", label: "Histórico" },
+        ].map(item => <a key={item.id} href={`#${item.id}`} className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{item.label}<ArrowRight aria-hidden="true" className="size-4 shrink-0 text-primary" /></a>)}
+        <Link href="/conta/dados" className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Configurações<Settings aria-hidden="true" className="size-4 shrink-0 text-primary" /></Link>
+      </div>
+    </nav>
 
-    {plan ? <section className="rounded-2xl border border-primary/25 bg-card p-5"><h2 className="text-xl font-semibold">Seus benefícios {plan === 'free' ? 'Grátis' : plan === 'pro' ? 'Pro' : 'Agency'}</h2><ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">{planBenefits[plan].map(item => <li key={item} className="flex gap-2"><CheckCircle2 className="size-4 shrink-0 text-primary" />{item}</li>)}</ul>{plan !== 'free' ? <><p className="mt-3 text-sm text-muted-foreground">Válido até {access?.subscription?.current_period_end ? new Date(access.subscription.current_period_end).toLocaleDateString('pt-BR') : '—'}{access?.subscription?.provider?.startsWith('admin_') ? ' · Acesso concedido pelo administrador' : ''}</p><Button asChild className="mt-4"><Link href="/conta/pro">Abrir Área {plan === 'agency' ? 'Agency' : 'Pro'} <ArrowRight /></Link></Button></> : <Button asChild className="mt-4"><Link href="/planos">Conhecer benefícios pagos</Link></Button>}</section> : null}
-    <AccountNotifications />
-    <RoutineReminderSettings />
-    <MyFavoriteTools />
-    <SavedProjects />
+    {userId ? <div id="painel-creditos" tabIndex={-1} className="scroll-mt-28"><AiCreditBalance /></div> : null}
+    {userId ? <AccountWelcome userId={userId} firstName={firstName} /> : null}
+    <div id="painel-favoritos" tabIndex={-1} className="scroll-mt-28"><MyFavoriteTools /></div>
+    <div id="painel-projetos" tabIndex={-1} className="scroll-mt-28"><SavedProjects /></div>
+
+    {plan ? <section id="painel-plano" tabIndex={-1} className="scroll-mt-28 rounded-2xl border border-primary/25 bg-card p-5"><h2 className="text-xl font-semibold">Seus benefícios {plan === 'free' ? 'Grátis' : plan === 'pro' ? 'Pro' : 'Agency'}</h2><ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">{planBenefits[plan].map(item => <li key={item} className="flex gap-2"><CheckCircle2 className="size-4 shrink-0 text-primary" />{item}</li>)}</ul>{plan !== 'free' ? <><p className="mt-3 text-sm text-muted-foreground">Válido até {access?.subscription?.current_period_end ? new Date(access.subscription.current_period_end).toLocaleDateString('pt-BR') : '—'}{access?.subscription?.provider?.startsWith('admin_') ? ' · Acesso concedido pelo administrador' : ''}</p><Button asChild className="mt-4"><Link href="/conta/pro">Abrir Área {plan === 'agency' ? 'Agency' : 'Pro'} <ArrowRight /></Link></Button></> : <Button asChild className="mt-4"><Link href="/planos">Conhecer benefícios pagos</Link></Button>}</section> : null}
+    <div id="painel-avisos" tabIndex={-1} className="scroll-mt-28"><AccountNotifications /></div>
+    <div id="painel-lembretes" tabIndex={-1} className="scroll-mt-28"><RoutineReminderSettings /></div>
     {paymentError ? <p role="alert" className="rounded border border-destructive/40 p-4 text-sm">{paymentError}</p> : null}
     {pendingRequest ? <section className="rounded-2xl border border-primary/25 bg-primary/[0.035] p-5 sm:p-6"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Contratação em andamento</p><h2 className="mt-2 text-xl font-semibold">Plano {pendingRequest.plan_code === "pro" ? "Pro" : "Agency"} {pendingRequest.billing_cycle === "monthly" ? "mensal" : "anual"}</h2><p className="mt-2 text-sm text-muted-foreground">Valor: R$ {Number(pendingRequest.amount_brl).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{pendingRequest.status === "payment_reported" ? "Pagamento informado. Aguardando confirmação e ativação." : "Depois de concluir o pagamento, informe aqui para destacar a solicitação no Admin."}</p></div><div className="flex min-w-[220px] flex-col gap-2">{pendingRequest.status === "awaiting_payment" ? <><Button onClick={reportPayment} disabled={reportingPayment}>{reportingPayment ? "Registrando..." : "Já realizei o pagamento"}</Button></> : <div className="flex items-center justify-center gap-2 border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-medium text-primary"><CheckCircle2 className="size-4" /> Aguardando confirmação</div>}<Button asChild variant="outline"><a href={pendingRequest.payment_link} target="_blank" rel="noopener noreferrer">Acessar o Link de Pagamento Novamente</a></Button><Button asChild variant="outline"><Link href="/planos">Trocar de Plano</Link></Button></div></div></section> : null}
 
-    <section className="grid gap-4 md:grid-cols-2">
+    <section id="painel-historico" tabIndex={-1} className="scroll-mt-28 grid gap-4 md:grid-cols-2">
       <Link href="/ferramentas/analisador-de-seguidores-instagram" className="group rounded-2xl border border-white/10 bg-card p-5 transition hover:border-primary/40"><div className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-primary"><Sparkles className="size-5" /></div><h2 className="mt-4 font-semibold">Acessar Analisador de Seguidores do Instagram</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Acesse a sua ferramenta de diagnóstico do Instagram e tenha acesso a uma nova análise.</p><span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">Acessar ferramenta <ArrowRight className="size-4" /></span></Link>
       <div className="rounded-2xl border border-white/10 bg-card p-5"><div className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-primary"><History className="size-5" /></div><h2 className="mt-4 font-semibold">Histórico privado</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{snapshots.length ? `${snapshots.length} análise${snapshots.length === 1 ? "" : "s"} recente${snapshots.length === 1 ? "" : "s"} disponível${snapshots.length === 1 ? "" : "is"}.` : plan === "free" ? "Seu histórico aparecerá aqui quando sua conta tiver acesso ao recurso." : "Suas análises salvas aparecerão aqui."}</p></div>
     </section>
 
-    <section className="rounded-3xl border border-primary/20 bg-primary/[0.035] p-6 sm:p-8"><div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Mais recursos</p><h2 className="mt-2 text-2xl font-semibold">Soluções para cada fase da sua presença digital</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Pro e Agency incluem histórico do Instagram e projetos de calendário e briefing salvos na conta. O Agency também organiza projetos por cliente. Serviços de execução, como gestão de redes sociais e tráfego, são contratados separadamente.</p></div><div className="grid gap-2"><Button asChild><Link href="/planos">Planos e benefícios Kivai <ArrowRight /></Link></Button><Button asChild variant="outline"><Link href="/servicos">Nossos Serviços <ArrowRight /></Link></Button></div></div></section>
 
     {snapshots.length ? <section className="overflow-hidden rounded-2xl border border-white/10 bg-card"><div className="flex items-center gap-3 border-b border-white/10 p-5"><History className="size-5 text-primary" /><div><h2 className="font-semibold">Análises recentes</h2><p className="mt-1 text-xs text-muted-foreground">Histórico privado dos seus perfis do Instagram.</p></div></div><div className="divide-y divide-white/5">{snapshots.map((snapshot) => <div key={snapshot.id} className="grid gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center"><div><p className="font-medium">@{snapshot.username || "instagram"}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(snapshot.analyzed_at).toLocaleString("pt-BR")}</p></div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguidores</span>{Number(snapshot.follower_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguindo</span>{Number(snapshot.following_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Novos</span>{snapshot.new_followers_count == null ? "-" : Number(snapshot.new_followers_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Unfollows</span>{snapshot.unfollowers_count == null ? "-" : Number(snapshot.unfollowers_count).toLocaleString("pt-BR")}</div></div>)}</div></section> : null}
+    <section className="rounded-3xl border border-primary/20 bg-primary/[0.035] p-6 sm:p-8"><div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Mais recursos</p><h2 className="mt-2 text-2xl font-semibold">Soluções para cada fase da sua presença digital</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Pro e Agency incluem histórico do Instagram e projetos de calendário e briefing salvos na conta. O Agency também organiza projetos por cliente. Serviços de execução, como gestão de redes sociais e tráfego, são contratados separadamente.</p></div><div className="grid gap-2"><Button asChild><Link href="/planos">Planos e benefícios Kivai <ArrowRight /></Link></Button><Button asChild variant="outline"><Link href="/servicos">Nossos Serviços <ArrowRight /></Link></Button></div></div></section>
+
+    <div className="flex justify-end"><a href="#painel-inicio" className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"><ArrowUp aria-hidden="true" className="size-4" /> Voltar ao início do painel</a></div>
   </div>;
 }
