@@ -38,6 +38,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
   const [selected, setSelected] = useState("all");
   const [reportStart, setReportStart] = useState("");
   const [reportEnd, setReportEnd] = useState("");
+  const [lastClosedDate, setLastClosedDate] = useState("");
   const [focusIndex, setFocusIndex] = useState("");
   const [startedOn, setStartedOn] = useState("");
   const [changedOn, setChangedOn] = useState("");
@@ -73,6 +74,11 @@ export function CampaignReportSection({ goals, onSnapshot }: {
     valueComplete: total.valueComplete && campaign.conversionValue !== null,
   }), { impressions: 0, clicks: 0, cost: 0, conversions: 0, value: 0, valueComplete: true }), [visible]);
 
+  useEffect(() => {
+    setLastClosedDate(lastCompletedDayInTimeZone("America/Sao_Paulo"));
+  }, []);
+
+  const includesPartialDay = Boolean(lastClosedDate && reportEnd && reportEnd > lastClosedDate);
   const accountDiagnostics = buildCampaignDiagnostics({
     goals,
     totals: {
@@ -80,7 +86,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
       conversions: totals.conversions, conversionValue: totals.valueComplete ? totals.value : null,
       campaignCount: visible.length,
     },
-    start: reportStart, end: reportEnd,
+    start: reportStart, end: includesPartialDay ? "" : reportEnd,
   });
   const paceEntries = [
     accountDiagnostics.pacing.leads,
@@ -94,7 +100,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
   }
   useEffect(() => {
     if (!onSnapshot) return;
-    if (!campaigns.length || !reportStart || !reportEnd || !accountDiagnostics.period.valid) {
+    if (!campaigns.length || !reportStart || !reportEnd || includesPartialDay || !accountDiagnostics.period.valid) {
       onSnapshot(null);
       return;
     }
@@ -127,7 +133,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
       channels: Array.from(buckets.values()),
     });
   }, [
-    campaigns, reportStart, reportEnd, onSnapshot, accountDiagnostics.period.valid,
+    campaigns, reportStart, reportEnd, onSnapshot, accountDiagnostics.period.valid, includesPartialDay,
     goals.budget, goals.leads, goals.maxCpl, goals.targetRoas, goals.monthlyRevenue,
     goals.conversionsAreLeads, goals.conversionValueIsRevenue,
   ]);
@@ -215,6 +221,13 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                 Fim do período exportado
                 <input className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportEnd} onChange={(event) => setReportEnd(event.target.value)} />
               </label>
+              {includesPartialDay ? (
+                <p role="alert" className="sm:col-span-2 rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-xs leading-6 text-amber-200">
+                  O período informado inclui o dia atual ainda em andamento ou uma data futura.
+                  Selecione até {lastClosedDate} para comparar com a meta proporcional em dias encerrados.
+                  A sugestão considera o fuso de São Paulo. Futuramente o conector utilizará o fuso da conta Google Ads.
+                </p>
+              ) : null}
               <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs leading-5 text-muted-foreground">
                   Use o mesmo período do arquivo, sem contar o dia atual ainda em andamento. A sugestão usa o fuso
