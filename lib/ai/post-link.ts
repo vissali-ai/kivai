@@ -55,7 +55,7 @@ export async function getSocialEvidence(link: SocialLink): Promise<SocialEvidenc
       const data = await jsonOrNull<YoutubeData>(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails&id=${encodeURIComponent(link.videoId)}&key=${encodeURIComponent(apiKey)}`);
       const snippet = data?.items?.[0]?.snippet;
       if (snippet) {
-        const duration = data?.items?.[0]?.contentDetails?.duration?.match(/^PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?$/);
+        const duration = data?.items?.[0]?.contentDetails?.duration?.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
         const durationSeconds = duration ? Number(duration[1] || 0) * 3600 + Number(duration[2] || 0) * 60 + Number(duration[3] || 0) : undefined;
         return { title: (snippet.title || "").slice(0, 200), caption: (snippet.description || "").slice(0, 8000), author: (snippet.channelTitle || "").slice(0, 200), source: "YouTube Data API", durationSeconds };
       }
