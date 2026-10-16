@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { BookmarkPlus, X } from "lucide-react";
 import { getStoredSession } from "@/lib/user-auth";
 import { getToolBySlug } from "@/lib/tools";
+import { recordSuccessfulToolUse } from "@/lib/pwa/install-eligibility";
 
 const NEXT_INVITATION_KEY = "kivai_post_result_welcome_next_at";
 const DAY = 24 * 60 * 60 * 1000;
@@ -20,6 +21,10 @@ export function PostResultWelcome() {
   const [visible, setVisible] = useState(false);
   const slug = /^\/ferramentas\/([a-z0-9-]+)\/?$/.exec(pathname)?.[1] ?? "";
   const tool = getToolBySlug(slug);
+
+  useEffect(() => {
+    if (tool?.available) recordSuccessfulToolUse(slug);
+  }, [slug, tool]);
 
   useEffect(() => {
     if (!tool || getStoredSession()?.access_token) return;

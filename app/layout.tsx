@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 
@@ -8,6 +8,7 @@ import "./mobile-file-inputs.css";
 import { Footer } from "@/components/marketing/footer";
 import { WhatsappSupportButton } from "@/components/marketing/whatsapp-support-button";
 import { ToolFavoriteControl } from "@/components/tools/tool-favorite-control";
+import { InstallKivaiPrompt } from "@/components/pwa/install-kivai-prompt";
 import { CardFavoritesProvider } from "@/components/tools/tool-card-link";
 import { Navbar } from "@/components/marketing/navbar";
 import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provider";
@@ -112,11 +113,14 @@ export const metadata: Metadata = {
   },
 
   category: "Technology",
+  appleWebApp: { capable: true, title: "Kivai", statusBarStyle: "default" },
 
   ...(adsConfig.clientId
     ? { other: { "google-adsense-account": adsConfig.clientId } }
     : {}),
 };
+
+export const viewport: Viewport = { themeColor: "#17151f" };
 
 export default function RootLayout({
   children,
@@ -175,6 +179,7 @@ export default function RootLayout({
           <Footer />
           <WhatsappSupportButton />
           <ToolFavoriteControl />
+          <InstallKivaiPrompt />
           </CardFavoritesProvider>
         </CookieConsentProvider>
       </body>
