@@ -9,6 +9,8 @@ import {
   type ImportedGoogleAdsCampaign,
 } from "@/lib/google-ads/campaign-report";
 import { GOOGLE_ADS_CHANNELS } from "@/lib/google-ads/campaign-types";
+import { GoogleAdsDiagnosticFeed } from "@/components/tools/google-ads-diagnostic-feed";
+import { buildCampaignDiagnostics, type MonthlyGoals } from "@/lib/google-ads/diagnostics";
 
 function decimal(value: number, digits = 2) {
   return Number.isFinite(value) ? value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits }) : "Não disponível";
@@ -23,16 +25,21 @@ const supportedTypes = [
   "LOCAL", "LOCAL_SERVICES",
 ] as const;
 
-export function CampaignReportSection() {
+export function CampaignReportSection({ goals }: { goals: MonthlyGoals }) {
   const [campaigns, setCampaigns] = useState<ImportedGoogleAdsCampaign[]>([]);
   const [fileName, setFileName] = useState("");
   const [error, setError] = useState("");
   const [showScope, setShowScope] = useState(false);
   const [selected, setSelected] = useState("all");
+  const [reportStart, setReportStart] = useState("");
+  const [reportEnd, setReportEnd] = useState("");
+  const [focusIndex, setFocusIndex] = useState("");
+  const [startedOn, setStartedOn] = useState("");
+  const [changedOn, setChangedOn] = useState("");
 
   async function importFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    setError(""); setCampaigns([]); setFileName(""); setSelected("all");
+    setError(""); setCampaigns([]); setFileName(""); setSelected("all"); setFocusIndex(""); setStartedOn(""); setChangedOn("");
     if (!file) return;
     if (!file.name.toLowerCase().endsWith(".csv")) {
       setError("Selecione um relatório de campanhas em formato CSV."); event.target.value = ""; return;
@@ -60,6 +67,27 @@ export function CampaignReportSection() {
     value: total.value + (campaign.conversionValue ?? 0),
     valueComplete: total.valueComplete && campaign.conversionValue !== null,
   }), { impressions: 0, clicks: 0, cost: 0, conversions: 0, value: 0, valueComplete: true }), [visible]);
+
+  const accountDiagnostics = buildCampaignDiagnostics({
+    goals,
+    totals: {
+      impressions: totals.impressions, clicks: totals.clicks, cost: totals.cost,
+      conversions: totals.conversions, conversionValue: totals.valueComplete ? totals.value : null,
+      campaignCount: visible.length,
+    },
+    start: reportStart, end: reportEnd,
+  });
+  const focusedCampaign = focusIndex !== "" ? campaigns[Number(focusIndex)] : undefined;
+  const focusedDiagnostics = focusedCampaign
+    ? buildCampaignDiagnostics({
+        goals: { budget: null, leads: null, maxCpl: null, targetRoas: null, conversionsAreLeads: false },
+        totals: {
+          impressions: focusedCampaign.impressions, clicks: focusedCampaign.clicks, cost: focusedCampaign.cost,
+          conversions: focusedCampaign.conversions, conversionValue: focusedCampaign.conversionValue, campaignCount: 1,
+        },
+        start: reportStart, end: reportEnd, campaignStartedOn: startedOn, lastMajorChangeOn: changedOn,
+      })
+    : null;
 
   return (
     <section className="mt-12" aria-labelledby="campanhas-title">
@@ -123,6 +151,20 @@ export function CampaignReportSection() {
 
         {campaigns.length > 0 ? (
           <div className="mt-7">
+            <div className="grid gap-4 rounded-xl border border-white/10 bg-background p-4 sm:grid-cols-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Início do período exportado
+                <input className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportStart} onChange={(event) => setReportStart(event.target.value)} />
+              </label>
+              <label className="text-xs font-medium text-muted-foreground">
+                Fim do período exportado
+                <input className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportEnd} onChange={(event) => setReportEnd(event.target.value)} />
+              </label>
+              <p className="text-xs leading-5 text-muted-foreground sm:col-span-2">
+                Informe exatamente as datas utilizadas no Google Ads. Para confrontar o acumulado com o plano mensal,
+                exporte desde o dia 1 do mês até a data final. Um relatório de 7 dias não equivale ao mês inteiro.
+              </p>
+            </div>
             <div className="flex flex-wrap gap-2" aria-label="Filtrar por tipo de campanha">
               <button type="button" onClick={() => setSelected("all")} aria-pressed={selected === "all"}
                 className={"rounded-full border px-3 py-1.5 text-xs font-medium " + (selected === "all" ? "border-primary bg-primary text-primary-foreground" : "border-white/10 hover:border-primary/40")}>
@@ -155,6 +197,22 @@ export function CampaignReportSection() {
               Comparações de campanhas com objetivos diferentes exigem cuidado.
             </p>
 
+            {selected === "all" ? (
+              <>
+                <GoogleAdsDiagnosticFeed insights={accountDiagnostics.insights} title="O que analisar e o que fazer agora" />
+                {accountDiagnostics.period.fullMonthToDate && (goals.budget !== null || goals.leads !== null) ? (
+                  <p className="mt-3 text-xs leading-6 text-muted-foreground">
+                    Plano mensal confrontado com o resultado acumulado. Ritmo calculado de forma linear; o diagnóstico não
+                    considera sazonalidade nem substitui a revisão do gestor.
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <p className="mt-4 rounded-lg border border-white/10 p-3 text-xs leading-6 text-muted-foreground">
+                O plano mensal informado pertence ao cliente como um todo. Para comparar as metas com o resultado total,
+                selecione "Todos". O filtro por modalidade serve para investigar o desempenho sem atribuir toda a meta a um tipo de campanha.
+              </p>
+            )}
             <div className="mt-6 space-y-3">
               {visible.map((campaign, index) => {
                 const detail = describeCampaignChannel(campaign.channel);
@@ -180,6 +238,34 @@ export function CampaignReportSection() {
                   </article>
                 );
               })}
+            </div>
+            <div className="mt-8 rounded-xl border border-white/10 bg-background p-4">
+              <h3 className="text-sm font-semibold">Uma campanha foi criada ou alterada recentemente?</h3>
+              <p className="mt-2 text-xs leading-6 text-muted-foreground">
+                Selecione uma campanha e informe o início real ou a última alteração significativa. Essas datas não são
+                deduzidas do período do relatório. O objetivo é evitar recomendações precipitadas.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Campanha
+                  <select value={focusIndex} onChange={(event) => { setFocusIndex(event.target.value); setStartedOn(""); setChangedOn(""); }}
+                    className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground">
+                    <option value="">Selecionar</option>
+                    {campaigns.map((campaign, index) => <option key={index} value={String(index)}>{campaign.name} ({describeCampaignChannel(campaign.channel).label})</option>)}
+                  </select>
+                </label>
+                <label className="text-xs font-medium text-muted-foreground">
+                  Data real de início (opcional)
+                  <input type="date" value={startedOn} onChange={(event) => setStartedOn(event.target.value)}
+                    disabled={!focusedCampaign} className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground disabled:opacity-50" />
+                </label>
+                <label className="text-xs font-medium text-muted-foreground">
+                  Última mudança importante (opcional)
+                  <input type="date" value={changedOn} onChange={(event) => setChangedOn(event.target.value)}
+                    disabled={!focusedCampaign} className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground disabled:opacity-50" />
+                </label>
+              </div>
+              {focusedDiagnostics ? <GoogleAdsDiagnosticFeed insights={focusedDiagnostics.insights} title={"Acompanhamento: " + focusedCampaign?.name} /> : null}
             </div>
           </div>
         ) : (
