@@ -256,10 +256,12 @@ gravidade, status e objetivo da campanha, sempre com explicação rastreável.
 metas mensais com confirmação da definição de lead e valor atribuído,
 motor determinístico de prioridades com evidências e recomendação de observar,
 datas reais de período/idade da campanha/mudança, identificação preliminar de
-termos com conversões e guia SEO original.
+termos com conversões, comparação de dois CSVs exportados de Informações do leilão
+(domínios presentes e mudanças de participação) e guia SEO original.
 
 **Ainda faltam**: recomendações oficiais conectadas via API, mapeamento de
-ações de conversão, leilão por arquivo, públicos, anúncios, força do anúncio,
+ações de conversão, comparação de leilão com validação avançada de períodos,
+públicos, anúncios, força do anúncio,
 títulos/descrições com Gemini, recursos e palavras-chave recusados, análise de
 concorrentes, CRM e plano persistido, MCC, alertas automatizados, notificações,
 permissões granulares, testes end-to-end e publicação/indexação revisada.
