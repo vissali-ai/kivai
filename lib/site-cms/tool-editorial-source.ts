@@ -1,4 +1,6 @@
 import { duplexEditorial } from "@/lib/duplex-print/catalog";
+import { pdfParaExcelEditorialOverride } from "@/lib/pdf-para-excel-editorial-override";
+import { pdfParaHtmlEditorialOverride } from "@/lib/pdf-para-html-editorial-override";
 import { archiveToolEditorialContent } from "@/lib/archive-tool-editorial-content";
 import { removedorMetadadosEditorialContent } from "@/lib/removedor-metadados-editorial-content";
 import { generalToolEditorialContent } from "@/lib/general-tool-editorial-content";
@@ -12,17 +14,18 @@ import { videoServerToolEditorialContent } from "@/lib/video-server-tool-editori
 import type { ToolImplementationMode } from "@/lib/site-cms/types";
 
 type EditorialSource = {
-  overview: string[];
-  useCases: Array<{ title: string; description: string }>;
-  steps: string[];
-  specifications: Array<{ label: string; value: string }>;
+  overview: readonly string[];
+  useCases: ReadonlyArray<{ title: string; description: string }>;
+  steps: readonly string[];
+  specifications: ReadonlyArray<{ label: string; value: string }>;
   privacy: string;
-  limitations: string[];
-  faqs: Array<{ question: string; answer: string }>;
-  related: Array<{ href: string; label: string }>;
+  limitations: readonly string[];
+  faqs: ReadonlyArray<{ question: string; answer: string }>;
+  related: ReadonlyArray<{ href: string; label: string }>;
 };
 
 const sources: Array<Record<string, EditorialSource>> = [
+  { "pdf-para-excel": pdfParaExcelEditorialOverride, "pdf-para-html": pdfParaHtmlEditorialOverride },
   archiveToolEditorialContent,
   { "removedor-de-metadados": removedorMetadadosEditorialContent, "removedor-de-metadados-e-rotulos-de-ia": removedorMetadadosEditorialContent },
   generalToolEditorialContent,
@@ -48,11 +51,11 @@ function escapeHtml(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
 
-function paragraphs(items: string[]) {
+function paragraphs(items: readonly string[]) {
   return items.map((item) => `<p>${escapeHtml(item)}</p>`).join("");
 }
 
-function list(items: string[], ordered = false) {
+function list(items: readonly string[], ordered = false) {
   const tag = ordered ? "ol" : "ul";
   return `<${tag}>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</${tag}>`;
 }

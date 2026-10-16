@@ -11,7 +11,7 @@ import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
 const pdfParaHtmlDescription =
-  "Converta o texto extraível de PDFs digitais em HTML, com modo estruturado ou reposicionamento visual do texto. Não inclui OCR nem reconstrução de imagens.";
+  "Converta o texto extraível de PDFs digitais em HTML, com modo estruturado ou reposicionamento visual do texto. Modo opcional de IA para organizar páginas selecionadas, com revisão.";
 
 export function PdfSpecialToolEditorialV2({ slug }: { slug: PdfSpecialToolEditorialSlug }) {
   const content = slug === "pdf-para-html"
