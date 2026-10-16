@@ -1,4 +1,5 @@
 "use client";
+import { DocumentAi } from "@/components/tools/document-ai";
 
 import { openFilePicker } from "@/lib/browser/file-picker";
 
@@ -150,7 +151,7 @@ export default function PdfParaExcelClient() {
     } catch (reason) { setError(friendlyError(reason)); setStatus("error"); }
   }
 
-  return <ToolPageShell title="Converter PDF para Excel" description="Extraia tabelas e dados de arquivos PDF para uma planilha Excel." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="Use somente documentos que você tem autorização para processar.">
+  return <ToolPageShell title="Converter PDF para Excel" description="Extraia tabelas e dados de arquivos PDF para uma planilha Excel." categoryName="PDF" categoryHref="/ferramentas/pdfs" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="A conversão normal é local. O modo opcional de IA envia somente as páginas escolhidas ao provedor após sua autorização.">
     <Card className="mx-auto max-w-5xl"><CardHeader><CardTitle>Converter PDF para Excel</CardTitle><CardDescription>Extraia tabelas e dados de arquivos PDF para uma planilha Excel.</CardDescription></CardHeader><CardContent className="space-y-6">
       {!file && status !== "processing" && <><input id="pdf-to-excel-file" ref={inputRef} type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(event) => { void selectFile(Array.from(event.target.files ?? [])); event.target.value = ""; }} /><div onDragEnter={(event) => { event.preventDefault(); setDragging(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }} onDrop={(event) => { event.preventDefault(); setDragging(false); void selectFile(Array.from(event.dataTransfer.files)); }} className={`flex min-h-64 flex-col items-center justify-center border border-dashed p-6 text-center transition-colors sm:p-10 ${dragging ? "border-primary bg-primary/5" : "border-border bg-muted/20"}`}><span className="flex size-14 items-center justify-center border border-border bg-background"><Upload className="size-5" /></span><p className="mt-5 font-heading text-lg font-medium">Arraste seu PDF aqui</p><p className="mt-2 text-sm text-muted-foreground">ou clique para selecionar</p><p className="mt-2 text-xs text-muted-foreground">Formato aceito: PDF · Máximo: {PDF_TO_EXCEL_MAX_FILE_SIZE_LABEL}</p><Button asChild className="mt-5"><label htmlFor="pdf-to-excel-file"><FileText className="size-4" />Selecionar PDF</label></Button></div><ToolErrorMessage message={error} /></>}
       <ToolProcessingStatus status={status} message={stage} />
@@ -172,7 +173,8 @@ export default function PdfParaExcelClient() {
 
       {result && status === "success" && <ToolResultCard title="Excel pronto" description={`${result.name} · ${result.tables} ${result.tables === 1 ? "tabela" : "tabelas"} · ${result.sheets} ${result.sheets === 1 ? "planilha" : "planilhas"} · ${formatFileSize(result.size)}`} actions={<><Button onClick={() => downloadBlob(result.blob, result.name)}><Download className="size-4" />Baixar Excel</Button>{result.csv && <Button variant="outline" onClick={() => downloadBlob(result.csv!, result.name.replace(/\.xlsx$/i, ".csv"))}>Baixar CSV</Button>}<Button variant="outline" onClick={reset}><RotateCcw className="size-4" />Converter outro PDF</Button></>} />}
     </CardContent></Card>
-  </ToolPageShell>;
+  <DocumentAi files={file ? [file] : []} format="xlsx"/>
+    </ToolPageShell>;
 }
 
 function TableEditor({ table, onChange }: { table: ExtractedTable; onChange: (update: (table: ExtractedTable) => ExtractedTable) => void }) {

@@ -1,3 +1,4 @@
+import { ToolAiContent } from "@/components/tools/tool-ai-content";
 import { getToolMetadataAsync } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -19,7 +20,7 @@ export async function generateMetadata() {
 export default function Page() {
   return (
     <>
-      <RenomearArquivosEmLoteClient />
+      <ToolAiContent slug="renomear-arquivos-em-lote"><RenomearArquivosEmLoteClient /></ToolAiContent>
       <ArchiveToolEditorialV2 slug="renomear-arquivos-em-lote" />
     </>
   );

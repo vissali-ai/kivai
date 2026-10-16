@@ -1,7 +1,7 @@
 export const pdfParaExcelEditorialOverride = {
   overview: [
     "PDF para Excel identifica textos posicionados como linhas e colunas em PDFs digitais e transforma as tabelas reconhecidas em células de uma planilha XLSX. A detecção usa a posição dos textos na página, portanto funciona melhor quando as colunas estão visualmente alinhadas e o PDF possui uma camada de texto real.",
-    "Antes da exportação, as tabelas encontradas podem ser revisadas e corrigidas na própria interface. A ferramenta não usa OCR nem um mecanismo semântico de reconhecimento de tabelas: células mescladas, colunas irregulares, textos sobrepostos e layouts complexos podem não ser detectados corretamente.",
+    "Antes da exportação, as tabelas encontradas podem ser revisadas e corrigidas na própria interface. A conversão normal não usa OCR nem um mecanismo semântico de reconhecimento de tabelas: células mescladas, colunas irregulares, textos sobrepostos e layouts complexos podem não ser detectados corretamente.",
   ],
   useCases: [
     { title: "Relatórios e demonstrativos", description: "Reaproveite tabelas regulares que precisam ser filtradas, calculadas ou reorganizadas em uma planilha." },
@@ -21,9 +21,9 @@ export const pdfParaExcelEditorialOverride = {
     { label: "Limite de dados", value: "Até 50.000 células para proteger a estabilidade do navegador." },
     { label: "Detecção", value: "Heurística baseada no posicionamento dos textos; tabelas regulares e alinhadas são o cenário mais previsível." },
   ],
-  privacy: "A inspeção do PDF, a extração da camada de texto, a detecção das tabelas e a criação da planilha são executadas localmente no navegador. O arquivo não precisa ser enviado ao Kivai para esta conversão.",
+  privacy: "A conversão normal acontece localmente. O modo opcional de IA envia até 3 páginas escolhidas (até 2 MB) ao provedor após autorização, por 2 créditos. Confira números, texto e possíveis omissões antes de baixar o resultado separado. O provedor gratuito pode usar os dados para melhorar seus produtos.",
   limitations: [
-    "PDFs compostos apenas por imagens precisam de OCR e não são convertidos por esta versão.",
+    "A conversão normal exige texto extraível. O modo opcional de IA pode tentar ler páginas digitalizadas, com revisão obrigatória e sem garantia de precisão.",
     "A detecção de tabelas é aproximada e baseada em coordenadas; uma tabela pode não ser reconhecida mesmo quando o PDF possui texto selecionável.",
     "Células mescladas, múltiplas colunas de página, sobreposição e alinhamentos irregulares podem exigir correções manuais ou impedir a detecção.",
     "Números, datas, percentuais e moedas podem ser interpretados automaticamente na exportação; confira os valores e formatos antes de usar a planilha em cálculos.",
@@ -31,7 +31,7 @@ export const pdfParaExcelEditorialOverride = {
   ],
   faqs: [
     { question: "O resultado fica editável?", answer: "Sim. As células reconhecidas podem ser revisadas na ferramenta e o XLSX pode ser editado em programas de planilha compatíveis." },
-    { question: "PDF digitalizado funciona?", answer: "Não quando as páginas contêm apenas imagens. Esta versão não possui OCR e depende da camada de texto existente no PDF." },
+    { question: "PDF digitalizado funciona?", answer: "A conversão normal depende de texto extraível. O modo opcional de IA pode tentar identificar tabelas em até 3 páginas digitalizadas; confira cada valor." },
     { question: "A ferramenta encontra qualquer tabela?", answer: "Não. A detecção usa o posicionamento dos textos e funciona melhor com tabelas regulares e colunas alinhadas. Layouts complexos podem não ser reconhecidos." },
     { question: "Posso escolher páginas específicas?", answer: "Sim. É possível selecionar páginas visualmente ou informar listas e intervalos, como 1-5,8." },
     { question: "Cada tabela vira uma aba?", answer: "Pode virar. Também existe a opção de reunir as tabelas selecionadas em uma única planilha." },

@@ -57,7 +57,7 @@ export const pdfOfficeToolEditorialContent = {
       { label: "Melhor cenário", value: "PDF digital com texto selecionável e estrutura relativamente regular." },
       { label: "Digitalizações", value: "PDFs formados apenas por imagens precisam de OCR, que não faz parte desta versão." },
     ],
-    privacy: "A leitura do PDF, a reconstrução do conteúdo e a geração do DOCX acontecem localmente no navegador. Os arquivos não precisam ser enviados ao Kivai para a conversão.",
+    privacy: "A conversão normal acontece localmente. O modo opcional de IA envia até 3 páginas escolhidas (até 2 MB) ao provedor após autorização, por 2 créditos. Confira números, texto e possíveis omissões antes de baixar o resultado separado. O provedor gratuito pode usar os dados para melhorar seus produtos.",
     limitations: [
       "PDFs protegidos por senha ou com restrições que impeçam a leitura precisam ser desbloqueados com autorização antes da conversão.",
       "Colunas, tabelas irregulares, formulários, caixas de texto e outros layouts complexos podem exigir ajustes no Word.",
@@ -69,7 +69,7 @@ export const pdfOfficeToolEditorialContent = {
       { question: "Posso converter vários PDFs?", answer: "Sim. Cada PDF gera um DOCX e, quando há vários arquivos, os resultados são reunidos em um ZIP." },
       { question: "PDF digitalizado funciona?", answer: "Não quando a página contém somente uma imagem. Nesse caso seria necessário OCR para reconhecer o texto." },
       { question: "Qual é o limite por arquivo?", answer: "O limite atual é de 20 MB para cada PDF." },
-      { question: "Os PDFs são enviados ao servidor?", answer: "Não. O processamento desta ferramenta acontece localmente no navegador." },
+      { question: "Os PDFs são enviados ao servidor?", answer: "A conversão normal é local. Ao autorizar a IA, somente as páginas escolhidas são enviadas ao provedor externo." },
     ],
     related,
   },

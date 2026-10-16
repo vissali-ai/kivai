@@ -1,5 +1,6 @@
 "use client";
 
+import { RenameAi } from "@/components/tools/rename-ai";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -62,6 +63,7 @@ function makeId(file: File, index: number) {
 export default function RenomearArquivosEmLoteClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FileItem[]>([]);
+  const [aiNames, setAiNames] = useState<{fingerprint:string;names:string[]}|null>(null);
   const [baseName, setBaseName] = useState("arquivo");
   const [separator, setSeparator] = useState<Separator>("-");
   const [startNumber, setStartNumber] = useState(1);
@@ -76,6 +78,7 @@ export default function RenomearArquivosEmLoteClient() {
     [files],
   );
 
+  const namesFingerprint = JSON.stringify({files:files.map(x=>x.id),baseName,separator,startNumber,digits});
   const preview = useMemo(() => {
     const cleanBase = sanitizeBaseName(baseName) || "arquivo";
     return files.map((item, index) => {
@@ -83,10 +86,10 @@ export default function RenomearArquivosEmLoteClient() {
       const number = String(startNumber + index).padStart(digits, "0");
       return {
         ...item,
-        newName: `${cleanBase}${separator}${number}${extension}`,
+        newName: aiNames?.fingerprint === namesFingerprint ? aiNames.names[index] : `${cleanBase}${separator}${number}${extension}`,
       };
     });
-  }, [baseName, digits, files, separator, startNumber]);
+  }, [baseName, digits, files, separator, startNumber, aiNames, namesFingerprint]);
 
   function addFiles(selected: File[]) {
     setError(null);
@@ -364,6 +367,8 @@ export default function RenomearArquivosEmLoteClient() {
                 </div>
               </div>
             )}
+            <RenameAi names={files.map(x=>x.file.name)} onApply={names=>{setAiNames({fingerprint:namesFingerprint,names});setResultSize(null);}}/>
+            {aiNames?.fingerprint===namesFingerprint&&<Button variant="outline" onClick={()=>setAiNames(null)}>Voltar à numeração manual</Button>}
           </CardContent>
         </Card>
 
