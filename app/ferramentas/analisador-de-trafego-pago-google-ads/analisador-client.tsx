@@ -209,10 +209,10 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Analisador de Tráfego Pago Google Ads</h1>
           <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
             Monte um plano mensal, importe métricas gerais de campanhas de qualquer modalidade e revise termos de pesquisa quando aplicável.
-            Esta versão inicial analisa arquivos CSV localmente. A conexão com a API Google Ads e os diagnósticos com Gemini ainda não estão disponíveis.
+            A versão beta aceita CSVs locais e oferece diagnóstico complementar com Gemini mediante autorização. A conexão automática com a API Google Ads ainda não está disponível.
           </p>
           <p className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="size-4 text-primary" aria-hidden="true" /> Os dados são tratados neste navegador, sem upload para o Kivai. Eles não são salvos automaticamente.
+            <ShieldCheck className="size-4 text-primary" aria-hidden="true" /> Os relatórios são lidos localmente por padrão. O envio de resumo e trechos selecionados ao Gemini só ocorre se você autorizar no beta; os arquivos não são salvos automaticamente pelo analisador.
           </p>
         </div>
 
@@ -382,7 +382,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
         <TrafficBetaAssistant snapshot={trafficSnapshot} />
         <div className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="size-4" aria-hidden="true" />
-          Nenhum dado de cliente ou arquivo é enviado ao servidor nesta ferramenta.
+          Os arquivos dos cálculos locais não são enviados. Na análise com Gemini, apenas os dados e relatórios selecionados por você são transmitidos após consentimento.
           <ArrowRight className="size-3" aria-hidden="true" />
           <Link href="/ferramentas/trafego-pago" className="underline hover:text-foreground">Outras ferramentas de Tráfego Pago</Link>
         </div>
