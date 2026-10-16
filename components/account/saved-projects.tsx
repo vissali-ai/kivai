@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, Users, Sparkles } from "lucide-react";
+import { ArrowRight, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
@@ -85,11 +85,10 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
             </span>
             <div className="min-w-0">
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"><Sparkles className="size-3" aria-hidden="true" /> Ferramenta em destaque</span>
                 <span className="text-xs text-muted-foreground">Histórico e comparações no Pro e Agency</span>
               </div>
               <h3 className="text-base font-semibold leading-6 sm:text-lg">Analisador de Seguidores do Instagram</h3>
-              <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted-foreground">Descubra quem não segue você de volta. Nos planos Pro e Agency, acompanhe suas análises e compare resultados ao longo do tempo.</p>
+              <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted-foreground">Acompanhe suas análises, resultados e compare quem deixou de seguir você no instagram.</p>
             </div>
           </div>
           <Link href="/ferramentas/analisador-de-seguidores-instagram" className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto">
