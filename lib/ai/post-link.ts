@@ -50,7 +50,7 @@ async function jsonOrNull<T>(url: string): Promise<T | null> {
 export async function getSocialEvidence(link: SocialLink): Promise<SocialEvidence> {
   const empty: SocialEvidence = { title: "", caption: "", author: "", source: "Nenhum metadado disponível" };
   if (link.network === "youtube" && link.videoId) {
-    const apiKey = process.env.YOUTUBE_API_KEY;
+    const apiKey = process.env.YOUTUBE_API_KEY || process.env.GEMINI_API_KEY;
     if (apiKey) {
       const data = await jsonOrNull<YoutubeData>(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(link.videoId)}&key=${encodeURIComponent(apiKey)}`);
       const snippet = data?.items?.[0]?.snippet;
