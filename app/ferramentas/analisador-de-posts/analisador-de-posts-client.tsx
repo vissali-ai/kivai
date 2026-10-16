@@ -182,7 +182,7 @@ export default function AnalisadorDePostsClient() {
     try { await navigator.clipboard.writeText(reportText(report)); setFeedback("Relatório copiado."); }
     catch { setFeedback("Não foi possível copiar automaticamente."); }
   }
-  const cost = files.length && !skipFile || (network === "youtube" && status === "published") ? 2 : 1;
+  const cost = files.length && !skipFile ? 2 : 1;
 
   return <div className="space-y-6">
     <Card>
