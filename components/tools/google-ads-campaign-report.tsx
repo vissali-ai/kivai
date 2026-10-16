@@ -80,7 +80,7 @@ export function CampaignReportSection({ goals }: { goals: MonthlyGoals }) {
   const focusedCampaign = focusIndex !== "" ? campaigns[Number(focusIndex)] : undefined;
   const focusedDiagnostics = focusedCampaign
     ? buildCampaignDiagnostics({
-        goals: { budget: null, leads: null, maxCpl: null, targetRoas: null, conversionsAreLeads: false },
+        goals: { budget: null, leads: null, maxCpl: null, targetRoas: null, monthlyRevenue: null, conversionsAreLeads: false, conversionValueIsRevenue: false },
         totals: {
           impressions: focusedCampaign.impressions, clicks: focusedCampaign.clicks, cost: focusedCampaign.cost,
           conversions: focusedCampaign.conversions, conversionValue: focusedCampaign.conversionValue, campaignCount: 1,
