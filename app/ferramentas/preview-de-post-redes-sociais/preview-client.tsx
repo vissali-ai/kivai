@@ -1,4 +1,5 @@
 "use client";
+import { SavedProjects } from "@/components/account/saved-projects";
 
 import { CaptionAi } from "@/components/tools/caption-ai";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
@@ -57,6 +58,7 @@ export default function PreviewClient() {
   function clearAll() { remove("avatar"); remove("post"); setSettings(initial); setError(""); setFeedback(""); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
   const hasChanges = avatar || postImage || JSON.stringify(settings) !== JSON.stringify(initial);
   return <ToolPageShell title="Preview de Post para Redes Sociais" description="Visualize perfil, imagem e legenda em uma simulação de publicação antes de apresentar ou postar seu conteúdo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O preview é local. O assistente opcional envia a legenda e a imagem do post ao serviço de IA somente após autorização.">
+    <SavedProjects kind="preview_post" payload={{ settings }} onLoad={value => { const p=value as {settings?: Settings}; if(p?.settings && typeof p.settings.caption==="string") setSettings(p.settings); }} />
     <Card><CardHeader><CardTitle className="text-base">Escolha a plataforma</CardTitle><CardDescription>A troca atualiza a simulação imediatamente, sem recarregar a página.</CardDescription></CardHeader><CardContent><div className="flex flex-wrap gap-2" role="group" aria-label="Plataforma do preview">{platforms.map((platform) => <Button key={platform} variant={settings.platform === platform ? "default" : "outline"} aria-pressed={settings.platform === platform} onClick={() => update("platform", platform)}>{platform}</Button>)}</div></CardContent></Card>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(340px,1.2fr)]">
       <Card><CardHeader><CardTitle className="text-base">Configuração do post</CardTitle><CardDescription>Personalize os dados usados somente nesta visualização.</CardDescription></CardHeader><CardContent className="space-y-5">
