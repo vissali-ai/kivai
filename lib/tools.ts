@@ -239,16 +239,16 @@ export function isToolIndexable(slug: string) {
 
 export const tools: Tool[] = [
   {
-    slug: "ads-intelligence",
-    name: "Kivai Ads Intelligence",
-    description: "Crie cenários de investimento e revise termos de pesquisa de campanhas Google Ads a partir de relatórios CSV.",
+    slug: "analisador-de-trafego-pago-google-ads",
+    name: "Analisador de Tráfego Pago Google Ads",
+    description: "Planeje metas e analise métricas gerais de campanhas Google Ads de diferentes modalidades, com revisão complementar de termos de pesquisa por CSV.",
     category: "trafego",
     hubFilter: "Gestão",
     badge: "Google Ads",
     icon: BarChart3,
     available: true,
-    seoTitle: "Planejamento e Análise de Tráfego Pago Google Ads | Kivai",
-    seoDescription: "Planeje orçamento e metas de campanhas e analise relatórios de termos de pesquisa com o Kivai Ads Intelligence.",
+    seoTitle: "Analisador de Tráfego Pago Google Ads | Kivai",
+    seoDescription: "Analise campanhas Google Ads por tipo, planeje metas, identifique pontos de atenção e revise termos de pesquisa com arquivos CSV.",
     keywords: ["tráfego pago", "google ads", "planejamento de campanhas", "termos de pesquisa", "orçamento de anúncios", "gestor de tráfego"],
   },
   {
