@@ -15,6 +15,8 @@ function numberFromInput(value: string) {
   if (lastComma > lastDot) return Number(cleaned.replace(/\./g, "").replace(",", "."));
   if (lastDot > lastComma && lastComma >= 0) return Number(cleaned.replace(/,/g, ""));
   if (lastComma >= 0) return Number(cleaned.replace(",", "."));
+  // Em pt-BR, um ponto seguido por três dígitos costuma indicar milhar (ex.: 3.000).
+  if (/^\d{1,3}(\.\d{3})+$/.test(cleaned)) return Number(cleaned.replace(/\./g, ""));
   return Number(cleaned);
 }
 
