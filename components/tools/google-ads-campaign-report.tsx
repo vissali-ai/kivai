@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { BarChart3, FileUp, Info, ShieldCheck } from "lucide-react";
 import {
   campaignNeedsContext,
@@ -12,6 +12,7 @@ import { GOOGLE_ADS_CHANNELS } from "@/lib/google-ads/campaign-types";
 import { GoogleAdsDiagnosticFeed } from "@/components/tools/google-ads-diagnostic-feed";
 import { buildCampaignDiagnostics, type MonthlyGoals } from "@/lib/google-ads/diagnostics";
 import { firstDayOfMonthISO, lastCompletedDayInTimeZone } from "@/lib/google-ads/dates";
+import type { TrafficAnalysisRequest } from "@/lib/ai/traffic-analysis";
 
 function decimal(value: number, digits = 2) {
   return Number.isFinite(value) ? value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits }) : "Não disponível";
@@ -26,7 +27,10 @@ const supportedTypes = [
   "LOCAL", "LOCAL_SERVICES",
 ] as const;
 
-export function CampaignReportSection({ goals }: { goals: MonthlyGoals }) {
+export function CampaignReportSection({ goals, onSnapshot }: {
+  goals: MonthlyGoals;
+  onSnapshot?: (snapshot: TrafficAnalysisRequest["snapshot"] | null) => void;
+}) {
   const [campaigns, setCampaigns] = useState<ImportedGoogleAdsCampaign[]>([]);
   const [fileName, setFileName] = useState("");
   const [error, setError] = useState("");
@@ -88,6 +92,46 @@ export function CampaignReportSection({ goals }: { goals: MonthlyGoals }) {
     setReportStart(firstDayOfMonthISO(yesterday));
     setReportEnd(yesterday);
   }
+  useEffect(() => {
+    if (!onSnapshot) return;
+    if (!campaigns.length || !reportStart || !reportEnd || !accountDiagnostics.period.valid) {
+      onSnapshot(null);
+      return;
+    }
+    const buckets = new Map<string, { channel: string; cost: number; conversions: number; clicks: number }>();
+    for (const campaign of campaigns) {
+      const previous = buckets.get(campaign.channel) ?? { channel: campaign.channel, cost: 0, conversions: 0, clicks: 0 };
+      previous.cost += campaign.cost;
+      previous.conversions += campaign.conversions;
+      previous.clicks += campaign.clicks;
+      buckets.set(campaign.channel, previous);
+    }
+    const allTotals = campaigns.reduce((acc, campaign) => ({
+      impressions: acc.impressions + campaign.impressions,
+      clicks: acc.clicks + campaign.clicks,
+      cost: acc.cost + campaign.cost,
+      conversions: acc.conversions + campaign.conversions,
+      conversionValue: acc.conversionValue + (campaign.conversionValue ?? 0),
+      complete: acc.complete && campaign.conversionValue !== null,
+    }), { impressions: 0, clicks: 0, cost: 0, conversions: 0, conversionValue: 0, complete: true });
+    onSnapshot({
+      from: reportStart, to: reportEnd,
+      goals,
+      totals: {
+        impressions: allTotals.impressions,
+        clicks: allTotals.clicks, cost: allTotals.cost,
+        conversions: allTotals.conversions,
+        conversionValue: allTotals.complete ? allTotals.conversionValue : null,
+        campaignCount: campaigns.length,
+      },
+      channels: Array.from(buckets.values()),
+    });
+  }, [
+    campaigns, reportStart, reportEnd, onSnapshot, accountDiagnostics.period.valid,
+    goals.budget, goals.leads, goals.maxCpl, goals.targetRoas, goals.monthlyRevenue,
+    goals.conversionsAreLeads, goals.conversionValueIsRevenue,
+  ]);
+
   const focusedCampaign = focusIndex !== "" ? campaigns[Number(focusIndex)] : undefined;
   const focusedDiagnostics = focusedCampaign
     ? buildCampaignDiagnostics({
