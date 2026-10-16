@@ -9,6 +9,11 @@ import { normalizeReportLabel as normalize } from "@/lib/google-ads/campaign-typ
 
 type SearchTerm = { term: string; clicks: number; cost: number; conversions: number };
 
+function positiveOrNull(value: string) {
+  const parsed = numberFromInput(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 function money(value: number) {
   return Number.isFinite(value) ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "Não calculado";
 }
@@ -92,6 +97,11 @@ export default function GoogleAdsTrafficAnalyzerClient() {
   const [city, setCity] = useState("");
   const [budget, setBudget] = useState("");
   const [targetLeads, setTargetLeads] = useState("");
+  const [maxCpl, setMaxCpl] = useState("");
+  const [targetRoas, setTargetRoas] = useState("");
+  const [monthlyRevenue, setMonthlyRevenue] = useState("");
+  const [conversionsAreLeads, setConversionsAreLeads] = useState(false);
+  const [conversionValueIsRevenue, setConversionValueIsRevenue] = useState(false);
   const [cpc, setCpc] = useState("");
   const [conversionRate, setConversionRate] = useState("");
   const [closeRate, setCloseRate] = useState("");
@@ -157,7 +167,12 @@ export default function GoogleAdsTrafficAnalyzerClient() {
     const plan = {
       titulo: "Planejamento inicial de tráfego pago",
       cliente: client, segmento: segment, localizacao: city,
-      premissas: { investimento_mensal: budget, meta_leads: targetLeads, cpc_estimado: cpc,
+      premissas: {
+        investimento_mensal: budget, meta_leads: targetLeads, cpl_maximo: maxCpl,
+        roas_desejado: targetRoas, meta_faturamento_atribuido: monthlyRevenue,
+        conversoes_representam_leads: conversionsAreLeads,
+        valor_de_conversao_representa_receita_atribuida: conversionValueIsRevenue,
+        cpc_estimado: cpc,
         taxa_clique_para_lead_percentual: conversionRate, taxa_fechamento_percentual: closeRate, ticket_medio: ticket },
       simulacao: results,
       aviso: "Cenário matemático ilustrativo. Não representa previsão de mercado ou diagnóstico gerado por IA.",
@@ -208,10 +223,28 @@ export default function GoogleAdsTrafficAnalyzerClient() {
                 <div className="sm:col-span-2"><Field label="Cidade ou região de atendimento" value={city} onChange={setCity} placeholder="Ex.: Belo Horizonte e região" /></div>
                 <Field label="Investimento mensal (R$)" value={budget} onChange={setBudget} placeholder="Ex.: 3000" />
                 <Field label="Meta mensal de leads" value={targetLeads} onChange={setTargetLeads} placeholder="Ex.: 120" />
+                <Field label="CPL máximo do plano (R$)" value={maxCpl} onChange={setMaxCpl} placeholder="Ex.: 40" />
+                <Field label="ROAS desejado (x)" value={targetRoas} onChange={setTargetRoas} placeholder="Ex.: 3,5" />
+                <div className="sm:col-span-2">
+                  <Field label="Meta mensal de receita atribuída ao Google Ads (R$)" value={monthlyRevenue} onChange={setMonthlyRevenue} placeholder="Ex.: 12000" />
+                </div>
                 <Field label="CPC estimado (R$)" value={cpc} onChange={setCpc} placeholder="Ex.: 5,50" />
                 <Field label="Cliques que viram leads (%)" value={conversionRate} onChange={setConversionRate} placeholder="Ex.: 4" />
                 <Field label="Leads que fecham (%)" value={closeRate} onChange={setCloseRate} placeholder="Ex.: 15" />
                 <Field label="Ticket médio (R$)" value={ticket} onChange={setTicket} placeholder="Ex.: 1500" />
+                <div className="sm:col-span-2 rounded-lg border border-white/10 bg-background/60 p-3">
+                  <p className="text-xs font-semibold">Confirmação da mensuração</p>
+                  <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs leading-5 text-muted-foreground">
+                    <input type="checkbox" checked={conversionsAreLeads} onChange={(event) => setConversionsAreLeads(event.target.checked)}
+                      className="mt-0.5 size-4 accent-primary" />
+                    As conversões deste relatório representam exclusivamente os leads que desejo comparar com a meta.
+                  </label>
+                  <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs leading-5 text-muted-foreground">
+                    <input type="checkbox" checked={conversionValueIsRevenue} onChange={(event) => setConversionValueIsRevenue(event.target.checked)}
+                      className="mt-0.5 size-4 accent-primary" />
+                    O valor de conversão do relatório é comparável à meta de receita atribuída, não ao faturamento geral.
+                  </label>
+                </div>
               </div>
               <button onClick={exportPlan} type="button" className="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-medium hover:border-primary/50">
                 <Download className="size-4" aria-hidden="true" /> Baixar planejamento
@@ -248,7 +281,15 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           </div>
         </section>
 
-        <CampaignReportSection />
+        <CampaignReportSection goals={{
+          budget: positiveOrNull(budget),
+          leads: positiveOrNull(targetLeads),
+          maxCpl: positiveOrNull(maxCpl),
+          targetRoas: positiveOrNull(targetRoas),
+          monthlyRevenue: positiveOrNull(monthlyRevenue),
+          conversionsAreLeads,
+          conversionValueIsRevenue,
+        }} />
 
         <section className="mt-12" aria-labelledby="relatorio-title">
           <div className="flex items-center gap-2">
