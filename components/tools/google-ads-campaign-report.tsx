@@ -11,6 +11,7 @@ import {
 import { GOOGLE_ADS_CHANNELS } from "@/lib/google-ads/campaign-types";
 import { GoogleAdsDiagnosticFeed } from "@/components/tools/google-ads-diagnostic-feed";
 import { buildCampaignDiagnostics, type MonthlyGoals } from "@/lib/google-ads/diagnostics";
+import { firstDayOfMonthISO, lastCompletedDayInTimeZone } from "@/lib/google-ads/dates";
 
 function decimal(value: number, digits = 2) {
   return Number.isFinite(value) ? value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits }) : "Não disponível";
@@ -77,6 +78,16 @@ export function CampaignReportSection({ goals }: { goals: MonthlyGoals }) {
     },
     start: reportStart, end: reportEnd,
   });
+  const paceEntries = [
+    accountDiagnostics.pacing.leads,
+    accountDiagnostics.pacing.investment,
+    accountDiagnostics.pacing.revenue,
+  ].filter((value): value is NonNullable<typeof value> => value !== null);
+  function suggestCompletedPeriod() {
+    const yesterday = lastCompletedDayInTimeZone("America/Sao_Paulo");
+    setReportStart(firstDayOfMonthISO(yesterday));
+    setReportEnd(yesterday);
+  }
   const focusedCampaign = focusIndex !== "" ? campaigns[Number(focusIndex)] : undefined;
   const focusedDiagnostics = focusedCampaign
     ? buildCampaignDiagnostics({
@@ -160,10 +171,16 @@ export function CampaignReportSection({ goals }: { goals: MonthlyGoals }) {
                 Fim do período exportado
                 <input className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportEnd} onChange={(event) => setReportEnd(event.target.value)} />
               </label>
-              <p className="text-xs leading-5 text-muted-foreground sm:col-span-2">
-                Informe exatamente as datas utilizadas no Google Ads. Para confrontar o acumulado com o plano mensal,
-                exporte desde o dia 1 do mês até a data final. Um relatório de 7 dias não equivale ao mês inteiro.
-              </p>
+              <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Use o mesmo período do arquivo, sem contar o dia atual ainda em andamento. A sugestão usa o fuso
+                  de São Paulo; confirme a data no fuso da conta Google Ads.
+                </p>
+                <button type="button" onClick={suggestCompletedPeriod}
+                  className="rounded-lg border border-primary/30 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/5">
+                  Sugerir do dia 1 até ontem
+                </button>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2" aria-label="Filtrar por tipo de campanha">
               <button type="button" onClick={() => setSelected("all")} aria-pressed={selected === "all"}
@@ -199,6 +216,43 @@ export function CampaignReportSection({ goals }: { goals: MonthlyGoals }) {
 
             {selected === "all" ? (
               <>
+                {paceEntries.length > 0 ? (
+                  <div className="mt-6 space-y-3">
+                    <h3 className="text-base font-semibold">O plano proporcional até o último dia do relatório</h3>
+                    <p className="text-xs leading-6 text-muted-foreground">
+                      Comparação com a meta mensal em ritmo linear, sem dividir limites de CPL, CPA, CPC ou ROAS.
+                      Metas e diferenças usam a precisão total; os valores exibidos são arredondados.
+                    </p>
+                    <div className="grid gap-3 lg:grid-cols-3">
+                      {paceEntries.map((pace) => {
+                        const show = (value: number) => pace.unit === "currency"
+                          ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                          : value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const relative = pace.differencePct >= 0 ? "acima" : "abaixo";
+                        const positiveTarget = pace.label === "Investimento" ? pace.differencePct <= 0 : pace.differencePct >= 0;
+                        return (
+                          <article key={pace.label} className="rounded-xl border border-white/10 bg-background p-4">
+                            <p className="text-xs font-medium text-muted-foreground">{pace.label}</p>
+                            <p className="mt-2 text-xl font-semibold tabular-nums">{show(pace.actual)}</p>
+                            <p className="mt-1 text-xs leading-6 text-muted-foreground">
+                              Meta acumulada: <strong className="text-foreground">{show(pace.expectedToDate)}</strong>
+                            </p>
+                            <p className={"mt-2 text-sm font-semibold tabular-nums " + (positiveTarget ? "text-emerald-400" : "text-amber-300")}>
+                              {pace.differencePct >= 0 ? "+" : ""}{decimal(pace.differencePct)}% {relative}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                              Diferença: {pace.difference >= 0 ? "+" : ""}{show(pace.difference)} ·
+                              Meta mensal: {show(pace.monthlyTarget)}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                              {decimal(pace.periodPct)}% dos dias do mês concluídos no relatório.
+                            </p>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
                 <GoogleAdsDiagnosticFeed insights={accountDiagnostics.insights} title="O que analisar e o que fazer agora" />
                 {accountDiagnostics.period.fullMonthToDate && (goals.budget !== null || goals.leads !== null) ? (
                   <p className="mt-3 text-xs leading-6 text-muted-foreground">
