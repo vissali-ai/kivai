@@ -22,7 +22,9 @@ export type MonthlyGoals = {
   leads: number | null;
   maxCpl: number | null;
   targetRoas: number | null;
+  monthlyRevenue: number | null;
   conversionsAreLeads: boolean;
+  conversionValueIsRevenue: boolean;
 };
 
 export type ReportTotals = {
@@ -105,6 +107,9 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
     ? totals.cost / (goals.budget * period.ratio) : null;
   const leadsPacing = period.fullMonthToDate && goals.leads !== null && goals.leads > 0 && goals.conversionsAreLeads
     ? totals.conversions / (goals.leads * period.ratio) : null;
+  const revenuePacing = period.fullMonthToDate && goals.monthlyRevenue !== null && goals.monthlyRevenue > 0 &&
+    goals.conversionValueIsRevenue && totals.conversionValue !== null
+    ? totals.conversionValue / (goals.monthlyRevenue * period.ratio) : null;
 
   const add = (diagnostic: Diagnostic) => insights.push(diagnostic);
   const enoughDays = period.valid && period.reportDays >= 7;
@@ -181,6 +186,38 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
         evidence: number(totals.conversions) + " leads; referência até a data: " + number(expectedLeads) + ".",
         recommendation: "Preserve o que está funcionando e valide a qualidade dos leads antes de planejar escala.",
       });
+    }
+  }
+
+  if (goals.monthlyRevenue !== null && goals.monthlyRevenue > 0) {
+    if (!goals.conversionValueIsRevenue || totals.conversionValue === null) {
+      add({
+        id: "revenue_definition", level: "missing", action: "completar_dados",
+        title: "Faturamento e valor de conversão ainda não podem ser comparados",
+        finding: "A receita total da empresa não equivale necessariamente ao valor de conversão atribuído no Google Ads.",
+        evidence: "Meta de faturamento atribuído: " + money(goals.monthlyRevenue) + ".",
+        recommendation: "Verifique a origem e abrangência das conversões de valor e confirme se a meta se refere ao faturamento atribuível.",
+      });
+    } else if (period.fullMonthToDate && period.elapsedDays >= 7 && revenuePacing !== null) {
+      const expectedRevenue = goals.monthlyRevenue * period.ratio;
+      if (revenuePacing < 0.75) {
+        add({
+          id: "revenue_behind", level: "attention", action: "investigar",
+          title: "Valor de conversão abaixo da meta mensal proporcional",
+          finding: "O valor de conversão atribuído ficou abaixo da referência linear do mês.",
+          evidence: money(totals.conversionValue) + " atribuídos; referência até a data: " + money(expectedRevenue) + ".",
+          recommendation: "Confirme atribuição e atrasos de conversão e investigue campanhas, produtos e públicos com menor retorno antes de ajustar lances.",
+          caveat: "Este valor depende da mensuração Google Ads; não representa faturamento total da empresa.",
+        });
+      } else if (revenuePacing >= 1.05) {
+        add({
+          id: "revenue_healthy", level: "positive", action: "manter",
+          title: "Valor atribuído acompanha ou supera o plano",
+          finding: "A receita atribuída atingiu o ritmo linear configurado.",
+          evidence: money(totals.conversionValue) + " atribuídos; referência proporcional: " + money(expectedRevenue) + ".",
+          recommendation: "Preserve o que funciona e confirme rentabilidade e capacidade de atendimento antes de escalar.",
+        });
+      }
     }
   }
 
