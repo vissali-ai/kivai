@@ -4,6 +4,7 @@ import { reserveAiRequest } from "@/lib/ai/limits";
 import { finalizeTrafficBetaCredit, reserveTrafficBetaCredit } from "@/lib/ai/traffic-beta";
 import { trafficAnalysisRequestSchema, trafficAiOutputSchema } from "@/lib/ai/traffic-analysis";
 import { buildCampaignDiagnostics, inspectPeriod } from "@/lib/google-ads/diagnostics";
+import { lastCompletedDayInTimeZone } from "@/lib/google-ads/dates";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -77,6 +78,9 @@ export async function POST(request: Request) {
   if (!validated.success) return failure("Informe um período válido e revise os indicadores.", 400);
   const { snapshot, reports } = validated.data;
 
+  if (snapshot.to > lastCompletedDayInTimeZone("America/Sao_Paulo")) {
+    return failure("Exclua o dia atual em andamento. A análise beta considera somente datas encerradas no fuso de São Paulo.", 400);
+  }
   const period = inspectPeriod(snapshot.from, snapshot.to);
   if (!period.valid || period.reportDays > 366) return failure("Informe um período real de até 366 dias.", 400);
 
