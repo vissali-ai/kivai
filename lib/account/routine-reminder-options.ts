@@ -19,6 +19,7 @@ export type ReminderPreference = {
   hour: number;
   time_zone: string;
   tool_slug: string;
+  delivery_channel: "browser" | "email";
 };
 
 export const defaultReminder: ReminderPreference = {
@@ -27,6 +28,7 @@ export const defaultReminder: ReminderPreference = {
   hour: 9,
   time_zone: "America/Sao_Paulo",
   tool_slug: "compressor-de-imagens",
+  delivery_channel: "browser",
 };
 
 export function validReminderTimezone(value: string) {
