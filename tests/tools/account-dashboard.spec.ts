@@ -58,28 +58,52 @@ test("temporary auth outage preserves session and allows retry", async ({ page }
   await expect(page.getByRole("button", { name: "Atualizar painel" })).toHaveCount(0);
 });
 
-test("dashboard shortcuts reach visible sections by keyboard and touch", async ({ page }, testInfo) => {
+const savedProjects = [
+  { id: "project-one", kind: "briefing", title: "Campanha São João", client_name: "Café Central", payload: {}, revision: 1, updated_at: "2026-10-16T12:00:00Z" },
+  { id: "project-two", kind: "calendar", title: "Calendário de outubro", client_name: "Loja Azul", payload: [], revision: 1, updated_at: "2026-10-16T12:00:00Z" },
+];
+
+test("saved projects are easy to find and filter without losing the catalog", async ({ page }, testInfo) => {
   await mockAccount(page);
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
   await page.goto("/conta");
-  const navigation = page.getByRole("navigation", { name: "Atalhos do painel" });
-  await expect(navigation).toBeVisible();
-  await expect(page.getByRole("link", { name: "Todas as ferramentas", exact: true })).toHaveAttribute("href", "/ferramentas");
-  await expect(navigation.getByRole("link", { name: "Configurações" })).toHaveAttribute("href", "/conta/dados");
-  for (const label of ["Favoritos", "Meus projetos", "Créditos de IA", "Meu plano", "Avisos", "Lembretes", "Histórico"]) {
-    const link = navigation.getByRole("link", { name: label, exact: true });
-    const href = await link.getAttribute("href");
-    expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-    if (label === "Favoritos") { await link.focus(); await page.keyboard.press("Enter"); }
-    else await link.click();
-    const target = page.locator(href!);
-    await expect(target).toBeFocused();
-    await expect.poll(async () => (await target.boundingBox())!.y).toBeGreaterThanOrEqual(64);
-    await expect.poll(async () => (await target.boundingBox())!.y).toBeLessThan(180);
-  }
-  await page.getByRole("link", { name: "Voltar ao início do painel" }).click();
-  await expect(page.locator("#painel-inicio")).toBeFocused();
-  await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  const search = library.getByRole("searchbox", { name: "Buscar projetos" });
+  await expect(search).toBeVisible();
+  const articles = library.locator("article");
+  await expect(articles).toHaveCount(2);
+  expect((await articles.first().boundingBox())!.y).toBeLessThan((await library.getByRole("navigation", { name: "Ferramentas com projetos salvos" }).boundingBox())!.y);
+  await search.fill("sao joao");
+  await expect(articles).toHaveCount(1);
+  await expect(articles.first()).toContainText("Campanha São João");
+  await expect(articles.first().getByRole("link", { name: "Abrir ferramenta" })).toHaveAttribute("href", "/ferramentas/planejador-de-conteudo-social-media");
+  await search.fill("cafe");
+  await expect(articles).toHaveCount(1);
+  await search.fill("calendar");
+  await expect(articles).toHaveCount(1);
+  await library.getByLabel("Filtrar por cliente").selectOption("Café Central");
+  await expect(library.getByText("Nenhum projeto encontrado.", { exact: false })).toBeVisible();
+  await expect(library.getByText("Você ainda não tem projetos salvos", { exact: false })).toHaveCount(0);
+  const clear = library.getByRole("button", { name: "Limpar filtros" });
+  await clear.focus();
+  await page.keyboard.press("Enter");
+  await expect(articles).toHaveCount(2);
+  await expect(library.getByRole("navigation").getByRole("link")).toHaveCount(13);
   await expectNoOverflow(page);
-  await navigation.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: testInfo.outputPath("dashboard-navigation.png") });
+  await search.scrollIntoViewIfNeeded();
+  await library.screenshot({ path: testInfo.outputPath("project-library.png") });
+});
+
+test("project outage shows a retry instead of claiming the account is empty", async ({ page }) => {
+  await mockAccount(page);
+  let unavailable = true;
+  await page.route("**/api/account/projects", route => route.fulfill(unavailable ? { status: 503, json: { error: "Não foi possível carregar os projetos." } } : { json: { projects: savedProjects } }));
+  await page.goto("/conta");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.getByRole("alert")).toContainText("Não foi possível carregar os projetos.");
+  await expect(library.getByText("Você ainda não tem projetos salvos", { exact: false })).toHaveCount(0);
+  unavailable = false;
+  await library.getByRole("button", { name: "Tentar carregar projetos novamente" }).click();
+  await expect(library.locator("article")).toHaveCount(2);
+  await expect(library.getByRole("alert")).toHaveCount(0);
 });
