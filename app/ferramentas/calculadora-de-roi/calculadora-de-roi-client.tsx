@@ -1,5 +1,7 @@
 "use client";
 
+
+import { SavedProjects } from "@/components/account/saved-projects";
 import { useMemo, useState } from "react";
 import {
   CircleDollarSign,
@@ -105,6 +107,8 @@ export default function CalculadoraDeRoiClient() {
 
   return (
     <section className="min-h-screen bg-background text-foreground">
+      <SavedProjects kind="roi" payload={{ investimento, retorno }} onLoad={value => { const p=value as { investimento?: string; retorno?: string }; if(p && typeof p.investimento === "string") { setInvestimento(p.investimento); setRetorno(p.retorno ?? ""); } }} />
+
       <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-32 sm:px-6 sm:pt-32 lg:px-8 lg:pb-16 lg:pt-32">
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
