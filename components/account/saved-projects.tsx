@@ -9,8 +9,8 @@ import { projectLimits } from "@/lib/billing/plan-benefits";
 import type { SavedProject } from "@/lib/projects/validation";
 
 type Props = { kind?: SavedProject["kind"]; payload?: unknown; onLoad?: (payload: unknown) => void; showInstagramHighlight?: boolean };
-const routes = { calendar: "/ferramentas/calendario-editorial-redes-sociais", briefing: "/ferramentas/planejador-de-conteudo-social-media", qr_code: "/ferramentas/gerador-de-qr-code", watermark: "/ferramentas/adicionar-marca-dagua", social_report: "/ferramentas/gerador-de-relatorio-social-media", preview_post: "/ferramentas/preview-de-post-redes-sociais" };
-const labels = { calendar: "Calendário", briefing: "Briefing", qr_code: "QR Code", watermark: "Marca d’água", social_report: "Relatório Social Media", preview_post: "Preview de Post" };
+const routes: Record<SavedProject["kind"], string> = { calendar: "/ferramentas/calendario-editorial-redes-sociais", briefing: "/ferramentas/planejador-de-conteudo-social-media", qr_code: "/ferramentas/gerador-de-qr-code", watermark: "/ferramentas/adicionar-marca-dagua", social_report: "/ferramentas/gerador-de-relatorio-social-media", preview_post: "/ferramentas/preview-de-post-redes-sociais", engagement: "/ferramentas/calculadora-de-engajamento", roas: "/ferramentas/calculadora-de-roas", roi: "/ferramentas/calculadora-de-roi", post_analysis: "/ferramentas/analisador-de-posts", trend_radar: "/ferramentas/radar-de-tendencias", margin: "/ferramentas/calculadora-de-margem", markup: "/ferramentas/calculadora-de-markup" };
+const labels: Record<SavedProject["kind"], string> = { calendar: "Calendário", briefing: "Briefing", qr_code: "QR Code", watermark: "Marca d’água", social_report: "Relatório Social Media", preview_post: "Preview de Post", engagement: "Engajamento", roas: "ROAS", roi: "ROI", post_analysis: "Análise de Posts", trend_radar: "Radar de Tendências", margin: "Margem", markup: "Markup" };
 async function requestProjects(method = "GET", body?: unknown, id?: string) {
   const token = getStoredSession()?.access_token;
   if (!token) throw new Error("Entre na sua conta para continuar.");
