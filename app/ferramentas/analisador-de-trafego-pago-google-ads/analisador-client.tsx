@@ -232,7 +232,8 @@ export default function GoogleAdsTrafficAnalyzerClient() {
             investimentos, conversões, custo por resultado e metas proporcionais ao período. Identifique
             prioridades, riscos e oportunidades de melhoria, com orientações sobre o que investigar,
             manter ou acompanhar antes de alterar campanhas.
-            A versão beta utiliza dados de contas Google Ads conectadas ou relatórios CSV.
+            A análise numérica e a importação de relatórios CSV são públicas e gratuitas, sem cadastro.
+            A conexão Google Ads ainda depende de autorização do Google e a análise aprofundada com IA usa créditos.
             Auditorias detalhadas de anúncios, recursos, palavras-chave, públicos e lances serão ampliadas gradualmente.
           </p>
           <p className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground">
