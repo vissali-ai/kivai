@@ -31,7 +31,7 @@ const capabilities = [
   },
   {
     title: "Anúncios, títulos e descrições",
-    text: "A análise detalhada deverá considerar desempenho, força dos anúncios e evidências por recurso, quando disponíveis. O Gemini poderá propor novas variações de textos seguindo políticas publicitárias, mas a qualidade da proposta não deve ser confundida com resultado comprovado.",
+    text: "A análise detalhada deverá considerar desempenho, força dos anúncios e evidências por recurso, quando disponíveis. Uma análise complementar com IA poderá sugerir variações de textos seguindo políticas publicitárias, mas a qualidade da proposta não comprova desempenho.",
   },
   {
     title: "Recursos e palavras-chave recusados",
@@ -82,7 +82,7 @@ const questions = [
   },
   {
     q: "É possível analisar campanhas sem conectar a conta Google Ads?",
-    a: "Sim. Os módulos básicos importam relatórios CSV no navegador. Se você optar pela análise com Gemini e autorizar, o resumo de desempenho e trechos dos relatórios selecionados serão enviados ao serviço de IA. Dados ausentes não são considerados conhecidos.",
+    a: "Sim. Os módulos básicos importam relatórios CSV no navegador. Se você optar pela análise complementar com IA e autorizar, o resumo de desempenho e trechos dos relatórios selecionados serão enviados ao serviço de IA do Google. Dados ausentes não são considerados conhecidos.",
   },
   {
     q: "Qual a diferença entre CPL, CPA e ROAS?",
