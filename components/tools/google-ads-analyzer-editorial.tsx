@@ -7,8 +7,8 @@ const workflow = [
     text: "Registre a verba combinada, quantos leads ou vendas precisam ser gerados, o CPL ou CPA aceitável, a meta de ROAS e a receita atribuída esperada. Sem referência, o sistema consegue mostrar métricas, mas não concluir se o resultado está adequado ao negócio.",
   },
   {
-    title: "Importe os relatórios do Google Ads",
-    text: "A primeira versão recebe arquivos CSV de desempenho geral de campanhas e termos de pesquisa. O projeto prevê a conexão autorizada com Google Ads API e relatórios complementares para anúncios, palavras-chave, recursos, públicos, recomendações e mudanças.",
+    title: "Conecte a conta Google Ads ou importe dados",
+    text: "A versão beta aceita conexão autorizada com contas Google Ads e relatórios CSV de diferentes modalidades. Nesta fase, a consulta automática reúne métricas gerais e metas; análises detalhadas de anúncios, palavras-chave, recursos, públicos e recomendações serão ampliadas progressivamente.",
   },
   {
     title: "Identifique o que realmente exige atenção",
@@ -62,7 +62,7 @@ const questions = [
   },
   {
     q: "O analisador funciona com campanhas Performance Max?",
-    a: "A versão inicial importa métricas gerais dessas campanhas em CSV. A auditoria completa de Performance Max, incluindo grupos de recursos, ativos e insights de pesquisa, depende de relatórios específicos e será incorporada à integração com a Google Ads API.",
+    a: "A versão beta aceita métricas gerais de Performance Max pela conexão Google Ads ou por CSV. Auditorias por grupos de recursos, ativos e insights de pesquisa exigem dados mais específicos e serão ampliadas em etapas.",
   },
   {
     q: "Quando é melhor não alterar uma campanha Google Ads?",

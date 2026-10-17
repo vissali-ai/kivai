@@ -192,8 +192,12 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           <p className="text-sm font-medium uppercase tracking-wider text-primary">Seu analista de tráfego</p>
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Analisador de Tráfego Pago Google Ads</h1>
           <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-            Monte um plano mensal, importe métricas gerais de campanhas de qualquer modalidade e revise termos de pesquisa quando aplicável.
-            A versão beta aceita CSVs locais, conexão com contas Google Ads autorizadas e análise opcional com IA mediante consentimento.
+            Avalie campanhas Google Ads de diferentes modalidades, da Pesquisa à Performance Max, comparando
+            investimentos, conversões, custo por resultado e metas proporcionais ao período. Identifique
+            prioridades, riscos e oportunidades de melhoria, com orientações sobre o que investigar,
+            manter ou acompanhar antes de alterar campanhas.
+            A versão beta utiliza dados de contas Google Ads conectadas ou relatórios CSV.
+            Auditorias detalhadas de anúncios, recursos, palavras-chave, públicos e lances serão ampliadas gradualmente.
           </p>
           <p className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="size-4 text-primary" aria-hidden="true" /> Os relatórios são lidos localmente por padrão. O envio de resumos e trechos selecionados ao serviço de IA do Google só ocorre se você autorizar; os arquivos não são salvos automaticamente pelo analisador.

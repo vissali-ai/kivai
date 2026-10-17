@@ -4,7 +4,7 @@ import { getCmsHubMetadata, getPageMetadata } from "@/lib/seo";
 
 const fallback = getPageMetadata({
   title: "Tráfego Pago: planejamento, Google Ads e otimização",
-  description: "Ferramentas para gestores de tráfego pago: planejamento mensal, análise de campanhas Google Ads, ROAS, ROI e revisão de termos de pesquisa.",
+  description: "Ferramentas para gestores de tráfego pago: análise de campanhas Google Ads, investimentos, conversões, metas, diagnósticos e calculadoras de ROAS e ROI.",
   pathname: "/ferramentas/trafego-pago",
 });
 
