@@ -139,9 +139,9 @@ export function TrafficBetaAssistant({ snapshot, context }: {
             Análise complementar com IA
           </h2>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
-            O diagnóstico automático acima é gratuito. Aqui você pode solicitar
-            uma avaliação adicional com IA e anexar relatórios complementares para
-            contextualizar as recomendações. Sem novos relatórios, a IA pode repetir
+            O diagnóstico automático é gratuito e pode ser utilizado sem cadastro. Aqui você pode solicitar
+            uma avaliação adicional com IA, baseada nas métricas, no objetivo e nas informações que você preencheu,
+            além dos relatórios complementares enviados. Sem novos relatórios, a IA pode repetir
             conclusões já identificadas. Cada análise concluída utiliza 1 crédito.
           </p>
         </div>
@@ -249,8 +249,8 @@ export function TrafficBetaAssistant({ snapshot, context }: {
 
       <label className="mt-6 flex cursor-pointer items-start gap-2 text-xs leading-6 text-muted-foreground">
         <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 size-4 accent-primary" />
-        Autorizo o envio do resumo das campanhas, metas e conteúdos dos relatórios complementares
-        selecionados ao serviço de IA do Google para esta análise. Sei que são dados da minha conta ou de um cliente autorizado
+        Autorizo o envio do resumo das campanhas, metas, segmento, região, observações que preenchi e
+        conteúdos dos relatórios complementares selecionados ao serviço de IA do Google para esta análise. Sei que são dados da minha conta ou de um cliente autorizado
         e que devo evitar informações pessoais ou confidenciais desnecessárias.
       </label>
 
