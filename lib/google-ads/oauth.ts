@@ -13,6 +13,28 @@ const GOOGLE_OAUTH_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const GOOGLE_ADS_API_ORIGIN = "https://googleads.googleapis.com";
 const CANONICAL_CALLBACK = "https://kivai.com.br/api/integrations/google-ads/callback";
+const PREVIEW_BRANCH = "feature/hub-trafego-pago-ads-intelligence";
+const PREVIEW_CALLBACK =
+  "https://kivai-git-feature-hub-trafego-pago-ads-intelligence-kivai.vercel.app/api/integrations/google-ads/callback";
+
+/**
+ * Exigir redirect_uri fixo e previamente aprovado por ambiente.
+ * Nunca derivar URI de Host/X-Forwarded-Host controláveis pela requisição.
+ * Preview OAuth só é permitido na branch do analisador, não nas demais prévias.
+ */
+function oauthCallbackForEnvironment(): string | null {
+  if (process.env.VERCEL_ENV === "production") return CANONICAL_CALLBACK;
+  if (process.env.VERCEL_ENV === "preview" &&
+      process.env.VERCEL_GIT_COMMIT_REF === PREVIEW_BRANCH) return PREVIEW_CALLBACK;
+  return null;
+}
+
+export function googleAdsOAuthReturnPage(): string {
+  const base = oauthCallbackForEnvironment();
+  return base
+    ? new URL("/ferramentas/analisador-de-trafego-pago-google-ads", base).toString()
+    : "https://kivai.com.br/ferramentas/analisador-de-trafego-pago-google-ads";
+}
 
 type GoogleTokenResponse = {
   access_token?: string;
@@ -71,7 +93,8 @@ function keyMaterial() {
 
 export function googleAdsConnectionReadiness() {
   const oauth = Boolean(clientId() && clientSecret() &&
-    redirectUri() === CANONICAL_CALLBACK);
+    oauthCallbackForEnvironment() !== null &&
+    redirectUri() === oauthCallbackForEnvironment());
   let encryption = false;
   try { keyMaterial(); encryption = true; } catch { /* Não revelar credenciais */ }
   return { oauth, encryption, ready: oauth && encryption };
