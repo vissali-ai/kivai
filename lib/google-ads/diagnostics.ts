@@ -43,6 +43,7 @@ export type DiagnosticInput = {
   end: string;
   campaignStartedOn?: string;
   lastMajorChangeOn?: string;
+  currencyCode?: string;
 };
 
 export type AccumulatedPace = {
@@ -148,7 +149,7 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
       : null,
   };
 
-  const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: /^[A-Z]{3}$/.test(input.currencyCode ?? "") ? input.currencyCode : "BRL" });
   const number = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
   const cpl = totals.conversions > 0 && goals.conversionsAreLeads ? totals.cost / totals.conversions : null;
   const roas = totals.conversionValue !== null && totals.cost > 0 ? totals.conversionValue / totals.cost : null;
