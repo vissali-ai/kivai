@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { TrafegoPagoHubEditorial } from "@/components/tools/trafego-pago-hub-editorial";
 import { getCmsHubMetadata, getPageMetadata } from "@/lib/seo";
 
 const fallback = getPageMetadata({
@@ -12,5 +13,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function TrafegoPagoLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <TrafegoPagoHubEditorial />
+    </>
+  );
 }
