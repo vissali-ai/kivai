@@ -315,7 +315,7 @@ https://support.google.com/google-ads/answer/10486637?hl=pt-BR
 - O saldo é visto apenas por usuário autenticado; não expor serviço ou chave no cliente.
 
 Módulos da implementação:
-- \`supabase/migrations/20261016220000_traffic_beta_credits.sql\`
+- \`supabase/migrations/20261017010618_traffic_beta_10_credits.sql\`
 - \`lib/ai/traffic-beta.ts\`
 - \`app/api/ai/traffic-beta/route.ts\`
 - \`app/api/ai/traffic-beta/analyze/route.ts\`
@@ -380,7 +380,7 @@ Configuração já confirmada na Vercel pelo nome das variáveis, sem revelar va
   \`https://kivai.com.br/api/integrations/google-ads/callback\`.
 - **Pendente obrigatório**: \`GOOGLE_ADS_TOKEN_ENCRYPTION_KEY\`, 32 bytes criptográficos em Base64;
   nunca publicar no GitHub, em \`NEXT_PUBLIC_*\` ou no chat.
-- Migração pendente: \`supabase/migrations/20261016233000_google_ads_oauth_connections.sql\`.
+- Migração pendente: \`supabase/migrations/20261017010717_google_ads_oauth_connections.sql\`.
 
 O botão de conexão permanece desabilitado sem a chave de criptografia. Mesmo após
 configurar, a callback só será funcional quando o código estiver efetivamente
