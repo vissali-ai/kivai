@@ -11,7 +11,9 @@ const requestSchema = z.object({
   connectionId: z.uuid(),
   customerId: z.string().regex(/^\d{10}$/),
   loginCustomerId: z.string().regex(/^\d{10}$/).nullable(),
-}).strict();
+  from: z.iso.date(),
+  to: z.iso.date(),
+}).strict().refine(({ from, to }) => from <= to, { message: "Período inválido" });
 
 export async function POST(request: Request) {
   let userId: string;
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
     // O servidor descobre o fuso da conta autorizada na Google Ads API.
     const response = await googleAdsCampaignReport(
       input.connectionId, userId, input.customerId, input.loginCustomerId,
+      input.from, input.to,
     );
     return Response.json(response, { headers: noStore });
   } catch (error) {
@@ -39,6 +42,7 @@ export async function POST(request: Request) {
       code === "CUSTOMER_NOT_AUTHORIZED" ? "Esta conta não foi autorizada pelo usuário conectado." :
       code === "GOOGLE_AUTH_EXPIRED" ? "Autorização expirada. Reconecte o Google Ads." :
       code === "TOO_MANY_CAMPAIGNS" ? "Este relatório ultrapassa o limite da beta. Reduza o escopo." :
+      code === "INVALID_REPORT_PERIOD" ? "Escolha datas válidas de até 366 dias, encerradas no fuso da conta Google Ads." :
       "Não foi possível atualizar o relatório. Tente novamente mais tarde." },
       { status, headers: noStore });
   }

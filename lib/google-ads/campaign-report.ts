@@ -75,7 +75,7 @@ export function describeCampaignChannel(channel: GoogleAdsChannel) {
 export function campaignNeedsContext(campaign: ImportedGoogleAdsCampaign) {
   const issues: string[] = [];
   if (campaign.cost > 0 && campaign.conversions === 0) {
-    issues.push("Houve custo sem conversões registradas no período. Verifique objetivo, mensuração e janela de atribuição antes de tomar decisões.");
+    issues.push("Não houve conversões registradas. Isso só indica problema se o objetivo e a mensuração esperarem conversões; confirme o tipo de campanha antes de agir.");
   }
   if (campaign.channel === "PERFORMANCE_MAX") {
     issues.push("Para uma auditoria detalhada de Performance Max, acrescente grupos de recursos, ativos, canais, produtos e insights de pesquisa.");
@@ -83,11 +83,23 @@ export function campaignNeedsContext(campaign: ImportedGoogleAdsCampaign) {
   if (campaign.channel === "SEARCH") {
     issues.push("Para avaliar intenção e desperdícios na Pesquisa, acrescente termos de pesquisa e palavras-chave.");
   }
+  if (campaign.channel === "DISPLAY") {
+    issues.push("Para avaliar Display, confira posicionamentos, públicos, criativos e alcance/frequência quando estiverem disponíveis.");
+  }
+  if (campaign.channel === "DEMAND_GEN") {
+    issues.push("Demand Gen requer análise de criativos, públicos e resultados por canal; palavras-chave de Pesquisa não são aplicáveis.");
+  }
+  if (campaign.channel === "MULTI_CHANNEL") {
+    issues.push("Em campanhas para aplicativos, analise instalações, ações no app e qualidade dos eventos; métricas de cliques isoladas não bastam.");
+  }
   if (campaign.channel === "SHOPPING") {
     issues.push("Para revisar Shopping em detalhes, acrescente desempenho de produtos e informações do feed.");
   }
   if (campaign.channel === "VIDEO") {
     issues.push("Conversões isoladas não avaliam todos os objetivos de Vídeo. Analise visualizações, CPV e retenção quando disponíveis.");
+  }
+  if (campaign.channel === "LOCAL" || campaign.channel === "LOCAL_SERVICES") {
+    issues.push("Valide o tipo de ação local ou contato que o Google Ads registra antes de interpretar conversões como leads qualificados.");
   }
   if (campaign.channel === "UNKNOWN" || campaign.channel === "UNSPECIFIED") {
     issues.push("Informe o tipo de campanha na exportação para liberar diagnósticos específicos.");

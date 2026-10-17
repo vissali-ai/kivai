@@ -6,7 +6,9 @@ import {
   ArrowUpRight, CheckCircle2, CircleAlert, Link2, RefreshCcw, ShieldCheck, Unplug,
 } from "lucide-react";
 import { getStoredSession } from "@/lib/user-auth";
-import { buildCampaignDiagnostics, type MonthlyGoals } from "@/lib/google-ads/diagnostics";
+import { buildCampaignDiagnostics, inspectPeriod, type MonthlyGoals } from "@/lib/google-ads/diagnostics";
+import { campaignNeedsContext, describeCampaignChannel } from "@/lib/google-ads/campaign-report";
+import { parseGoogleAdsChannel } from "@/lib/google-ads/campaign-types";
 import { GoogleAdsDiagnosticFeed } from "@/components/tools/google-ads-diagnostic-feed";
 import type { TrafficAnalysisRequest } from "@/lib/ai/traffic-analysis";
 
@@ -70,8 +72,9 @@ function num(value: number) {
   return value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 }
 
-export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
+export function GoogleAdsLiveConnect({ goals, period, onSnapshot }: {
   goals: MonthlyGoals;
+  period: { from: string; to: string };
   onSnapshot?: (snapshot: TrafficAnalysisRequest["snapshot"] | null) => void;
 }) {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -214,7 +217,8 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
       byType.set(campaign.channel, previous);
     }
     return {
-      from: report.from, to: report.to, source: "google_ads_api", goals,
+      from: report.from, to: report.to, source: "google_ads_api",
+      timeZone: report.account.timeZone || "America/Sao_Paulo", goals,
       totals: { ...report.totals, campaignCount: report.campaigns.length },
       channels: [...byType.values()],
     };
@@ -247,14 +251,24 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
     }
   }
 
+  useEffect(() => {
+    // Período novo invalida a análise anterior para impedir comparações de datas diferentes.
+    setReport(null);
+  }, [period.from, period.to]);
+
   async function loadReport() {
     const account = accounts.find((item) => item.customerId === selected && !item.manager);
     if (!account || !connectionId) return;
+    if (!inspectPeriod(period.from, period.to).valid) {
+      setError("Escolha um período válido de até 366 dias antes de consultar os dados.");
+      return;
+    }
     setLoadingReport(true); setReport(null); setError(""); setMessage("");
     try {
       const result = await getJson<LiveReport>("/api/integrations/google-ads/report", {
         method: "POST", body: JSON.stringify({
           connectionId, customerId: account.customerId, loginCustomerId: account.loginCustomerId,
+          from: period.from, to: period.to,
         }),
       });
       setReport(result);
@@ -297,7 +311,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
       </h2>
       <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
         Autorize sua conta Google, escolha um cliente ou conta vinculada à MCC e
-        consulte o desempenho até o último dia concluído no fuso da conta. O Kivai
+        consulte o período escolhido acima, até o último dia concluído no fuso da conta. O Kivai
         apenas lê dados. Não altera lances, anúncios, palavras-chave nem orçamentos.
       </p>
       <p className="mt-2 max-w-3xl text-xs leading-6 text-muted-foreground">
@@ -398,10 +412,11 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
               })}
             </div>
           ) : null}
-          <button type="button" onClick={loadReport} disabled={!selected || loadingReport || !available}
+          <button type="button" onClick={loadReport}
+            disabled={!selected || loadingReport || !available || !inspectPeriod(period.from, period.to).valid}
             className="mt-5 inline-flex items-center gap-2 rounded-lg border border-primary/40 px-4 py-2.5 text-sm font-medium text-primary disabled:opacity-50">
             <RefreshCcw className="size-4" />
-            {loadingReport ? "Consultando Google Ads..." : "Atualizar métricas da conta"}
+            {loadingReport ? "Consultando Google Ads..." : "Analisar período selecionado"}
           </button>
         </div>
       ) : null}
@@ -441,7 +456,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
             ))}
           </div>
           <div className="mt-5 space-y-3">
-            <h4 className="text-sm font-semibold">Meta proporcional até {report.to}</h4>
+            <h4 className="text-sm font-semibold">Metas proporcionais de {report.from} a {report.to}</h4>
             {Object.values(diagnostics.pacing).filter((x): x is NonNullable<typeof x> => x !== null)
               .map((item) => (
                 <div key={item.label} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2.5 text-xs">
@@ -455,6 +470,27 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
                   </span>
                 </div>
               ))}
+          </div>
+          <div className="mt-6 space-y-3">
+            <h4 className="text-sm font-semibold">Modalidades encontradas e pontos de atenção</h4>
+            {Array.from(new Set(report.campaigns.map((c) => c.channel))).map((channel) => {
+              const type = parseGoogleAdsChannel(channel);
+              const sample = report.campaigns.find((c) => c.channel === channel);
+              const guidance = sample ? campaignNeedsContext({
+                name: sample.name, channel: type, rows: 1, impressions: sample.impressions,
+                clicks: sample.clicks, cost: sample.cost, conversions: sample.conversions,
+                conversionValue: sample.conversionValue,
+              }) : [];
+              return (
+                <div key={channel} className="rounded-lg border border-white/10 p-3 text-xs">
+                  <p className="font-semibold">{describeCampaignChannel(type).label}</p>
+                  <p className="mt-1 text-muted-foreground">{describeCampaignChannel(type).focus}</p>
+                  {guidance.length ? <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
+                    {guidance.map((item, i) => <li key={i}>{item}</li>)}
+                  </ul> : null}
+                </div>
+              );
+            })}
           </div>
           <GoogleAdsDiagnosticFeed insights={diagnostics.insights} title="Diagnóstico automático de metas da conta conectada" />
           <p className="mt-4 flex items-start gap-2 text-xs leading-6 text-muted-foreground">

@@ -11,7 +11,7 @@ import {
 import { GOOGLE_ADS_CHANNELS } from "@/lib/google-ads/campaign-types";
 import { GoogleAdsDiagnosticFeed } from "@/components/tools/google-ads-diagnostic-feed";
 import { buildCampaignDiagnostics, type MonthlyGoals } from "@/lib/google-ads/diagnostics";
-import { firstDayOfMonthISO, lastCompletedDayInTimeZone } from "@/lib/google-ads/dates";
+import { lastCompletedDayInTimeZone } from "@/lib/google-ads/dates";
 import type { TrafficAnalysisRequest } from "@/lib/ai/traffic-analysis";
 
 function decimal(value: number, digits = 2) {
@@ -27,8 +27,9 @@ const supportedTypes = [
   "LOCAL", "LOCAL_SERVICES",
 ] as const;
 
-export function CampaignReportSection({ goals, onSnapshot }: {
+export function CampaignReportSection({ goals, period, onSnapshot }: {
   goals: MonthlyGoals;
+  period: { from: string; to: string };
   onSnapshot?: (snapshot: TrafficAnalysisRequest["snapshot"] | null) => void;
 }) {
   const [campaigns, setCampaigns] = useState<ImportedGoogleAdsCampaign[]>([]);
@@ -36,8 +37,9 @@ export function CampaignReportSection({ goals, onSnapshot }: {
   const [error, setError] = useState("");
   const [showScope, setShowScope] = useState(false);
   const [selected, setSelected] = useState("all");
-  const [reportStart, setReportStart] = useState("");
-  const [reportEnd, setReportEnd] = useState("");
+  const reportStart = period.from;
+  const reportEnd = period.to;
+  const [importedPeriod, setImportedPeriod] = useState("");
   const [lastClosedDate, setLastClosedDate] = useState("");
   const [focusIndex, setFocusIndex] = useState("");
   const [startedOn, setStartedOn] = useState("");
@@ -47,6 +49,11 @@ export function CampaignReportSection({ goals, onSnapshot }: {
     const file = event.target.files?.[0];
     setError(""); setCampaigns([]); setFileName(""); setSelected("all"); setFocusIndex(""); setStartedOn(""); setChangedOn("");
     if (!file) return;
+    if (!reportStart || !reportEnd) {
+      setError("Escolha o período da análise antes de importar. O CSV deve corresponder exatamente às datas selecionadas.");
+      event.target.value = "";
+      return;
+    }
     if (!file.name.toLowerCase().endsWith(".csv")) {
       setError("Selecione um relatório de campanhas em formato CSV."); event.target.value = ""; return;
     }
@@ -57,6 +64,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
       const parsed = parseCampaignPerformanceCsv(await file.text());
       setCampaigns(parsed);
       setFileName(file.name);
+      setImportedPeriod(reportStart + ":" + reportEnd);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível interpretar o relatório.");
     }
@@ -79,6 +87,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
   }, []);
 
   const includesPartialDay = Boolean(lastClosedDate && reportEnd && reportEnd > lastClosedDate);
+  const periodMismatch = Boolean(fileName && importedPeriod !== reportStart + ":" + reportEnd);
   const accountDiagnostics = buildCampaignDiagnostics({
     goals,
     totals: {
@@ -86,21 +95,21 @@ export function CampaignReportSection({ goals, onSnapshot }: {
       conversions: totals.conversions, conversionValue: totals.valueComplete ? totals.value : null,
       campaignCount: visible.length,
     },
-    start: reportStart, end: includesPartialDay ? "" : reportEnd,
+    start: periodMismatch || includesPartialDay ? "" : reportStart,
+    end: periodMismatch || includesPartialDay ? "" : reportEnd,
   });
   const paceEntries = [
+    accountDiagnostics.pacing.conversions,
+    accountDiagnostics.pacing.clicks,
+    accountDiagnostics.pacing.impressions,
     accountDiagnostics.pacing.leads,
     accountDiagnostics.pacing.investment,
     accountDiagnostics.pacing.revenue,
   ].filter((value): value is NonNullable<typeof value> => value !== null);
-  function suggestCompletedPeriod() {
-    const yesterday = lastCompletedDayInTimeZone("America/Sao_Paulo");
-    setReportStart(firstDayOfMonthISO(yesterday));
-    setReportEnd(yesterday);
-  }
   useEffect(() => {
     if (!onSnapshot) return;
-    if (!campaigns.length || !reportStart || !reportEnd || includesPartialDay || !accountDiagnostics.period.valid) {
+    if (!campaigns.length || !reportStart || !reportEnd || periodMismatch ||
+        includesPartialDay || !accountDiagnostics.period.valid) {
       onSnapshot(null);
       return;
     }
@@ -122,7 +131,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
     }), { impressions: 0, clicks: 0, cost: 0, conversions: 0, conversionValue: 0, complete: true });
     onSnapshot({
       from: reportStart, to: reportEnd,
-      source: "csv",
+      source: "csv", timeZone: "America/Sao_Paulo",
       goals,
       totals: {
         impressions: allTotals.impressions,
@@ -134,9 +143,8 @@ export function CampaignReportSection({ goals, onSnapshot }: {
       channels: Array.from(buckets.values()),
     });
   }, [
-    campaigns, reportStart, reportEnd, onSnapshot, accountDiagnostics.period.valid, includesPartialDay,
-    goals.budget, goals.leads, goals.maxCpl, goals.targetRoas, goals.monthlyRevenue,
-    goals.conversionsAreLeads, goals.conversionValueIsRevenue,
+    campaigns, reportStart, reportEnd, onSnapshot, periodMismatch,
+    accountDiagnostics.period.valid, includesPartialDay, goals,
   ]);
 
   const focusedCampaign = focusIndex !== "" ? campaigns[Number(focusIndex)] : undefined;
@@ -147,7 +155,8 @@ export function CampaignReportSection({ goals, onSnapshot }: {
           impressions: focusedCampaign.impressions, clicks: focusedCampaign.clicks, cost: focusedCampaign.cost,
           conversions: focusedCampaign.conversions, conversionValue: focusedCampaign.conversionValue, campaignCount: 1,
         },
-        start: reportStart, end: reportEnd, campaignStartedOn: startedOn, lastMajorChangeOn: changedOn,
+        start: periodMismatch ? "" : reportStart, end: periodMismatch ? "" : reportEnd,
+        campaignStartedOn: startedOn, lastMajorChangeOn: changedOn,
       })
     : null;
 
@@ -211,34 +220,24 @@ export function CampaignReportSection({ goals, onSnapshot }: {
           </div>
         ) : null}
 
-        {campaigns.length > 0 ? (
+        {campaigns.length > 0 && !periodMismatch ? (
           <div className="mt-7">
-            <div className="grid gap-4 rounded-xl border border-white/10 bg-background p-4 sm:grid-cols-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                Início do período exportado
-                <input className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportStart} onChange={(event) => setReportStart(event.target.value)} />
-              </label>
-              <label className="text-xs font-medium text-muted-foreground">
-                Fim do período exportado
-                <input className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportEnd} onChange={(event) => setReportEnd(event.target.value)} />
-              </label>
+            <div className="my-5 rounded-xl border border-white/10 bg-background p-4">
+              <p className="text-xs text-muted-foreground">
+                Intervalo escolhido: <strong className="text-foreground">{reportStart} a {reportEnd}</strong>.
+                O CSV deve ter sido exportado com essas mesmas datas. O Kivai não altera o período do arquivo já agregado.
+              </p>
               {includesPartialDay ? (
-                <p role="alert" className="sm:col-span-2 rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-xs leading-6 text-amber-200">
-                  O período informado inclui o dia atual ainda em andamento ou uma data futura.
-                  Selecione até {lastClosedDate} para comparar com a meta proporcional em dias encerrados.
-                  A sugestão considera o fuso de São Paulo. Futuramente o conector utilizará o fuso da conta Google Ads.
+                <p role="alert" className="mt-2 text-xs text-amber-300">
+                  O período termina após o último dia concluído ({lastClosedDate}). Corrija as datas no início da ferramenta.
                 </p>
               ) : null}
-              <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs leading-5 text-muted-foreground">
-                  Use o mesmo período do arquivo, sem contar o dia atual ainda em andamento. A sugestão usa o fuso
-                  de São Paulo; confirme a data no fuso da conta Google Ads.
+              {periodMismatch ? (
+                <p role="alert" className="mt-2 text-xs text-amber-300">
+                  Você alterou o intervalo após importar o CSV. Reimporte um relatório com as datas escolhidas;
+                  a análise anterior não será reutilizada.
                 </p>
-                <button type="button" onClick={suggestCompletedPeriod}
-                  className="rounded-lg border border-primary/30 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/5">
-                  Sugerir do dia 1 até ontem
-                </button>
-              </div>
+              ) : null}
             </div>
             <div className="flex flex-wrap gap-2" aria-label="Filtrar por tipo de campanha">
               <button type="button" onClick={() => setSelected("all")} aria-pressed={selected === "all"}
@@ -276,9 +275,9 @@ export function CampaignReportSection({ goals, onSnapshot }: {
               <>
                 {paceEntries.length > 0 ? (
                   <div className="mt-6 space-y-3">
-                    <h3 className="text-base font-semibold">O plano proporcional até o último dia do relatório</h3>
+                    <h3 className="text-base font-semibold">Metas proporcionais ao intervalo selecionado</h3>
                     <p className="text-xs leading-6 text-muted-foreground">
-                      Comparação com a meta mensal em ritmo linear, sem dividir limites de CPL, CPA, CPC ou ROAS.
+                      Comparação da meta mensal ajustada ao intervalo escolhido, sem dividir limites de CPL, CPA, CPC ou ROAS.
                       Metas e diferenças usam a precisão total; os valores exibidos são arredondados.
                     </p>
                     <div className="grid gap-3 lg:grid-cols-3">
@@ -303,7 +302,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                               Meta mensal: {show(pace.monthlyTarget)}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                              {decimal(pace.periodPct)}% dos dias do mês concluídos no relatório.
+                              Meta proporcional ao intervalo selecionado, equivalente a {decimal(pace.periodPct)}% de uma meta mensal.
                             </p>
                           </article>
                         );
@@ -312,7 +311,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                   </div>
                 ) : null}
                 <GoogleAdsDiagnosticFeed insights={accountDiagnostics.insights} title="O que analisar e o que fazer agora" />
-                {accountDiagnostics.period.fullMonthToDate && (goals.budget !== null || goals.leads !== null) ? (
+                {accountDiagnostics.period.valid && (goals.budget !== null || goals.targetConversions !== null) ? (
                   <p className="mt-3 text-xs leading-6 text-muted-foreground">
                     Plano mensal confrontado com o resultado acumulado. Ritmo calculado de forma linear; o diagnóstico não
                     considera sazonalidade nem substitui a revisão do gestor.
