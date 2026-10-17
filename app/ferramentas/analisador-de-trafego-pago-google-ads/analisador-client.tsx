@@ -164,9 +164,9 @@ export default function GoogleAdsTrafficAnalyzerClient() {
     const plan = {
       titulo: "Planejamento inicial de tráfego pago",
       cliente: client, segmento: segment, localizacao: city,
-      metas: {
+      premissas: {
         investimento_mensal: budget, meta_leads: targetLeads, cpl_maximo: maxCpl,
-        roas_desejado: targetRoas, meta_receita_atribuida: monthlyRevenue,
+        roas_desejado: targetRoas, meta_faturamento_atribuido: monthlyRevenue,
       },
       aviso: "Planejamento baseado nas metas informadas. Conversões e valores de conversão não são automaticamente classificados como leads ou receita. O documento não é um diagnóstico de resultados.",
     };
