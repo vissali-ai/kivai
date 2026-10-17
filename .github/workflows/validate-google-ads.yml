@@ -1,0 +1,44 @@
+name: Validar Analisador Google Ads
+
+on:
+  push:
+    branches:
+      - feat/google-ads-public-period-all-campaigns-20261017
+  pull_request:
+    paths:
+      - "app/ferramentas/analisador-de-trafego-pago-google-ads/**"
+      - "app/api/integrations/google-ads/**"
+      - "app/api/ai/traffic-beta/**"
+      - "lib/google-ads/**"
+      - "lib/ai/traffic-analysis.ts"
+      - "components/tools/google-ads-*.tsx"
+      - "components/tools/traffic-beta-assistant.tsx"
+      - "tests/google-ads/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: google-ads-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: TypeScript, build e testes de período
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+      - name: Testar períodos e objetivos
+        run: node --test tests/google-ads/period.test.mjs
+      - name: Validar compilação de produção
+        run: npm run build
