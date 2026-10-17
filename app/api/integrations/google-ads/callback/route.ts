@@ -8,7 +8,10 @@ const BASE = "https://kivai.com.br/ferramentas/analisador-de-trafego-pago-google
 function finish(status: "connected" | "denied" | "failed") {
   const url = new URL(BASE);
   url.searchParams.set("google_ads_connection", status);
-  return Response.redirect(url.toString(), 303);
+  const response = Response.redirect(url.toString(), 303);
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Referrer-Policy", "no-referrer");
+  return response;
 }
 
 export async function GET(request: Request) {
