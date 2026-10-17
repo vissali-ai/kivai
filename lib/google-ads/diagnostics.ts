@@ -85,7 +85,7 @@ export function compareAccumulatedGoal(
     label, unit, monthlyTarget: target, expectedToDate, actual,
     difference: actual - expectedToDate,
     differencePct: (actual / expectedToDate - 1) * 100,
-    achievedPct: (actual / target) * 100,
+    achievedPct: (actual / expectedToDate) * 100,
     remainingMonthly: Math.max(0, target - actual),
     periodPct: period.ratio * 100,
   };
@@ -235,7 +235,7 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
         title: "Campanhas consumindo menos verba que a projeção mensal",
         finding: "O gasto ficou abaixo da referência linear do mês.",
         evidence: money(totals.cost) + " gastos; referência proporcional de " + money(expected) + ".",
-        recommendation: "Antes de aumentar lances ou orçamento, investigue aprovação, elegibilidade, volume de pesquisa, segmentação e estratégia de lances.",
+        recommendation: "Antes de aumentar lances ou orçamento, investigue aprovação, elegibilidade, alcance potencial, segmentação e estratégia de lances da modalidade analisada.",
       });
     }
   }
@@ -397,7 +397,8 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
     }
   }
 
-  if (totals.cost > 0 && totals.conversions === 0) {
+  if (totals.cost > 0 && totals.conversions === 0 &&
+      !["awareness", "video", "traffic"].includes(goals.objective ?? "")) {
     const cpaTarget = goals.maxCpa ?? goals.maxCpl;
     const limit = cpaTarget !== null && cpaTarget !== undefined && cpaTarget > 0 ? cpaTarget * 3 : null;
     const noteworthy = limit !== null && totals.cost >= limit && enoughDays;
