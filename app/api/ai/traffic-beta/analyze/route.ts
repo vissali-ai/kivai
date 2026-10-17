@@ -131,7 +131,7 @@ export async function POST(request: Request) {
       return failure("O provedor de IA está com limite de uso. Tente novamente mais tarde.", 429, 120);
     }
     if (error instanceof GeminiRequestError && error.status === 404) {
-      return failure("O modelo Gemini não está disponível neste momento.", 503, 60);
+      return failure("O serviço de IA não está disponível neste momento.", 503, 60);
     }
     console.error("[kivai-traffic] Falha na análise beta (sem detalhes da conta)");
     return failure("Não foi possível concluir o diagnóstico. O crédito será devolvido.", 503, 30);
