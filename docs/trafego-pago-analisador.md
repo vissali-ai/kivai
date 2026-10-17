@@ -267,7 +267,7 @@ concorrentes, CRM e plano persistido, MCC, alertas automatizados, notificações
 permissões granulares, testes end-to-end e publicação/indexação revisada.
 
 
-## Beta Google Ads: proporção diária e 30 créditos de IA
+## Beta Google Ads: proporção diária e 10 créditos de IA
 
 ### Regra de avaliação: último dia concluído
 
@@ -298,10 +298,10 @@ https://developers.google.com/google-ads/api/docs/conversions/reporting
 https://developers.google.com/google-ads/api/fields/v26/customer
 https://support.google.com/google-ads/answer/10486637?hl=pt-BR
 
-### Beta de 30 créditos
+### Beta de 10 créditos
 
-- Concessão **uma vez por usuário Kivai com e-mail confirmado**.
-- Cota **isolada** de 30 créditos para diagnósticos Gemini do Analisador Google Ads.
+- Concessão **única de 10 créditos por usuário Kivai com e-mail confirmado**, sem renovação automática.
+- Cota **isolada** de 10 créditos para diagnósticos Gemini do Analisador Google Ads.
   A cota não altera saldos existentes Free, Pro, Agency, créditos comprados ou
   regras de crédito de outras ferramentas.
 - **1 crédito = 1 diagnóstico com Gemini concluído e validado.**
@@ -310,7 +310,7 @@ https://support.google.com/google-ads/answer/10486637?hl=pt-BR
   falha de geração ou validação restitui a unidade.
 - A cota não é mensal e não renova automaticamente. Proteções antiautomação:
   confirmação de e-mail, limite horário por usuário e limite global compartilhado de IA.
-- Informar claramente quando as 30 análises tiverem acabado. Pacotes/planos pagos
+- Informar claramente quando as 10 análises tiverem acabado. Pacotes/planos pagos
   são uma evolução comercial futura, não consumir créditos comprados sem permissão.
 - O saldo é visto apenas por usuário autenticado; não expor serviço ou chave no cliente.
 
@@ -328,7 +328,7 @@ Módulos da implementação:
   e não confirmado não recebe bônus.
 - Confirmar GEMINI_API_KEY no servidor, validação de JSON, controle de custo e
   retorno do crédito se o provedor falhar.
-- Testar múltiplos usuários e 30 solicitações com reserva concorrente de idempotência.
+- Testar múltiplos usuários e 10 solicitações com reserva concorrente de idempotência.
 - Testar os relatórios reais de todas as modalidades; cada diagnóstico descreve
   com precisão o que foi ou não lido.
 - Só liberar indexação e sitemap da página depois de garantir que o beta prometido
