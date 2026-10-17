@@ -267,6 +267,13 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
         consulte o desempenho até o último dia concluído no fuso da conta. O Kivai
         apenas lê dados. Não altera lances, anúncios, palavras-chave nem orçamentos.
       </p>
+      <p className="mt-2 max-w-3xl text-xs leading-6 text-muted-foreground">
+        Integração em teste: somente contas Google cadastradas como usuárias de teste
+        podem autorizar o acesso nesta fase. O Google pode exibir uma permissão ampla
+        para visualizar, editar, criar e excluir dados, mas o Kivai utiliza apenas
+        consultas de leitura. Leia a <Link href="/privacidade" className="underline underline-offset-2">
+        Política de Privacidade</Link> antes de conectar.
+      </p>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         {authenticated === false ? (
