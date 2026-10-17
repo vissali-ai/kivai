@@ -3,11 +3,11 @@ import "server-only";
 import { supabaseRest } from "@/lib/blog/supabase";
 
 /**
- * Bônus promocional de 30 créditos isolado do saldo mensal/pago existente.
+ * Bônus promocional de 10 créditos isolado do saldo mensal/pago existente.
  * Uma análise bem-sucedida com Gemini custa 1 crédito beta.
  * Quando não for possível processar a análise, a reserva é devolvida.
  */
-export const TRAFFIC_BETA_CREDITS_INITIAL = 30;
+export const TRAFFIC_BETA_CREDITS_INITIAL = 10;
 export const TRAFFIC_BETA_ANALYSIS_COST = 1;
 
 export type TrafficBetaBalance = {
