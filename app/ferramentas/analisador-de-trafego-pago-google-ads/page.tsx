@@ -5,7 +5,7 @@ import { GoogleAdsAnalyzerEditorial } from "@/components/tools/google-ads-analyz
 
 const base = getPageMetadata({
   title: "Analisador de Tráfego Pago Google Ads",
-  description: "Analise campanhas de tráfego pago Google Ads, compare resultados por tipo de campanha, planeje metas e revise termos de pesquisa exportados em CSV.",
+  description: "Analise campanhas Google Ads, compare investimento, conversões e metas, identifique prioridades e oportunidades de otimização com contas conectadas ou relatórios CSV.",
   pathname: "/ferramentas/analisador-de-trafego-pago-google-ads",
 });
 
