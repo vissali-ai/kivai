@@ -56,7 +56,7 @@ export default function PrivacyPage() {
           </span>
           <h1 className="mt-6 text-4xl font-bold tracking-tight">Política de Privacidade</h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            Última atualização: 21 de agosto de 2026
+            Última atualização: 17 de outubro de 2026
           </p>
           <p className="mt-6 max-w-3xl text-base leading-8 text-muted-foreground">
             Esta Política explica como o Kivai trata dados pessoais durante o uso do site,
@@ -134,6 +134,48 @@ export default function PrivacyPage() {
             </p>
             <p>
               Para orientações gerais sobre proteção e processamento de arquivos, consulte nossa página de <Link href="/seguranca">Segurança</Link>.
+            </p>
+          </PolicySection>
+
+
+          <PolicySection title="4.1. Integração Google Ads e diagnósticos com inteligência artificial">
+            <p>
+              Ao optar por conectar uma conta Google Ads, você autoriza o Kivai a consultar os
+              dados acessíveis à conta Google escolhida, inclusive contas de clientes vinculadas
+              à sua conta de administrador (MCC), respeitadas as permissões existentes no Google Ads.
+              Podemos consultar identificadores e nomes de contas e campanhas, moeda, fuso horário,
+              impressões, cliques, custos, conversões e valores de conversão para exibir relatórios
+              e comparar resultados com as metas que você informar.
+            </p>
+            <p>
+              O escopo de autorização disponibilizado pelo Google Ads tem permissões amplas e
+              pode ser apresentado pelo Google como acesso para visualizar, editar, criar e excluir
+              dados. A integração implementada pelo Kivai utiliza apenas operações de consulta,
+              sem criar, editar ou excluir anúncios, campanhas, lances, orçamentos ou palavras-chave.
+            </p>
+            <p>
+              Para manter a conexão, armazenamos no banco de dados um token de atualização do
+              Google criptografado e associado à sua conta Kivai. As credenciais de conexão são
+              tratadas pelo servidor e não são disponibilizadas nas páginas públicas. Métricas
+              consultadas são processadas para responder à solicitação do usuário e não são
+              persistidas em uma tabela de histórico de campanhas por esta integração beta.
+            </p>
+            <p>
+              O diagnóstico por inteligência artificial é opcional e exige uma autorização
+              separada na própria ferramenta. Quando você concorda, enviamos ao serviço Gemini
+              do Google as métricas e metas selecionadas e o conteúdo de relatórios complementares
+              que você tiver anexado. Esses dados são processados pelo fornecedor para produzir
+              o diagnóstico solicitado e podem ser tratados em infraestrutura fora do Brasil.
+              Evite anexar dados pessoais de pacientes, leads, contatos ou outras informações
+              desnecessárias. Não utilizamos dados de contas Google Ads conectadas para vender
+              informações, criar públicos publicitários ou personalizar anúncios do Kivai.
+            </p>
+            <p>
+              Você pode desconectar a autorização pela ferramenta, removendo do armazenamento
+              do Kivai o token associado, e também revogar o acesso diretamente nas
+              <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer"> permissões da sua Conta Google</a>.
+              A desconexão não altera campanhas nem apaga dados armazenados na conta Google Ads.
+              Para solicitações de privacidade adicionais, utilize o <Link href="/contato">contato do Kivai</Link>.
             </p>
           </PolicySection>
 
