@@ -367,3 +367,91 @@ https://developers.google.com/google-ads/api/docs/reporting/overview
 https://developers.google.com/google-ads/api/docs/productionize/access-levels
 https://developers.google.com/google-ads/api/docs/conversions/reporting
 https://developers.google.com/google-ads/api/fields/v26/metrics
+
+
+## Integração OAuth com Google Ads em contas reais (implementação em revisão)
+
+### Credenciais e pré-condições
+
+Configuração já confirmada na Vercel pelo nome das variáveis, sem revelar valores:
+- \`GOOGLE_ADS_CLIENT_ID\`: Client ID do OAuth **Kivai Google Ads**, independente do Kivai Web/Supabase.
+- \`GOOGLE_ADS_CLIENT_SECRET\`: secreto da aplicação OAuth, apenas no servidor.
+- \`GOOGLE_ADS_REDIRECT_URI\`: URL canônica registrada no Google Cloud:
+  \`https://kivai.com.br/api/integrations/google-ads/callback\`.
+- **Pendente obrigatório**: \`GOOGLE_ADS_TOKEN_ENCRYPTION_KEY\`, 32 bytes criptográficos em Base64;
+  nunca publicar no GitHub, em \`NEXT_PUBLIC_*\` ou no chat.
+- Migração pendente: \`supabase/migrations/20261016233000_google_ads_oauth_connections.sql\`.
+
+O botão de conexão permanece desabilitado sem a chave de criptografia. Mesmo após
+configurar, a callback só será funcional quando o código estiver efetivamente
+implantado no domínio canônico. Não mudar o OAuth \`Kivai Web\`.
+
+### Fluxo servidor e autorização
+
+1. Usuário autenticado com Supabase cria uma solicitação via
+   \`POST /api/integrations/google-ads/start\` com token Kivai válido.
+2. Servidor gera \`state\` aleatório e PKCE S256, grava somente SHA-256 do state
+   e verifier no banco com expiração de 10 minutos, retorna link Google.
+3. OAuth solicita exclusivamente o escopo Google Ads:
+   \`https://www.googleapis.com/auth/adwords\`, \`access_type=offline\`.
+4. Callback recebe \`state\` e \`code\`, consome state atomicamente uma única vez,
+   troca por refresh token e grava SOMENTE refresh token criptografado AES-256-GCM.
+5. Tokens não são expostos a JavaScript, user localStorage, querystring ou
+   resposta de API do Kivai. O refresh token é decifrado somente no servidor,
+   apenas durante consulta autorizada.
+6. \`GET /api/integrations/google-ads/connections\` lista conexões do titular Kivai.
+7. \`GET /api/integrations/google-ads/accounts?connectionId=...\`
+   lista contas de acesso direto e subordinadas a MCC com \`customer_client\`.
+8. \`POST /api/integrations/google-ads/report\` revalida a titularidade do token,
+   a presença da conta na hierarquia autorizada e coleta métricas, respeitando
+   o fuso real da conta e excluindo o dia atual.
+9. \`DELETE /api/integrations/google-ads/connections\` elimina a conexão e
+   o segredo cifrado do banco. Para revogação no Google, orientar o usuário em
+   \`https://myaccount.google.com/permissions\`.
+
+**Somente leitura no backend:** a aplicação não implementa endpoints
+\`mutate\` ou \`applyRecommendation\`. O escopo Google Ads oferecido pelo Google
+é amplo, portanto o usuário deve ser informado de que a restrição é do Kivai,
+não do escopo em si.
+
+### API e versão
+
+- API REST \`v26\`, somente \`listAccessibleCustomers\` e
+  \`GoogleAdsService.Search\` para coleta inicial.
+- Developer tokens foram descontinuados em 09/09/2026: nivel de acesso vem
+  do **projeto Google Cloud** que emitiu o OAuth. Não adicionar
+  \`GOOGLE_ADS_DEVELOPER_TOKEN\`.
+- O projeto Google Cloud Kivai recebeu nível **Exploração** (Explorer).
+- As consultas usam \`login-customer-id\` quando a conta é subordinada à MCC.
+- Há limites iniciais de profundidade, contas e campanhas para controlar
+  operações na beta. Relatórios completos por modalidade virão depois.
+- A campanha inclui custos de campanhas que estavam ativas no período mesmo
+  que atualmente removidas, evitando subestimação do gasto.
+- Métrica \`metrics.conversions\` não é sinônimo de lead qualificado:
+  a pessoa confirma a ação antes de comparar com metas.
+- Dados de API e dados manuais podem alimentar o mesmo motor de regras e o
+  Gemini, com origem claramente identificada e consentimento para enviar à IA.
+
+### Riscos e controles pendentes para beta pública
+
+- Migrar as tabelas SQL com RLS, testar replay/expiração de state,
+  concorrência, invalidação de tokens, restrição por Kivai user_id.
+- Adicionar limites de frequência e quota de consulta por usuário e global.
+- Testar conta individual, MCC com hierarquia, conta sem permissão e falta
+  de \`refresh_token\`; verificar autorização OAuth em modo teste e
+  eventual revisão/produção da tela de consentimento.
+- Em projetos OAuth externos no status Testing, refresh tokens podem expirar
+  após 7 dias; definir audiência/testadores e passar por verificação de marca
+  quando necessário para abrir a beta a desconhecidos.
+- Confirmar de ponta a ponta implantação da callback no domínio oficial.
+- Não submeter relatórios sensíveis de clínicas ou leads ao Gemini
+  sem consentimento e minimização de dados.
+- Não ativar indexação ou divulgar o recurso OAuth até o fluxo estar completo.
+
+Fontes oficiais:
+https://developers.google.com/google-ads/api/docs/oauth/overview
+https://developers.google.com/google-ads/api/docs/account-management/listing-accounts
+https://developers.google.com/google-ads/api/rest/common/search
+https://developers.google.com/google-ads/api/docs/api-policy/developer-token
+https://developers.google.com/identity/protocols/oauth2/web-server
+https://developers.google.com/identity/protocols/oauth2/
