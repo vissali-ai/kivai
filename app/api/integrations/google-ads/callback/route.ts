@@ -6,10 +6,16 @@ export const dynamic = "force-dynamic";
 function finish(status: "connected" | "denied" | "failed") {
   const url = new URL(googleAdsOAuthReturnPage());
   url.searchParams.set("google_ads_connection", status);
-  const response = Response.redirect(url.toString(), 303);
-  response.headers.set("Cache-Control", "no-store");
-  response.headers.set("Referrer-Policy", "no-referrer");
-  return response;
+  // Response.redirect() devolve headers imutáveis no runtime Vercel/Next.js.
+  // Definir todos os headers na construção impede o TypeError: immutable.
+  return new Response(null, {
+    status: 303,
+    headers: {
+      Location: url.toString(),
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer",
+    },
+  });
 }
 
 export async function GET(request: Request) {

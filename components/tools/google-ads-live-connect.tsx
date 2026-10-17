@@ -44,7 +44,7 @@ type LiveReport = {
 };
 
 const toolPath = "/ferramentas/analisador-de-trafego-pago-google-ads";
-const loginHref = "/conta/login?next=" + encodeURIComponent(toolPath);
+const loginHref = "/conta/login?next=" + encodeURIComponent(toolPath + "?connect_google_ads=1");
 
 function bearer() {
   const token = getStoredSession()?.access_token;
@@ -78,6 +78,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
   const [available, setAvailable] = useState(false);
   const [setupHint, setSetupHint] = useState("");
   const [connections, setConnections] = useState<ConnectedUser[]>([]);
+  const [connectionsLoaded, setConnectionsLoaded] = useState(false);
   const [connectionId, setConnectionId] = useState("");
   const [accounts, setAccounts] = useState<LinkedAccount[]>([]);
   const [partialAccounts, setPartialAccounts] = useState(false);
@@ -93,17 +94,19 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
   const refresh = useCallback(async () => {
     const isAuthed = Boolean(bearer());
     setAuthenticated(isAuthed);
-    if (!isAuthed) return;
+    if (!isAuthed) { setConnectionsLoaded(false); return; }
     try {
       const response = await getJson<{ connections: ConnectedUser[] }>(
         "/api/integrations/google-ads/connections",
       );
       setConnections(response.connections);
+      setConnectionsLoaded(true);
       setConnectionId((current) =>
         response.connections.some((item) => item.id === current)
           ? current : (response.connections[0]?.id ?? ""),
       );
     } catch (cause) {
+      setConnectionsLoaded(false);
       setError(cause instanceof Error ? cause.message : "Não foi possível consultar conexões.");
     }
   }, []);
@@ -121,6 +124,36 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
       await refresh();
     })();
   }, [refresh]);
+
+  // Fluxo opcional iniciado pelo próprio usuário: entrar no Kivai e seguir
+  // para a autorização Google Ads somente quando não existe conexão salva.
+  // A URL é consumida antes de iniciar o OAuth para evitar loops de consentimento.
+  useEffect(() => {
+    if (!connectionsLoaded || authenticated !== true || !available) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("connect_google_ads") !== "1") return;
+    url.searchParams.delete("connect_google_ads");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    if (connections.length > 0) return;
+
+    setLoading(true);
+    setError("");
+    void (async () => {
+      try {
+        const result = await getJson<{ authorizationUrl: string }>(
+          "/api/integrations/google-ads/start", { method: "POST" },
+        );
+        const authorization = new URL(result.authorizationUrl);
+        if (authorization.origin !== "https://accounts.google.com") {
+          throw new Error("Endereço de autorização inesperado.");
+        }
+        window.location.assign(authorization.toString());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Não foi possível iniciar a autorização.");
+        setLoading(false);
+      }
+    })();
+  }, [authenticated, available, connectionsLoaded, connections.length]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -278,7 +311,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
       <div className="mt-5 flex flex-wrap items-center gap-3">
         {authenticated === false ? (
           <Link href={loginHref} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
-            Entrar no Kivai
+            Entrar no Kivai e conectar Google Ads
           </Link>
         ) : (
           <button type="button" onClick={beginConsent}
