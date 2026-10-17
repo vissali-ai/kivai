@@ -38,7 +38,7 @@ const actionLabel = {
 
 const sourceLabel = {
   metas: "Plano do cliente",
-  campanhas_csv: "Relatório de campanhas",
+  metricas_de_campanhas: "Métricas de campanhas",
   arquivo_complementar: "Relatório complementar",
 } as const;
 
@@ -254,11 +254,11 @@ export function TrafficBetaAssistant({ snapshot }: {
 
       {!snapshot ? (
         <p className="mt-4 rounded-lg border border-white/10 bg-background p-3 text-xs text-muted-foreground">
-          Para pedir diagnóstico com IA, importe primeiro um CSV de campanhas e informe o período real do relatório.
+          Para pedir diagnóstico com IA, importe um CSV de campanhas ou conecte uma conta Google Ads e atualize suas métricas.
         </p>
       ) : (
         <p className="mt-4 text-xs text-muted-foreground">
-          Base numérica pronta: {snapshot.totals.campaignCount} campanha(s), de {snapshot.from} a {snapshot.to}.
+          Base numérica pronta: {snapshot.totals.campaignCount} campanha(s), de {snapshot.from} a {snapshot.to} · {snapshot.source === "google_ads_api" ? "Integração Google Ads" : "CSV importado"}.
         </p>
       )}
       <button type="button" onClick={runAnalysis}
