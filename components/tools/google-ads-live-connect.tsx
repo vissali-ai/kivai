@@ -181,7 +181,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
       byType.set(campaign.channel, previous);
     }
     return {
-      from: report.from, to: report.to, goals,
+      from: report.from, to: report.to, source: "google_ads_api", goals,
       totals: { ...report.totals, campaignCount: report.campaigns.length },
       channels: [...byType.values()],
     };
