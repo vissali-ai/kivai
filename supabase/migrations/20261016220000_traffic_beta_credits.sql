@@ -1,13 +1,13 @@
 -- Bônus beta exclusivo do Analisador de Tráfego Pago Google Ads.
 -- Aditivo: não altera ai_credit_wallets, planos, assinaturas nem compras existentes.
--- Uma única concessão de 30 créditos por auth.users(id) com e-mail confirmado.
+-- Uma única concessão de 10 créditos por auth.users(id) com e-mail confirmado.
 -- Uma análise concluída = um crédito, sem renovação mensal.
 -- Todas as funções são RPC server-only chamadas com service_role.
 
 create table if not exists public.traffic_beta_wallets (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  granted integer not null default 30 check (granted = 30),
-  remaining integer not null default 30 check (remaining between 0 and 30),
+  granted integer not null default 10 check (granted = 10),
+  remaining integer not null default 10 check (remaining between 0 and 10),
   granted_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -40,15 +40,15 @@ declare
   w public.traffic_beta_wallets%rowtype;
   eligible boolean;
 begin
-  if p_user_id is null then return jsonb_build_object('eligible',false,'remaining',0,'initial',30); end if;
+  if p_user_id is null then return jsonb_build_object('eligible',false,'remaining',0,'initial',10); end if;
   select exists(
     select 1 from auth.users where id = p_user_id and email_confirmed_at is not null
   ) into eligible;
-  if not eligible then return jsonb_build_object('eligible',false,'remaining',0,'initial',30); end if;
+  if not eligible then return jsonb_build_object('eligible',false,'remaining',0,'initial',10); end if;
   select * into w from public.traffic_beta_wallets where user_id=p_user_id;
   return jsonb_build_object(
-    'eligible',true, 'initial',30,
-    'remaining', case when found then w.remaining else 30 end,
+    'eligible',true, 'initial',10,
+    'remaining', case when found then w.remaining else 10 end,
     'activated', found
   );
 end;
@@ -72,7 +72,7 @@ begin
     return jsonb_build_object('allowed',false,'reason','email_unverified');
   end if;
 
-  -- Concessão idempotente. Nunca se repete após 30 créditos utilizados.
+  -- Concessão idempotente. Nunca se repete após 10 créditos utilizados.
   insert into public.traffic_beta_wallets(user_id)
   values(p_user_id) on conflict(user_id) do nothing;
   select * into wallet from public.traffic_beta_wallets
@@ -168,4 +168,4 @@ grant execute on function public.finalize_traffic_beta_credit(uuid,uuid,boolean)
 grant execute on function public.recover_stale_traffic_beta_operations(uuid) to service_role;
 
 comment on table public.traffic_beta_wallets is
-  'Bônus beta de 30 análises IA, uma vez por usuário verificado, isolado dos demais planos e créditos';
+  'Bônus beta de 10 análises IA, uma vez por usuário verificado, isolado dos demais planos e créditos';
