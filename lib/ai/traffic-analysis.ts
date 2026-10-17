@@ -50,6 +50,12 @@ export const trafficReportKind = z.enum([
 export const trafficAnalysisRequestSchema = z.object({
   consent: z.literal(true),
   snapshot: trafficSnapshotSchema,
+  context: z.object({
+    sector: z.string().trim().max(120),
+    region: z.string().trim().max(120),
+    notes: z.string().trim().max(1500),
+    objective: z.enum(["leads", "sales", "traffic", "awareness", "video", "app", "other"]),
+  }).strict().optional(),
   reports: z.array(z.object({
     kind: trafficReportKind,
     content: z.string().trim().min(10).max(12_000),
