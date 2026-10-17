@@ -456,7 +456,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
                 </div>
               ))}
           </div>
-          <GoogleAdsDiagnosticFeed insights={diagnostics.insights} title="Diagnóstico de metas da conta conectada" />
+          <GoogleAdsDiagnosticFeed insights={diagnostics.insights} title="Diagnóstico automático de metas da conta conectada" />
           <p className="mt-4 flex items-start gap-2 text-xs leading-6 text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
             A API informa conversões, não necessariamente leads qualificados. Confirme a definição no plano.
