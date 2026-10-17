@@ -122,6 +122,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
     }), { impressions: 0, clicks: 0, cost: 0, conversions: 0, conversionValue: 0, complete: true });
     onSnapshot({
       from: reportStart, to: reportEnd,
+      source: "csv",
       goals,
       totals: {
         impressions: allTotals.impressions,
