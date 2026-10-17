@@ -375,7 +375,7 @@ export async function googleAdsCampaignReport(
     "metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, " +
     "metrics.conversions_value FROM campaign " +
     "WHERE segments.date BETWEEN '" + from + "' AND '" + to + "' " +
-    "AND campaign.status != 'REMOVED' ORDER BY metrics.cost_micros DESC LIMIT 500";
+    "ORDER BY metrics.cost_micros DESC LIMIT 500";
 
   const result = await adsSearch(token, customerId, query, loginCustomerId);
   if (result.nextPageToken) {
