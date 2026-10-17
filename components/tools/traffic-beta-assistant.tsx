@@ -143,10 +143,10 @@ export function TrafficBetaAssistant({ snapshot }: {
             A análise matemática e os arquivos locais não consomem crédito.
           </p>
         </div>
-        <div className="rounded-xl border border-primary/30 bg-background p-4">
+        <div className="rounded-xl border border-primary/10 bg-background p-4">
           <p className="text-xs text-muted-foreground">Bônus único da fase beta</p>
           <p className="mt-1 text-3xl font-bold tabular-nums">
-            {wallet ? wallet.remaining : "30"} <span className="text-sm font-normal">créditos</span>
+            {wallet ? wallet.remaining : "10"} <span className="text-sm font-normal">créditos</span>
           </p>
           <p className="mt-1 max-w-48 text-xs leading-5 text-muted-foreground">
             1 crédito por diagnóstico concluído. O bônus não renova mensalmente.
@@ -162,7 +162,7 @@ export function TrafficBetaAssistant({ snapshot }: {
           <Link href={loginUrl} className="rounded-lg border border-white/15 px-4 py-2.5 text-sm font-medium">
             Já tenho conta
           </Link>
-          <p className="text-xs leading-5 text-muted-foreground">Uma cota de 30 créditos por conta com e-mail confirmado.</p>
+          <p className="text-xs leading-5 text-muted-foreground">Uma cota de 10 créditos por conta com e-mail confirmado.</p>
         </div>
       ) : null}
       {wallet && !wallet.eligible ? (
