@@ -106,45 +106,22 @@ export default function GoogleAdsTrafficAnalyzerClient() {
   const [maxCpl, setMaxCpl] = useState("");
   const [targetRoas, setTargetRoas] = useState("");
   const [monthlyRevenue, setMonthlyRevenue] = useState("");
-  const [conversionsAreLeads, setConversionsAreLeads] = useState(false);
-  const [conversionValueIsRevenue, setConversionValueIsRevenue] = useState(false);
   const monthlyGoals = useMemo(() => ({
     budget: positiveOrNull(budget),
     leads: positiveOrNull(targetLeads),
     maxCpl: positiveOrNull(maxCpl),
     targetRoas: positiveOrNull(targetRoas),
     monthlyRevenue: positiveOrNull(monthlyRevenue),
-    conversionsAreLeads,
-    conversionValueIsRevenue,
-  }), [budget, targetLeads, maxCpl, targetRoas, monthlyRevenue, conversionsAreLeads, conversionValueIsRevenue]);
-  const [cpc, setCpc] = useState("");
-  const [conversionRate, setConversionRate] = useState("");
-  const [closeRate, setCloseRate] = useState("");
-  const [ticket, setTicket] = useState("");
+    // Sem validação explícita da mensuração, não inferir leads nem faturamento
+    // a partir das conversões/valores recebidos do Google Ads ou dos CSVs.
+    conversionsAreLeads: false,
+    conversionValueIsRevenue: false,
+  }), [budget, targetLeads, maxCpl, targetRoas, monthlyRevenue]);
   const [fileName, setFileName] = useState("");
   const [terms, setTerms] = useState<SearchTerm[]>([]);
   const [fileError, setFileError] = useState("");
   const [minClicks, setMinClicks] = useState("10");
   const [minCost, setMinCost] = useState("50");
-
-  const results = useMemo(() => {
-    const investment = numberFromInput(budget), clickCost = numberFromInput(cpc);
-    const leadRate = numberFromInput(conversionRate), salesRate = numberFromInput(closeRate);
-    const averageTicket = numberFromInput(ticket), goal = numberFromInput(targetLeads);
-    const validCore = investment > 0 && clickCost > 0 && leadRate > 0 && leadRate <= 100;
-    const validSales = salesRate >= 0 && salesRate <= 100 && averageTicket >= 0;
-    const clicks = validCore ? investment / clickCost : NaN;
-    const leads = validCore ? clicks * leadRate / 100 : NaN;
-    const sales = validCore && validSales ? leads * salesRate / 100 : NaN;
-    const revenue = Number.isFinite(sales) ? sales * averageTicket : NaN;
-    return {
-      clicks, leads, sales, revenue,
-      cpl: validCore ? investment / leads : NaN,
-      roas: validCore && validSales ? revenue / investment : NaN,
-      requiredBudget: goal > 0 && clickCost > 0 && leadRate > 0 && leadRate <= 100
-        ? goal / (leadRate / 100) * clickCost : NaN,
-    };
-  }, [budget, targetLeads, cpc, conversionRate, closeRate, ticket]);
 
   const candidates = useMemo(() => {
     const clicksLimit = numberFromInput(minClicks);
@@ -190,12 +167,8 @@ export default function GoogleAdsTrafficAnalyzerClient() {
       premissas: {
         investimento_mensal: budget, meta_leads: targetLeads, cpl_maximo: maxCpl,
         roas_desejado: targetRoas, meta_faturamento_atribuido: monthlyRevenue,
-        conversoes_representam_leads: conversionsAreLeads,
-        valor_de_conversao_representa_receita_atribuida: conversionValueIsRevenue,
-        cpc_estimado: cpc,
-        taxa_clique_para_lead_percentual: conversionRate, taxa_fechamento_percentual: closeRate, ticket_medio: ticket },
-      simulacao: results,
-      aviso: "Cenário matemático ilustrativo. Não representa previsão de mercado ou diagnóstico gerado por IA.",
+      },
+      aviso: "Planejamento baseado nas metas informadas. Conversões e valores de conversão não são automaticamente classificados como leads ou receita. O documento não é um diagnóstico de resultados.",
     };
     saveFile("kivai-plano-trafego.json", JSON.stringify(plan, null, 2), "application/json;charset=utf-8");
   }
@@ -220,7 +193,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Analisador de Tráfego Pago Google Ads</h1>
           <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
             Monte um plano mensal, importe métricas gerais de campanhas de qualquer modalidade e revise termos de pesquisa quando aplicável.
-            A versão beta aceita CSVs locais e oferece diagnóstico complementar com Gemini mediante autorização. A conexão automática com a API Google Ads ainda não está disponível.
+            A versão beta aceita CSVs locais, conexão com contas Google Ads autorizadas e diagnóstico complementar com Gemini mediante consentimento.
           </p>
           <p className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="size-4 text-primary" aria-hidden="true" /> Os relatórios são lidos localmente por padrão. O envio de resumo e trechos selecionados ao Gemini só ocorre se você autorizar no beta; os arquivos não são salvos automaticamente pelo analisador.
@@ -233,9 +206,9 @@ export default function GoogleAdsTrafficAnalyzerClient() {
             <h2 id="plano-title" className="text-xl font-semibold">Plano mensal do cliente</h2>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Preencha o que souber. Campos não informados não serão adivinhados. Use premissas próprias para criar projeções editáveis.
+            Preencha o que souber. Campos não informados não serão adivinhados. Conversões e valores de conversão não são automaticamente classificados como leads ou receita.
           </p>
-          <div className="mt-5 grid gap-6 lg:grid-cols-2">
+          <div className="mt-5 max-w-3xl">
             <div className={cardClass}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Cliente ou projeto" value={client} onChange={setClient} placeholder="Nome opcional" />
@@ -248,55 +221,10 @@ export default function GoogleAdsTrafficAnalyzerClient() {
                 <div className="sm:col-span-2">
                   <Field label="Meta mensal de receita atribuída ao Google Ads (R$)" value={monthlyRevenue} onChange={setMonthlyRevenue} placeholder="Ex.: 12000" />
                 </div>
-                <Field label="CPC estimado (R$)" value={cpc} onChange={setCpc} placeholder="Ex.: 5,50" />
-                <Field label="Cliques que viram leads (%)" value={conversionRate} onChange={setConversionRate} placeholder="Ex.: 4" />
-                <Field label="Leads que fecham (%)" value={closeRate} onChange={setCloseRate} placeholder="Ex.: 15" />
-                <Field label="Ticket médio (R$)" value={ticket} onChange={setTicket} placeholder="Ex.: 1500" />
-                <div className="sm:col-span-2 rounded-lg border border-white/10 bg-background/60 p-3">
-                  <p className="text-xs font-semibold">Confirmação da mensuração</p>
-                  <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs leading-5 text-muted-foreground">
-                    <input type="checkbox" checked={conversionsAreLeads} onChange={(event) => setConversionsAreLeads(event.target.checked)}
-                      className="mt-0.5 size-4 accent-primary" />
-                    As conversões deste relatório representam exclusivamente os leads que desejo comparar com a meta.
-                  </label>
-                  <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs leading-5 text-muted-foreground">
-                    <input type="checkbox" checked={conversionValueIsRevenue} onChange={(event) => setConversionValueIsRevenue(event.target.checked)}
-                      className="mt-0.5 size-4 accent-primary" />
-                    O valor de conversão do relatório é comparável à meta de receita atribuída, não ao faturamento geral.
-                  </label>
-                </div>
               </div>
               <button onClick={exportPlan} type="button" className="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-medium hover:border-primary/50">
                 <Download className="size-4" aria-hidden="true" /> Baixar planejamento
               </button>
-            </div>
-            <div className={cardClass}>
-              <h3 className="text-base font-semibold">Simulação mensal</h3>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                Estimativas aritméticas baseadas exclusivamente nos valores inseridos. Não são métricas reais, pesquisa regional nem promessa de retorno.
-              </p>
-              <dl className="mt-5 grid grid-cols-2 gap-4">
-                {[
-                  ["Cliques estimados", formatCount(results.clicks)],
-                  ["Leads estimados", formatCount(results.leads)],
-                  ["CPL projetado", money(results.cpl)],
-                  ["Vendas estimadas", formatCount(results.sales)],
-                  ["Receita simulada", money(results.revenue)],
-                  ["ROAS projetado", Number.isFinite(results.roas) ? results.roas.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) + "x" : "Não calculado"],
-                ].map(([label, value]) => (
-                  <div key={label} className="rounded-lg bg-background p-3">
-                    <dt className="text-xs text-muted-foreground">{label}</dt>
-                    <dd className="mt-1 text-lg font-semibold tabular-nums">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="mt-5 rounded-lg border border-primary/20 bg-primary/[0.055] p-4">
-                <p className="text-sm font-medium">Investimento para alcançar a meta de leads</p>
-                <p className="mt-1 text-xl font-semibold tabular-nums">{money(results.requiredBudget)}</p>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Depende do CPC e da taxa de conversão informados. Resultados reais podem variar.
-                </p>
-              </div>
             </div>
           </div>
         </section>
