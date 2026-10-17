@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Download, FileSpreadsheet, ShieldCheck, Target }
 import { CampaignReportSection } from "@/components/tools/google-ads-campaign-report";
 import { GoogleAdsAuctionCompare } from "@/components/tools/google-ads-auction-compare";
 import { TrafficBetaAssistant } from "@/components/tools/traffic-beta-assistant";
+import { GoogleAdsLiveConnect } from "@/components/tools/google-ads-live-connect";
 import type { TrafficAnalysisRequest } from "@/lib/ai/traffic-analysis";
 import { parseDelimited, parseReportNumber as numberFromInput } from "@/lib/google-ads/csv-utils";
 import { normalizeReportLabel as normalize } from "@/lib/google-ads/campaign-types";
@@ -96,6 +97,7 @@ function Field({ label, value, onChange, placeholder, type = "text" }: {
 
 export default function GoogleAdsTrafficAnalyzerClient() {
   const [trafficSnapshot, setTrafficSnapshot] = useState<TrafficAnalysisRequest["snapshot"] | null>(null);
+  const [connectedSnapshot, setConnectedSnapshot] = useState<TrafficAnalysisRequest["snapshot"] | null>(null);
   const [client, setClient] = useState("");
   const [segment, setSegment] = useState("");
   const [city, setCity] = useState("");
@@ -106,6 +108,15 @@ export default function GoogleAdsTrafficAnalyzerClient() {
   const [monthlyRevenue, setMonthlyRevenue] = useState("");
   const [conversionsAreLeads, setConversionsAreLeads] = useState(false);
   const [conversionValueIsRevenue, setConversionValueIsRevenue] = useState(false);
+  const monthlyGoals = useMemo(() => ({
+    budget: positiveOrNull(budget),
+    leads: positiveOrNull(targetLeads),
+    maxCpl: positiveOrNull(maxCpl),
+    targetRoas: positiveOrNull(targetRoas),
+    monthlyRevenue: positiveOrNull(monthlyRevenue),
+    conversionsAreLeads,
+    conversionValueIsRevenue,
+  }), [budget, targetLeads, maxCpl, targetRoas, monthlyRevenue, conversionsAreLeads, conversionValueIsRevenue]);
   const [cpc, setCpc] = useState("");
   const [conversionRate, setConversionRate] = useState("");
   const [closeRate, setCloseRate] = useState("");
@@ -290,15 +301,8 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           </div>
         </section>
 
-        <CampaignReportSection onSnapshot={setTrafficSnapshot} goals={{
-          budget: positiveOrNull(budget),
-          leads: positiveOrNull(targetLeads),
-          maxCpl: positiveOrNull(maxCpl),
-          targetRoas: positiveOrNull(targetRoas),
-          monthlyRevenue: positiveOrNull(monthlyRevenue),
-          conversionsAreLeads,
-          conversionValueIsRevenue,
-        }} />
+        <GoogleAdsLiveConnect goals={monthlyGoals} onSnapshot={setConnectedSnapshot} />
+        <CampaignReportSection onSnapshot={setTrafficSnapshot} goals={monthlyGoals} />
 
         <section className="mt-12" aria-labelledby="relatorio-title">
           <div className="flex items-center gap-2">
@@ -379,7 +383,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           </div>
         </section>
         <GoogleAdsAuctionCompare />
-        <TrafficBetaAssistant snapshot={trafficSnapshot} />
+        <TrafficBetaAssistant snapshot={connectedSnapshot ?? trafficSnapshot} />
         <div className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="size-4" aria-hidden="true" />
           Os arquivos dos cálculos locais não são enviados. Na análise com Gemini, apenas os dados e relatórios selecionados por você são transmitidos após consentimento.
