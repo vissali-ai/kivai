@@ -329,12 +329,12 @@ export default function GoogleAdsTrafficAnalyzerClient() {
         <GoogleAdsLiveConnect goals={monthlyGoals} period={selectedPeriod} onSnapshot={setConnectedSnapshot} />
         <CampaignReportSection onSnapshot={setTrafficSnapshot} goals={monthlyGoals} period={selectedPeriod} />
 
-        <section className="mt-12" aria-labelledby="relatorio-title">
-          <div className="flex items-center gap-2">
+        <details className="mt-12 rounded-xl border border-white/10 bg-white/[0.02] p-5" aria-labelledby="relatorio-title">
+          <summary className="flex cursor-pointer items-center gap-2 text-foreground">
             <FileSpreadsheet className="size-5 text-primary" aria-hidden="true" />
-            <h2 id="relatorio-title" className="text-xl font-semibold">Revisão complementar de termos de pesquisa</h2>
-          </div>
-          <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground">
+            <span id="relatorio-title" className="text-lg font-semibold">Módulo opcional: termos de pesquisa</span>
+          </summary>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
             Exporte os termos de pesquisa do Google Ads em CSV, com colunas Termo de pesquisa, Cliques, Custo e Conversões.
             Este relatório complementa a visão de campanha quando há termos disponíveis. A análise usa limites definidos por você e apenas sinaliza termos para revisão, sem executar negativas.
           </p>
@@ -406,7 +406,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
               </div>
             ) : null}
           </div>
-        </section>
+        </details>
         <GoogleAdsAuctionCompare />
         <TrafficBetaAssistant snapshot={connectedSnapshot ?? trafficSnapshot} context={businessContext} />
         <div className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
