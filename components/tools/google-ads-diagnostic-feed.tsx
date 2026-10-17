@@ -23,9 +23,9 @@ export function GoogleAdsDiagnosticFeed({ insights, title = "Prioridades e recom
     <section aria-label={title} className="mt-8 rounded-xl border border-white/10 bg-white/[0.025] p-5">
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-xs leading-6 text-muted-foreground">
-        Orientações transparentes com base nos números e metas informados. Não são recomendações
-        oficiais importadas do Google Ads nem análise gerada pelo Gemini nesta versão.
-        Nenhuma alteração é feita automaticamente nas campanhas.
+        Diagnóstico automático baseado em regras e nas métricas informadas. Não utiliza IA
+        nem importa recomendações oficiais do Google Ads. Nenhuma alteração é feita
+        automaticamente nas campanhas.
       </p>
       {insights.length ? (
         <div className="mt-5 grid gap-3 lg:grid-cols-2">

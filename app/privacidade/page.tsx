@@ -162,7 +162,7 @@ export default function PrivacyPage() {
             </p>
             <p>
               O diagnóstico por inteligência artificial é opcional e exige uma autorização
-              separada na própria ferramenta. Quando você concorda, enviamos ao serviço Gemini
+              separada na própria ferramenta. Quando você concorda, enviamos ao serviço de IA
               do Google as métricas e metas selecionadas e o conteúdo de relatórios complementares
               que você tiver anexado. Esses dados são processados pelo fornecedor para produzir
               o diagnóstico solicitado e podem ser tratados em infraestrutura fora do Brasil.

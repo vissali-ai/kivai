@@ -45,7 +45,7 @@ export default function TrafegoPagoHub() {
           <h2 className="mt-4 text-2xl font-semibold">Analisador de Tráfego Pago Google Ads</h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
             Planeje investimento e metas, importe relatórios gerais de qualquer tipo de campanha Google Ads e identifique pontos de atenção.
-            A revisão de termos de pesquisa é um recurso complementar. Nesta fase beta, o processamento principal é local, o Gemini pode analisar dados autorizados e a conexão com contas Google Ads está disponível para usuários de teste cadastrados no Google Cloud.
+            A revisão de termos de pesquisa é um recurso complementar. Nesta fase beta, o processamento principal é local, a análise complementar com IA pode interpretar dados autorizados e a conexão com contas Google Ads está disponível para usuários de teste cadastrados no Google Cloud.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href={getToolHref("analisador-de-trafego-pago-google-ads")} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">

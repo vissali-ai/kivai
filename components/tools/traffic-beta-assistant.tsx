@@ -135,12 +135,13 @@ export function TrafficBetaAssistant({ snapshot }: {
             <Sparkles className="size-4" aria-hidden="true" /> Acesso beta do Kivai
           </p>
           <h2 id="traffic-beta-heading" className="mt-2 text-2xl font-semibold">
-            Analise campanhas com Gemini e receba recomendações explicadas
+            Análise complementar com IA
           </h2>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
-            O Kivai combina as métricas importadas, o plano proporcional aos dias concluídos e
-            relatórios complementares para propor ações, investigações ou recomendações de aguardar.
-            A análise matemática e os arquivos locais não consomem crédito.
+            O diagnóstico automático acima é gratuito. Aqui você pode solicitar
+            uma avaliação adicional com IA e anexar relatórios complementares para
+            contextualizar as recomendações. Sem novos relatórios, a IA pode repetir
+            conclusões já identificadas. Cada análise concluída utiliza 1 crédito.
           </p>
         </div>
         <div className="rounded-xl border border-primary/10 bg-background p-4">
@@ -176,11 +177,11 @@ export function TrafficBetaAssistant({ snapshot }: {
         </p>
       ) : null}
 
-      <div className="mt-8">
-        <div className="flex items-center gap-2">
+      <details className="group mt-7 rounded-xl border border-white/10 bg-background/50 p-4">
+        <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold">
           <CircleHelp className="size-4 text-primary" aria-hidden="true" />
-          <h3 className="text-base font-semibold">Que outros relatórios devo importar?</h3>
-        </div>
+          Que relatórios podem aprofundar a análise?
+        </summary>
         <p className="mt-2 text-xs leading-6 text-muted-foreground">
           Com a conexão Google Ads API aprovada, o sistema buscará os indicadores permitidos automaticamente.
           Quando um dado não estiver disponível, ou enquanto a integração não estiver ativa,
@@ -202,12 +203,12 @@ export function TrafficBetaAssistant({ snapshot }: {
             </tbody>
           </table>
         </div>
-      </div>
+      </details>
 
       <div className="mt-7 rounded-xl border border-white/10 bg-background p-5">
         <div className="flex items-center gap-2">
           <FileUp className="size-4 text-primary" aria-hidden="true" />
-          <h3 className="text-sm font-semibold">Relatórios complementares para o Gemini (opcional)</h3>
+          <h3 className="text-sm font-semibold">Relatórios complementares para a análise com IA (opcional)</h3>
         </div>
         <p className="mt-2 text-xs leading-6 text-muted-foreground">
           Você pode adicionar até três arquivos CSV, TSV ou XLSX por diagnóstico. Na versão beta,
@@ -248,7 +249,7 @@ export function TrafficBetaAssistant({ snapshot }: {
       <label className="mt-6 flex cursor-pointer items-start gap-2 text-xs leading-6 text-muted-foreground">
         <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1 size-4 accent-primary" />
         Autorizo o envio do resumo das campanhas, metas e conteúdos dos relatórios complementares
-        selecionados ao Gemini para esta análise. Sei que são dados da minha conta ou de um cliente autorizado
+        selecionados ao serviço de IA do Google para esta análise. Sei que são dados da minha conta ou de um cliente autorizado
         e que devo evitar informações pessoais ou confidenciais desnecessárias.
       </label>
 
@@ -265,7 +266,7 @@ export function TrafficBetaAssistant({ snapshot }: {
         disabled={!snapshot || !consent || loading || !wallet?.eligible || wallet.remaining < 1}
         className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
         <BrainCircuit className="size-4" aria-hidden="true" />
-        {loading ? "Analisando dados..." : "Gerar diagnóstico com Gemini (1 crédito)"}
+        {loading ? "Analisando dados..." : "Gerar análise com IA (1 crédito)"}
       </button>
       {error ? <p role="alert" className="mt-4 text-sm text-red-400">{error}</p> : null}
       <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
@@ -275,7 +276,7 @@ export function TrafficBetaAssistant({ snapshot }: {
 
       {analysis ? (
         <div className="mt-8 rounded-xl border border-white/10 bg-background p-5" aria-live="polite">
-          <h3 className="text-lg font-semibold">Diagnóstico com Gemini</h3>
+          <h3 className="text-lg font-semibold">Diagnóstico complementar com IA</h3>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">{analysis.summary}</p>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             {analysis.recommendations.map((item, index) => (
