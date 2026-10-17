@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     if (!reservation.allowed) {
       return failure(reservation.reason === "email_unverified"
         ? "Confirme o e-mail da sua conta para desbloquear o bônus beta."
-        : "Seus 30 créditos beta foram utilizados. A análise manual continua disponível.",
+        : "Seus 10 créditos beta foram utilizados. A análise manual continua disponível.",
       reservation.reason === "email_unverified" ? 403 : 402);
     }
     reserved = true;
