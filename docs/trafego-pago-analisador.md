@@ -455,3 +455,46 @@ https://developers.google.com/google-ads/api/rest/common/search
 https://developers.google.com/google-ads/api/docs/api-policy/developer-token
 https://developers.google.com/identity/protocols/oauth2/web-server
 https://developers.google.com/identity/protocols/oauth2/
+
+
+### Ambiente OAuth Preview separado (piloto sem publicar)
+
+Para testar o OAuth antes de colocar no domínio oficial, usar exclusivamente a
+branch \`feature/hub-trafego-pago-ads-intelligence\` e sua URL estável de Preview:
+
+\`https://kivai-git-feature-hub-trafego-pago-ads-intelligence-kivai.vercel.app\`
+
+O código permite somente:
+- Production: \`https://kivai.com.br/api/integrations/google-ads/callback\`.
+- Preview nesta branch: \`https://kivai-git-feature-hub-trafego-pago-ads-intelligence-kivai.vercel.app/api/integrations/google-ads/callback\`.
+
+Os dois endereços são fixos e validados no servidor, sem usar o cabeçalho Host
+da solicitação. A callback redireciona o resultado ao mesmo ambiente.
+As variáveis \`GOOGLE_ADS_CLIENT_ID\`, \`GOOGLE_ADS_CLIENT_SECRET\`,
+\`GOOGLE_ADS_TOKEN_ENCRYPTION_KEY\` já existem nos dois ambientes. A variável
+\`GOOGLE_ADS_REDIRECT_URI\` de Preview foi ajustada para a URL estável de Preview
+via plugin Vercel. Production não foi alterado.
+
+**Ação pendente do titular**: adicionar, sem substituir a URI de produção,
+a URI de Preview na lista de URIs autorizados do cliente OAuth **Kivai Google Ads**
+no Google Cloud. A alteração do projeto Google Cloud não pode ser feita pelos
+plugins atuais. Após salvar, reimplantar a Preview para ela receber as novas
+variáveis de ambiente e verificar o endpoint \`/api/integrations/google-ads/status\`.
+
+O login Supabase deve funcionar no domínio de Preview escolhido; se a lista de
+URLs de redirecionamento do Supabase não reconhecer o alias estável, incluir a
+URL exata no conjunto permitido após revisão e sem remover origens existentes.
+
+**IMPORTANTE**: A Preview utiliza o mesmo Supabase de produção para conexões
+OAuth e pode usar chave AES diferente da produção. Enquanto não houver
+separação definitiva de ambientes, conectar e desconectar exclusivamente
+uma conta própria de teste, e limpar o vínculo de teste antes da publicação.
+Não introduzir autenticações de terceiros ou tráfego beta público neste estado.
+
+Checklist antes da primeira conexão:
+- Confirmar que usuário está em Google Auth Platform > Público-alvo > Usuários de teste.
+- Escopo Google Ads em Acesso a dados e Branding salvo.
+- Callback de Preview autorizada no Google Cloud.
+- Preview Vercel atualizada com o commit mais recente e variáveis corretas.
+- Login Kivai no Preview funcional.
+- Apenas leitura; testar autorização, contas diretas/MCC, fuso e período, desconectar.
