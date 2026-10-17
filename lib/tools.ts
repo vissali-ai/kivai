@@ -241,15 +241,15 @@ export const tools: Tool[] = [
   {
     slug: "analisador-de-trafego-pago-google-ads",
     name: "Analisador de Tráfego Pago Google Ads",
-    description: "Planeje metas e analise métricas gerais de campanhas Google Ads de diferentes modalidades, com revisão complementar de termos de pesquisa por CSV.",
+    description: "Analise o desempenho das campanhas Google Ads, compare custos e metas e identifique pontos de atenção e prioridades de otimização.",
     category: "trafego",
     hubFilter: "Gestão",
     badge: "Google Ads",
     icon: BarChart3,
     available: true,
     seoTitle: "Analisador de Tráfego Pago Google Ads | Kivai",
-    seoDescription: "Analise campanhas Google Ads por tipo, planeje metas, identifique pontos de atenção e revise termos de pesquisa com arquivos CSV.",
-    keywords: ["tráfego pago", "google ads", "planejamento de campanhas", "termos de pesquisa", "orçamento de anúncios", "gestor de tráfego"],
+    seoDescription: "Analise campanhas Google Ads, compare investimentos, conversões e metas e identifique oportunidades de otimização com relatórios e contas conectadas.",
+    keywords: ["tráfego pago", "google ads", "auditoria de campanhas", "otimização google ads", "orçamento de anúncios", "custo por conversão", "metas de campanhas", "gestor de tráfego"],
   },
   {
     slug: "imprimir-frente-e-verso",
