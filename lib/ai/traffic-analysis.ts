@@ -16,6 +16,7 @@ export const trafficGoalsSchema = z.object({
 export const trafficSnapshotSchema = z.object({
   from: z.iso.date(),
   to: z.iso.date(),
+  source: z.enum(["csv", "google_ads_api"]).optional(),
   goals: trafficGoalsSchema,
   totals: z.object({
     impressions: finiteMetric,
@@ -62,7 +63,7 @@ export const trafficAiOutputSchema = z.object({
     evidence: z.string().trim().min(10).max(450),
     recommendation: z.string().trim().min(15).max(550),
     risk: z.string().trim().min(10).max(330),
-    source: z.enum(["metas", "campanhas_csv", "arquivo_complementar"]),
+    source: z.enum(["metas", "metricas_de_campanhas", "arquivo_complementar"]),
   }).strict()).min(1).max(8),
   missingData: z.array(z.string().trim().min(10).max(220)).max(8),
 }).strict();
