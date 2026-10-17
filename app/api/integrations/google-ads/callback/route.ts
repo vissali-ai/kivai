@@ -1,12 +1,10 @@
-import { finishGoogleAdsConsent } from "@/lib/google-ads/oauth";
+import { finishGoogleAdsConsent, googleAdsOAuthReturnPage } from "@/lib/google-ads/oauth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const BASE = "https://kivai.com.br/ferramentas/analisador-de-trafego-pago-google-ads";
-
 function finish(status: "connected" | "denied" | "failed") {
-  const url = new URL(BASE);
+  const url = new URL(googleAdsOAuthReturnPage());
   url.searchParams.set("google_ads_connection", status);
   const response = Response.redirect(url.toString(), 303);
   response.headers.set("Cache-Control", "no-store");
