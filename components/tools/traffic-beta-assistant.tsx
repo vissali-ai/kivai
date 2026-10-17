@@ -46,8 +46,9 @@ const analyzerPath = "/ferramentas/analisador-de-trafego-pago-google-ads";
 const signupUrl = "/conta/cadastro?next=" + encodeURIComponent(analyzerPath);
 const loginUrl = "/conta/login?next=" + encodeURIComponent(analyzerPath);
 
-export function TrafficBetaAssistant({ snapshot }: {
+export function TrafficBetaAssistant({ snapshot, context }: {
   snapshot: TrafficAnalysisRequest["snapshot"] | null;
+  context: NonNullable<TrafficAnalysisRequest["context"]>;
 }) {
   const [logged, setLogged] = useState<boolean | null>(null);
   const [wallet, setWallet] = useState<BetaWallet | null>(null);
@@ -110,7 +111,7 @@ export function TrafficBetaAssistant({ snapshot }: {
           Authorization: "Bearer " + session.access_token,
         },
         body: JSON.stringify({
-          consent: true, snapshot,
+          consent: true, snapshot, context,
           reports: files.map(({ kind, content }) => ({ kind, content })),
         } satisfies TrafficAnalysisRequest),
       });
