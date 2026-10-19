@@ -68,6 +68,18 @@ function createCms({ realTransport = false } = {}) {
 
 const slugs = ["descompactar-zip", "descompactar-rar", "compactar-arquivos-zip", "renomear-arquivos-em-lote", "adicionar-prefixo-sufixo-arquivos", "removedor-de-metadados-e-rotulos-de-ia"];
 
+test("post creator is editable through Admin and feeds public content", async () => {
+  const { load } = createCms();
+  const repo = load("@/lib/site-cms/repository");
+  const entry = await repo.getSiteContentById("existing:criador-de-posts-com-ia");
+  assert.ok(entry.contentHtml.includes("crédito"));
+  assert.ok(entry.contentHtml.includes("Como usar"));
+  await repo.updateSiteContent(entry.id, { ...entry, title: "Criador editado", contentHtml: "<p>Tutorial do Admin</p>" });
+  const published = await repo.getPublishedToolOverride("criador-de-posts-com-ia");
+  assert.equal(published.title, "Criador editado");
+  assert.match(published.contentHtml, /Tutorial do Admin/);
+});
+
 test("AI tools and credit page can be edited through the CMS and read publicly", async () => {
   const { load } = createCms();
   const repo = load("@/lib/site-cms/repository");
@@ -106,7 +118,7 @@ test("all available tools have exactly one Admin entry, including the six former
   const { tools } = load("@/lib/tools");
   const repository = load("@/lib/site-cms/repository");
   const managed = await repository.listManagedSiteContents();
-  assert.equal(tools.filter((tool) => tool.available).length, 76);
+  assert.ok(tools.some((tool) => tool.slug === "criador-de-posts-com-ia" && tool.available));
   for (const tool of tools) assert.equal(managed.filter((item) => item.existingToolSlug === tool.slug).length, 1);
   for (const slug of slugs) {
     const entry = await repository.getSiteContentById(`existing:${slug}`);

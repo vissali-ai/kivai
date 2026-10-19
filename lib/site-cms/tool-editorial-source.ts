@@ -1,4 +1,5 @@
 import { duplexEditorial } from "@/lib/duplex-print/catalog";
+import { postCreatorEditorial } from "@/lib/post-creator/editorial";
 import { pdfParaExcelEditorialOverride } from "@/lib/pdf-para-excel-editorial-override";
 import { pdfParaHtmlEditorialOverride } from "@/lib/pdf-para-html-editorial-override";
 import { archiveToolEditorialContent } from "@/lib/archive-tool-editorial-content";
@@ -25,6 +26,7 @@ type EditorialSource = {
 };
 
 const sources: Array<Record<string, EditorialSource>> = [
+  { "criador-de-posts-com-ia": postCreatorEditorial },
   { "pdf-para-excel": pdfParaExcelEditorialOverride, "pdf-para-html": pdfParaHtmlEditorialOverride },
   archiveToolEditorialContent,
   { "removedor-de-metadados": removedorMetadadosEditorialContent, "removedor-de-metadados-e-rotulos-de-ia": removedorMetadadosEditorialContent },
@@ -61,6 +63,7 @@ function list(items: readonly string[], ordered = false) {
 }
 
 export function inferToolMode(slug: string): ToolImplementationMode {
+  if (slug === "criador-de-posts-com-ia") return "server";
   if (serverTools.has(slug)) return "server";
   if (informationalTools.has(slug)) return "informational";
   return "browser";
