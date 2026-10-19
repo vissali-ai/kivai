@@ -37,7 +37,7 @@ export async function getAiCreditBalance(userId: string): Promise<AiCreditBalanc
 }
 
 export async function reserveAiCredits(input: {
-  userId: string; operationId: string; kind: "insight" | "import"; cost: 1 | 2;
+  userId: string; operationId: string; kind: "insight" | "import"; cost: 1 | 2 | 5;
 }) {
   return supabaseRest<ReservationResult>("rpc/reserve_ai_credits", {
     method: "POST",

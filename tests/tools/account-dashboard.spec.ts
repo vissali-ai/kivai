@@ -88,7 +88,7 @@ test("saved projects are easy to find and filter without losing the catalog", as
   await clear.focus();
   await page.keyboard.press("Enter");
   await expect(articles).toHaveCount(2);
-  await expect(library.getByRole("navigation").getByRole("link")).toHaveCount(13);
+  await expect(library.getByRole("navigation").getByRole("link")).toHaveCount(14);
   await expectNoOverflow(page);
   await search.scrollIntoViewIfNeeded();
   await library.screenshot({ path: testInfo.outputPath("project-library.png") });

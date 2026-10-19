@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { readPostTransfer, clearPostTransfer, type PostTransfer } from "@/lib/post-creator/handoff";
 import { SavedProjects } from "@/components/account/saved-projects";
 
 import { CaptionAi } from "@/components/tools/caption-ai";
@@ -11,22 +13,25 @@ import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "kivai:preview-post-social:v1";
 const platforms = ["Instagram", "Facebook", "LinkedIn", "X", "Threads"] as const;
-const formats = { square: ["Quadrado", "1 / 1"], portrait: ["Retrato", "4 / 5"], landscape: ["Paisagem", "1.91 / 1"] } as const;
+const formats = { square: ["Quadrado", "1 / 1"], portrait: ["Retrato", "4 / 5"], landscape: ["Paisagem", "1.91 / 1"], story: ["Story", "9 / 16"] } as const;
 type Platform = typeof platforms[number]; type Format = keyof typeof formats; type Fit = "cover" | "contain";
 type Settings = { platform: Platform; name: string; username: string; professional: string; caption: string; format: Format; fit: Fit; position: number };
 const initial: Settings = { platform: "Instagram", name: "Nome do perfil", username: "usuario", professional: "Descrição profissional", caption: "Digite sua legenda para visualizar o post.", format: "square", fit: "cover", position: 50 };
 const MAX_IMAGE_SIZE = 12 * 1024 * 1024;
 
 export default function PreviewClient() {
+  const [incoming, setIncoming] = useState<PostTransfer | null>(null);
   const [settings, setSettings] = useState<Settings>(initial); const [avatar, setAvatar] = useState(""); const [postImage, setPostImage] = useState("");
   const [avatarName, setAvatarName] = useState(""); const [imageName, setImageName] = useState(""); const [error, setError] = useState(""); const [feedback, setFeedback] = useState(""); const [isExporting, setIsExporting] = useState(false); const [confirmClear, setConfirmClear] = useState(false); const [ready, setReady] = useState(false);
   const avatarInput = useRef<HTMLInputElement>(null); const imageInput = useRef<HTMLInputElement>(null); const previewRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    // Restore browser-only transfer after hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (new URLSearchParams(window.location.search).get("from") === "criador") setIncoming(readPostTransfer());
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as Partial<Settings> | null;
       if (stored && platforms.includes(stored.platform as Platform)) {
         // Restore browser-only preferences after hydration.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSettings({ ...initial, ...stored });
       }
     } catch { localStorage.removeItem(STORAGE_KEY); }
@@ -58,6 +63,8 @@ export default function PreviewClient() {
   function clearAll() { remove("avatar"); remove("post"); setSettings(initial); setError(""); setFeedback(""); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
   const hasChanges = avatar || postImage || JSON.stringify(settings) !== JSON.stringify(initial);
   return <ToolPageShell title="Preview de Post para Redes Sociais" description="Visualize perfil, imagem e legenda em uma simulação de publicação antes de apresentar ou postar seu conteúdo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O preview é local. O assistente opcional envia a legenda e a imagem do post ao serviço de IA somente após autorização.">
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border p-4"><p className="text-sm">Precisa criar o conteúdo ou a arte?</p><Button asChild variant="outline"><Link href="/ferramentas/criador-de-posts-com-ia">Criar conteúdo com IA</Link></Button></div>
+    {incoming ? <section className="space-y-3 rounded-xl border border-primary/40 p-4" aria-label="Post recebido do Criador"><h2 className="font-semibold">Post recebido do Criador</h2><p className="text-sm">Aplicar substituirá a legenda, a imagem, a rede e o formato deste preview. Os dados do seu perfil serão preservados.</p><div className="flex flex-wrap gap-2"><Button onClick={() => { setSettings(current => ({ ...current, platform: incoming.platform, caption: incoming.caption, format: incoming.format })); if (postImage.startsWith("blob:")) URL.revokeObjectURL(postImage); setPostImage(incoming.image); setImageName("Arte do Criador de Posts"); clearPostTransfer(); setIncoming(null); setFeedback("Arte e legenda aplicadas ao Preview."); }}>Aplicar post recebido</Button><Button variant="outline" onClick={() => { clearPostTransfer(); setIncoming(null); }}>Manter meu preview</Button></div></section> : null}
     <SavedProjects kind="preview_post" payload={{ settings }} onLoad={value => { const p=value as {settings?: Settings}; if(p?.settings && typeof p.settings.caption==="string") setSettings(p.settings); }} />
     <Card><CardHeader><CardTitle className="text-base">Escolha a plataforma</CardTitle><CardDescription>A troca atualiza a simulação imediatamente, sem recarregar a página.</CardDescription></CardHeader><CardContent><div className="flex flex-wrap gap-2" role="group" aria-label="Plataforma do preview">{platforms.map((platform) => <Button key={platform} variant={settings.platform === platform ? "default" : "outline"} aria-pressed={settings.platform === platform} onClick={() => update("platform", platform)}>{platform}</Button>)}</div></CardContent></Card>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(340px,1.2fr)]">
