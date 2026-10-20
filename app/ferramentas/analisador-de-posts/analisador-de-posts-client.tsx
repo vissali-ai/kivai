@@ -239,7 +239,7 @@ export default function AnalisadorDePostsClient() {
           <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-1" /><span>Autorizo o envio dos dados selecionados ao serviço externo de IA. Não incluí informações pessoais ou confidenciais.</span></label>
           <p className="text-xs leading-5 text-muted-foreground">Cada análise usa aproximadamente {cost} crédito(s). Somente imagens otimizadas ou quadros extraídos do vídeo serão enviados; arquivos originais não são enviados nesta versão. Um provedor gratuito de IA pode usar os dados para melhorar seus produtos. A IA pode errar.</p>
           <Button type="submit" size="lg" disabled={loading || !consent} className="w-full sm:w-auto"><Sparkles className="mr-2 size-4" />{loading ? "Analisando publicação..." : "Analisar Publicação"}</Button>
-          {error && <p role="alert" className="text-sm text-destructive">{error} {error.startsWith("Entre") && <Link href="/conta/login" className="underline">Fazer login</Link>}</p>}
+          {error && <p role="alert" className="text-sm text-destructive">{error} {error.startsWith("Entre") && <Link href="/conta/login?next=%2Fferramentas%2Fanalisador-de-posts" className="underline">Fazer login</Link>}</p>}
         </form>
       </CardContent>
     </Card>
