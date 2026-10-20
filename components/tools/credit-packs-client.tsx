@@ -30,7 +30,7 @@ export function CreditPacksClient() {
   async function buy(pack: AiCreditPackCode) {
     const session = getStoredSession();
     if (!session?.access_token) {
-      router.push("/conta/login");
+      router.push("/conta/login?next=%2Fcreditos");
       return;
     }
     setError(""); setLoading(pack);

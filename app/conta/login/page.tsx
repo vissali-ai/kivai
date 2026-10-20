@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function UserLoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const { next = "/conta" } = await searchParams;
+  const { next } = await searchParams;
   return (
     <main className="flex min-h-[78vh] items-center justify-center px-4 py-20">
       <section className="w-full max-w-md border border-white/10 bg-card p-6 shadow-2xl">
