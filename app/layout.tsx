@@ -10,6 +10,7 @@ import { WhatsappSupportButton } from "@/components/marketing/whatsapp-support-b
 import { ToolFavoriteControl } from "@/components/tools/tool-favorite-control";
 import { InstallKivaiPrompt } from "@/components/pwa/install-kivai-prompt";
 import { CardFavoritesProvider } from "@/components/tools/tool-card-link";
+import { AuthReturnTracker } from "@/components/account/auth-return-tracker";
 import { Navbar } from "@/components/marketing/navbar";
 import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provider";
 import StructuredData from "@/components/seo/structured-data";
@@ -174,6 +175,7 @@ export default function RootLayout({
 
         <CookieConsentProvider>
           <CardFavoritesProvider>
+          <AuthReturnTracker />
           <Navbar />
           {children}
           <Footer />
