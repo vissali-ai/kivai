@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { consumeOAuthNext, consumeOAuthWhatsapp, saveSession, type KivaiAuthSession } from "@/lib/user-auth";
+import { normalizeAuthReturnPath } from "@/lib/account/auth-return";
 
 export default function UserAuthCallbackPage() {
   const [message, setMessage] = useState("Concluindo seu acesso...");
@@ -16,7 +17,7 @@ export default function UserAuthCallbackPage() {
       const errorDescription = hash.get("error_description") ?? hash.get("error");
       const query = new URLSearchParams(window.location.search);
       const queryNext = query.get("next");
-      const next = queryNext?.startsWith("/") ? queryNext : consumeOAuthNext();
+      const next = normalizeAuthReturnPath(queryNext) ?? consumeOAuthNext();
 
       if (errorDescription) { setMessage(`Não foi possível entrar: ${errorDescription}`); return; }
       if (!accessToken) { setMessage("Não recebemos uma sessão válida. Volte e tente novamente."); return; }
