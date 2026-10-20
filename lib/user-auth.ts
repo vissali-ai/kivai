@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeAuthReturnPath, resolveAuthReturnPath } from "@/lib/account/auth-return";
+
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://fphphknegwlgydwulehl.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_KDt8whhimaeknpeeT0Emjg_DvvwA33Z";
 const STORAGE_KEY = "kivai_user_session";
@@ -48,7 +50,7 @@ export function consumeOAuthNext() {
   if (typeof window === "undefined") return "/conta";
   const value = sessionStorage.getItem(OAUTH_NEXT_KEY);
   sessionStorage.removeItem(OAUTH_NEXT_KEY);
-  return value?.startsWith("/") ? value : "/conta";
+  return normalizeAuthReturnPath(value) ?? resolveAuthReturnPath();
 }
 
 export function consumeOAuthWhatsapp() {
@@ -74,9 +76,9 @@ export async function signUpWithPassword(name: string, email: string, password: 
   return payload as KivaiAuthSession;
 }
 
-export function signInWithGoogle(next = "/conta", phone = "") {
+export function signInWithGoogle(next?: string, phone = "") {
   if (typeof window === "undefined") return;
-  sessionStorage.setItem(OAUTH_NEXT_KEY, next.startsWith("/") ? next : "/conta");
+  sessionStorage.setItem(OAUTH_NEXT_KEY, resolveAuthReturnPath(next));
   if (phone) sessionStorage.setItem(OAUTH_WHATSAPP_KEY, phone);
   const callback = new URL("/conta/callback", window.location.origin);
   const authorize = new URL(`${SUPABASE_URL}/auth/v1/authorize`);
