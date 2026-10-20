@@ -48,7 +48,7 @@ export function PostResultWelcome() {
             Crie sua conta gratuita, escolha seus interesses e encontre {tool.name} e outras ferramentas no seu painel.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Link href="/conta/cadastro?next=%2Fconta" className="inline-flex min-h-9 items-center rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90">Criar conta grátis</Link>
+            <Link href={`/conta/cadastro?next=${encodeURIComponent(pathname)}`} className="inline-flex min-h-9 items-center rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90">Criar conta grátis</Link>
             <Link href={`/conta/login?next=${encodeURIComponent(pathname)}`} className="inline-flex min-h-9 items-center rounded-md border border-primary/25 px-3 py-2 text-xs font-medium hover:bg-primary/10">Já tenho conta</Link>
           </div>
         </div>
