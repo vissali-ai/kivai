@@ -1,8 +1,6 @@
 import "server-only";
+import { geminiCandidates } from "@/lib/ai/free-models";
 
-// Gemini 2.5 is access-restricted for projects that did not use it previously.
-// Prefer models supported by new Gemini API projects, with a Free Tier.
-const MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"] as const;
 
 export class GeminiRequestError extends Error {
   constructor(public readonly status: number) {
@@ -27,11 +25,13 @@ export async function requestGeminiJsonParts(
   systemInstruction: string,
   parts: GeminiInputPart[],
   maxOutputTokens = 2048,
+  preferredModel?: string,
 ): Promise<unknown> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new GeminiRequestError(503);
 
-  for (const [index, model] of MODELS.entries()) {
+  const models = geminiCandidates("text", preferredModel);
+  for (const [index, model] of models.entries()) {
     let response: Response;
     try {
       response = await fetch(
@@ -61,7 +61,7 @@ export async function requestGeminiJsonParts(
 
       // Model access can differ by API project. Try one other free model only
       // for "not found"; never circumvent provider quota or billing errors.
-      if (response.status === 404 && index < MODELS.length - 1) continue;
+      if (response.status === 404 && index < models.length - 1) continue;
 
       throw new GeminiRequestError(
         response.status === 404 ? 404 : response.status === 429 ? 429 : 503,
