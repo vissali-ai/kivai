@@ -1,3 +1,4 @@
+import { ToolFavoriteSlot } from "@/components/tools/tool-favorite-slot";
 import { notFound } from "next/navigation";
 import { SocialMediaToolClient } from "@/components/tools/social-media-tool-client";
 import { PublicContentPage, PublicHubPage } from "@/components/site-cms/public-content-page";
@@ -47,5 +48,5 @@ export default async function SocialMediaToolPage({ params }: Props) {
       { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Ferramentas", item: "https://www.kivai.com.br/ferramentas" }, { "@type": "ListItem", position: 2, name: "Social Media", item: "https://www.kivai.com.br/ferramentas/social-media" }, { "@type": "ListItem", position: 3, name: tool.name }] },
     ],
   };
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><SocialMediaToolClient slug={slug} /><div data-kivai-favorite-slot className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8" /></>;
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><SocialMediaToolClient slug={slug} /><ToolFavoriteSlot className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8" /></>;
 }

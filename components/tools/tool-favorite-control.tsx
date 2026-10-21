@@ -45,45 +45,24 @@ function ToolFavoriteForPath({ pathname }: { pathname: string }) {
   const invitation = invitationText(title, state, saved);
 
   // O slot está abaixo do processamento e antes do conteúdo editorial completo.
-  // Ferramentas antigas sem slot recebem o convite após a área principal.
+  // O fallback pertence ao React: nunca insira irmãos em uma árvore ainda hidratando.
   useEffect(() => {
     if (!eligible) return;
-    let fallback: HTMLDivElement | null = null;
     let current: HTMLElement | null = null;
 
     const position = () => {
       const slot = document.querySelector<HTMLElement>("[data-kivai-favorite-slot]");
-      if (slot) {
-        if (fallback) { fallback.remove(); fallback = null; }
-        if (current !== slot) { current = slot; setPortalTarget(slot); }
-        return;
-      }
-      if (document.querySelector("[data-kivai-favorite-pending]")) return;
-      const toolArea = document.querySelector<HTMLElement>("main")
-        ?? document.querySelector<HTMLElement>("body > section.min-h-screen");
-      if (!toolArea || !tool) return;
-      if (!fallback) {
-        fallback = document.createElement("div");
-        fallback.className = "mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8";
-        fallback.setAttribute("data-kivai-favorite-fallback", slug);
-        toolArea.insertAdjacentElement("afterend", fallback);
-      }
-      if (current !== fallback) { current = fallback; setPortalTarget(fallback); }
+      const pending = document.querySelector("[data-kivai-favorite-pending]");
+      const target = slot ?? (pending ? null : document.querySelector<HTMLElement>("[data-kivai-favorite-fallback-slot]"));
+      if (current !== target) { current = target; setPortalTarget(target); }
     };
 
-    const observer = new MutationObserver(() => {
-      if (!current?.isConnected || (!document.querySelector("[data-kivai-favorite-slot]") && !fallback)
-          || (fallback && document.querySelector("[data-kivai-favorite-slot]"))) {
-        position();
-      }
-    });
+    const observer = new MutationObserver(position);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-kivai-favorite-slot"] });
     const frame = window.requestAnimationFrame(position);
     return () => {
       observer.disconnect();
       window.cancelAnimationFrame(frame);
-      fallback?.remove();
-      setPortalTarget(null);
     };
   }, [slug, eligible, tool]);
 
@@ -129,7 +108,7 @@ function ToolFavoriteForPath({ pathname }: { pathname: string }) {
     }
     const timer = window.setTimeout(() => void load(), 0);
     return () => { alive = false; window.clearTimeout(timer); };
-  }, [slug, eligible, title, retry]);
+  }, [slug, eligible, title, retry, tool?.available]);
 
   useEffect(() => {
     const refresh = () => setRetry((value) => value + 1);

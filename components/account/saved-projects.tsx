@@ -91,7 +91,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     {message || accessError ? <p role="status" className="text-sm">{accessError || message}</p> : null}
     {opening ? <div className="rounded border p-3"><p className="text-sm">Abrir “{opening.title}” substituirá o conteúdo atual da ferramenta. Salve o trabalho atual antes de continuar.</p><div className="mt-2 flex gap-2"><Button onClick={() => open(opening)}>Abrir projeto</Button><Button variant="outline" onClick={() => setOpening(null)}>Cancelar</Button></div></div> : null}
     <div className="space-y-2">{visible.map(project => <article key={project.id} className="flex flex-wrap items-center justify-between gap-3 rounded border p-3"><div className="min-w-0 max-w-full"><h3 className="break-words font-medium">{project.title}</h3><p className="text-xs text-muted-foreground">{labels[project.kind]}{project.client_name ? ` · ${project.client_name}` : ""} · {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p></div><div className="flex flex-wrap gap-2 [&_a]:min-h-11 [&_button]:min-h-11">{onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={routes[project.kind]}>Abrir ferramenta</Link></Button>}<Button size="sm" variant="outline" onClick={() => download(project)}>Exportar JSON</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirmDelete(project.id)}>Excluir</Button>{confirmDelete === project.id ? <><span className="text-sm">Excluir este projeto salvo?</span><Button size="sm" variant="destructive" disabled={busy} onClick={() => remove(project.id)}>Confirmar exclusão</Button><Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button></> : null}</div></article>)}</div>
-    {userId && !loadingProjects && !loadError && !accessError && !visible.length ? <p role="status" className="text-sm text-muted-foreground">{search || filter ? "Nenhum projeto encontrado. Tente outro nome ou limpe os filtros." : "Você ainda não tem projetos salvos. Escolha uma ferramenta abaixo e use Salvar na conta para continuar depois."}</p> : null}
+    {userId && !loadingProjects && !loadError && !accessError && !visible.length ? <p role="status" className="text-sm text-muted-foreground">{search || filter ? "Nenhum projeto encontrado. Tente outro nome ou limpe os filtros." : kind ? "Você ainda não tem projetos salvos nesta ferramenta. Dê um nome ao projeto e use Salvar na conta." : "Você ainda não tem projetos salvos. Escolha uma ferramenta abaixo e use Salvar na conta para continuar depois."}</p> : null}
 
     {showInstagramHighlight ? (
       <div className="relative overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/[0.12] via-primary/[0.045] to-transparent p-4 sm:p-5">
@@ -114,7 +114,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         </div>
       </div>
     ) : null}
-    <div className="space-y-3">
+    {!kind ? <div className="space-y-3">
       {showInstagramHighlight ? <h3 className="text-sm font-medium">Criar um novo projeto</h3> : null}
       <nav aria-label="Ferramentas com projetos salvos" className="space-y-4">
         {([
@@ -133,6 +133,6 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         ))}
         {plan === "free" ? <Link className={shortcutClass} href="/planos">Conhecer planos</Link> : null}
       </nav>
-    </div>
+    </div> : <Link className="inline-flex min-h-11 items-center text-sm text-primary underline" href="/conta#painel-projetos">Ver todos os meus projetos no painel</Link>}
   </section>;
 }

@@ -7,9 +7,9 @@ export const test = base.extend<{ browserErrors: string[] }>({
   browserErrors: [async ({ page }, use) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    await page.addInitScript(() => localStorage.setItem("kivai_cookie_consent", JSON.stringify({
+    await page.addInitScript(() => { if (window.top !== window) return; localStorage.setItem("kivai_cookie_consent", JSON.stringify({
       version: 1, necessary: true, analytics: false, advertising: false, updatedAt: new Date().toISOString(),
-    })));
+    })); });
     await use(errors);
     expect(errors, "Unhandled browser errors").toEqual([]);
   }, { auto: true }],
