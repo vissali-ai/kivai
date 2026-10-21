@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { BookOpen, ExternalLink, Loader2, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
 import type { EditorialAiArticle, EditorialBase } from "@/lib/blog/editorial-ai";
 import { Button } from "@/components/ui/button";
+import { GeminiFreeModelPicker } from "@/components/admin/gemini-free-model-picker";
 
 type EditorialAiPanelProps = {
   postId: string;
@@ -26,6 +27,8 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
   const [base, setBase] = useState<EditorialBase | null>(null);
   const [proposal, setProposal] = useState<EditorialAiArticle | null>(null);
   const [instructions, setInstructions] = useState("");
+  const [baseModel, setBaseModel] = useState("auto");
+  const [editorModel, setEditorModel] = useState("auto");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -48,7 +51,8 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
     try {
       const response = await fetch(endpoint, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, instructions: action === "personalize" ? instructions : "" }),
+        body: JSON.stringify({ action, instructions: action === "personalize" ? instructions : "",
+          model: action === "personalize" ? editorModel : baseModel }),
       });
       const result = await getJson(response);
       if (action === "personalize") {
@@ -81,6 +85,7 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
     </div>
     {loading ? <p className="text-xs text-muted-foreground">Carregando reportagem-base...</p> : !base ? <div className="space-y-2">
       <p className="text-sm text-muted-foreground">Etapa 1: prepare a reportagem-base completa a partir da fonte. Sua personalidade será aplicada apenas na etapa seguinte, quando você solicitar.</p>
+      <GeminiFreeModelPicker task="url" label="Modelo para reportagem-base" value={baseModel} onChange={setBaseModel}/>
       <Button variant="secondary" disabled={busy || !sourceUrl} onClick={() => void execute("prepare-base")}>
         {busy ? <Loader2 className="mr-2 size-4 animate-spin"/> : <BookOpen className="mr-2 size-4"/>}
         Etapa 1 · Preparar reportagem completa
@@ -105,6 +110,7 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
           placeholder="Ex.: destaque as consequências para pequenos negócios, use um lide mais direto e evite listas."/>
         <span className="block text-xs text-muted-foreground">{instructions.length}/1200 · A IA respeitará o estilo editorial de Marcus mesmo sem orientações extras.</span>
       </label>
+      <GeminiFreeModelPicker task="text" label="Modelo do editor-chefe" value={editorModel} onChange={setEditorModel}/>
       <Button disabled={busy} onClick={() => void execute("personalize")}>
         {busy ? <Loader2 className="mr-2 size-4 animate-spin"/> : <Sparkles className="mr-2 size-4"/>}
         {busy ? "Gerando versão..." : "Reescrever no meu estilo"}
