@@ -193,7 +193,7 @@ export async function personalizeEditorialBase(base: EditorialBase, userInstruct
   // Reuse the already configured JSON generation module; this path does not browse new URLs.
   const { requestGeminiJsonParts } = await import("@/lib/ai/gemini");
   const response = await requestGeminiJsonParts(
-    "Você é editor-chefe virtual do Kivai. Siga estritamente a persona editorial, preserve a reportagem completa e devolva apenas JSON válido.", [{ text: prompt }], 8192,
+    "Você é editor-chefe virtual do Kivai. Siga estritamente a persona editorial, preserve a reportagem completa e devolva apenas JSON válido.", [{ text: prompt }], 8192, 65_000,
   );
   const output = articleFromResult(response as GeneratedArticle, "gemini-editorial-marcus");
   return output;
