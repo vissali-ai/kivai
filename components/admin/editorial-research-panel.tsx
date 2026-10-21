@@ -27,6 +27,7 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
   const [topics, setTopics] = useState(initialTopics);
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [directSourceUrl, setDirectSourceUrl] = useState("");
   const [period, setPeriod] = useState<SearchPeriod>("7d");
   const [region, setRegion] = useState<SearchRegion>("brasil");
   const [results, setResults] = useState<EditorialResearchResponse | null>(null);
@@ -65,7 +66,7 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
   async function saveDraft(result: EditorialResearchResult) {
     if (savingUrl) return;
     setSavingUrl(result.sourceUrl);
-    setMessage("Salvando pauta como rascunho...");
+    setMessage("Lendo a fonte com Gemini e preparando uma reportagem-base completa...");
     try {
       const response = await fetch("/api/admin/news-agent/draft", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -158,6 +159,21 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
         {researching ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Search className="mr-2 size-4" />}
         {researching ? "Pesquisando..." : "Pesquisar matérias"}
       </Button>
+      <div className="space-y-2 rounded-md border border-border p-3">
+        <h3 className="text-sm font-medium">Criar rascunho a partir do link de uma reportagem</h3>
+        <p className="text-xs text-muted-foreground">Cole a URL de uma matéria pública. O Gemini preparará uma reportagem-base completa no rascunho e guardará a fonte.</p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input type="url" placeholder="https://site.com.br/materia" value={directSourceUrl}
+            onChange={(event) => setDirectSourceUrl(event.target.value)} />
+          <Button variant="outline" disabled={Boolean(savingUrl) || !directSourceUrl.trim()} onClick={() => void saveDraft({
+            title: "", excerpt: "", sourceName: "", sourceUrl: directSourceUrl.trim(),
+            publishedAt: null, categorySlug: "noticias",
+          })}>
+            {savingUrl === directSourceUrl.trim() ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Save className="mr-1 size-4" />}
+            Preparar rascunho
+          </Button>
+        </div>
+      </div>
       <p role="status" aria-live="polite" className="text-sm text-muted-foreground">{message}</p>
     </section>
 
