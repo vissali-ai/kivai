@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Images, ImageUp, LoaderCircle } from "lucide-react";
+import { ClipboardPaste, Images, ImageUp, LoaderCircle } from "lucide-react";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { Button } from "@/components/ui/button";
 import type { Media } from "@/lib/blog/types";
@@ -30,6 +30,7 @@ export function MediaUploadActions({
   className?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const pasteRef = useRef<HTMLDivElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
@@ -73,6 +74,18 @@ export function MediaUploadActions({
         {uploading ? <LoaderCircle className="animate-spin" /> : <ImageUp />}
         {uploading ? "Enviando..." : "Galeria ou dispositivo"}
       </Button>
+    </div>
+    <div
+      ref={pasteRef}
+      tabIndex={0}
+      onPaste={handlePaste}
+      className="rounded-md border border-dashed border-border px-3 py-3 text-center text-xs text-muted-foreground outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+      aria-label="Área para colar imagem"
+    >
+      <Button type="button" variant="outline" disabled={uploading} onClick={() => void pasteFromClipboard()}>
+        <ClipboardPaste />Colar imagem copiada
+      </Button>
+      <p className="mt-2">Ou clique aqui e pressione Ctrl+V no computador. No celular, toque e segure para usar Colar, quando disponível.</p>
     </div>
     {message ? <p className="text-xs text-primary" aria-live="polite">{message}</p> : null}
     <MediaPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={onSelect} />
