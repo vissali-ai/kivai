@@ -25,7 +25,7 @@ export async function POST(request: Request, { params }: Context) {
     if (!post) return NextResponse.json({ error: "Matéria não encontrada." }, { status: 404, headers });
     const raw = await request.text();
     if (raw.length > 2500) return NextResponse.json({ error: "Instruções muito longas." }, { status: 413, headers });
-    const body = JSON.parse(raw) as { action?: unknown; instructions?: unknown };
+    const body = JSON.parse(raw) as { action?: unknown; instructions?: unknown; model?: unknown };
     if (body.action === "prepare-base") {
       if (!post.sourceUrl || !post.sourceName) {
         return NextResponse.json({ error: "Informe uma fonte editorial para preparar a matéria-base." }, { status: 400, headers });
@@ -34,6 +34,7 @@ export async function POST(request: Request, { params }: Context) {
       if (existing) return NextResponse.json({ base: existing, existing: true }, { headers });
       const generated = await generateEditorialBase({
         sourceUrl: post.sourceUrl, sourceTitle: post.title, sourceName: post.sourceName, excerpt: post.excerpt,
+        model: typeof body.model === "string" ? body.model : undefined,
       });
       const base = await saveEditorialBase(post.id, generated);
       return NextResponse.json({ base, existing: false }, { headers });
@@ -43,7 +44,8 @@ export async function POST(request: Request, { params }: Context) {
       if (!base) return NextResponse.json({ error: "Prepare primeiro a matéria-base a partir da fonte." }, { status: 409, headers });
       const instructions = typeof body.instructions === "string" ? body.instructions.trim() : "";
       if (instructions.length > 1200) return NextResponse.json({ error: "Limite de 1.200 caracteres nas orientações." }, { status: 400, headers });
-      const article = await personalizeEditorialBase(base, instructions);
+      const article = await personalizeEditorialBase(base, instructions,
+        typeof body.model === "string" ? body.model : undefined);
       return NextResponse.json({ article }, { headers });
     }
     return NextResponse.json({ error: "Ação editorial não reconhecida." }, { status: 400, headers });

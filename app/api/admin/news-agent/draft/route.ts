@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     const sourceUrl = typeof body.sourceUrl === "string" ? body.sourceUrl.trim() : "";
     const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim().slice(0, 320) : "";
     const categorySlug = typeof body.categorySlug === "string" ? body.categorySlug : "noticias";
+    const selectedModel = typeof body.model === "string" ? body.model : undefined;
     let url: URL;
     try { url = new URL(sourceUrl); } catch { throw new Error("Endereço de fonte inválido."); }
     if (url.protocol !== "https:" || sourceUrl.length > 2048) {
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
       ? new Date(body.publishedAt).toISOString() : null;
     // A base é escrita a partir do artigo acessível, não copiada do veículo.
     // Se o Gemini não conseguir ler a fonte, nenhum novo rascunho incompleto será criado.
-    const base = await generateEditorialBase({ sourceUrl, sourceTitle: title || "Notícia indicada pelo editor", sourceName, excerpt });
+    const base = await generateEditorialBase({ sourceUrl, sourceTitle: title || "Notícia indicada pelo editor", sourceName, excerpt, model: selectedModel });
     const requestedSlug = slugify(base.title);
     const slug = await isSlugAvailable(requestedSlug)
       ? requestedSlug : requestedSlug + "-pauta-" + Date.now().toString(36);
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
       canonicalUrl: "", ogTitle: "", ogDescription: "", ogImage: "",
       relatedToolSlugs: [], featured: false, featuredOrder: null,
       scheduledAt: null, tagNames: base.tags, origin: "manual", reviewStatus: "not-required",
-      generationModel: "gemini-grounded-research", needsCover: false,
+      generationModel: base.model, needsCover: false,
       primarySourceUrl: sourceUrl, originalContribution: "",
       relevanceScore: 0, reviewedBy: "", reviewedAt: null,
     };

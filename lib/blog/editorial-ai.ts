@@ -3,8 +3,9 @@ import "server-only";
 import { plainText, sanitizePostHtml } from "@/lib/blog/sanitize";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { interpretGeminiQuota, shortGeminiQuotaBackoff } from "@/lib/ai/gemini-quota";
+import { geminiCandidates } from "@/lib/ai/free-models";
 
-const MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"] as const;
+
 const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/";
 const minBodyLength = 350;
 
@@ -127,10 +128,10 @@ function validateSourceUrl(input: string) {
     /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || host.startsWith("[") || host.includes("..")) throw new Error("Este domínio não é permitido.");
   return url.toString();
 }
-async function callGeminiWithUrl(url: string, prompt: string) {
+async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: string) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("A chave Gemini não está configurada.");
-  for (const model of MODELS) {
+  for (const model of geminiCandidates("url", preferredModel)) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       let response: Response;
       try {
@@ -165,7 +166,7 @@ async function callGeminiWithUrl(url: string, prompt: string) {
   throw new Error("Nenhum modelo Gemini com leitura de URL está disponível.");
 }
 export async function generateEditorialBase(input: {
-  sourceUrl: string; sourceTitle: string; sourceName: string; excerpt?: string;
+  sourceUrl: string; sourceTitle: string; sourceName: string; excerpt?: string; model?: string;
 }) {
   const url = validateSourceUrl(input.sourceUrl);
   const prompt = [
@@ -186,11 +187,11 @@ export async function generateEditorialBase(input: {
     "HTML permitido para conteúdo: p, h2, h3, strong, em, ul, ol, li. Sem h1, scripts, imagens ou embeds.",
     'Devolva APENAS JSON: {"title":"", "subtitle":"", "excerpt":"", "contentHtml":"<p>...</p>", "seoTitle":"", "metaDescription":"", "tags":[""], "researchNotes":"quais fatos ficaram sem confirmação e exigem revisão"}',
   ].join("\n");
-  const result = await callGeminiWithUrl(url, prompt);
+  const result = await callGeminiWithUrl(url, prompt, input.model);
   return { ...articleFromResult(result.generated, result.model), sourceUrl: url,
     researchNotes: textValue(result.generated.researchNotes, 1500) };
 }
-export async function personalizeEditorialBase(base: EditorialBase, userInstructions: string) {
+export async function personalizeEditorialBase(base: EditorialBase, userInstructions: string, preferredModel?: string) {
   if (userInstructions.length > 1200) throw new Error("Instruções adicionais muito longas.");
   const prompt = [
     INTERNATIONAL_EDITOR_IN_CHIEF,
@@ -213,7 +214,7 @@ export async function personalizeEditorialBase(base: EditorialBase, userInstruct
   // Reuse the already configured JSON generation module; this path does not browse new URLs.
   const { requestGeminiJsonParts } = await import("@/lib/ai/gemini");
   const response = await requestGeminiJsonParts(
-    "Você é um editor-chefe sênior de padrão jornalístico internacional atuando para o Kivai. Siga a persona editorial, diferencie fatos de opiniões e devolva apenas JSON válido.", [{ text: prompt }], 4096,
+    "Você é um editor-chefe sênior de padrão jornalístico internacional atuando para o Kivai. Siga a persona editorial, diferencie fatos de opiniões e devolva apenas JSON válido.", [{ text: prompt }], 4096, preferredModel,
   );
   const output = articleFromResult(response as GeneratedArticle, "gemini-editorial-marcus");
   return output;

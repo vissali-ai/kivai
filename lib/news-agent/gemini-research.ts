@@ -2,11 +2,12 @@ import "server-only";
 import type { EditorialTopic } from "@/lib/news-agent/editorial-topics";
 import { newsTitleSimilarity } from "@/lib/news-agent/candidate-ranking";
 import { interpretGeminiQuota, shortGeminiQuotaBackoff } from "@/lib/ai/gemini-quota";
+import { geminiCandidates } from "@/lib/ai/free-models";
 
 // A pesquisa com Google Search no Gemini 3.x requer plano pago.
 // Gemini 2.5 Flash-Lite/Flash oferece grounding também na modalidade gratuita.
 // Só alternar modelos em caso de 404 (modelo indisponível); jamais após 429 de cota.
-const MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash"] as const;
+
 export type SearchPeriod = "24h" | "7d" | "30d";
 export type SearchRegion = "brasil" | "internacional" | "ambos";
 export type EditorialResearchResult = {
@@ -63,7 +64,7 @@ function selectMatch(title: string, options: AiItem[]) {
   })).sort((a, b) => b.score - a.score)[0];
 }
 export async function researchWithGemini(input: {
-  topics: EditorialTopic[]; freeQuery: string; period: SearchPeriod; region: SearchRegion;
+  topics: EditorialTopic[]; freeQuery: string; period: SearchPeriod; region: SearchRegion; model?: string;
 }): Promise<EditorialResearchResponse> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("A chave Gemini não está configurada no servidor.");
@@ -88,7 +89,7 @@ export async function researchWithGemini(input: {
 
   let apiResponse: RawResponse | null = null;
   let modelUsed = "";
-  for (const model of MODELS) {
+  for (const model of geminiCandidates("search", input.model)) {
     let unsupportedModel = false;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       let response: Response;
