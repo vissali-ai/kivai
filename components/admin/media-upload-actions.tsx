@@ -58,6 +58,39 @@ export function MediaUploadActions({
     }
   }
 
+  async function pasteFromClipboard() {
+    if (uploading) return;
+    if (!navigator.clipboard?.read) {
+      setMessage("Clique na área de colagem e use Ctrl+V ou a opção Colar.");
+      pasteRef.current?.focus();
+      return;
+    }
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const type = item.types.find((value) => ["image/png", "image/jpeg", "image/webp"].includes(value));
+        if (!type) continue;
+        const blob = await item.getType(type);
+        await upload(new File([blob], "imagem-colada." + type.split("/")[1], { type }));
+        return;
+      }
+      setMessage("A área de transferência não contém uma imagem compatível.");
+    } catch {
+      setMessage("Não foi possível acessar a área de transferência. Clique na área e use Ctrl+V ou Colar.");
+      pasteRef.current?.focus();
+    }
+  }
+
+  function handlePaste(event: React.ClipboardEvent<HTMLDivElement>) {
+    if (uploading) return;
+    const file = Array.from(event.clipboardData.items)
+      .find((item) => item.kind === "file" && ["image/jpeg", "image/png", "image/webp"].includes(item.type))
+      ?.getAsFile();
+    if (!file) return;
+    event.preventDefault();
+    void upload(file);
+  }
+
   return <div className={`space-y-2 ${className}`}>
     <input
       ref={inputRef}
