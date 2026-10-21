@@ -20,7 +20,8 @@ export async function POST(request: Request) {
     if (!["24h", "7d", "30d"].includes(period) || !["brasil", "internacional", "ambos"].includes(region)) {
       throw new Error("Filtros de pesquisa inválidos.");
     }
-    return NextResponse.json(await researchWithGemini({ topics, freeQuery, period, region }), {
+    return NextResponse.json(await researchWithGemini({ topics, freeQuery, period, region,
+      model: typeof body.model === "string" ? body.model : undefined }), {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
