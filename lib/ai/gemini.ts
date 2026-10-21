@@ -46,7 +46,7 @@ export async function requestGeminiJsonParts(
             contents: [{ role: "user", parts }],
             generationConfig: {
               responseMimeType: "application/json",
-              maxOutputTokens: Math.min(Math.max(maxOutputTokens, 512), 4096),
+              maxOutputTokens: Math.min(Math.max(maxOutputTokens, 512), 8192),
             },
           }),
         },
