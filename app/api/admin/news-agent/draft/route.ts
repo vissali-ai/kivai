@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { apiError } from "@/lib/blog/api";
+import { GeminiQuotaError } from "@/lib/ai/gemini-quota";
 import { isSlugAvailable, listAllPosts, listCategories, savePost } from "@/lib/blog/repository";
 import { slugify } from "@/lib/blog/slug";
 import type { PostInput } from "@/lib/blog/types";
@@ -52,5 +53,11 @@ export async function POST(request: Request) {
     if (!post) throw new Error("Não foi possível criar o rascunho.");
     await saveEditorialBase(post.id, base);
     return NextResponse.json({ id: post.id, existing: false, baseReady: true }, { status: 201 });
-  } catch (error) { return apiError(error); }
+  } catch (error) {
+    if (error instanceof GeminiQuotaError) {
+      return NextResponse.json({ error: error.message, code: "GEMINI_QUOTA_" + error.kind.toUpperCase(),
+        retrySeconds: error.retrySeconds }, { status: 429, headers: { "Cache-Control": "no-store" } });
+    }
+    return apiError(error);
+  }
 }
