@@ -175,6 +175,10 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
         </div>
       </div>
       <p role="status" aria-live="polite" className="text-sm text-muted-foreground">{message}</p>
+      {/\b(cota|limite|429|faturamento)\b/i.test(message) && /Gemini|modelo|projeto/i.test(message) ? <p className="text-xs leading-relaxed text-muted-foreground">
+        Consulte o projeto da chave utilizada em <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline">Google AI Studio</a>
+        , na área Dashboard &gt; Usage e Rate limits. Se o limite for diário ou a cota for zero, repetir a busca imediatamente não resolverá.
+      </p> : null}
     </section>
 
     {manage && <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-6">
