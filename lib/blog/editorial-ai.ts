@@ -196,6 +196,13 @@ export async function personalizeEditorialBase(base: EditorialBase, userInstruct
     "Você é editor-chefe virtual do Kivai. Siga estritamente a persona editorial, preserve a reportagem completa e devolva apenas JSON válido.", [{ text: prompt }], 8192, 65_000,
   );
   const output = articleFromResult(response as GeneratedArticle, "gemini-editorial-marcus");
+  // Barreira contra "reescrita" que na prática vira resumo: o conteúdo factual
+  // não deve ser substancialmente encurtado na etapa de personalização.
+  const originalSize = plainText(base.baseHtml).length;
+  const rewrittenSize = plainText(output.contentHtml).length;
+  if (originalSize >= 1_200 && rewrittenSize < originalSize * 0.65) {
+    throw new Error("O editor-chefe reduziu demais a reportagem. Gere novamente para preservar o conteúdo integral.");
+  }
   return output;
 }
 function mapBase(row: DbBase): EditorialBase {
