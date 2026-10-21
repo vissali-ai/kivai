@@ -18,7 +18,7 @@ export default async function NewsAgentPage() {
         <p className="mt-2 text-sm text-muted-foreground">Pesquise notícias com referências e escolha pautas para os rascunhos do Kivai.</p></div>
       <Link href="/admin/blog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4"/>Voltar ao blog</Link>
     </header>
-    {configurationError ? <p className="border border-amber-500/40 p-4 text-sm text-amber-300">Temas indisponíveis. Aplique a migração blog_ai_research_topics no banco Kivai antes de pesquisar.</p> : <EditorialResearchPanel initialTopics={topics} initialSources={sources.map((source) => ({
+    {configurationError ? <p className="border border-amber-500/40 p-4 text-sm text-amber-300">Temas indisponíveis. Aplique a migração blog_ai_research_topics no banco Kivai antes de pesquisar.</p> : <EditorialResearchPanel initialTopics={topics} initialSources={sources.filter((source) => source.kind === "rss").map((source) => ({
       id: source.id, name: source.name, enabled: source.enabled,
       editorialTopicSlugs: source.editorialTopicSlugs,
     }))}/>}
