@@ -12,12 +12,12 @@ const output = ts.transpileModule(source, {
 const tech = {
   id: "tech", name: "Portal Tecnologia", feedUrl: "https://tecnoblog.net/feed/",
   siteUrl: "https://tecnoblog.net", defaultCategorySlug: "tecnologia",
-  kind: "rss", enabled: true,
+  kind: "rss", enabled: true, editorialTopicSlugs: ["tecnologia"],
 };
 const marketing = {
   id: "marketing", name: "Portal Marketing", feedUrl: "https://propmark.com.br/feed/",
   siteUrl: "https://propmark.com.br", defaultCategorySlug: "marketing",
-  kind: "rss", enabled: true,
+  kind: "rss", enabled: true, editorialTopicSlugs: ["marketing-digital", "trafego-pago"],
 };
 const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
@@ -40,12 +40,14 @@ function makeCandidate(sourceItem, fields) {
     categorySlug: sourceItem.defaultCategorySlug, tags: [], guid: fields.url,
     contentHtml: "", ...fields };
 }
+const dismissed = new Set();
 const moduleData = { exports: {} };
 runInNewContext(output, {
   module: moduleData, exports: moduleData.exports,
   require(name) {
     if (name === "server-only") return {};
     if (name === "@/lib/news-agent/repository") return { listNewsSources: async () => [tech, marketing] };
+    if (name === "@/lib/news-agent/editorial-dismissals") return { listDismissedSuggestionUrls: async () => dismissed };
     if (name === "@/lib/news-agent/source-collector") return {
       fetchNewsSource: async (sourceItem) =>
         (articles[sourceItem.id] || []).map((item) => makeCandidate(sourceItem, item)),
@@ -58,7 +60,7 @@ runInNewContext(output, {
   },
   URL, Date, Set, Promise, console,
 });
-const { researchEditorialLinks } = moduleData.exports;
+const { researchEditorialLinks, normalizeSuggestionUrl } = moduleData.exports;
 const topic = { id: "tech", slug: "tecnologia", name: "Tecnologia",
   searchTerms: "inovação, softwares e lançamentos", categorySlug: "tecnologia", enabled: true };
 
@@ -85,4 +87,31 @@ test("Nenhum resultado retorna orientação útil em vez de erro de modelo", asy
   const data = await researchEditorialLinks({ topics: [], freeQuery: "termoque-nao-existe", period: "24h", region: "brasil" });
   assert.equal(data.items.length, 0);
   assert.match(data.notice, /Nenhuma matéria encontrada/);
+});
+
+
+test("Sugestão descartada não reaparece na pesquisa seguinte", async () => {
+  const url = "https://tecnoblog.net/noticias/google-tecnologia/";
+  dismissed.add(url);
+  try {
+    const data = await researchEditorialLinks({ topics: [topic], freeQuery: "", period: "24h", region: "brasil" });
+    assert.ok(!data.items.some((item) => item.sourceUrl === url));
+  } finally { dismissed.delete(url); }
+});
+
+test("Descarte remove parâmetros de rastreamento da URL", () => {
+  assert.equal(
+    normalizeSuggestionUrl("https://tecnoblog.net/noticias/google-tecnologia/?utm_source=social#secao"),
+    "https://tecnoblog.net/noticias/google-tecnologia/",
+  );
+});
+
+test("Todos os temas considera fontes distintas da curadoria", async () => {
+  const data = await researchEditorialLinks({
+    topics: [topic, { id: "ads", slug: "trafego-pago", name: "Tráfego Pago", searchTerms: "Google Ads",
+      categorySlug: "marketing", enabled: true }],
+    freeQuery: "", period: "24h", region: "brasil",
+  });
+  assert.ok(data.items.some((item) => item.sourceName === "Portal Tecnologia"));
+  assert.ok(data.items.some((item) => item.sourceName === "Portal Marketing"));
 });
