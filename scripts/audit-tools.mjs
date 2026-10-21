@@ -42,11 +42,14 @@ for (const slug of duplicates(availableSlugs)) errors.push(`Slug duplicado no ca
 for (const slug of duplicates(indexableSlugs)) errors.push(`Slug duplicado na lista de indexação: ${slug}`);
 for (const slug of availableSlugs.filter((slug) => !routeSlugs.includes(slug))) errors.push(`Ferramenta disponível sem rota: ${slug}`);
 for (const slug of routeSlugs.filter((slug) => !availableSlugs.includes(slug))) errors.push(`Rota de ferramenta fora do catálogo disponível: ${slug}`);
-for (const slug of availableSlugs.filter((slug) => !indexableSlugs.includes(slug))) errors.push(`Ferramenta disponível ausente da indexação: ${slug}`);
+for (const slug of availableSlugs.filter((slug) => !indexableSlugs.includes(slug))) {
+  // Public beta tools can deliberately opt out of search indexing.
+  if (!/robots:\s*noIndexRobots/.test(routeSources.get(slug) ?? "")) errors.push(`Ferramenta disponível ausente da indexação: ${slug}`);
+}
 for (const slug of indexableSlugs.filter((slug) => !availableSlugs.includes(slug))) errors.push(`Slug indexável sem ferramenta disponível: ${slug}`);
 
 for (const [slug, source] of routeSources) {
-  if (!/export\s+(?:const\s+metadata|async\s+function\s+generateMetadata|function\s+generateMetadata)/.test(source)) {
+  if (!/export\s+(?:const\s+(?:metadata|generateMetadata)|async\s+function\s+generateMetadata|function\s+generateMetadata)/.test(source)) {
     errors.push(`Rota sem metadata: ${slug}`);
   }
   if (source.includes("<main") && /(?:Image|Pdf)ToolEditorial/.test(source)) {

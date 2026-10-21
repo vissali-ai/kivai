@@ -156,7 +156,6 @@ export default function CalculadoraDeRoasClient() {
 
   return (
     <section className="min-h-screen bg-background text-foreground">
-      <SavedProjects kind="roas" payload={{ investimento, receita, margem }} onLoad={value => { const p=value as { investimento?: string; receita?: string; margem?: string }; if(p && typeof p.investimento === "string") { setInvestimento(p.investimento); setReceita(p.receita ?? ""); setMargem(p.margem ?? ""); } }} />
 
       <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-32 sm:px-6 sm:pt-32 lg:px-8 lg:pb-16 lg:pt-32">
         <div className="mb-10 max-w-3xl">
@@ -356,6 +355,10 @@ export default function CalculadoraDeRoasClient() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="mx-auto mt-8 max-w-4xl">
+          <SavedProjects kind="roas" payload={{ investimento, receita, margem }} onLoad={value => { const p=value as { investimento?: string; receita?: string; margem?: string }; if(p && typeof p.investimento === "string") { setInvestimento(p.investimento); setReceita(p.receita ?? ""); setMargem(p.margem ?? ""); } }} />
+        </div>
 
         <div className="mx-auto mt-8 max-w-4xl">
           <AdSlot variant="banner" />

@@ -11,6 +11,7 @@ const DOWNLOAD_LABEL = /\b(baixar|download|exportar)\b/i;
 const ACTION_SELECTOR = 'a[download], button, [role="button"]';
 
 function isAvailableDownloadAction(element: HTMLElement) {
+  if (element.closest('[aria-label="Projetos salvos"]')) return false;
   const label = [
     element.textContent,
     element.getAttribute("aria-label"),
@@ -51,6 +52,10 @@ export function ToolDownloadNavigator({ children }: { children: ReactNode }) {
     let resultIsVisible = false;
     let firstFrame = 0;
     let secondFrame = 0;
+    let userInteracted = false;
+    const onInteraction = () => { userInteracted = true; };
+    const interactionEvents = ["pointerdown", "keydown", "input", "change"] as const;
+    interactionEvents.forEach(event => root.addEventListener(event, onInteraction, true));
 
     const findActions = () =>
       Array.from(root.querySelectorAll<HTMLElement>(ACTION_SELECTOR)).filter(
@@ -78,7 +83,7 @@ export function ToolDownloadNavigator({ children }: { children: ReactNode }) {
             return;
           }
 
-          if (!resultIsVisible && firstNewAction) {
+          if (userInteracted && !resultIsVisible && firstNewAction) {
             const reduceMotion = window.matchMedia(
               "(prefers-reduced-motion: reduce)",
             ).matches;
@@ -115,6 +120,7 @@ export function ToolDownloadNavigator({ children }: { children: ReactNode }) {
 
     return () => {
       observer.disconnect();
+      interactionEvents.forEach(event => root.removeEventListener(event, onInteraction, true));
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
     };
@@ -152,6 +158,7 @@ export function ToolDownloadNavigator({ children }: { children: ReactNode }) {
         </nav>
       )}
       {children}
+      {tool && category && <div data-kivai-favorite-fallback-slot className="mx-auto w-full max-w-6xl px-4 py-4 empty:hidden sm:px-6 lg:px-8" />}
     </div>
   );
 }
