@@ -95,6 +95,7 @@ export function PostEditor({ post, categories, tools }: { post?: Post | null; ca
       metaDescription: article.metaDescription,
       slug: current.status === "draft" ? slugify(article.title) : current.slug,
       generationModel: article.model,
+      author: "Marcus Vissali",
     }));
     setTagText(article.tags.join(", "));
   }
