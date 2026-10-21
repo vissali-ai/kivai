@@ -11,7 +11,7 @@ export class GeminiRequestError extends Error {
 type GeminiResponse = {
   candidates?: Array<{
     finishReason?: string;
-    content?: { parts?: Array<{ text?: string }> };
+    content?: { parts?: Array<{ text?: string; thought?: boolean }> };
   }>;
 };
 
@@ -76,7 +76,11 @@ export async function requestGeminiJsonParts(
     }
 
     const candidate = json.candidates?.[0];
-    const text = candidate?.content?.parts?.map((part) => part.text ?? "").join("").trim();
+    if (candidate?.finishReason !== "STOP") {
+      console.warn("[kivai-ai] Gemini incomplete output", model, candidate?.finishReason ?? "unknown");
+      throw new GeminiRequestError(503);
+    }
+    const text = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text ?? "").join("").trim();
     if (!text) {
       console.warn("[kivai-ai] Gemini empty output", model, candidate?.finishReason ?? "unknown");
       throw new GeminiRequestError(503);

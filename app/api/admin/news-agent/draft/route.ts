@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { assertAdminApi } from "@/lib/blog/auth";
-import { apiError } from "@/lib/blog/api";
-import { GeminiQuotaError } from "@/lib/ai/gemini-quota";
+import { editorialApiError } from "@/lib/blog/editorial-api";
 import { isSlugAvailable, listAllPosts, listCategories, savePost } from "@/lib/blog/repository";
 import { slugify } from "@/lib/blog/slug";
 import type { PostInput } from "@/lib/blog/types";
-import { generateEditorialBase, saveEditorialBase } from "@/lib/blog/editorial-ai";
+import { generateEditorialBase, saveEditorialBase, validateSourceUrl } from "@/lib/blog/editorial-ai";
 
 export const maxDuration = 90;
 
@@ -15,7 +14,7 @@ export async function POST(request: Request) {
     const body = await request.json() as Record<string, unknown>;
     const title = typeof body.title === "string" ? body.title.trim().slice(0, 180) : "";
     const suppliedSourceName = typeof body.sourceName === "string" ? body.sourceName.trim().slice(0, 100) : "";
-    const sourceUrl = typeof body.sourceUrl === "string" ? body.sourceUrl.trim() : "";
+    const sourceUrl = validateSourceUrl(typeof body.sourceUrl === "string" ? body.sourceUrl.trim() : "");
     const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim().slice(0, 320) : "";
     const categorySlug = typeof body.categorySlug === "string" ? body.categorySlug : "noticias";
     const selectedModel = typeof body.model === "string" ? body.model : undefined;
@@ -25,7 +24,9 @@ export async function POST(request: Request) {
       throw new Error("Informe uma URL HTTPS válida.");
     }
     const sourceName = suppliedSourceName || url.hostname.replace(/^www\./, "");
-    const duplicate = (await listAllPosts()).find((post) => post.sourceUrl === sourceUrl);
+    const duplicate = (await listAllPosts()).find((post) => {
+      try { return validateSourceUrl(post.sourceUrl) === sourceUrl; } catch { return false; }
+    });
     if (duplicate) return NextResponse.json({ id: duplicate.id, existing: true });
     const categories = await listCategories();
     const categoryId = categories.find((cat) => cat.slug === categorySlug)?.id ??
@@ -52,13 +53,17 @@ export async function POST(request: Request) {
     };
     const post = await savePost(input);
     if (!post) throw new Error("Não foi possível criar o rascunho.");
-    await saveEditorialBase(post.id, base);
+    try {
+      await saveEditorialBase(post.id, base);
+    } catch {
+      // A reportagem já está no CMS. Não apresentar falha total nem estimular uma segunda criação.
+      console.warn("[kivai-editorial] Rascunho salvo; preservação da base indisponível.");
+      return NextResponse.json({ id: post.id, existing: false, baseReady: false,
+        warning: "Rascunho salvo. A cópia da reportagem-base não pôde ser preservada; use Preparar reportagem no editor para recuperá-la." },
+      { status: 201, headers: { "Cache-Control": "private, no-store" } });
+    }
     return NextResponse.json({ id: post.id, existing: false, baseReady: true }, { status: 201 });
   } catch (error) {
-    if (error instanceof GeminiQuotaError) {
-      return NextResponse.json({ error: error.message, code: "GEMINI_QUOTA_" + error.kind.toUpperCase(),
-        retrySeconds: error.retrySeconds }, { status: 429, headers: { "Cache-Control": "no-store" } });
-    }
-    return apiError(error);
+    return editorialApiError(error);
   }
 }

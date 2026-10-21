@@ -4,10 +4,16 @@ import { supabaseRest } from "@/lib/blog/supabase";
 type DismissedRow = { source_url: string };
 
 export async function listDismissedSuggestionUrls() {
-  const records = await supabaseRest<DismissedRow[]>(
-    "blog_editorial_dismissed_suggestions?select=source_url&limit=1000",
-  );
-  return new Set(records.map((record) => record.source_url));
+  const urls = new Set<string>();
+  let offset = 0;
+  while (true) {
+    const records = await supabaseRest<DismissedRow[]>(
+      `blog_editorial_dismissed_suggestions?select=source_url&order=source_url.asc&limit=500&offset=${offset}`,
+    );
+    if (!records.length) return urls;
+    for (const record of records) urls.add(record.source_url);
+    offset += records.length;
+  }
 }
 
 export async function dismissEditorialSuggestion(sourceUrl: string) {

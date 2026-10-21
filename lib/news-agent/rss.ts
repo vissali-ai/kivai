@@ -108,6 +108,7 @@ export async function fetchNewsFeed(source: NewsSource): Promise<NewsCandidate[]
   if (xml.length > MAX_FEED_BYTES) throw new Error(`${source.name} excedeu o limite do feed.`);
 
   const document = parser.parse(xml) as ParsedFeed;
+  if (!document.rss?.channel && !document.feed) throw new Error(`${source.name} não retornou um feed RSS ou Atom válido.`);
   const rssItems = asArray(document.rss?.channel?.item);
   const atomItems = asArray(document.feed?.entry);
   return [...rssItems, ...atomItems].flatMap((rawItem): NewsCandidate[] => {

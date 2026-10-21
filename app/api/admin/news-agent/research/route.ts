@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     await assertAdminApi();
     const body = await request.json() as Record<string, unknown>;
     const ids = Array.isArray(body.topics) ? body.topics : [];
-    if (ids.length > 15 || ids.some((id) => typeof id !== "string")) throw new Error("Selecione até 15 temas.");
+    if (ids.length > 100 || ids.some((id) => typeof id !== "string")) throw new Error("Selecione até 100 temas.");
     const topics = (await listEditorialTopics()).filter((topic) => topic.enabled && ids.includes(topic.id));
     if (topics.length !== new Set(ids).size) throw new Error("Um ou mais temas são inválidos ou estão desativados.");
     const freeQuery = typeof body.query === "string" ? body.query.trim() : "";

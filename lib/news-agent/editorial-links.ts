@@ -32,7 +32,8 @@ const STOPWORDS = new Set([
   "digital", "digitais", "ferramentas", "aplicacoes", "plataformas", "estrategias",
   "atualizacoes", "tendencias", "novidades", "noticias", "empresas",
 ]);
-const BROAD_TOPICS = new Set(["tecnologia", "inteligencia-artificial", "marketing-digital", "e-commerce"]);
+// Alguns veículos brasileiros usam domínios internacionais.
+const BRAZILIAN_HOSTS = new Set(["tecnoblog.net", "manualdousuario.net", "ecommercenapratica.com", "blog.google"]);
 
 function normalize(text: string) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -58,7 +59,7 @@ function validArticleUrl(raw: string) {
 function isInternational(source: NewsSource) {
   try {
     const host = new URL(source.siteUrl).hostname.toLowerCase();
-    return !host.endsWith(".br") && !["blog.google"].includes(host);
+    return !host.endsWith(".br") && !BRAZILIAN_HOSTS.has(host);
   } catch { return false; }
 }
 function matchesTopic(source: NewsSource, topic: EditorialTopic) {
@@ -73,7 +74,9 @@ function sourcePriority(source: NewsSource, topics: EditorialTopic[], region: Se
   return matched * 12 + regionPriority;
 }
 function selectSources(sources: NewsSource[], topics: EditorialTopic[], region: SearchRegion) {
-  const sorted = sources.slice().sort((a, b) => sourcePriority(b, topics, region) - sourcePriority(a, topics, region)
+  const sorted = sources.filter((source) => region === "ambos" ||
+    (region === "internacional" ? isInternational(source) : !isInternational(source)))
+    .sort((a, b) => sourcePriority(b, topics, region) - sourcePriority(a, topics, region)
     || a.name.localeCompare(b.name));
   if (!topics.length) return sorted.slice(0, MAX_SOURCES);
   const pool = sorted.filter((source) => topics.some((topic) => matchesTopic(source, topic)));
@@ -130,6 +133,8 @@ export async function researchEditorialLinks(input: {
   // As fontes são previamente cadastradas e passam pela allowlist do coletor existente.
   // Pesquisa independente de Google Search Grounding e de cotas de geração Gemini.
   const selected = selectSources(sources, input.topics, input.region);
+  if (!selected.length) return { items: [], model: "fontes-rss", searchedAt: new Date().toISOString(),
+    notice: "Nenhuma fonte RSS ativa corresponde à região selecionada. Experimente a opção Ambos." };
   const dismissedUrls = await listDismissedSuggestionUrls();
   const sourcesById = new Map(selected.map((source) => [source.id, source]));
   const gathered = await Promise.allSettled(selected.map((source) => fetchNewsSource(source)));
@@ -157,14 +162,16 @@ export async function researchEditorialLinks(input: {
       ? "tecnologia" : candidate.categorySlug,
   }));
   const successCount = gathered.filter((outcome) => outcome.status === "fulfilled").length;
+  const failureCount = gathered.length - successCount;
+  const failureNotice = failureCount ? ` ${failureCount} fonte(s) não responderam; os resultados podem estar incompletos.` : "";
   return {
     items,
     model: "fontes-rss",
     searchedAt: new Date().toISOString(),
     notice: items.length
-      ? "Links e datas coletados diretamente das fontes editoriais cadastradas no Kivai. Confira a matéria original antes de publicar."
+      ? "Links e datas coletados diretamente das fontes editoriais cadastradas no Kivai. Confira a matéria original antes de publicar." + failureNotice
       : successCount
-        ? "Nenhuma matéria encontrada nas fontes consultadas para esses temas e período. Experimente 7 ou 30 dias, outra palavra-chave ou mais temas."
+        ? "Nenhuma matéria encontrada nas fontes consultadas para esses temas e período. Experimente 7 ou 30 dias, outra palavra-chave ou mais temas." + failureNotice
         : "As fontes cadastradas não responderam desta vez. Tente novamente mais tarde.",
   };
 }

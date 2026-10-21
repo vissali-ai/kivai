@@ -43,7 +43,7 @@ type GeneratedArticle = {
 type GeminiResult = {
   candidates?: Array<{
     finishReason?: string;
-    content?: { parts?: Array<{text?: string}> };
+    content?: { parts?: Array<{text?: string; thought?: boolean}> };
     urlContextMetadata?: {
       urlMetadata?: Array<{ retrievedUrl?: string; urlRetrievalStatus?: string }>;
     };
@@ -117,7 +117,7 @@ function articleFromResult(input: GeneratedArticle, model: string): EditorialAiA
     model,
   };
 }
-function validateSourceUrl(input: string) {
+export function validateSourceUrl(input: string) {
   let url: URL;
   try { url = new URL(input); } catch { throw new Error("Link da reportagem inválido."); }
   if (url.protocol !== "https:" || !!url.username || !!url.password || url.toString().length > 2048) {
@@ -126,17 +126,24 @@ function validateSourceUrl(input: string) {
   const host = url.hostname.toLowerCase();
   if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal") ||
     /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || host.startsWith("[") || host.includes("..")) throw new Error("Este domínio não é permitido.");
+  url.hash = "";
+  for (const key of [...url.searchParams.keys()]) {
+    if (key.startsWith("utm_") || ["fbclid", "gclid"].includes(key)) url.searchParams.delete(key);
+  }
   return url.toString();
 }
 async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: string) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("A chave Gemini não está configurada.");
+  // Uma única janela cobre fallback e repetição, deixando tempo para salvar no CMS.
+  const deadline = Date.now() + 65_000;
   for (const model of geminiCandidates("url", preferredModel)) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      if (Date.now() >= deadline) throw new Error("O Gemini não respondeu a tempo de preparar a reportagem.");
       let response: Response;
       try {
         response = await fetch(ENDPOINT + model + ":generateContent", {
-          method: "POST", cache: "no-store", signal: AbortSignal.timeout(55_000),
+          method: "POST", cache: "no-store", signal: AbortSignal.timeout(Math.max(1, Math.min(55_000, deadline - Date.now()))),
           headers: { "Content-Type": "application/json", "x-goog-api-key": key },
           body: JSON.stringify({
             contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -154,12 +161,18 @@ async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: s
       if (!response.ok) throw new Error("Falha ao analisar a reportagem no Gemini (HTTP " + response.status + ").");
       const raw = await response.json() as GeminiResult;
       const candidate = raw.candidates?.[0];
+      if (candidate?.finishReason !== "STOP") {
+        throw new Error("O Gemini interrompeu a reportagem antes de concluí-la. Repita a geração.");
+      }
       const matches = candidate?.urlContextMetadata?.urlMetadata || [];
       // A resposta só pode ser considerada verificada quando o provedor confirma a leitura da URL.
-      if (!matches.some((item) => item.urlRetrievalStatus === "URL_RETRIEVAL_STATUS_SUCCESS")) {
+      if (!matches.some((item) => {
+        if (item.urlRetrievalStatus !== "URL_RETRIEVAL_STATUS_SUCCESS" || !item.retrievedUrl) return false;
+        try { return validateSourceUrl(item.retrievedUrl) === url; } catch { return false; }
+      })) {
         throw new Error("A fonte não pôde ser lida pelo Gemini. Confira se o artigo é público e não exige cadastro.");
       }
-      const resultText = candidate?.content?.parts?.map((part) => part.text || "").join("") || "";
+      const resultText = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text || "").join("") || "";
       return { generated: extractJson(resultText), model };
     }
   }
@@ -208,7 +221,7 @@ export async function personalizeEditorialBase(base: EditorialBase, userInstruct
     "ORIENTAÇÕES ADICIONAIS DO EDITOR: " + (userInstructions || "nenhuma"),
     "TÍTULO BASE: " + base.baseTitle,
     "SUBTÍTULO BASE: " + base.baseSubtitle,
-    "REPORTAGEM-BASE: " + base.baseHtml.slice(0, 24000),
+    "REPORTAGEM-BASE: " + base.baseHtml,
     "URL DE REFERÊNCIA: " + base.sourceUrl,
   ].join("\n");
   // Reuse the already configured JSON generation module; this path does not browse new URLs.

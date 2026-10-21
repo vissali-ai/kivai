@@ -19,9 +19,12 @@ const marketing = {
   siteUrl: "https://propmark.com.br", defaultCategorySlug: "marketing",
   kind: "rss", enabled: true, editorialTopicSlugs: ["marketing-digital", "trafego-pago"],
 };
+const international = { ...tech, id: "global", name: "Global News", siteUrl: "https://github.blog" };
 const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
 const articles = {
+  global: [{ title: "New software tools announced", excerpt: "Tools for software teams.", publishedAt: hourAgo,
+    url: "https://github.blog/news/new-software-tools/" }],
   tech: [
     { title: "Google anuncia novas tecnologias para desenvolvedores",
       excerpt: "Mudanças relevantes para a indústria de tecnologia.", publishedAt: hourAgo, url: "https://tecnoblog.net/noticias/google-tecnologia/" },
@@ -46,7 +49,7 @@ runInNewContext(output, {
   module: moduleData, exports: moduleData.exports,
   require(name) {
     if (name === "server-only") return {};
-    if (name === "@/lib/news-agent/repository") return { listNewsSources: async () => [tech, marketing] };
+    if (name === "@/lib/news-agent/repository") return { listNewsSources: async () => [tech, marketing, international] };
     if (name === "@/lib/news-agent/editorial-dismissals") return { listDismissedSuggestionUrls: async () => dismissed };
     if (name === "@/lib/news-agent/source-collector") return {
       fetchNewsSource: async (sourceItem) =>
@@ -114,4 +117,16 @@ test("Todos os temas considera fontes distintas da curadoria", async () => {
   });
   assert.ok(data.items.some((item) => item.sourceName === "Portal Tecnologia"));
   assert.ok(data.items.some((item) => item.sourceName === "Portal Marketing"));
+});
+
+test("Região internacional exclui veículos brasileiros inclusive domínio .net", async () => {
+  const data = await researchEditorialLinks({ topics: [topic], freeQuery: "", period: "24h", region: "internacional" });
+  assert.equal(data.items.length, 1);
+  assert.equal(data.items[0].sourceName, "Global News");
+});
+
+test("Ambos inclui veículos brasileiros e internacionais", async () => {
+  const data = await researchEditorialLinks({ topics: [topic], freeQuery: "", period: "24h", region: "ambos" });
+  assert.ok(data.items.some((item) => item.sourceName === "Portal Tecnologia"));
+  assert.ok(data.items.some((item) => item.sourceName === "Global News"));
 });
