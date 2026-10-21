@@ -1,0 +1,209 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, Search, Settings2, ExternalLink, Save, Trash2, Loader2 } from "lucide-react";
+import type { EditorialTopic, EditorialTopicInput } from "@/lib/news-agent/editorial-topics";
+import type { EditorialResearchResponse, EditorialResearchResult, SearchPeriod, SearchRegion } from "@/lib/news-agent/gemini-research";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+const categoryOptions = [
+  ["tecnologia", "Tecnologia"],
+  ["inteligencia-artificial", "Inteligência Artificial"],
+  ["marketing", "Marketing"],
+  ["e-commerce", "E-commerce"],
+  ["noticias", "Notícias"],
+] as const;
+
+async function readJson(response: Response) {
+  const data = await response.json() as Record<string, unknown>;
+  if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : "Não foi possível concluir a operação.");
+  return data;
+}
+
+export function EditorialResearchPanel({ initialTopics }: { initialTopics: EditorialTopic[] }) {
+  const router = useRouter();
+  const [topics, setTopics] = useState(initialTopics);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [query, setQuery] = useState("");
+  const [period, setPeriod] = useState<SearchPeriod>("7d");
+  const [region, setRegion] = useState<SearchRegion>("brasil");
+  const [results, setResults] = useState<EditorialResearchResponse | null>(null);
+  const [message, setMessage] = useState("");
+  const [researching, setResearching] = useState(false);
+  const [savingUrl, setSavingUrl] = useState("");
+  const [manage, setManage] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [edit, setEdit] = useState<EditorialTopicInput>({ name: "", searchTerms: "", categorySlug: "tecnologia", enabled: true });
+  const [working, setWorking] = useState(false);
+  const enabled = useMemo(() => topics.filter((topic) => topic.enabled), [topics]);
+  const allSelected = enabled.length > 0 && selected.length === enabled.length;
+
+  function toggleTopic(id: string) {
+    setSelected((old) => old.includes(id) ? old.filter((value) => value !== id) : [...old, id]);
+  }
+
+  async function search() {
+    if ((!selected.length && !query.trim()) || researching) return;
+    setResearching(true);
+    setResults(null);
+    setMessage("Pesquisando notícias na Web com Gemini e conferindo as fontes...");
+    try {
+      const response = await fetch("/api/admin/news-agent/research", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topics: selected, query: query.trim(), period, region }),
+      });
+      const data = await readJson(response) as EditorialResearchResponse;
+      setResults(data);
+      setMessage(data.items.length + " referência(s) encontrada(s). Confira as fontes antes de editar a matéria.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Falha na pesquisa.");
+    } finally { setResearching(false); }
+  }
+
+  async function saveDraft(result: EditorialResearchResult) {
+    if (savingUrl) return;
+    setSavingUrl(result.sourceUrl);
+    setMessage("Salvando pauta como rascunho...");
+    try {
+      const response = await fetch("/api/admin/news-agent/draft", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result),
+      });
+      const data = await readJson(response) as { id: string; existing?: boolean };
+      router.push("/admin/blog/" + data.id);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Falha ao criar rascunho.");
+    } finally { setSavingUrl(""); }
+  }
+
+  async function reloadTopics() {
+    const response = await fetch("/api/admin/news-agent/topics", { cache: "no-store" });
+    const data = await readJson(response) as unknown as EditorialTopic[];
+    setTopics(data);
+    setSelected((previous) => previous.filter((id) => data.some((topic) => topic.id === id && topic.enabled)));
+  }
+
+  function beginEdit(topic?: EditorialTopic) {
+    setEditing(topic?.id || "new");
+    setEdit(topic ? { name: topic.name, searchTerms: topic.searchTerms, categorySlug: topic.categorySlug, enabled: topic.enabled }
+      : { name: "", searchTerms: "", categorySlug: "tecnologia", enabled: true });
+    setMessage("");
+  }
+
+  async function saveTheme() {
+    if (working || !editing) return;
+    setWorking(true);
+    try {
+      const path = editing === "new" ? "/api/admin/news-agent/topics" : "/api/admin/news-agent/topics/" + editing;
+      await readJson(await fetch(path, {
+        method: editing === "new" ? "POST" : "PATCH",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(edit),
+      }));
+      await reloadTopics();
+      setEditing(null);
+      setMessage("Tema salvo com sucesso.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível salvar o tema."); }
+    finally { setWorking(false); }
+  }
+
+  async function removeTheme(topic: EditorialTopic) {
+    if (working || !window.confirm("Excluir o tema " + topic.name + "? As matérias existentes serão preservadas.")) return;
+    setWorking(true);
+    try {
+      const response = await fetch("/api/admin/news-agent/topics/" + topic.id, { method: "DELETE" });
+      if (!response.ok) await readJson(response);
+      await reloadTopics();
+      setEditing(null);
+      setMessage("Tema excluído. As matérias publicadas e rascunhos não foram alterados.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível excluir o tema."); }
+    finally { setWorking(false); }
+  }
+
+  return <div className="space-y-6">
+    <section className="space-y-5 rounded-lg border border-border bg-card p-4 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div><h2 className="text-lg font-semibold">Pesquisar notícias com Gemini</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Escolha os temas do Kivai, use a busca livre ou combine as duas opções.</p></div>
+        <Button size="sm" variant="outline" onClick={() => { setManage((old) => !old); setEditing(null); }}><Settings2 className="mr-2 size-4" />{manage ? "Fechar temas" : "Gerenciar temas"}</Button>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-medium">Temas predefinidos ({selected.length} selecionados)</h3>
+        <div className="flex gap-2">
+          <Button type="button" size="sm" variant="ghost" onClick={() => setSelected(allSelected ? [] : enabled.map((topic) => topic.id))}>
+            {allSelected ? "Limpar seleção" : "Todos os temas"}
+          </Button>
+        </div>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {enabled.map((topic) => <label key={topic.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 py-2 text-sm hover:border-primary/50">
+          <input type="checkbox" checked={selected.includes(topic.id)} onChange={() => toggleTopic(topic.id)} className="size-4 accent-primary" />
+          <span>{topic.name}</span></label>)}
+      </div>
+      {!enabled.length && <p className="text-sm text-amber-300">Nenhum tema ativo. Cadastre um tema em Gerenciar temas.</p>}
+      <label className="block space-y-2 text-sm"><span className="font-medium">Busca personalizada (opcional)</span>
+        <Input maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ex.: novos recursos do Google Ads para pequenas empresas" /></label>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="space-y-2 text-sm"><span className="font-medium">Período</span>
+          <select className="h-10 w-full rounded-md border border-input bg-background px-3" value={period} onChange={(e) => setPeriod(e.target.value as SearchPeriod)}>
+            <option value="24h">Últimas 24 horas</option><option value="7d">Últimos 7 dias</option><option value="30d">Últimos 30 dias</option>
+          </select></label>
+        <label className="space-y-2 text-sm"><span className="font-medium">Origem das fontes</span>
+          <select className="h-10 w-full rounded-md border border-input bg-background px-3" value={region} onChange={(e) => setRegion(e.target.value as SearchRegion)}>
+            <option value="brasil">Brasil</option><option value="internacional">Internacional</option><option value="ambos">Brasil e internacional</option>
+          </select></label>
+      </div>
+      <Button disabled={researching || (!selected.length && !query.trim())} onClick={search}>
+        {researching ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Search className="mr-2 size-4" />}
+        {researching ? "Pesquisando..." : "Pesquisar matérias"}
+      </Button>
+      <p role="status" aria-live="polite" className="text-sm text-muted-foreground">{message}</p>
+    </section>
+
+    {manage && <section className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h2 className="font-semibold">Gerenciar temas editoriais</h2><p className="text-xs text-muted-foreground">Altere, desative ou exclua temas sem modificar as categorias públicas do blog.</p></div>
+        <Button size="sm" variant="outline" onClick={() => beginEdit()}><Plus className="mr-1 size-4" />Novo tema</Button>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {topics.map((topic) => <div key={topic.id} className="flex items-center justify-between gap-2 rounded-md border border-border p-2">
+          <span className="truncate text-sm">{topic.name} {!topic.enabled && <small className="text-muted-foreground">(pausado)</small>}</span>
+          <Button size="sm" variant="outline" onClick={() => beginEdit(topic)}>Editar</Button></div>)}
+      </div>
+      {editing && <div className="space-y-3 rounded-lg border border-border p-4">
+        <h3 className="font-medium">{editing === "new" ? "Adicionar tema" : "Editar tema"}</h3>
+        <label className="block space-y-1 text-sm"><span>Nome do tema</span><Input value={edit.name} maxLength={80} onChange={(e) => setEdit((old) => ({...old,name:e.target.value}))}/></label>
+        <label className="block space-y-1 text-sm"><span>Termos e tópicos para pesquisa</span><textarea className="min-h-20 w-full rounded-md border border-input bg-background p-2" maxLength={350} value={edit.searchTerms} onChange={(e) => setEdit((old) => ({...old,searchTerms:e.target.value}))}/></label>
+        <label className="block space-y-1 text-sm"><span>Categoria sugerida para a pauta</span><select className="h-10 w-full border border-input bg-background px-2" value={edit.categorySlug} onChange={(e) => setEdit((old) => ({...old,categorySlug:e.target.value}))}>
+          {categoryOptions.map(([slug,label]) => <option key={slug} value={slug}>{label}</option>)}
+        </select></label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={edit.enabled} onChange={(e) => setEdit((old) => ({...old,enabled:e.target.checked}))}/>Tema ativo</label>
+        <div className="flex flex-wrap gap-2">
+          <Button disabled={working || !edit.name.trim() || !edit.searchTerms.trim()} onClick={saveTheme}><Save className="mr-1 size-4"/>Salvar tema</Button>
+          <Button variant="outline" disabled={working} onClick={() => setEditing(null)}>Cancelar</Button>
+          {editing !== "new" && <Button variant="destructive" disabled={working} onClick={() => {const topic=topics.find((t)=>t.id===editing);if(topic)void removeTheme(topic);}}><Trash2 className="mr-1 size-4"/>Excluir</Button>}
+        </div>
+      </div>}
+    </section>}
+
+    {results && <section className="space-y-4">
+      <div><h2 className="text-lg font-semibold">Matérias encontradas ({results.items.length})</h2>
+        <p className="text-xs text-muted-foreground">{results.notice}</p></div>
+      <div className="grid gap-3 lg:grid-cols-2">
+        {results.items.map((item) => <article key={item.sourceUrl} className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
+          <h3 className="text-base font-semibold leading-snug">{item.title}</h3>
+          <p className="text-xs text-muted-foreground">{item.sourceName} {item.publishedAt ? "· Data indicada: " + new Date(item.publishedAt).toLocaleDateString("pt-BR") : "· Data a confirmar na fonte"}</p>
+          <p className="flex-1 text-sm text-muted-foreground">{item.excerpt || "Consulte a fonte original para obter os detalhes da matéria."}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild><a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-1 size-4"/>Ver fonte</a></Button>
+            <Button size="sm" disabled={Boolean(savingUrl)} onClick={() => saveDraft(item)}>
+              {savingUrl === item.sourceUrl ? <Loader2 className="mr-1 size-4 animate-spin"/> : <Save className="mr-1 size-4"/>}
+              Salvar pauta como rascunho
+            </Button>
+          </div>
+        </article>)}
+      </div>
+    </section>}
+  </div>;
+}

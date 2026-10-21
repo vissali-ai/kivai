@@ -1,9 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { newsAgentConfig } from "@/lib/blog/config";
-import { runNewsAgent } from "@/lib/news-agent/service";
-
-export const maxDuration = 300;
 
 function safeEqual(left: string, right: string) {
   const a = Buffer.from(left);
@@ -16,12 +13,8 @@ export async function POST(request: Request) {
   if (newsAgentConfig.cronSecret.length < 32 || !safeEqual(supplied, newsAgentConfig.cronSecret)) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
-  try {
-    return NextResponse.json(await runNewsAgent());
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Falha ao executar o agente." },
-      { status: 500 },
-    );
-  }
+  // Desativa apenas a importação antiga de pautas. O radar público continua usando suas fontes.
+  return NextResponse.json({
+    error: "Coleta RSS desativada no Admin. A pesquisa Gemini é executada manualmente.",
+  }, { status: 410 });
 }
