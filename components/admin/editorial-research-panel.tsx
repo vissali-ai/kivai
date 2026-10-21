@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Settings2, ExternalLink, Save, Trash2, Loader2 } from "lucide-react";
 import type { EditorialTopic, EditorialTopicInput } from "@/lib/news-agent/editorial-topics";
-import type { EditorialResearchResponse, EditorialResearchResult, SearchPeriod, SearchRegion } from "@/lib/news-agent/gemini-research";
+import type { EditorialResearchResponse, EditorialResearchResult, SearchPeriod, SearchRegion } from "@/lib/news-agent/editorial-links";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GeminiFreeModelPicker } from "@/components/admin/gemini-free-model-picker";
@@ -31,7 +31,6 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
   const [directSourceUrl, setDirectSourceUrl] = useState("");
   const [period, setPeriod] = useState<SearchPeriod>("7d");
   const [region, setRegion] = useState<SearchRegion>("brasil");
-  const [searchModel, setSearchModel] = useState("auto");
   const [draftModel, setDraftModel] = useState("auto");
   const [results, setResults] = useState<EditorialResearchResponse | null>(null);
   const [message, setMessage] = useState("");
@@ -52,15 +51,15 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
     if ((!selected.length && !query.trim()) || researching) return;
     setResearching(true);
     setResults(null);
-    setMessage("Pesquisando notícias na Web com Gemini e conferindo as fontes...");
+    setMessage("Buscando links reais nas fontes de notícias cadastradas no Kivai...");
     try {
       const response = await fetch("/api/admin/news-agent/research", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topics: selected, query: query.trim(), period, region, model: searchModel }),
+        body: JSON.stringify({ topics: selected, query: query.trim(), period, region }),
       });
       const data = await readJson(response) as EditorialResearchResponse;
       setResults(data);
-      setMessage(data.items.length + " referência(s) encontrada(s). Confira as fontes antes de editar a matéria.");
+      setMessage(data.notice);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Falha na pesquisa.");
     } finally { setResearching(false); }
@@ -128,8 +127,8 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
   return <div className="space-y-6">
     <section className="space-y-5 rounded-lg border border-border bg-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><h2 className="text-lg font-semibold">Pesquisar notícias com Gemini</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Escolha os temas do Kivai, use a busca livre ou combine as duas opções.</p></div>
+        <div><h2 className="text-lg font-semibold">Encontrar reportagens para o Kivai</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Encontre links publicados por fontes verificadas, escolhendo temas, período e palavras-chave. O Gemini continua responsável por gerar o rascunho.</p></div>
         <Button size="sm" variant="outline" onClick={() => { setManage((old) => !old); setEditing(null); }}><Settings2 className="mr-2 size-4" />{manage ? "Fechar temas" : "Gerenciar temas"}</Button>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -158,7 +157,6 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
             <option value="brasil">Brasil</option><option value="internacional">Internacional</option><option value="ambos">Brasil e internacional</option>
           </select></label>
       </div>
-      <GeminiFreeModelPicker task="search" value={searchModel} onChange={setSearchModel} label="Modelo Gemini para pesquisa de notícias" />
       <Button disabled={researching || (!selected.length && !query.trim())} onClick={search}>
         {researching ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Search className="mr-2 size-4" />}
         {researching ? "Pesquisando..." : "Pesquisar matérias"}
@@ -213,7 +211,7 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
     </section>}
 
     {results && <section className="space-y-4">
-      <div><h2 className="text-lg font-semibold">Matérias encontradas ({results.items.length})</h2>
+      <div><h2 className="text-lg font-semibold">Links de reportagens ({results.items.length})</h2>
         <p className="text-xs text-muted-foreground">{results.notice}</p></div>
       <div className="grid gap-3 lg:grid-cols-2">
         {results.items.map((item) => <article key={item.sourceUrl} className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
