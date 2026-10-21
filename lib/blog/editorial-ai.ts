@@ -2,6 +2,7 @@ import "server-only";
 
 import { plainText, sanitizePostHtml } from "@/lib/blog/sanitize";
 import { supabaseRest } from "@/lib/blog/supabase";
+import { interpretGeminiQuota, shortGeminiQuotaBackoff } from "@/lib/ai/gemini-quota";
 
 const MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"] as const;
 const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/";
@@ -130,30 +131,36 @@ async function callGeminiWithUrl(url: string, prompt: string) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("A chave Gemini não está configurada.");
   for (const model of MODELS) {
-    let response: Response;
-    try {
-      response = await fetch(ENDPOINT + model + ":generateContent", {
-        method: "POST", cache: "no-store", signal: AbortSignal.timeout(55_000),
-        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          tools: [{ urlContext: {} }],
-          generationConfig: { temperature: 0.25, maxOutputTokens: 6200 },
-        }),
-      });
-    } catch { throw new Error("O Gemini não respondeu a tempo de preparar a reportagem."); }
-    if (response.status === 404) continue;
-    if (response.status === 429) throw new Error("O limite de uso do Gemini foi atingido.");
-    if (!response.ok) throw new Error("Falha ao analisar a reportagem no Gemini (HTTP " + response.status + ").");
-    const raw = await response.json() as GeminiResult;
-    const candidate = raw.candidates?.[0];
-    const matches = candidate?.urlContextMetadata?.urlMetadata || [];
-    // A resposta só pode ser considerada verificada quando o provedor confirma a leitura da URL.
-    if (!matches.some((item) => item.urlRetrievalStatus === "URL_RETRIEVAL_STATUS_SUCCESS")) {
-      throw new Error("A fonte não pôde ser lida pelo Gemini. Confira se o artigo é público e não exige cadastro.");
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      let response: Response;
+      try {
+        response = await fetch(ENDPOINT + model + ":generateContent", {
+          method: "POST", cache: "no-store", signal: AbortSignal.timeout(55_000),
+          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            tools: [{ urlContext: {} }],
+            generationConfig: { temperature: 0.25, maxOutputTokens: 6200 },
+          }),
+        });
+      } catch { throw new Error("O Gemini não respondeu a tempo de preparar a reportagem."); }
+      if (response.status === 404) break;
+      if (response.status === 429) {
+        const quota = await interpretGeminiQuota(response, "draft", model);
+        if (attempt === 0 && await shortGeminiQuotaBackoff(quota)) continue;
+        throw quota;
+      }
+      if (!response.ok) throw new Error("Falha ao analisar a reportagem no Gemini (HTTP " + response.status + ").");
+      const raw = await response.json() as GeminiResult;
+      const candidate = raw.candidates?.[0];
+      const matches = candidate?.urlContextMetadata?.urlMetadata || [];
+      // A resposta só pode ser considerada verificada quando o provedor confirma a leitura da URL.
+      if (!matches.some((item) => item.urlRetrievalStatus === "URL_RETRIEVAL_STATUS_SUCCESS")) {
+        throw new Error("A fonte não pôde ser lida pelo Gemini. Confira se o artigo é público e não exige cadastro.");
+      }
+      const resultText = candidate?.content?.parts?.map((part) => part.text || "").join("") || "";
+      return { generated: extractJson(resultText), model };
     }
-    const resultText = candidate?.content?.parts?.map((part) => part.text || "").join("") || "";
-    return { generated: extractJson(resultText), model };
   }
   throw new Error("Nenhum modelo Gemini com leitura de URL está disponível.");
 }

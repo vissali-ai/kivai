@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { apiError } from "@/lib/blog/api";
+import { GeminiQuotaError } from "@/lib/ai/gemini-quota";
 import { listEditorialTopics } from "@/lib/news-agent/editorial-topics";
 import { researchWithGemini, type SearchPeriod, type SearchRegion } from "@/lib/news-agent/gemini-research";
 export const maxDuration = 60;
@@ -22,5 +23,11 @@ export async function POST(request: Request) {
     return NextResponse.json(await researchWithGemini({ topics, freeQuery, period, region }), {
       headers: { "Cache-Control": "no-store" },
     });
-  } catch (error) { return apiError(error); }
+  } catch (error) {
+    if (error instanceof GeminiQuotaError) {
+      return NextResponse.json({ error: error.message, code: "GEMINI_QUOTA_" + error.kind.toUpperCase(),
+        retrySeconds: error.retrySeconds }, { status: 429, headers: { "Cache-Control": "no-store" } });
+    }
+    return apiError(error);
+  }
 }

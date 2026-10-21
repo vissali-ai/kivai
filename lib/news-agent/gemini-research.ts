@@ -1,6 +1,7 @@
 import "server-only";
 import type { EditorialTopic } from "@/lib/news-agent/editorial-topics";
 import { newsTitleSimilarity } from "@/lib/news-agent/candidate-ranking";
+import { interpretGeminiQuota, shortGeminiQuotaBackoff } from "@/lib/ai/gemini-quota";
 
 const MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"] as const;
 export type SearchPeriod = "24h" | "7d" | "30d";
@@ -85,29 +86,38 @@ export async function researchWithGemini(input: {
   let apiResponse: RawResponse | null = null;
   let modelUsed = "";
   for (const model of MODELS) {
-    let response: Response;
-    try {
-      response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
-        method: "POST",
-        cache: "no-store",
-        signal: AbortSignal.timeout(45_000),
-        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          tools: [{ googleSearch: {} }],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 3400 },
-        }),
-      });
-    } catch { throw new Error("Não foi possível alcançar o Gemini. Tente novamente."); }
-    if (response.status === 404) continue;
-    if (response.status === 429) throw new Error("O limite da API Gemini foi atingido. Tente mais tarde.");
-    if (response.status === 403 || response.status === 400) {
-      throw new Error("Pesquisa Google com Gemini indisponível para esta chave. Verifique se o projeto tem faturamento habilitado.");
+    let unsupportedModel = false;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      let response: Response;
+      try {
+        response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
+          method: "POST",
+          cache: "no-store",
+          signal: AbortSignal.timeout(45_000),
+          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            tools: [{ googleSearch: {} }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 3400 },
+          }),
+        });
+      } catch { throw new Error("Não foi possível alcançar o Gemini. Tente novamente."); }
+      if (response.status === 404) { unsupportedModel = true; break; }
+      if (response.status === 429) {
+        const quota = await interpretGeminiQuota(response, "research", model);
+        if (attempt === 0 && await shortGeminiQuotaBackoff(quota)) continue;
+        throw quota;
+      }
+      if (response.status === 403 || response.status === 400) {
+        throw new Error("Pesquisa Google com Gemini indisponível para esta chave. Verifique o projeto e o faturamento no Google AI Studio.");
+      }
+      if (!response.ok) throw new Error("A pesquisa Gemini falhou (HTTP " + response.status + ").");
+      apiResponse = await response.json() as RawResponse;
+      modelUsed = model;
+      break;
     }
-    if (!response.ok) throw new Error("A pesquisa Gemini falhou (HTTP " + response.status + ").");
-    apiResponse = await response.json() as RawResponse;
-    modelUsed = model;
-    break;
+    if (apiResponse) break;
+    if (!unsupportedModel) break;
   }
   if (!apiResponse) throw new Error("Os modelos configurados para a pesquisa Gemini não estão disponíveis.");
   const candidate = apiResponse.candidates?.[0];
