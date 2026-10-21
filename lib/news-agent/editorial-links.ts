@@ -2,7 +2,7 @@ import "server-only";
 
 import { listNewsSources } from "@/lib/news-agent/repository";
 import { fetchNewsSource } from "@/lib/news-agent/source-collector";
-import { deduplicateNewsTopics, newsTitleSimilarity } from "@/lib/news-agent/candidate-ranking";
+import { deduplicateNewsTopics } from "@/lib/news-agent/candidate-ranking";
 import type { EditorialTopic } from "@/lib/news-agent/editorial-topics";
 import type { NewsCandidate, NewsSource } from "@/lib/news-agent/types";
 
@@ -76,7 +76,7 @@ function relevance(candidate: NewsCandidate, topics: EditorialTopic[], queryTerm
     const broad = BROAD_TOPICS.has(topic.slug);
     if (count > 0 || (broad && matchesCategory)) {
       topicMatched = true;
-      score = Math.max(score, score + Math.min(count, 4) * 2 + (matchesCategory ? 4 : 0));
+      score += Math.min(count, 4) * 2 + (matchesCategory ? 4 : 0);
     }
   }
   return topicMatched ? score : -1;
