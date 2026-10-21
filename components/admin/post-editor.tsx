@@ -84,20 +84,26 @@ export function PostEditor({ post, categories, tools }: { post?: Post | null; ca
     if (!form.id) router.replace(`/admin/blog/${data.id}`);
     router.refresh();
   }
-  function applyEditorialArticle(article: EditorialAiArticle) {
-    setForm((current) => ({
-      ...current,
-      title: article.title,
-      subtitle: article.subtitle,
-      excerpt: article.excerpt,
-      content: article.contentHtml,
-      seoTitle: article.seoTitle,
-      metaDescription: article.metaDescription,
-      slug: current.status === "draft" ? slugify(article.title) : current.slug,
-      generationModel: article.model,
-      author: "Marcus Vissali",
-    }));
-    setTagText(article.tags.join(", "));
+  async function applyEditorialArticle(article: EditorialAiArticle) {
+    if (!form.id || form.status !== "draft") throw new Error("A personalização exige um rascunho salvo.");
+    const newTags = article.tags.length ? article.tags : tags;
+    const payload: PostInput = {
+      ...form, title: article.title, subtitle: article.subtitle, excerpt: article.excerpt,
+      content: article.contentHtml, seoTitle: article.seoTitle,
+      metaDescription: article.metaDescription, slug: slugify(article.title),
+      generationModel: article.model, author: "Marcus Vissali",
+      status: "draft", tagNames: newTags,
+    };
+    // O comando do editor atualiza o MESMO rascunho, sem publicar e sem excluir a reportagem-base guardada.
+    const response = await fetch("/api/admin/posts/" + encodeURIComponent(form.id), {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    });
+    const data = await response.json() as Post & { error?: string };
+    if (!response.ok) throw new Error(data.error || "A edição não pôde ser salva no rascunho.");
+    setForm((current) => ({ ...current, ...data, tagNames: newTags, status: "draft" }));
+    setTagText(newTags.join(", "));
+    setMessage("Versão editorial aplicada e salva no rascunho.");
+    router.refresh();
   }
   function applyEditorialBase(base: EditorialBase) {
     setForm((current) => ({
@@ -111,7 +117,7 @@ export function PostEditor({ post, categories, tools }: { post?: Post | null; ca
   return <main className="min-w-0 max-w-full overflow-x-hidden"><header className="mb-6 flex min-w-0 flex-wrap items-end justify-between gap-4"><div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Editor</p><h1 className="mt-1 text-3xl font-semibold">{form.id ? "Editar matéria" : "Nova matéria"}</h1><p className="mt-2 text-sm text-muted-foreground">O salvamento padrão mantém a matéria como rascunho.</p></div><div className="flex min-w-0 flex-wrap items-center gap-2"><span className={`text-xs ${message.includes("Erro") || message.includes("obrigatório") ? "text-red-400" : "text-muted-foreground"}`}>{message}</span><Button variant="outline" disabled={saving} onClick={() => save(post?.status === "published" ? "published" : "draft", true)}><Eye />Pré-visualizar</Button><Button variant="secondary" disabled={saving} onClick={() => save("draft")}><Save />Salvar rascunho</Button><Button disabled={saving} onClick={() => save(primaryStatus)}><Send />{primaryStatus === "scheduled" ? "Agendar publicação" : "Publicar"}</Button></div></header>
     {form.origin === "rss-agent" ? <div className="mb-5 border border-primary/30 bg-primary/10 p-4 text-sm"><strong>Esta é apenas uma pauta de referência.</strong><p className="mt-1 text-muted-foreground">Substitua o título e escreva sua matéria original. Ao publicar ou agendar, o sistema a transformará em uma nova publicação manual, redefinirá as datas e removerá a origem RSS, o marcador do agente e os dados de revisão.</p><p className="mt-1 text-muted-foreground">A fonte informada continuará visível como transparência editorial, sem indicar que o texto nasceu de um rascunho.</p></div> : null}
     <div className="min-w-0 space-y-5">
-      {form.id && form.sourceUrl ? <EditorialAiPanel postId={form.id} sourceUrl={form.sourceUrl}
+      {form.id && form.sourceUrl && form.status === "draft" ? <EditorialAiPanel postId={form.id} sourceUrl={form.sourceUrl}
         onApplyArticle={applyEditorialArticle} onApplyBase={applyEditorialBase} /> : null}
       <section className="min-w-0 space-y-4 border border-white/10 bg-card p-5"><h2 className="font-semibold">Conteúdo</h2><label className="block space-y-1.5 text-sm"><span>Título *</span><Input value={form.title} onChange={(e) => update("title", e.target.value)} className={inputClass} /></label><label className="block space-y-1.5 text-sm"><span>Subtítulo ou linha fina</span><Input value={form.subtitle} onChange={(e) => update("subtitle", e.target.value)} className={inputClass} /></label><label className="block space-y-1.5 text-sm"><span>Slug *</span><Input value={form.slug} onChange={(e) => update("slug", slugify(e.target.value))} className={inputClass} /></label><label className="block space-y-1.5 text-sm"><span>Resumo *</span><textarea value={form.excerpt} maxLength={320} onChange={(e) => update("excerpt", e.target.value)} className="min-h-24 w-full border border-input bg-background p-3 text-sm outline-none focus:border-ring" /><small className="text-muted-foreground">{form.excerpt.length}/320</small></label><div><span className="mb-1.5 block text-sm">Texto da matéria *</span><RichTextEditor value={form.content} onChange={(value) => update("content", value)} /></div></section>
       <section className="space-y-4 border border-white/10 bg-card p-5"><h2 className="font-semibold">Fonte editorial</h2><p className="text-xs leading-5 text-muted-foreground">Informe a melhor fonte que sustenta o fato central. Ela aparece ao final da matéria como referência jornalística e não como origem do texto.</p><div className="grid gap-4 md:grid-cols-2"><label className="space-y-1.5 text-sm"><span>Fonte principal</span><Input value={form.sourceName} onChange={(e) => update("sourceName", e.target.value)} /></label><label className="space-y-1.5 text-sm"><span>URL da fonte</span><Input type="url" value={form.sourceUrl} onChange={(e) => update("sourceUrl", e.target.value)} /></label></div></section>
