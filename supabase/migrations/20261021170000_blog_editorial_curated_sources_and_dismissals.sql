@@ -39,7 +39,7 @@ where s.name = mapping.name
   and cardinality(s.editorial_topic_slugs) = 0;
 
 insert into public.blog_rss_sources
-  (name,feed_url,site_url,default_category_slug,enabled,editorial_topic_slugs)
+  (name,feed_url,site_url,default_category_slug,editorial_topic_slugs)
 values
 ('Search Engine Land','https://searchengineland.com/feed','https://searchengineland.com','marketing',ARRAY['seo','trafego-pago','marketing-digital']::text[]),
 ('Search Engine Journal','https://www.searchenginejournal.com/feed/','https://www.searchenginejournal.com','marketing',ARRAY['seo','marketing-digital','trafego-pago']::text[]),
