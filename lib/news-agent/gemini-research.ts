@@ -3,7 +3,10 @@ import type { EditorialTopic } from "@/lib/news-agent/editorial-topics";
 import { newsTitleSimilarity } from "@/lib/news-agent/candidate-ranking";
 import { interpretGeminiQuota, shortGeminiQuotaBackoff } from "@/lib/ai/gemini-quota";
 
-const MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"] as const;
+// A pesquisa com Google Search no Gemini 3.x requer plano pago.
+// Gemini 2.5 Flash-Lite/Flash oferece grounding também na modalidade gratuita.
+// Só alternar modelos em caso de 404 (modelo indisponível); jamais após 429 de cota.
+const MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash"] as const;
 export type SearchPeriod = "24h" | "7d" | "30d";
 export type SearchRegion = "brasil" | "internacional" | "ambos";
 export type EditorialResearchResult = {
