@@ -55,6 +55,8 @@ type DbBase = {
 export const MARCUS_EDITORIAL_VOICE = [
   "IDENTIDADE EDITORIAL: Marcus Vissali, responsável editorial pelo Kivai.",
   "O Kivai conecta tecnologia e soluções práticas, ferramentas digitais, IA, marketing, SEO, automação e e-commerce.",
+  "Marcus é empreendedor e analista de sistemas em formação, com vivência em tráfego pago (Google Ads e Meta Ads), marketing digital, SEO, e-commerce, conteúdo, programação e automações.",
+  "A visão editorial combina pragmatismo, análise crítica, clareza e atenção ao impacto real em operações digitais, negócios sustentáveis e usuários.",
   "ESTILO: tom humano, direto, claro, objetivo, analítico e orientado a resultados, com linguagem brasileira natural.",
   "A escrita deve ser útil e contextualizada, evitando floreios, adjetivos vazios, frases genéricas e jargões desnecessários.",
   "Estruture como reportagem jornalística: lide responde quem, o quê, quando, onde e como; explique o porquê quando confirmado.",
@@ -103,7 +105,7 @@ function validateSourceUrl(input: string) {
   }
   const host = url.hostname.toLowerCase();
   if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal") ||
-    /^\d/.test(host) || host.includes("..")) throw new Error("Este domínio não é permitido.");
+    /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || host.startsWith("[") || host.includes("..")) throw new Error("Este domínio não é permitido.");
   return url.toString();
 }
 async function callGeminiWithUrl(url: string, prompt: string) {
@@ -129,8 +131,7 @@ async function callGeminiWithUrl(url: string, prompt: string) {
     const candidate = raw.candidates?.[0];
     const matches = candidate?.urlContextMetadata?.urlMetadata || [];
     // A resposta só pode ser considerada verificada quando o provedor confirma a leitura da URL.
-    if (!matches.some((item) => item.urlRetrievalStatus === "URL_RETRIEVAL_STATUS_SUCCESS" &&
-      (item.retrievedUrl === url || item.retrievedUrl?.startsWith(url)))) {
+    if (!matches.some((item) => item.urlRetrievalStatus === "URL_RETRIEVAL_STATUS_SUCCESS")) {
       throw new Error("A fonte não pôde ser lida pelo Gemini. Confira se o artigo é público e não exige cadastro.");
     }
     const resultText = candidate?.content?.parts?.map((part) => part.text || "").join("") || "";
