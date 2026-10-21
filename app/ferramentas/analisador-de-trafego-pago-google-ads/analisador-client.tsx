@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { ArrowLeft, ArrowRight, Download, FileSpreadsheet, ShieldCheck, Target } from "lucide-react";
 import { CampaignReportSection } from "@/components/tools/google-ads-campaign-report";
 import { GoogleAdsAuctionCompare } from "@/components/tools/google-ads-auction-compare";
@@ -10,6 +10,8 @@ import { GoogleAdsLiveConnect } from "@/components/tools/google-ads-live-connect
 import type { TrafficAnalysisRequest } from "@/lib/ai/traffic-analysis";
 import { parseDelimited, parseReportNumber as numberFromInput } from "@/lib/google-ads/csv-utils";
 import { normalizeReportLabel as normalize } from "@/lib/google-ads/campaign-types";
+import { firstDayOfMonthISO, lastCompletedDayInTimeZone } from "@/lib/google-ads/dates";
+import { inspectPeriod } from "@/lib/google-ads/diagnostics";
 
 type SearchTerm = { term: string; clicks: number; cost: number; conversions: number };
 
@@ -102,21 +104,52 @@ export default function GoogleAdsTrafficAnalyzerClient() {
   const [segment, setSegment] = useState("");
   const [city, setCity] = useState("");
   const [budget, setBudget] = useState("");
-  const [targetLeads, setTargetLeads] = useState("");
-  const [maxCpl, setMaxCpl] = useState("");
   const [targetRoas, setTargetRoas] = useState("");
   const [monthlyRevenue, setMonthlyRevenue] = useState("");
+  const [objective, setObjective] = useState<"leads" | "sales" | "traffic" | "awareness" | "video" | "app" | "other">("other");
+  const [targetConversions, setTargetConversions] = useState("");
+  const [maxCpa, setMaxCpa] = useState("");
+  const [targetClicks, setTargetClicks] = useState("");
+  const [targetImpressions, setTargetImpressions] = useState("");
+  const [notes, setNotes] = useState("");
+  const [periodFrom, setPeriodFrom] = useState("");
+  const [periodTo, setPeriodTo] = useState("");
+  const [lastClosedDate, setLastClosedDate] = useState("");
+  useEffect(() => {
+    const lastDay = lastCompletedDayInTimeZone("America/Sao_Paulo");
+    setLastClosedDate(lastDay);
+    setPeriodFrom(firstDayOfMonthISO(lastDay));
+    setPeriodTo(lastDay);
+  }, []);
+  const selectedPeriod = useMemo(() => ({ from: periodFrom, to: periodTo }), [periodFrom, periodTo]);
+  const periodInfo = useMemo(() => inspectPeriod(periodFrom, periodTo), [periodFrom, periodTo]);
+  const periodError = periodFrom && periodTo && lastClosedDate
+    ? !periodInfo.valid ? (periodInfo.reason ?? "Confira as datas informadas.")
+      : periodTo > lastClosedDate ? "A análise considera somente dias concluídos. Escolha até ontem."
+      : ""
+    : "Escolha o início e o fim do período.";
+  const measuresConversions = objective === "leads" || objective === "sales" || objective === "app" || objective === "other";
   const monthlyGoals = useMemo(() => ({
     budget: positiveOrNull(budget),
-    leads: positiveOrNull(targetLeads),
-    maxCpl: positiveOrNull(maxCpl),
-    targetRoas: positiveOrNull(targetRoas),
-    monthlyRevenue: positiveOrNull(monthlyRevenue),
-    // Sem validação explícita da mensuração, não inferir leads nem faturamento
-    // a partir das conversões/valores recebidos do Google Ads ou dos CSVs.
+    leads: null,
+    maxCpl: null,
+    targetRoas: objective === "sales" ? positiveOrNull(targetRoas) : null,
+    monthlyRevenue: objective === "sales" ? positiveOrNull(monthlyRevenue) : null,
     conversionsAreLeads: false,
     conversionValueIsRevenue: false,
-  }), [budget, targetLeads, maxCpl, targetRoas, monthlyRevenue]);
+    objective,
+    targetConversions: measuresConversions ? positiveOrNull(targetConversions) : null,
+    maxCpa: measuresConversions ? positiveOrNull(maxCpa) : null,
+    targetClicks: objective === "traffic" ? positiveOrNull(targetClicks) : null,
+    targetImpressions: objective === "awareness" || objective === "video"
+      ? positiveOrNull(targetImpressions) : null,
+  }), [budget, objective, targetRoas, monthlyRevenue, targetConversions, maxCpa, targetClicks, targetImpressions, measuresConversions]);
+  const businessContext = useMemo(() => ({
+    sector: segment.trim().slice(0, 120),
+    region: city.trim().slice(0, 120),
+    objective,
+    notes: notes.trim().slice(0, 1500),
+  }), [segment, city, objective, notes]);
   const [fileName, setFileName] = useState("");
   const [terms, setTerms] = useState<SearchTerm[]>([]);
   const [fileError, setFileError] = useState("");
@@ -165,10 +198,17 @@ export default function GoogleAdsTrafficAnalyzerClient() {
       titulo: "Planejamento inicial de tráfego pago",
       cliente: client, segmento: segment, localizacao: city,
       premissas: {
-        investimento_mensal: budget, meta_leads: targetLeads, cpl_maximo: maxCpl,
-        roas_desejado: targetRoas, meta_faturamento_atribuido: monthlyRevenue,
+        investimento_mensal: budget, objetivo: objective,
+        meta_conversoes: measuresConversions ? targetConversions : "",
+        cpa_maximo: measuresConversions ? maxCpa : "",
+        meta_cliques: objective === "traffic" ? targetClicks : "",
+        meta_impressoes: objective === "awareness" || objective === "video" ? targetImpressions : "",
+        roas_desejado: objective === "sales" ? targetRoas : "",
+        meta_faturamento_atribuido: objective === "sales" ? monthlyRevenue : "",
       },
-      aviso: "Planejamento baseado nas metas informadas. Conversões e valores de conversão não são automaticamente classificados como leads ou receita. O documento não é um diagnóstico de resultados.",
+      periodo_solicitado: { inicio: periodFrom, fim: periodTo },
+      contexto: businessContext,
+      aviso: "Planejamento baseado nas metas informadas. Conversões não são automaticamente classificadas como leads ou vendas. O período escolhido deve corresponder aos dados importados.",
     };
     saveFile("kivai-plano-trafego.json", JSON.stringify(plan, null, 2), "application/json;charset=utf-8");
   }
@@ -196,7 +236,8 @@ export default function GoogleAdsTrafficAnalyzerClient() {
             investimentos, conversões, custo por resultado e metas proporcionais ao período. Identifique
             prioridades, riscos e oportunidades de melhoria, com orientações sobre o que investigar,
             manter ou acompanhar antes de alterar campanhas.
-            A versão beta utiliza dados de contas Google Ads conectadas ou relatórios CSV.
+            A análise numérica e a importação de relatórios CSV são públicas e gratuitas, sem cadastro.
+            A conexão Google Ads ainda depende de autorização do Google e a análise aprofundada com IA usa créditos.
             Auditorias detalhadas de anúncios, recursos, palavras-chave, públicos e lances serão ampliadas gradualmente.
           </p>
           <p className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground">
@@ -207,24 +248,76 @@ export default function GoogleAdsTrafficAnalyzerClient() {
         <section className="mt-10" aria-labelledby="plano-title">
           <div className="flex items-center gap-2">
             <Target className="size-5 text-primary" aria-hidden="true" />
-            <h2 id="plano-title" className="text-xl font-semibold">Plano mensal do cliente</h2>
+            <h2 id="plano-title" className="text-xl font-semibold">Objetivos, período e metas</h2>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Preencha o que souber. Campos não informados não serão adivinhados. Conversões e valores de conversão não são automaticamente classificados como leads ou receita.
+            Escolha o intervalo e o objetivo principal da análise. Preencha apenas as metas que se aplicam à modalidade e ao resultado desejado. Dados não informados não serão presumidos.
           </p>
           <div className="mt-5 max-w-3xl">
             <div className={cardClass}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Cliente ou projeto" value={client} onChange={setClient} placeholder="Nome opcional" />
-                <Field label="Segmento" value={segment} onChange={setSegment} placeholder="Ex.: Odontologia" />
-                <div className="sm:col-span-2"><Field label="Cidade ou região de atendimento" value={city} onChange={setCity} placeholder="Ex.: Belo Horizonte e região" /></div>
-                <Field label="Investimento mensal (R$)" value={budget} onChange={setBudget} placeholder="Ex.: 3000" />
-                <Field label="Meta mensal de leads" value={targetLeads} onChange={setTargetLeads} placeholder="Ex.: 120" />
-                <Field label="CPL máximo do plano (R$)" value={maxCpl} onChange={setMaxCpl} placeholder="Ex.: 40" />
-                <Field label="ROAS desejado (x)" value={targetRoas} onChange={setTargetRoas} placeholder="Ex.: 3,5" />
-                <div className="sm:col-span-2">
-                  <Field label="Meta mensal de receita atribuída ao Google Ads (R$)" value={monthlyRevenue} onChange={setMonthlyRevenue} placeholder="Ex.: 12000" />
-                </div>
+                <label className={fieldClass}>Data inicial da análise
+                  <input className={inputClass} type="date" value={periodFrom} max={lastClosedDate || undefined}
+                    onChange={(event) => setPeriodFrom(event.target.value)} />
+                </label>
+                <label className={fieldClass}>Data final da análise
+                  <input className={inputClass} type="date" value={periodTo} min={periodFrom || undefined}
+                    max={lastClosedDate || undefined} onChange={(event) => setPeriodTo(event.target.value)} />
+                </label>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button type="button" className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-muted-foreground hover:text-primary"
+                  onClick={() => { if (lastClosedDate) { setPeriodFrom(firstDayOfMonthISO(lastClosedDate)); setPeriodTo(lastClosedDate); } }}>
+                  Mês atual até ontem
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  Qualquer intervalo de até 366 dias concluídos. As metas mensais são proporcionais às datas escolhidas.
+                </span>
+              </div>
+              {periodError ? <p role="alert" className="mt-3 text-xs text-amber-300">{periodError}</p> : null}
+            </div>
+            <div className={`${cardClass} mt-4`}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className={fieldClass}>Objetivo principal das campanhas
+                  <select value={objective} onChange={(event) => setObjective(event.target.value as typeof objective)}
+                    className={inputClass}>
+                    <option value="other">Outro / não definido</option>
+                    <option value="leads">Captação de leads</option>
+                    <option value="sales">Vendas e receita</option>
+                    <option value="traffic">Tráfego para site</option>
+                    <option value="awareness">Alcance e reconhecimento</option>
+                    <option value="video">Vídeo e visualizações</option>
+                    <option value="app">Aplicativo e instalações</option>
+                  </select>
+                </label>
+                <Field label="Investimento mensal planejado (R$)" value={budget} onChange={setBudget} placeholder="Ex.: 3000" />
+                <Field label="Cliente ou projeto (opcional)" value={client} onChange={setClient} placeholder="Identificação interna" />
+                <Field label="Segmento (opcional)" value={segment} onChange={setSegment} placeholder="Ex.: Odontologia, e-commerce" />
+                <div className="sm:col-span-2"><Field label="Região de atendimento (opcional)" value={city} onChange={setCity} placeholder="Ex.: BH, Brasil" /></div>
+                {measuresConversions ? (
+                  <>
+                    <Field label="Meta mensal de conversões (opcional)" value={targetConversions} onChange={setTargetConversions} placeholder="Ex.: 120" />
+                    <Field label="CPA máximo por conversão (R$) (opcional)" value={maxCpa} onChange={setMaxCpa} placeholder="Ex.: 40" />
+                  </>
+                ) : null}
+                {objective === "traffic" ? (
+                  <Field label="Meta mensal de cliques (opcional)" value={targetClicks} onChange={setTargetClicks} placeholder="Ex.: 5000" />
+                ) : null}
+                {objective === "awareness" || objective === "video" ? (
+                  <Field label="Meta mensal de impressões (opcional)" value={targetImpressions} onChange={setTargetImpressions} placeholder="Ex.: 50000" />
+                ) : null}
+                {objective === "sales" ? (
+                  <>
+                    <Field label="ROAS desejado (x) (opcional)" value={targetRoas} onChange={setTargetRoas} placeholder="Ex.: 3,5" />
+                    <Field label="Meta mensal de receita atribuída (R$) (opcional)" value={monthlyRevenue} onChange={setMonthlyRevenue} placeholder="Ex.: 12000" />
+                  </>
+                ) : null}
+                <label className={`${fieldClass} sm:col-span-2`}>
+                  Contexto e desafios das campanhas (opcional, para a IA)
+                  <textarea className={inputClass} rows={3} maxLength={1500} value={notes}
+                    onChange={(event) => setNotes(event.target.value)}
+                    placeholder="Ex.: campanhas recentes, necessidade de qualidade dos leads, margem, sazonalidade ou restrições de orçamento. Não informe dados pessoais." />
+                </label>
               </div>
               <button onClick={exportPlan} type="button" className="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-medium hover:border-primary/50">
                 <Download className="size-4" aria-hidden="true" /> Baixar planejamento
@@ -233,15 +326,15 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           </div>
         </section>
 
-        <GoogleAdsLiveConnect goals={monthlyGoals} onSnapshot={setConnectedSnapshot} />
-        <CampaignReportSection onSnapshot={setTrafficSnapshot} goals={monthlyGoals} />
+        <GoogleAdsLiveConnect goals={monthlyGoals} period={selectedPeriod} onSnapshot={setConnectedSnapshot} />
+        <CampaignReportSection onSnapshot={setTrafficSnapshot} goals={monthlyGoals} period={selectedPeriod} />
 
-        <section className="mt-12" aria-labelledby="relatorio-title">
-          <div className="flex items-center gap-2">
+        <details className="mt-12 rounded-xl border border-white/10 bg-white/[0.02] p-5" aria-labelledby="relatorio-title">
+          <summary className="flex cursor-pointer items-center gap-2 text-foreground">
             <FileSpreadsheet className="size-5 text-primary" aria-hidden="true" />
-            <h2 id="relatorio-title" className="text-xl font-semibold">Revisão complementar de termos de pesquisa</h2>
-          </div>
-          <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground">
+            <span id="relatorio-title" className="text-lg font-semibold">Módulo opcional: termos de pesquisa</span>
+          </summary>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
             Exporte os termos de pesquisa do Google Ads em CSV, com colunas Termo de pesquisa, Cliques, Custo e Conversões.
             Este relatório complementa a visão de campanha quando há termos disponíveis. A análise usa limites definidos por você e apenas sinaliza termos para revisão, sem executar negativas.
           </p>
@@ -313,9 +406,9 @@ export default function GoogleAdsTrafficAnalyzerClient() {
               </div>
             ) : null}
           </div>
-        </section>
+        </details>
         <GoogleAdsAuctionCompare />
-        <TrafficBetaAssistant snapshot={connectedSnapshot ?? trafficSnapshot} />
+        <TrafficBetaAssistant snapshot={connectedSnapshot ?? trafficSnapshot} context={businessContext} />
         <div className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="size-4" aria-hidden="true" />
           Os arquivos dos cálculos locais não são enviados. Na análise opcional com IA, apenas os dados e relatórios selecionados por você são transmitidos após consentimento.

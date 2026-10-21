@@ -25,6 +25,12 @@ export type MonthlyGoals = {
   monthlyRevenue: number | null;
   conversionsAreLeads: boolean;
   conversionValueIsRevenue: boolean;
+  // Objetivo selecionado pelo usuário; metas específicas são opcionais.
+  objective?: "leads" | "sales" | "traffic" | "awareness" | "video" | "app" | "other";
+  targetConversions?: number | null;
+  maxCpa?: number | null;
+  targetClicks?: number | null;
+  targetImpressions?: number | null;
 };
 
 export type ReportTotals = {
@@ -71,14 +77,15 @@ export function compareAccumulatedGoal(
   actual: number,
   period: PeriodInfo,
 ): AccumulatedPace | null {
-  if (!period.valid || !period.fullMonthToDate || target === null ||
+  if (!period.valid || target === null ||
       !Number.isFinite(target) || target <= 0 || !Number.isFinite(actual) || actual < 0) return null;
   const expectedToDate = target * period.ratio;
+  if (expectedToDate <= 0) return null;
   return {
     label, unit, monthlyTarget: target, expectedToDate, actual,
     difference: actual - expectedToDate,
     differencePct: (actual / expectedToDate - 1) * 100,
-    achievedPct: (actual / target) * 100,
+    achievedPct: (actual / expectedToDate) * 100,
     remainingMonthly: Math.max(0, target - actual),
     periodPct: period.ratio * 100,
   };
@@ -114,12 +121,24 @@ export function inspectPeriod(start: string, end: string): PeriodInfo {
   const sameMonth = year === to.getUTCFullYear() && month === to.getUTCMonth();
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0, 12)).getUTCDate();
   const reportDays = differenceDays(from, to) + 1;
+  if (reportDays > 366) return { ...empty, reportDays, reason: "Escolha no máximo 366 dias por análise." };
   const fullMonthToDate = sameMonth && from.getUTCDate() === 1;
+  // A meta é mensal. Para um intervalo arbitrário, somamos a fração de cada
+  // mês civil incluída no período, inclusive ao atravessar meses/anos.
+  let ratio = 0;
+  let cursor = new Date(from);
+  while (cursor <= to) {
+    const y = cursor.getUTCFullYear();
+    const m = cursor.getUTCMonth();
+    const totalDays = new Date(Date.UTC(y, m + 1, 0, 12)).getUTCDate();
+    const last = new Date(Date.UTC(y, m, totalDays, 12));
+    const segmentEnd = to < last ? to : last;
+    ratio += (differenceDays(cursor, segmentEnd) + 1) / totalDays;
+    cursor = new Date(Date.UTC(y, m, segmentEnd.getUTCDate() + 1, 12));
+  }
   return {
-    valid: true, fullMonthToDate, elapsedDays: fullMonthToDate ? to.getUTCDate() : reportDays,
-    daysInMonth, ratio: fullMonthToDate ? to.getUTCDate() / daysInMonth : 0,
-    reportDays,
-    ...(!fullMonthToDate ? { reason: "Para comparar com metas mensais, importe desde o dia 1 até a data final do mês desejado." } : {}),
+    valid: true, fullMonthToDate, elapsedDays: reportDays,
+    daysInMonth, ratio, reportDays,
   };
 }
 
@@ -134,7 +153,8 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
   insights: Diagnostic[];
   period: PeriodInfo;
   metrics: { cpl: number | null; roas: number | null; budgetPacing: number | null; leadsPacing: number | null };
-  pacing: { leads: AccumulatedPace | null; investment: AccumulatedPace | null; revenue: AccumulatedPace | null };
+  pacing: { leads: AccumulatedPace | null; investment: AccumulatedPace | null; revenue: AccumulatedPace | null;
+    conversions: AccumulatedPace | null; clicks: AccumulatedPace | null; impressions: AccumulatedPace | null };
 } {
   const { goals, totals } = input;
   const period = inspectPeriod(input.start, input.end);
@@ -147,17 +167,20 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
     revenue: goals.conversionValueIsRevenue && totals.conversionValue !== null
       ? compareAccumulatedGoal("Receita atribuída", "currency", goals.monthlyRevenue, totals.conversionValue, period)
       : null,
+    conversions: compareAccumulatedGoal("Conversões registradas", "count", goals.targetConversions ?? null, totals.conversions, period),
+    clicks: compareAccumulatedGoal("Cliques", "count", goals.targetClicks ?? null, totals.clicks, period),
+    impressions: compareAccumulatedGoal("Impressões", "count", goals.targetImpressions ?? null, totals.impressions, period),
   };
 
   const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: /^[A-Z]{3}$/.test(input.currencyCode ?? "") ? input.currencyCode : "BRL" });
   const number = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
   const cpl = totals.conversions > 0 && goals.conversionsAreLeads ? totals.cost / totals.conversions : null;
   const roas = totals.conversionValue !== null && totals.cost > 0 ? totals.conversionValue / totals.cost : null;
-  const budgetPacing = period.fullMonthToDate && goals.budget !== null && goals.budget > 0
+  const budgetPacing = period.valid && goals.budget !== null && goals.budget > 0
     ? totals.cost / (goals.budget * period.ratio) : null;
-  const leadsPacing = period.fullMonthToDate && goals.leads !== null && goals.leads > 0 && goals.conversionsAreLeads
+  const leadsPacing = period.valid && goals.leads !== null && goals.leads > 0 && goals.conversionsAreLeads
     ? totals.conversions / (goals.leads * period.ratio) : null;
-  const revenuePacing = period.fullMonthToDate && goals.monthlyRevenue !== null && goals.monthlyRevenue > 0 &&
+  const revenuePacing = period.valid && goals.monthlyRevenue !== null && goals.monthlyRevenue > 0 &&
     goals.conversionValueIsRevenue && totals.conversionValue !== null
     ? totals.conversionValue / (goals.monthlyRevenue * period.ratio) : null;
 
@@ -167,13 +190,13 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
   const campaignAgeDays = durationSince(input.campaignStartedOn, input.end);
   const lastChangeDays = durationSince(input.lastMajorChangeOn, input.end);
 
-  if (!period.valid || !period.fullMonthToDate) {
+  if (!period.valid) {
     add({
       id: "period_incomplete", level: "missing", action: "completar_dados",
       title: "Conferir o período antes de avaliar as metas",
       finding: period.reason ?? "Período não informado.",
       evidence: input.start && input.end ? input.start + " a " + input.end : "Datas incompletas",
-      recommendation: "Informe as datas reais do arquivo. Para ritmo de orçamento e leads, use o relatório acumulado desde o dia 1.",
+      recommendation: "Selecione um intervalo real de até 366 dias e, para CSV, exporte exatamente o mesmo período.",
     });
   }
 
@@ -187,14 +210,14 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
     });
   }
 
-  if (period.fullMonthToDate && goals.budget !== null && goals.budget > 0) {
+  if (period.valid && goals.budget !== null && goals.budget > 0) {
     const expected = goals.budget * period.ratio;
-    if (totals.cost > goals.budget * 1.01) {
+    if (totals.cost > goals.budget * period.ratio * 1.20) {
       add({
         id: "budget_exceeded", level: "critical", action: "revisar_agora",
-        title: "Investimento acima do limite planejado",
-        finding: "O gasto já ultrapassou o orçamento mensal inserido para o cliente.",
-        evidence: money(totals.cost) + " gastos de " + money(goals.budget) + " planejados.",
+        title: "Investimento acima da referência proporcional",
+        finding: "O gasto está acima do ritmo linear da meta mensal para o intervalo escolhido.",
+        evidence: money(totals.cost) + " gastos; referência proporcional: " + money(expected) + ".",
         recommendation: "Revise imediatamente orçamento autorizado, outras campanhas incluídas e período. Não ajuste lances às cegas.",
       });
     } else if (period.elapsedDays >= 4 && budgetPacing !== null && budgetPacing > 1.20) {
@@ -212,12 +235,12 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
         title: "Campanhas consumindo menos verba que a projeção mensal",
         finding: "O gasto ficou abaixo da referência linear do mês.",
         evidence: money(totals.cost) + " gastos; referência proporcional de " + money(expected) + ".",
-        recommendation: "Antes de aumentar lances ou orçamento, investigue aprovação, elegibilidade, volume de pesquisa, segmentação e estratégia de lances.",
+        recommendation: "Antes de aumentar lances ou orçamento, investigue aprovação, elegibilidade, alcance potencial, segmentação e estratégia de lances da modalidade analisada.",
       });
     }
   }
 
-  if (period.fullMonthToDate && goals.leads !== null && goals.leads > 0 && goals.conversionsAreLeads) {
+  if (period.valid && goals.leads !== null && goals.leads > 0 && goals.conversionsAreLeads) {
     const expectedLeads = goals.leads * period.ratio;
     if (period.elapsedDays >= 7 && leadsPacing !== null && leadsPacing < 0.75) {
       add({
@@ -248,7 +271,7 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
         evidence: "Meta de faturamento atribuído: " + money(goals.monthlyRevenue) + ".",
         recommendation: "Verifique a origem e abrangência das conversões de valor e confirme se a meta se refere ao faturamento atribuível.",
       });
-    } else if (period.fullMonthToDate && period.elapsedDays >= 7 && revenuePacing !== null) {
+    } else if (period.valid && period.elapsedDays >= 7 && revenuePacing !== null) {
       const expectedRevenue = goals.monthlyRevenue * period.ratio;
       if (revenuePacing < 0.75) {
         add({
@@ -295,6 +318,54 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
     }
   }
 
+  // Para qualquer modalidade: comparar taxa de conversões somente quando
+  // uma meta genérica tiver sido informada. Nunca assumir que conversão = lead.
+  if (goals.targetConversions !== null && goals.targetConversions !== undefined &&
+      goals.targetConversions > 0 && pacing.conversions !== null) {
+    const expected = pacing.conversions.expectedToDate;
+    if (period.reportDays >= 7 && totals.conversions < expected * 0.75) {
+      add({
+        id: "conversions_behind", level: "attention", action: "investigar",
+        title: "Conversões abaixo da meta proporcional",
+        finding: "O total de conversões está abaixo do ritmo de referência para o período selecionado.",
+        evidence: number(totals.conversions) + " conversões; referência no intervalo: " + number(expected) + ".",
+        recommendation: "Confira o objetivo e as ações de conversão antes de revisar criativos, público ou orçamento. Use relatórios próprios da modalidade.",
+      });
+    } else if (period.reportDays >= 7 && totals.conversions >= expected) {
+      add({
+        id: "conversions_on_target", level: "positive", action: "manter",
+        title: "Conversões no ritmo da meta",
+        finding: "O volume de conversões acompanha ou supera a referência linear do intervalo.",
+        evidence: number(totals.conversions) + " conversões; referência: " + number(expected) + ".",
+        recommendation: "Preserve os fatores que funcionam e confira qualidade e atribuição antes de escalar.",
+      });
+    }
+  }
+  if (goals.maxCpa !== null && goals.maxCpa !== undefined && goals.maxCpa > 0 && totals.conversions > 0) {
+    const cpa = totals.cost / totals.conversions;
+    if (cpa > goals.maxCpa * 1.2) {
+      add({
+        id: "cpa_above", level: enoughDays && enoughConversions ? "attention" : "observe",
+        action: enoughDays && enoughConversions ? "investigar" : "aguardar",
+        title: "Custo por conversão acima da referência",
+        finding: "O CPA está acima do limite definido para o objetivo informado.",
+        evidence: money(cpa) + " por conversão; limite informado: " + money(goals.maxCpa) + ".",
+        recommendation: "Confirme se as conversões correspondem ao objetivo desejado e avalie os resultados por modalidade antes de alterar lances.",
+      });
+    }
+  }
+  for (const pace of [pacing.clicks, pacing.impressions]) {
+    if (pace && period.reportDays >= 7 && pace.actual < pace.expectedToDate * 0.7) {
+      add({
+        id: "volume_below_" + pace.label.toLowerCase(), level: "observe", action: "investigar",
+        title: pace.label + " abaixo da meta proporcional",
+        finding: "O volume acumulado está abaixo da referência linear do período.",
+        evidence: number(pace.actual) + " realizados; referência: " + number(pace.expectedToDate) + ".",
+        recommendation: "Revise entrega, segmentação, elegibilidade e objetivo da campanha antes de aumentar o investimento.",
+      });
+    }
+  }
+
   if (goals.targetRoas !== null && goals.targetRoas > 0) {
     if (roas === null) {
       add({
@@ -326,8 +397,10 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
     }
   }
 
-  if (totals.cost > 0 && totals.conversions === 0) {
-    const limit = goals.maxCpl !== null && goals.maxCpl > 0 ? goals.maxCpl * 3 : null;
+  if (totals.cost > 0 && totals.conversions === 0 &&
+      !["awareness", "video", "traffic"].includes(goals.objective ?? "")) {
+    const cpaTarget = goals.maxCpa ?? goals.maxCpl;
+    const limit = cpaTarget !== null && cpaTarget !== undefined && cpaTarget > 0 ? cpaTarget * 3 : null;
     const noteworthy = limit !== null && totals.cost >= limit && enoughDays;
     add({
       id: "zero_conversions", level: noteworthy ? "attention" : "observe",
@@ -336,7 +409,7 @@ export function buildCampaignDiagnostics(input: DiagnosticInput): {
       finding: "O relatório informa gasto, mas nenhuma conversão.",
       evidence: money(totals.cost) + " gastos; 0 conversões; " + number(totals.clicks) + " cliques.",
       recommendation: noteworthy
-        ? "Verifique mensuração, política, página, intenção dos termos e definição da conversão antes de concluir que a campanha falhou."
+        ? "Verifique a mensuração, aprovação, objetivo, público e criativos compatíveis com a modalidade antes de concluir que a campanha falhou."
         : "Acompanhe o volume de dados e revise primeiro se a mensuração está correta.",
     });
   }

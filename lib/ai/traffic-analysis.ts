@@ -11,12 +11,18 @@ export const trafficGoalsSchema = z.object({
   monthlyRevenue: positiveGoal,
   conversionsAreLeads: z.boolean(),
   conversionValueIsRevenue: z.boolean(),
+  objective: z.enum(["leads", "sales", "traffic", "awareness", "video", "app", "other"]).optional(),
+  targetConversions: positiveGoal.optional(),
+  maxCpa: positiveGoal.optional(),
+  targetClicks: positiveGoal.optional(),
+  targetImpressions: positiveGoal.optional(),
 }).strict();
 
 export const trafficSnapshotSchema = z.object({
   from: z.iso.date(),
   to: z.iso.date(),
   source: z.enum(["csv", "google_ads_api"]).optional(),
+  timeZone: z.string().min(1).max(80).optional(),
   goals: trafficGoalsSchema,
   totals: z.object({
     impressions: finiteMetric,
@@ -44,6 +50,12 @@ export const trafficReportKind = z.enum([
 export const trafficAnalysisRequestSchema = z.object({
   consent: z.literal(true),
   snapshot: trafficSnapshotSchema,
+  context: z.object({
+    sector: z.string().trim().max(120),
+    region: z.string().trim().max(120),
+    notes: z.string().trim().max(1500),
+    objective: z.enum(["leads", "sales", "traffic", "awareness", "video", "app", "other"]),
+  }).strict().optional(),
   reports: z.array(z.object({
     kind: trafficReportKind,
     content: z.string().trim().min(10).max(12_000),

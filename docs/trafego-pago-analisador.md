@@ -498,3 +498,49 @@ Checklist antes da primeira conexão:
 - Preview Vercel atualizada com o commit mais recente e variáveis corretas.
 - Login Kivai no Preview funcional.
 - Apenas leitura; testar autorização, contas diretas/MCC, fuso e período, desconectar.
+
+
+### Atualização: acesso público, períodos livres e modalidades
+
+- O analisador é público para planejamento, importação CSV e diagnóstico matemático;
+  essas funções não exigem cadastro Kivai ou autorização Google.
+- O período é escolhido pelo visitante nos campos de data inicial e final, até
+  366 dias concluídos. O mês atual até ontem é apenas uma sugestão inicial.
+- Consultas da API Google Ads usam exatamente o intervalo escolhido, com
+  validação adicional do último dia concluído no fuso da conta. A API permanece
+  limitada a contas autorizadas e ao modo somente leitura.
+- Ao importar CSV agregado, o usuário deve declarar o mesmo período exportado.
+  Alterar o intervalo após importar invalida o diagnóstico do CSV para evitar
+  confundir datas diferentes. O CSV sem coluna de data não pode ser filtrado
+  retroativamente.
+- Comparações com metas mensais para qualquer intervalo utilizam a soma dos
+  dias cobertos divididos pelos dias do respectivo mês civil. Intervalos que
+  atravessam meses somam essas frações. CPA, CPL, CPC e ROAS não são
+  proporcionados.
+- O formulário de metas é orientado a objetivos: leads, vendas, tráfego, alcance,
+  vídeo, aplicativos ou outros. Exibe as métricas relevantes disponíveis e
+  não presume que conversões sejam leads ou receita.
+- A IA recebe após consentimento explícito o objetivo, segmento, região, notas,
+  metas, métricas e relatórios selecionados. Deve contextualizar recomendações,
+  confirmar evidências, distinguir recursos por tipo de campanha e propor
+  aguardar quando alterações forem prematuras.
+- Performance Max admite métricas agregadas na API, mas auditorias detalhadas
+  dependem de grupos de recursos, ativos e insights próprios. Não presumir
+  equivalência aos campos de palavras-chave e termos de Pesquisa.
+- A integração Google Ads OAuth ainda depende da publicação/verificação do
+  app no Google Cloud para autorizar qualquer Google Account. O modo Testando
+  permite somente testadores cadastrados. Não confundir o acesso público
+  às ferramentas locais com autorização OAuth pública.
+- A IA com créditos beta continua associada a usuários verificados para evitar
+  abuso do serviço. Abrir chamadas de IA a visitantes anônimos exige aprovação
+  separada de cotas, mitigação de abuso e controle financeiro.
+
+### Testes
+
+- `node --test tests/google-ads/period.test.mjs`
+- `npm run build`
+- Verificar desktop/mobile: datas arbitrárias, atualização pela API, CSV
+  divergente, tipos Search/Display/Shopping/Video/Demand Gen/Performance Max,
+  indicadores genéricos, objetivos adaptativos, consentimento da IA e créditos.
+- Antes do merge na branch principal: build TypeScript/Next.js aprovado,
+  ausência de regressões e publicação explícita dos limites da beta.
