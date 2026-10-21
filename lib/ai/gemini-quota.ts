@@ -12,7 +12,7 @@ export class GeminiQuotaError extends Error {
       minute: "Limite temporário de solicitações ou tokens do Gemini atingido. Aguarde um pouco e tente novamente.",
       day: "Cota diária do Gemini esgotada neste projeto. Confira as cotas no Google AI Studio e aguarde a renovação ou ajuste o plano.",
       zero: "A cota disponível para este modelo Gemini parece ser zero neste projeto. Confira os limites e o faturamento no Google AI Studio.",
-      spend: "Limite financeiro de uso do Gemini atingido. Confira o saldo, a cobrança e os limites do projeto no Google AI Studio.",
+      spend: "O Gemini indicou especificamente uma restrição de gastos ou faturamento. Confira as informações do projeto no Google AI Studio.",
       unknown: "O Gemini retornou HTTP 429. Verifique as cotas e o faturamento do projeto no Google AI Studio antes de repetir a solicitação.",
     }[kind];
     super(message);
@@ -49,15 +49,29 @@ export async function interpretGeminiQuota(response: Response, stage: "research"
   const err = payload.error;
   const quotaText = (err?.details || []).flatMap((detail) =>
     Array.isArray(detail.violations)
-      ? detail.violations.map((item) => [safeString(item.quotaId),safeString(item.description)].join(" "))
+      ? detail.violations.map((item) => [safeString(item.quotaId), safeString(item.description)].join(" "))
       : [],
-  ).join(" ");
-  const evidence = [safeString(err?.status),safeString(err?.code),safeString(err?.message),quotaText].join(" ").toLowerCase();
+  ).join(" ").toLowerCase();
+  const message = safeString(err?.message).toLowerCase();
+  const status = safeString(err?.status).toLowerCase();
+
+  // O Google usa "please check your plan and billing details" em respostas
+  // GENERICAS de HTTP 429. Essa frase nao comprova saldo esgotado.
+  // Inferir uma causa somente de pistas especificas evita diagnósticos financeiros falsos.
+  const evidence = quotaText + " " + message;
+  const explicitZero = /\b(?:quota[_\s-]?limit[_\s-]?value|limit)\s*[:=]\s*0\b/.test(evidence)
+    || /\bzero quota\b/.test(evidence);
+  const explicitSpend = /\bspend(?:ing)?[-\s]?based[-\s]?(?:rate[-\s]?)?limit\b|\bspend(?:ing)?[-\s]?(?:cap|limit)\s+(?:reached|exceeded)\b|\b(?:monthly|project|account)[-\s]?spend(?:ing)?[-\s]?(?:cap|limit)\b|\b(?:prepay|prepaid)[-\s]?(?:balance|credits?)\s+(?:depleted|exhausted|zero)\b|\b(?:insufficient|depleted)[-\s]?(?:prepay|prepaid)[-\s]?credits?\b|\bbilling account\s+(?:disabled|suspended)\b/.test(evidence);
+  const explicitDay = /per[-_\s]?day|requests[-_\s]?per[-_\s]?day|daily|\brpd\b/.test(evidence)
+    || status === "quota_exceeded";
+  const explicitMinute = /per[-_\s]?minute|requests[-_\s]?per[-_\s]?minute|\brpm\b|\btpm\b/.test(evidence)
+    || status === "rate_limit_exceeded" || status === "too_many_requests";
+
   let kind: GeminiQuotaKind = "unknown";
-  if (/\b(limit[:=]?\s*0|limit: 0|quota[^\s]*0|zero quota)\b/i.test(evidence)) kind = "zero";
-  else if (/spend|billing|prepay|financial|payment|budget/.test(evidence)) kind = "spend";
-  else if (/perday|per.day|daily|rpd|quota_exceeded/.test(evidence)) kind = "day";
-  else if (/perminute|per.minute|minute|rpm|tpm|rate_limit_exceeded|too_many_requests/.test(evidence)) kind = "minute";
+  if (explicitZero) kind = "zero";
+  else if (explicitSpend) kind = "spend";
+  else if (explicitDay) kind = "day";
+  else if (explicitMinute) kind = "minute";
 
   const detailSeconds = (err?.details || []).map((d) => parseSeconds(d.retryDelay)).find((v) => v !== null) ?? null;
   const headerSeconds = parseSeconds(response.headers.get("Retry-After"));
