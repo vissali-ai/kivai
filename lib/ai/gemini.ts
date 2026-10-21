@@ -27,6 +27,7 @@ export async function requestGeminiJsonParts(
   systemInstruction: string,
   parts: GeminiInputPart[],
   maxOutputTokens = 2048,
+  timeoutMs = 22_000,
 ): Promise<unknown> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new GeminiRequestError(503);
@@ -40,7 +41,7 @@ export async function requestGeminiJsonParts(
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
           cache: "no-store",
-          signal: AbortSignal.timeout(22_000),
+          signal: AbortSignal.timeout(Math.min(Math.max(timeoutMs, 5_000), 70_000)),
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemInstruction }] },
             contents: [{ role: "user", parts }],
