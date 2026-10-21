@@ -25,7 +25,7 @@ export function GeminiFreeModelPicker({ task, value, onChange, label }: {
     return () => { active = false; };
   }, []);
 
-  const models = useMemo(() =>
+  const models = useMemo<CatalogItem[]>(() =>
     (catalog?.models || GEMINI_FREE_TEXT_MODELS).filter((item) => item.tasks.includes(task)),
   [catalog, task]);
 
