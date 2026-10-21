@@ -19,7 +19,7 @@ test("Catalog includes only named and unique text models", () => {
   assert.ok(GEMINI_FREE_TEXT_MODELS.every((v) => !/image|live|tts/i.test(v.id)));
 });
 test("Google Search grounding on Free Tier limited to Gemini 2.5 Flash/Lite", () => {
-  const ids = GEMINI_FREE_TEXT_MODELS.filter((v) => v.tasks.includes("search")).map((v) => v.id).sort();
+  const ids = Array.from(GEMINI_FREE_TEXT_MODELS.filter((v) => v.tasks.includes("search")), (v) => v.id).sort();
   assert.deepEqual(ids, ["gemini-2.5-flash", "gemini-2.5-flash-lite"]);
   assert.deepEqual(Array.from(geminiCandidates("search", "auto")), ["gemini-2.5-flash-lite", "gemini-2.5-flash"]);
 });
