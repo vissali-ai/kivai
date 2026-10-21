@@ -4,6 +4,9 @@ import { apiError } from "@/lib/blog/api";
 import { isSlugAvailable, listAllPosts, listCategories, savePost } from "@/lib/blog/repository";
 import { slugify } from "@/lib/blog/slug";
 import type { PostInput } from "@/lib/blog/types";
+import { generateEditorialBase, saveEditorialBase } from "@/lib/blog/editorial-ai";
+
+export const maxDuration = 90;
 
 export async function POST(request: Request) {
   try {
@@ -29,20 +32,24 @@ export async function POST(request: Request) {
       ? requestedSlug : requestedSlug + "-pauta-" + Date.now().toString(36);
     const publishedAt = typeof body.publishedAt === "string" && Number.isFinite(Date.parse(body.publishedAt))
       ? new Date(body.publishedAt).toISOString() : null;
+    // A base é escrita a partir do artigo acessível, não copiada do veículo.
+    // Se o Gemini não conseguir ler a fonte, nenhum novo rascunho incompleto será criado.
+    const base = await generateEditorialBase({ sourceUrl, sourceTitle: title, sourceName, excerpt });
     const input: PostInput = {
-      title, slug, subtitle: "", excerpt, content: "<p></p>", status: "draft",
+      title: base.title, slug, subtitle: base.subtitle, excerpt: base.excerpt, content: base.contentHtml, status: "draft",
       author: "Kivai", sourceName, sourceUrl, originalPublishedAt: publishedAt,
       categoryId, coverMediaId: null, coverAlt: "", coverCaption: "", coverCredit: "",
-      coverSource: "", coverSourceUrl: "", seoTitle: "", metaDescription: "",
+      coverSource: "", coverSourceUrl: "", seoTitle: base.seoTitle, metaDescription: base.metaDescription,
       canonicalUrl: "", ogTitle: "", ogDescription: "", ogImage: "",
       relatedToolSlugs: [], featured: false, featuredOrder: null,
-      scheduledAt: null, tagNames: [], origin: "manual", reviewStatus: "not-required",
+      scheduledAt: null, tagNames: base.tags, origin: "manual", reviewStatus: "not-required",
       generationModel: "gemini-grounded-research", needsCover: false,
       primarySourceUrl: sourceUrl, originalContribution: "",
       relevanceScore: 0, reviewedBy: "", reviewedAt: null,
     };
     const post = await savePost(input);
     if (!post) throw new Error("Não foi possível criar o rascunho.");
-    return NextResponse.json({ id: post.id, existing: false }, { status: 201 });
+    await saveEditorialBase(post.id, base);
+    return NextResponse.json({ id: post.id, existing: false, baseReady: true }, { status: 201 });
   } catch (error) { return apiError(error); }
 }
