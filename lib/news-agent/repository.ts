@@ -5,7 +5,7 @@ import type { NewsAgentRun, NewsCandidate, NewsSource, NewsSourceKind } from "@/
 
 type DbSource = {
   id: string; name: string; feed_url: string; site_url: string; default_category_slug: string;
-  enabled: boolean; created_at: string; updated_at: string;
+  enabled: boolean; editorial_topic_slugs?: string[]; created_at: string; updated_at: string;
 };
 type DbRun = {
   id: string; status: NewsAgentRun["status"]; sources_checked: number; items_found: number;
@@ -31,7 +31,8 @@ function sourceKind(feedUrl: string): NewsSourceKind {
 function mapSource(row: DbSource): NewsSource {
   return {
     id: row.id, name: row.name, feedUrl: row.feed_url, siteUrl: row.site_url,
-    kind: sourceKind(row.feed_url), defaultCategorySlug: row.default_category_slug, enabled: row.enabled,
+    kind: sourceKind(row.feed_url), defaultCategorySlug: row.default_category_slug,
+    editorialTopicSlugs: row.editorial_topic_slugs || [], enabled: row.enabled,
     createdAt: row.created_at, updatedAt: row.updated_at,
   };
 }
