@@ -13,28 +13,29 @@ export async function POST(request: Request) {
     await assertAdminApi();
     const body = await request.json() as Record<string, unknown>;
     const title = typeof body.title === "string" ? body.title.trim().slice(0, 180) : "";
-    const sourceName = typeof body.sourceName === "string" ? body.sourceName.trim().slice(0, 100) : "";
+    const suppliedSourceName = typeof body.sourceName === "string" ? body.sourceName.trim().slice(0, 100) : "";
     const sourceUrl = typeof body.sourceUrl === "string" ? body.sourceUrl.trim() : "";
     const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim().slice(0, 320) : "";
     const categorySlug = typeof body.categorySlug === "string" ? body.categorySlug : "noticias";
     let url: URL;
     try { url = new URL(sourceUrl); } catch { throw new Error("Endereço de fonte inválido."); }
-    if (url.protocol !== "https:" || !title || !sourceName || sourceUrl.length > 2048) {
-      throw new Error("Informe título, nome da fonte e URL HTTPS válidos.");
+    if (url.protocol !== "https:" || sourceUrl.length > 2048) {
+      throw new Error("Informe uma URL HTTPS válida.");
     }
+    const sourceName = suppliedSourceName || url.hostname.replace(/^www\./, "");
     const duplicate = (await listAllPosts()).find((post) => post.sourceUrl === sourceUrl);
     if (duplicate) return NextResponse.json({ id: duplicate.id, existing: true });
     const categories = await listCategories();
     const categoryId = categories.find((cat) => cat.slug === categorySlug)?.id ??
       categories.find((cat) => cat.slug === "noticias")?.id ?? null;
-    const requestedSlug = slugify(title);
-    const slug = await isSlugAvailable(requestedSlug)
-      ? requestedSlug : requestedSlug + "-pauta-" + Date.now().toString(36);
     const publishedAt = typeof body.publishedAt === "string" && Number.isFinite(Date.parse(body.publishedAt))
       ? new Date(body.publishedAt).toISOString() : null;
     // A base é escrita a partir do artigo acessível, não copiada do veículo.
     // Se o Gemini não conseguir ler a fonte, nenhum novo rascunho incompleto será criado.
-    const base = await generateEditorialBase({ sourceUrl, sourceTitle: title, sourceName, excerpt });
+    const base = await generateEditorialBase({ sourceUrl, sourceTitle: title || "Notícia indicada pelo editor", sourceName, excerpt });
+    const requestedSlug = slugify(base.title);
+    const slug = await isSlugAvailable(requestedSlug)
+      ? requestedSlug : requestedSlug + "-pauta-" + Date.now().toString(36);
     const input: PostInput = {
       title: base.title, slug, subtitle: base.subtitle, excerpt: base.excerpt, content: base.contentHtml, status: "draft",
       author: "Kivai", sourceName, sourceUrl, originalPublishedAt: publishedAt,
