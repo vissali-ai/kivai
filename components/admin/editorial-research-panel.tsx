@@ -7,6 +7,7 @@ import type { EditorialTopic, EditorialTopicInput } from "@/lib/news-agent/edito
 import type { EditorialResearchResponse, EditorialResearchResult, SearchPeriod, SearchRegion } from "@/lib/news-agent/gemini-research";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { GeminiFreeModelPicker } from "@/components/admin/gemini-free-model-picker";
 
 const categoryOptions = [
   ["tecnologia", "Tecnologia"],
@@ -30,6 +31,8 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
   const [directSourceUrl, setDirectSourceUrl] = useState("");
   const [period, setPeriod] = useState<SearchPeriod>("7d");
   const [region, setRegion] = useState<SearchRegion>("brasil");
+  const [searchModel, setSearchModel] = useState("auto");
+  const [draftModel, setDraftModel] = useState("auto");
   const [results, setResults] = useState<EditorialResearchResponse | null>(null);
   const [message, setMessage] = useState("");
   const [researching, setResearching] = useState(false);
@@ -53,7 +56,7 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
     try {
       const response = await fetch("/api/admin/news-agent/research", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topics: selected, query: query.trim(), period, region }),
+        body: JSON.stringify({ topics: selected, query: query.trim(), period, region, model: searchModel }),
       });
       const data = await readJson(response) as EditorialResearchResponse;
       setResults(data);
@@ -70,7 +73,7 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
     try {
       const response = await fetch("/api/admin/news-agent/draft", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result),
+        body: JSON.stringify({ ...result, model: draftModel }),
       });
       const data = await readJson(response) as { id: string; existing?: boolean };
       router.push("/admin/blog/" + data.id);
@@ -155,6 +158,7 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
             <option value="brasil">Brasil</option><option value="internacional">Internacional</option><option value="ambos">Brasil e internacional</option>
           </select></label>
       </div>
+      <GeminiFreeModelPicker task="search" value={searchModel} onChange={setSearchModel} label="Modelo Gemini para pesquisa de notícias" />
       <Button disabled={researching || (!selected.length && !query.trim())} onClick={search}>
         {researching ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Search className="mr-2 size-4" />}
         {researching ? "Pesquisando..." : "Pesquisar matérias"}
@@ -162,6 +166,7 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
       <div className="space-y-2 rounded-md border border-border p-3">
         <h3 className="text-sm font-medium">Criar rascunho a partir do link de uma reportagem</h3>
         <p className="text-xs text-muted-foreground">Cole a URL de uma matéria pública. O Gemini preparará uma reportagem-base completa no rascunho e guardará a fonte.</p>
+        <GeminiFreeModelPicker task="url" value={draftModel} onChange={setDraftModel} label="Modelo Gemini para criar reportagem-base" />
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input type="url" placeholder="https://site.com.br/materia" value={directSourceUrl}
             onChange={(event) => setDirectSourceUrl(event.target.value)} />
