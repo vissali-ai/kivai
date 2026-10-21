@@ -80,11 +80,11 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
   return <section className="min-w-0 space-y-4 rounded-lg border border-primary/30 bg-card p-4 sm:p-5">
     <div className="flex flex-wrap items-start justify-between gap-2">
       <div><h2 className="flex items-center gap-2 text-base font-semibold"><WandSparkles className="size-4 text-primary"/>Editor-chefe Kivai · IA</h2>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">Editor de padrão jornalístico internacional: apuração rigorosa, precisão, imparcialidade e respeito às fontes. A voz editorial de Marcus só é aplicada quando você solicitar.</p></div>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">Editor de padrão jornalístico internacional: apuração rigorosa, precisão, imparcialidade e respeito às fontes. A identidade editorial do Kivai já é aplicada ao primeiro rascunho; novas reescritas são opcionais.</p></div>
       {sourceUrl && <a className="inline-flex items-center gap-1 text-xs text-primary underline" href={sourceUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="size-3"/>Fonte original</a>}
     </div>
     {loading ? <p className="text-xs text-muted-foreground">Carregando reportagem-base...</p> : !base ? <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">Etapa 1: prepare a reportagem-base completa a partir da fonte. Sua personalidade será aplicada apenas na etapa seguinte, quando você solicitar.</p>
+      <p className="text-sm text-muted-foreground">Etapa 1: prepare a reportagem completa a partir da fonte, já com a identidade editorial do Kivai. A etapa de reescrita é opcional.</p>
       <GeminiFreeModelPicker task="url" label="Modelo para reportagem-base" value={baseModel} onChange={setBaseModel}/>
       <Button variant="secondary" disabled={busy || !sourceUrl} onClick={() => void execute("prepare-base")}>
         {busy ? <Loader2 className="mr-2 size-4 animate-spin"/> : <BookOpen className="mr-2 size-4"/>}
@@ -93,7 +93,7 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
     </div> : <>
       <details className="rounded-md border border-border p-3">
         <summary className="cursor-pointer text-sm font-medium">Etapa 1 · Consultar reportagem-base completa preservada</summary>
-        <p className="mt-2 text-xs text-muted-foreground">Esta é a reportagem-base completa redigida pela IA com base nos fatos acessíveis da fonte, antes de aplicar seu estilo pessoal. Não é uma cópia literal da reportagem do veículo.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Esta é a reportagem gerada com o padrão jornalístico e a identidade editorial do Kivai, a partir dos fatos acessíveis da fonte. Não é uma cópia literal da reportagem do veículo.</p>
         <h3 className="mt-3 font-semibold">{base.baseTitle}</h3>
         {base.baseSubtitle && <p className="text-sm text-muted-foreground">{base.baseSubtitle}</p>}
         <div className="prose prose-sm mt-3 max-w-none text-foreground dark:prose-invert" dangerouslySetInnerHTML={{ __html: base.baseHtml }} />
@@ -101,8 +101,8 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
         <Button size="sm" className="mt-3" variant="outline" onClick={confirmRestoreBase}><RotateCcw className="mr-1 size-4"/>Repor matéria-base no editor</Button>
       </details>
       <div className="space-y-1 border-t border-border pt-3">
-        <h3 className="text-sm font-semibold">Etapa 2 · Editor-chefe com minha personalidade</h3>
-        <p className="text-xs text-muted-foreground">Depois de receber a reportagem completa, dê sua orientação ao agente. Ele reescreverá a matéria no estilo editorial de Marcus e inserirá automaticamente a nova versão nos campos deste rascunho, sem publicar.</p>
+        <h3 className="text-sm font-semibold">Etapa 2 (opcional) · Ajustar no meu estilo</h3>
+        <p className="text-xs text-muted-foreground">Opcional: peça ajustes adicionais ao agente. Ele criará outra versão no estilo editorial do Kivai e a inserirá nos campos do rascunho, sem publicar.</p>
       </div>
       <label className="block space-y-1.5 text-sm"><span className="font-medium">Comando para o editor-chefe (opcional)</span>
         <textarea value={instructions} onChange={(event) => setInstructions(event.target.value)}
