@@ -27,6 +27,17 @@ const ALLOWED_FEED_HOSTS = new Set([
   "mercadoeconsumo.com.br",
   "openai.com",
   "blog.google",
+  "searchengineland.com",
+  "www.searchenginejournal.com",
+  "www.bleepingcomputer.com",
+  "thehackernews.com",
+  "www.smashingmagazine.com",
+  "blog.cloudflare.com",
+  "github.blog",
+  "buffer.com",
+  "zapier.com",
+  "www.socialmediatoday.com",
+  "about.fb.com",
 ]);
 
 const parser = new XMLParser({

@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Settings2, ExternalLink, Save, Trash2, Loader2 } from "lucide-react";
+import { Plus, Search, Settings2, ExternalLink, Save, Trash2, Loader2, Undo2 } from "lucide-react";
 import type { EditorialTopic, EditorialTopicInput } from "@/lib/news-agent/editorial-topics";
+import type { NewsSource } from "@/lib/news-agent/types";
 import type { EditorialResearchResponse, EditorialResearchResult, SearchPeriod, SearchRegion } from "@/lib/news-agent/editorial-links";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,10 @@ async function readJson(response: Response) {
   return data;
 }
 
-export function EditorialResearchPanel({ initialTopics }: { initialTopics: EditorialTopic[] }) {
+export function EditorialResearchPanel({ initialTopics, initialSources }: {
+  initialTopics: EditorialTopic[];
+  initialSources: Pick<NewsSource, "id" | "name" | "enabled" | "editorialTopicSlugs">[];
+}) {
   const router = useRouter();
   const [topics, setTopics] = useState(initialTopics);
   const [selected, setSelected] = useState<string[]>([]);
@@ -36,6 +40,8 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
   const [message, setMessage] = useState("");
   const [researching, setResearching] = useState(false);
   const [savingUrl, setSavingUrl] = useState("");
+  const [dismissingUrl, setDismissingUrl] = useState("");
+  const [dismissedInSession, setDismissedInSession] = useState<EditorialResearchResult[]>([]);
   const [manage, setManage] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [edit, setEdit] = useState<EditorialTopicInput>({ name: "", searchTerms: "", categorySlug: "tecnologia", enabled: true });
@@ -51,6 +57,7 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
     if ((!selected.length && !query.trim()) || researching) return;
     setResearching(true);
     setResults(null);
+    setDismissedInSession([]);
     setMessage("Buscando links reais nas fontes de notícias cadastradas no Kivai...");
     try {
       const response = await fetch("/api/admin/news-agent/research", {
@@ -79,6 +86,37 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Falha ao criar rascunho.");
     } finally { setSavingUrl(""); }
+  }
+
+  async function dismissSuggestion(item: EditorialResearchResult) {
+    if (dismissingUrl || savingUrl) return;
+    setDismissingUrl(item.sourceUrl);
+    try {
+      await readJson(await fetch("/api/admin/news-agent/dismiss", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceUrl: item.sourceUrl }),
+      }));
+      setResults((old) => old ? { ...old, items: old.items.filter((article) => article.sourceUrl !== item.sourceUrl) } : old);
+      setDismissedInSession((old) => [item, ...old.filter((entry) => entry.sourceUrl !== item.sourceUrl)].slice(0, 8));
+      setMessage("Sugestão descartada. Ela não voltará às próximas pesquisas; use Desfazer para restaurá-la.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível descartar a sugestão.");
+    } finally { setDismissingUrl(""); }
+  }
+  async function restoreSuggestion(item: EditorialResearchResult) {
+    if (dismissingUrl) return;
+    setDismissingUrl(item.sourceUrl);
+    try {
+      await readJson(await fetch("/api/admin/news-agent/dismiss", {
+        method: "DELETE", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceUrl: item.sourceUrl }),
+      }));
+      setDismissedInSession((old) => old.filter((entry) => entry.sourceUrl !== item.sourceUrl));
+      setResults((old) => old && !old.items.some((entry) => entry.sourceUrl === item.sourceUrl)
+        ? { ...old, items: [item, ...old.items] } : old);
+      setMessage("Sugestão restaurada para a curadoria.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível restaurar."); }
+    finally { setDismissingUrl(""); }
   }
 
   async function reloadTopics() {
@@ -133,13 +171,14 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-medium">Temas predefinidos ({selected.length} selecionados)</h3>
-        <div className="flex gap-2">
-          <Button type="button" size="sm" variant="ghost" onClick={() => setSelected(allSelected ? [] : enabled.map((topic) => topic.id))}>
-            {allSelected ? "Limpar seleção" : "Todos os temas"}
-          </Button>
-        </div>
+        {selected.length > 0 && <Button type="button" size="sm" variant="ghost" onClick={() => setSelected([])}>Limpar seleção</Button>}
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-primary/40 px-3 py-2 text-sm font-semibold">
+          <input type="checkbox" checked={allSelected} onChange={(event) =>
+            setSelected(event.target.checked ? enabled.map((topic) => topic.id) : [])} className="size-4 accent-primary" />
+          <span>Todos</span>
+        </label>
         {enabled.map((topic) => <label key={topic.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 py-2 text-sm hover:border-primary/50">
           <input type="checkbox" checked={selected.includes(topic.id)} onChange={() => toggleTopic(topic.id)} className="size-4 accent-primary" />
           <span>{topic.name}</span></label>)}
@@ -210,6 +249,20 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
       </div>}
     </section>}
 
+    <details className="rounded-lg border border-border bg-card p-4">
+      <summary className="cursor-pointer text-sm font-semibold">Fontes da curadoria por tema ({initialSources.filter((source) => source.enabled).length} fontes ativas)</summary>
+      <p className="mt-2 text-xs text-muted-foreground">Veículos, blogs especializados e fontes oficiais associados aos temas do Radar Editorial. O acesso aos feeds pode variar conforme o veículo.</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {topics.map((topic) => {
+          const sources = initialSources.filter((source) => source.enabled && source.editorialTopicSlugs.includes(topic.slug));
+          return <div className="min-w-0 space-y-1 rounded-md border border-border p-3" key={topic.id}>
+            <h3 className="text-sm font-semibold">{topic.name} ({sources.length})</h3>
+            <p className="text-xs leading-5 text-muted-foreground">{sources.length ? sources.map((source) => source.name).join(" · ") : "Nenhuma fonte mapeada no momento."}</p>
+          </div>;
+        })}
+      </div>
+    </details>
+
     {results && <section className="space-y-4">
       <div><h2 className="text-lg font-semibold">Links de reportagens ({results.items.length})</h2>
         <p className="text-xs text-muted-foreground">{results.notice}</p></div>
@@ -224,9 +277,19 @@ export function EditorialResearchPanel({ initialTopics }: { initialTopics: Edito
               {savingUrl === item.sourceUrl ? <Loader2 className="mr-1 size-4 animate-spin"/> : <Save className="mr-1 size-4"/>}
               Salvar pauta como rascunho
             </Button>
+            <Button variant="outline" size="sm" disabled={Boolean(dismissingUrl) || Boolean(savingUrl)} onClick={() => void dismissSuggestion(item)}>
+              {dismissingUrl === item.sourceUrl ? <Loader2 className="mr-1 size-4 animate-spin"/> : <Trash2 className="mr-1 size-4"/>}Descartar sugestão
+            </Button>
           </div>
         </article>)}
       </div>
+      {dismissedInSession.length > 0 && <div className="space-y-2 rounded-md border border-border p-3">
+        <p className="text-sm font-medium">Sugestões descartadas nesta pesquisa</p>
+        {dismissedInSession.map((item) => <div key={item.sourceUrl} className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span className="min-w-0 flex-1">{item.title}</span>
+          <Button size="sm" variant="ghost" disabled={Boolean(dismissingUrl)} onClick={() => void restoreSuggestion(item)}><Undo2 className="mr-1 size-4"/>Desfazer</Button>
+        </div>)}
+      </div>}
     </section>}
   </div>;
 }

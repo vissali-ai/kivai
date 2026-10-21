@@ -7,6 +7,7 @@ export type NewsSource = {
   siteUrl: string;
   kind: NewsSourceKind;
   defaultCategorySlug: string;
+  editorialTopicSlugs: string[];
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
