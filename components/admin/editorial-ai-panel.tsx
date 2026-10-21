@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 type EditorialAiPanelProps = {
   postId: string;
   sourceUrl: string;
-  onApplyArticle: (article: EditorialAiArticle) => void;
+  onApplyArticle: (article: EditorialAiArticle) => Promise<void>;
   onApplyBase: (base: EditorialBase) => void;
 };
 
@@ -25,6 +25,7 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
   const endpoint = "/api/admin/posts/" + encodeURIComponent(postId) + "/editorial-ai";
   const [base, setBase] = useState<EditorialBase | null>(null);
   const [proposal, setProposal] = useState<EditorialAiArticle | null>(null);
+  const [applied, setApplied] = useState(false);
   const [instructions, setInstructions] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -42,9 +43,13 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
 
   async function execute(action: "prepare-base" | "personalize") {
     if (busy) return;
+    if (action === "personalize" && !window.confirm(
+      "O editor-chefe vai criar uma versão completa com seu estilo e SALVAR diretamente neste rascunho, substituindo o texto atual. A matéria-base ficará preservada. Continuar?"
+    )) return;
     setBusy(true);
     setMessage(action === "personalize" ? "Preparando sua versão editorial..." : "Lendo a fonte e preparando reportagem-base...");
     setProposal(null);
+    setApplied(false);
     try {
       const response = await fetch(endpoint, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -55,7 +60,9 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
         const article = result.article as EditorialAiArticle;
         if (!article?.contentHtml) throw new Error("O Gemini não retornou um texto completo.");
         setProposal(article);
-        setMessage("Versão personalizada pronta. Revise a prévia e aplique ao editor quando desejar.");
+        await onApplyArticle(article);
+        setApplied(true);
+        setMessage("Reportagem reescrita, aplicada e salva neste mesmo rascunho. A matéria-base continua preservada.");
       } else {
         const fetched = result.base as EditorialBase;
         if (!fetched?.baseHtml) throw new Error("Não foi possível guardar a reportagem-base.");
@@ -66,11 +73,15 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
     finally { setBusy(false); }
   }
 
-  function confirmApplyArticle() {
-    if (!proposal) return;
-    if (!window.confirm("Aplicar esta versão no editor? Campos e texto ainda não salvos serão substituídos. A reportagem-base continuará guardada.")) return;
-    onApplyArticle(proposal);
-    setMessage("Versão aplicada no editor. Confira os fatos e clique em Salvar rascunho.");
+  async function retryApplyArticle() {
+    if (!proposal || busy) return;
+    setBusy(true);
+    try {
+      await onApplyArticle(proposal);
+      setApplied(true);
+      setMessage("Versão editorial salva no mesmo rascunho.");
+    } catch (error) { setMessage(summarizeError(error)); }
+    finally { setBusy(false); }
   }
   function confirmRestoreBase() {
     if (!base || !window.confirm("Colocar a reportagem-base no editor? Alterações ainda não salvas serão substituídas.")) return;
@@ -80,20 +91,20 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
 
   return <section className="min-w-0 space-y-4 rounded-lg border border-primary/30 bg-card p-4 sm:p-5">
     <div className="flex flex-wrap items-start justify-between gap-2">
-      <div><h2 className="flex items-center gap-2 text-base font-semibold"><WandSparkles className="size-4 text-primary"/>Assistente editorial com IA</h2>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">Transforme a apuração em uma reportagem com o estilo editorial de Marcus: objetivo, analítico, natural e útil, mantendo fatos e fontes.</p></div>
+      <div><h2 className="flex items-center gap-2 text-base font-semibold"><WandSparkles className="size-4 text-primary"/>Editor-chefe com IA · minha identidade editorial</h2>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">Etapa 1: a reportagem-base factual e completa entra no rascunho, sem seu estilo pessoal. Etapa 2: apenas com seu comando, o editor-chefe virtual aplica a linguagem de Marcus e salva a versão neste mesmo rascunho.</p></div>
       {sourceUrl && <a className="inline-flex items-center gap-1 text-xs text-primary underline" href={sourceUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="size-3"/>Fonte original</a>}
     </div>
     {loading ? <p className="text-xs text-muted-foreground">Carregando reportagem-base...</p> : !base ? <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">Este rascunho ainda não tem uma reportagem-base preservada. Você pode prepará-la a partir da fonte editorial.</p>
+      <p className="text-sm text-muted-foreground">Este rascunho antigo ainda não tem a reportagem-base preservada. Prepare a apuração completa a partir da fonte antes de usar o editor-chefe.</p>
       <Button variant="secondary" disabled={busy || !sourceUrl} onClick={() => void execute("prepare-base")}>
         {busy ? <Loader2 className="mr-2 size-4 animate-spin"/> : <BookOpen className="mr-2 size-4"/>}
         Preparar reportagem completa
       </Button>
     </div> : <>
       <details className="rounded-md border border-border p-3">
-        <summary className="cursor-pointer text-sm font-medium">Consultar reportagem-base preservada</summary>
-        <p className="mt-2 text-xs text-muted-foreground">Redação original produzida com a IA a partir da fonte, sem reprodução integral do texto de terceiros.</p>
+        <summary className="cursor-pointer text-sm font-medium">Etapa 1 · Consultar reportagem-base completa preservada</summary>
+        <p className="mt-2 text-xs text-muted-foreground">Cobertura factual completa construída a partir da fonte, sem copiar integralmente o texto protegido de terceiros. Não é um resumo ou sinopse.</p>
         <h3 className="mt-3 font-semibold">{base.baseTitle}</h3>
         {base.baseSubtitle && <p className="text-sm text-muted-foreground">{base.baseSubtitle}</p>}
         <div className="prose prose-sm mt-3 max-w-none text-foreground dark:prose-invert" dangerouslySetInnerHTML={{ __html: base.baseHtml }} />
@@ -108,18 +119,20 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
       </label>
       <Button disabled={busy} onClick={() => void execute("personalize")}>
         {busy ? <Loader2 className="mr-2 size-4 animate-spin"/> : <Sparkles className="mr-2 size-4"/>}
-        {busy ? "Gerando versão..." : "Criar minha versão com IA"}
+        {busy ? "Editor-chefe reescrevendo..." : "Reescrever reportagem completa no meu estilo"}
       </Button>
     </>}
     <p role="status" aria-live="polite" className="text-xs text-muted-foreground">{message}</p>
     {proposal && <div className="space-y-3 rounded-md border border-primary/40 bg-background p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-primary">Prévia da minha versão</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-primary">{applied ? "Minha versão aplicada ao rascunho" : "Versão gerada · aguardando confirmação de salvamento"}</p>
       <h3 className="text-lg font-semibold">{proposal.title}</h3>
       {proposal.subtitle && <p className="text-sm text-muted-foreground">{proposal.subtitle}</p>}
       <div className="prose prose-sm max-w-none text-foreground dark:prose-invert" dangerouslySetInnerHTML={{ __html: proposal.contentHtml }}/>
       <p className="text-xs text-muted-foreground">SEO: {proposal.seoTitle} · {proposal.metaDescription}</p>
-      <Button onClick={confirmApplyArticle}><WandSparkles className="mr-2 size-4"/>Aplicar esta versão ao editor</Button>
-      <p className="text-xs text-muted-foreground">A aplicação é local e não publica nem salva automaticamente. Revise antes de salvar.</p>
+      {!applied && <Button disabled={busy} onClick={() => void retryApplyArticle()}><WandSparkles className="mr-2 size-4"/>Tentar salvar esta versão no rascunho</Button>}
+      <p className="text-xs text-muted-foreground">{applied
+        ? "Texto substituído e salvo no mesmo rascunho. A fonte e a reportagem-base continuam guardadas. Nenhuma publicação foi realizada."
+        : "Não foi possível salvar automaticamente. A proposta permanece disponível para tentar novamente."}</p>
     </div>}
   </section>;
 }
