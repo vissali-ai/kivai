@@ -2,16 +2,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { toolCategories } from "@/lib/tools";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
+import { getToolCategoryAccentClass } from "@/lib/tool-category-visuals";
 
 const categories = [...toolCategories, ...plannedToolCategories];
-
-// Acentos discretos por categoria; os nomes e os ícones continuam sendo a identificação principal.
-const categoryAccents: Record<string, string> = {
-  imagens: "border-l-sky-500/70", pdf: "border-l-rose-500/70", calculadoras: "border-l-emerald-500/70",
-  texto: "border-l-amber-500/70", social: "border-l-pink-500/70", video: "border-l-cyan-500/70",
-  audio: "border-l-orange-500/70", empresas: "border-l-teal-500/70", trafego: "border-l-indigo-500/70",
-  arquivos: "border-l-slate-400/70",
-};
 
 export function ToolsSection() {
   return (
@@ -38,7 +31,7 @@ export function ToolsSection() {
               "group relative min-w-0 overflow-hidden rounded-lg border border-l-2 p-4 transition-colors",
               "border-border bg-card",
               "hover:border-primary/40 hover:bg-secondary/70",
-              categoryAccents[category.slug] ?? "border-l-primary/50",
+              getToolCategoryAccentClass(category.slug),
             ].join(" ");
 
             const cardContent = (
