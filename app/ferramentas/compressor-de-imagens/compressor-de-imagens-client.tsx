@@ -264,10 +264,10 @@ export default function CompressorDeImagensClient() {
             <ToolUploadArea accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" formats="PNG, JPG e WebP" maxSizeLabel="5 MB por imagem" processingMode="local" compact={Boolean(arquivo)} disabled={processando} label={arquivo ? "Trocar imagem" : "Selecionar imagem"} onFilesSelected={(files) => files[0] && carregarArquivo(files[0])} className="mb-5" />
             {arquivo && (
               <div className="space-y-6">
-                <div className="border border-border bg-muted/20 p-4 sm:p-5">
+                <div className="rounded-lg border border-border bg-muted/20 p-4 sm:p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex size-10 shrink-0 items-center justify-center border border-border bg-background">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-background">
                         <ImageIcon
                           className="size-4"
                           aria-hidden="true"
@@ -307,7 +307,7 @@ export default function CompressorDeImagensClient() {
                       Pré-visualização
                     </p>
 
-                    <div className="flex min-h-80 items-center justify-center border border-border bg-muted/20 p-4">
+                    <div className="flex min-h-80 items-center justify-center rounded-lg border border-border bg-muted/20 p-4">
                       {previewUrl && (
                         <img
                           src={previewUrl}
@@ -338,7 +338,7 @@ export default function CompressorDeImagensClient() {
                               limparResultado();
                             }}
                             className={[
-                              "w-full border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                              "w-full rounded-md border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50",
                               selecionado
                                 ? "border-primary bg-primary/5"
                                 : "border-border bg-background hover:bg-muted/40",
@@ -374,7 +374,7 @@ export default function CompressorDeImagensClient() {
                     </div>
 
                     {arquivo.type === "image/png" && (
-                      <div className="mt-4 border border-border bg-muted/20 p-4">
+                      <div className="mt-4 rounded-lg border border-border bg-muted/20 p-4">
                         <p className="text-xs leading-5 text-muted-foreground">
                           Em arquivos PNG, o formato e a transparência são
                           preservados. Como o PNG usa compressão sem perdas,

@@ -25,33 +25,33 @@ export default function ImagensPage() {
     filter === "Todos" ? tools : tools.filter((tool) => tool.hubFilter === filter);
 
   return (
-    <section className="relative overflow-hidden bg-background pb-12 pt-24 sm:pb-14 lg:pb-16">
+    <section className="bg-background pb-12 pt-24 sm:pb-14 lg:pb-16">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
+        <div className="mb-6 border-l-2 border-sky-500/70 pl-4">
           <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary">
             <ArrowLeft className="size-4" />
             Voltar para o início
           </Link>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">Imagens</h1>
           <p className="mt-2 text-muted-foreground">Ferramentas para editar, converter, otimizar e preparar imagens para diferentes usos. Reduza arquivos, altere formatos e dimensões, remova fundos, recorte, gire, aplique marca d’água e utilize recursos para sites, e-commerce, redes sociais e projetos digitais.</p>
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             {filters.map((item) => (
-              <button key={item} onClick={() => setFilter(item)} className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${filter === item ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:border-primary hover:text-primary"}`}>
+              <button key={item} onClick={() => setFilter(item)} className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${filter === item ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:border-primary hover:text-primary"}`}>
                 {item}
               </button>
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             return (
-              <ToolCardLink toolTitle={tool.name} key={tool.slug} href={tool.href} prefetch={false} className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4">
-                <div className="flex h-full flex-col">
-                  <div className="flex items-start justify-between"><span className="flex size-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary"><Icon className="size-4" /></span><span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span></div>
-                  <h2 className="mt-4 text-[15px] font-semibold">{tool.name}</h2>
-                  <p className="mt-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
-                  <div className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium group-hover:text-primary">Explorar<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" /></div>
+              <ToolCardLink favoritePlacement="title" toolTitle={tool.name} key={tool.slug} href={tool.href} prefetch={false} className="group relative overflow-hidden rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/70">
+                <div className="flex min-h-[152px] flex-col">
+                  <div className="flex items-start justify-between"><span className="flex size-8 items-center justify-center text-sky-300"><Icon className="size-4" /></span><span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span></div>
+                  <h2 className="mt-3 pr-10 text-sm font-semibold leading-5">{tool.name}</h2>
+                  <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
+                  <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs font-medium group-hover:text-primary">Explorar<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" /></div>
                 </div>
               </ToolCardLink>
             );

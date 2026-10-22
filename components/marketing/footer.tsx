@@ -27,13 +27,9 @@ const companyLinks = [
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-white/10 bg-black/10">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="absolute bottom-0 left-1/2 h-[320px] w-[760px] -translate-x-1/2 rounded-full bg-primary/[0.045] blur-[130px]" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-16 sm:px-6 sm:pt-20 lg:px-8">
-        <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[1.35fr_2fr] lg:gap-16">
+    <footer className="border-t border-border bg-card">
+      <div className="mx-auto max-w-7xl px-4 pb-8 pt-12 sm:px-6 sm:pt-14 lg:px-8">
+        <div className="grid gap-10 border-b border-border pb-10 lg:grid-cols-[1.35fr_2fr] lg:gap-16">
           <div>
             <Link
               href="/"
@@ -58,7 +54,7 @@ export function Footer() {
               em experiências simples, rápidas e produtivas.
             </p>
 
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.025] px-3 py-1.5 text-xs font-medium text-muted-foreground">
+            <div className="mt-6 inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground">
               <span className="size-1.5 rounded-full bg-emerald-400" />
               Ferramentas inteligentes para resultados reais
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FileText, LayoutGrid, Loader2, Search, Wrench, X } from "lucide-react";
 
@@ -125,7 +125,8 @@ function trackEvent(name: string, params: Record<string, string | number>) {
   gtag?.("event", name, params);
 }
 
-export function GlobalSearch() {
+export function GlobalSearch({ prominent = false }: { prominent?: boolean }) {
+  const resultsId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastTrackedQuery = useRef("");
@@ -240,7 +241,7 @@ export function GlobalSearch() {
 
   return (
     <div ref={containerRef} className="relative w-full">
-      <div className="flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 transition focus-within:border-primary/45 focus-within:bg-white/[0.055]">
+      <div className={`flex items-center gap-2 rounded-lg border border-input bg-card px-3 transition-colors focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/15 ${prominent ? "h-12 sm:px-4" : "h-9"}`}>
         <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <Input
           ref={inputRef}
@@ -258,8 +259,8 @@ export function GlobalSearch() {
           placeholder="Busque uma ferramenta"
           aria-label="Buscar ferramentas e artigos do Kivai"
           aria-autocomplete="list"
-          aria-controls="global-search-results"
-          className="h-8 min-w-0 flex-1 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 sm:text-sm"
+          aria-controls={resultsId}
+          className={`min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 ${prominent ? "h-11 text-sm sm:text-base" : "h-8 text-xs sm:text-sm"}`}
         />
 
         {articlesLoading ? (
@@ -284,9 +285,9 @@ export function GlobalSearch() {
 
       {showResults ? (
         <div
-          id="global-search-results"
+          id={resultsId}
           role="listbox"
-          className="absolute right-0 top-[calc(100%+8px)] z-[80] max-h-[70vh] w-[min(92vw,430px)] overflow-y-auto rounded-xl border border-white/10 bg-background/98 p-1.5 shadow-2xl shadow-black/35 backdrop-blur-xl"
+          className={`absolute top-[calc(100%+8px)] z-[80] max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-card p-1.5 shadow-xl shadow-black/30 ${prominent ? "left-0 w-full" : "right-0 w-[min(92vw,430px)]"}`}
         >
           {orderedResults.length ? (
             <div className="space-y-1">

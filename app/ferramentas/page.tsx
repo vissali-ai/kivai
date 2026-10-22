@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 import { getPageMetadata, SITE_URL } from "@/lib/seo";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
+import { getToolCategoryAccentClass } from "@/lib/tool-category-visuals";
 import {
   getToolHref,
   getToolsByCategory,
@@ -65,7 +66,7 @@ export default function FerramentasPage() {
           mas só entram na seleção editorial depois de receber documentação própria.
         </p>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {categories.map((category) => {
             const Icon = category.icon;
             const availableCount = getToolsByCategory(category.slug).filter((tool) => tool.available).length;
@@ -74,16 +75,16 @@ export default function FerramentasPage() {
               <Link
                 key={category.slug}
                 href={category.href}
-                className="group rounded-2xl border border-border bg-background p-6 transition hover:-translate-y-1 hover:border-primary/40"
+                className={`group flex min-h-[180px] flex-col rounded-lg border border-l-2 border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/70 ${getToolCategoryAccentClass(category.slug)}`}
               >
-                <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="size-5" />
+                <span className="flex size-8 items-center justify-center text-muted-foreground">
+                  <Icon className="size-4" />
                 </span>
-                <h2 className="mt-5 text-xl font-semibold">{category.name}</h2>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                <h2 className="mt-3 text-base font-semibold">{category.name}</h2>
+                <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground">
                   {category.description}
                 </p>
-                <p className="mt-5 flex items-center gap-2 text-sm font-medium text-primary">
+                <p className="mt-auto flex items-center gap-2 pt-4 text-xs font-medium text-foreground group-hover:text-primary">
                   Ver {availableCount} {availableCount === 1 ? "ferramenta" : "ferramentas"}
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </p>
@@ -94,7 +95,7 @@ export default function FerramentasPage() {
       </section>
 
       <section className="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-border bg-muted/10 p-6 sm:p-8">
+        <div className="rounded-lg border border-border bg-muted/10 p-5 sm:p-7">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
             Seleção editorial inicial
           </p>
@@ -107,25 +108,25 @@ export default function FerramentasPage() {
             ampliada somente após revisão individual.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {reviewedTools.map((tool) => (
-              <ToolCardLink toolTitle={tool.name}
+              <ToolCardLink favoritePlacement="title" toolTitle={tool.name}
                 key={tool.slug}
                 href={getToolHref(tool.slug)}
                 prefetch={false}
-                className="group rounded-xl border border-border bg-background p-5 transition hover:border-primary/40"
+                className="group rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/70"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="font-semibold">{tool.name}</h3>
-                  <CheckCircle2 className="size-5 shrink-0 text-emerald-400" />
+                <div className="flex min-h-[152px] flex-col">
+                  <div className="flex h-8 items-center gap-2 text-xs text-emerald-300">
+                    <CheckCircle2 aria-hidden="true" className="size-4" />
+                    Documentada
+                  </div>
+                  <h3 className="mt-3 pr-10 text-sm font-semibold leading-5">{tool.name}</h3>
+                  <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
+                  <span className="mt-auto inline-flex items-center gap-2 pt-3 text-xs font-medium text-foreground group-hover:text-primary">
+                    Abrir ferramenta <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
+                  </span>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  {tool.description}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
-                  Abrir ferramenta
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                </span>
               </ToolCardLink>
             ))}
           </div>
