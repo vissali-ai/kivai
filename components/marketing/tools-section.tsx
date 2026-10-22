@@ -5,18 +5,22 @@ import { plannedToolCategories } from "@/lib/planned-tool-categories";
 
 const categories = [...toolCategories, ...plannedToolCategories];
 
+// Acentos discretos por categoria; os nomes e os ícones continuam sendo a identificação principal.
+const categoryAccents: Record<string, string> = {
+  imagens: "border-l-sky-500/70", pdf: "border-l-rose-500/70", calculadoras: "border-l-emerald-500/70",
+  texto: "border-l-amber-500/70", social: "border-l-pink-500/70", video: "border-l-cyan-500/70",
+  audio: "border-l-orange-500/70", empresas: "border-l-teal-500/70", trafego: "border-l-indigo-500/70",
+  arquivos: "border-l-slate-400/70",
+};
+
 export function ToolsSection() {
   return (
     <section
       id="ferramentas"
-      className="relative overflow-hidden border-t border-white/5 bg-background py-12 sm:py-14 lg:py-16"
+      className="relative border-t border-border bg-background py-9 sm:py-11 lg:py-12"
     >
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-[320px] w-[720px] -translate-x-1/2 rounded-full bg-primary/10 blur-[140px]" />
-      </div>
-
       <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
+        <div className="mb-5">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Explorar categorias
           </h2>
@@ -26,22 +30,22 @@ export function ToolsSection() {
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {categories.map((category) => {
             const Icon = category.icon;
 
             const cardClassName = [
-              "group relative min-w-0 overflow-hidden rounded-xl border p-4 transition duration-300",
-              "border-white/10 bg-white/[0.035]",
-              "hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055]",
-              "",
+              "group relative min-w-0 overflow-hidden rounded-lg border border-l-2 p-4 transition-colors",
+              "border-border bg-card",
+              "hover:border-primary/40 hover:bg-secondary/70",
+              categoryAccents[category.slug] ?? "border-l-primary/50",
             ].join(" ");
 
             const cardContent = (
               <>
-                <div className="relative flex h-full min-h-[190px] flex-col">
+                <div className="relative flex h-full min-h-[152px] flex-col">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary transition duration-300 group-hover:scale-105">
+                    <span className="flex size-8 shrink-0 items-center justify-center text-muted-foreground">
                       <Icon className="size-4" />
                     </span>
 
@@ -50,15 +54,15 @@ export function ToolsSection() {
                     </span>
                   </div>
 
-                  <h3 className="mt-4 text-[15px] font-semibold leading-5 tracking-tight text-foreground">
+                  <h3 className="mt-3 text-sm font-semibold leading-5 tracking-tight text-foreground">
                     {category.name}
                   </h3>
 
-                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
+                  <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">
                     {category.description}
                   </p>
 
-                  <div className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium text-foreground transition duration-300 group-hover:text-primary">
+                  <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs font-medium text-foreground transition duration-300 group-hover:text-primary">
                     Explorar
                     <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                   </div>
