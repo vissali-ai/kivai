@@ -67,23 +67,23 @@ export default function ArquivosPage() {
             </div>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredTools.map((tool) => (
-              <ToolCardLink toolTitle={tool.name}
+              <ToolCardLink favoritePlacement="title" toolTitle={tool.name}
                 key={tool.name}
                 href={tool.href}
-                className="group relative min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.055] sm:aspect-square sm:p-4"
+                className="group relative overflow-hidden rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/70"
               >
-                <div className="flex h-full flex-col">
+                <div className="flex min-h-[152px] flex-col">
                   <div className="flex items-start justify-between">
-                    <span className="flex size-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                    <span className="flex size-8 items-center justify-center text-slate-300">
                       <Archive className="size-4" aria-hidden="true" />
                     </span>
                     <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span>
                   </div>
-                  <h2 className="mt-4 text-[15px] font-semibold">{tool.name}</h2>
-                  <p className="mt-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
-                  <div className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium group-hover:text-primary">
+                  <h2 className="mt-3 pr-10 text-sm font-semibold leading-5">{tool.name}</h2>
+                  <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
+                  <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs font-medium group-hover:text-primary">
                     Explorar
                     <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                   </div>
