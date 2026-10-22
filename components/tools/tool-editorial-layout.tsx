@@ -56,14 +56,14 @@ export async function ToolEditorialLayout({
   const override = await getPublishedToolOverride(slug);
 
   if (override?.contentHtml) {
-    return <section className="border-t border-border bg-muted/10 py-12 sm:py-16"><ToolFavoriteSlot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" /><article className="cms-public-content mx-auto w-full max-w-6xl px-4 leading-7 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></section>;
+    return <section className="border-t border-border bg-muted/10 py-10 sm:py-12"><ToolFavoriteSlot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" /><article className="cms-public-content mx-auto w-full max-w-6xl px-4 leading-7 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></section>;
   }
 
   return (
     <section className="border-t border-border bg-muted/10 py-12 sm:py-16">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
         <ToolFavoriteSlot />
-        <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
+        <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-2xl font-semibold">Sobre esta ferramenta</h2>
           <div className="mt-4 space-y-4 leading-7 text-muted-foreground">
             {overview.map((item) => (
@@ -73,7 +73,7 @@ export async function ToolEditorialLayout({
         </article>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
+          <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Como usar</h2>
             <ol className="mt-5 list-none space-y-3">
               {steps.map((step, index) => (
