@@ -80,7 +80,7 @@ export function ToolUploadArea({
         }}
         onDrop={drop}
         className={cn(
-          "flex flex-col items-center justify-center rounded-xl border p-6 text-center transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30",
+          "flex flex-col items-center justify-center rounded-lg border p-6 text-center transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30",
           compact ? "gap-3 sm:flex-row sm:justify-between" : "min-h-56 border-2 border-dashed sm:p-8",
           dragging ? "border-primary bg-primary/5" : "border-border bg-muted/20 hover:bg-muted/40",
           disabled && "cursor-not-allowed opacity-60",
