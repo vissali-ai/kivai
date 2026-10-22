@@ -81,16 +81,16 @@ export function ToolUploadArea({
         onDrop={drop}
         className={cn(
           "flex flex-col items-center justify-center rounded-xl border p-6 text-center transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30",
-          compact ? "gap-3 sm:flex-row sm:justify-between" : "min-h-64 border-2 border-dashed sm:p-10",
+          compact ? "gap-3 sm:flex-row sm:justify-between" : "min-h-56 border-2 border-dashed sm:p-8",
           dragging ? "border-primary bg-primary/5" : "border-border bg-muted/20 hover:bg-muted/40",
           disabled && "cursor-not-allowed opacity-60",
           error && "border-destructive/60",
         )}
       >
-        {!compact && <span className="flex size-14 items-center justify-center border border-border bg-background">
+        {!compact && <span className="flex size-12 items-center justify-center rounded-md border border-border bg-background">
           <Upload className="size-5" aria-hidden="true" />
         </span>}
-        {!compact && <span className="mt-5 font-heading text-lg font-medium">{multiple ? "Selecione ou arraste seus arquivos" : "Selecione ou arraste seu arquivo"}</span>}
+        {!compact && <span className="mt-4 font-heading text-base font-medium">{multiple ? "Selecione ou arraste seus arquivos" : "Selecione ou arraste seu arquivo"}</span>}
         <span id={`${id}-formats`} className={cn("text-sm leading-6 text-muted-foreground", !compact && "mt-2")}>
           Formatos aceitos: {formats}{maxSizeLabel ? ` · Tamanho máximo: ${maxSizeLabel}` : ""}
         </span>
