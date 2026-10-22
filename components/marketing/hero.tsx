@@ -1,45 +1,31 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/marketing/global-search";
 
 export function Hero() {
   return (
-    <section className="relative isolate overflow-hidden pt-16">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] sm:bg-[size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]"
-      />
-
-      <div
-        aria-hidden="true"
-        className="absolute left-1/2 top-0 -z-10 h-[24rem] w-[24rem] -translate-x-1/2 rounded-full bg-primary/15 blur-[110px] sm:h-[30rem] sm:w-[50rem] sm:blur-[140px]"
-      />
-
-      <div className="mx-auto flex max-w-7xl flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <h1 className="max-w-5xl text-[2.45rem] font-semibold leading-[1.04] tracking-[-0.045em] text-foreground min-[430px]:text-5xl sm:text-6xl lg:text-7xl lg:leading-[1.02]">
-          Ferramentas e{" "}
-          <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-            soluções digitais
-          </span>
-        </h1>
-
-        <p className="mt-5 max-w-3xl text-[15px] leading-7 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8">
-          Ferramentas e serviços para criar, otimizar e acelerar seus resultados
-          no digital.
-        </p>
-
-        <div className="mt-8">
-          <Button
-            size="lg"
-            asChild
-            className="group rounded-xl px-8"
-          >
-            <Link href="#ferramentas">
-              Explorar Ferramentas
-              <ArrowRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+    <section className="border-b border-border bg-background pt-16">
+      <div className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-12 lg:px-8 lg:pb-14">
+        <div className="max-w-3xl">
+          <div aria-hidden="true" className="mb-5 h-1 w-9 -skew-x-[24deg] rounded-sm bg-primary" />
+          <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            Ferramentas e soluções digitais
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
+            Ferramentas e serviços para criar, otimizar e acelerar seus resultados no digital.
+          </p>
+          <div className="mt-7 max-w-2xl">
+            <GlobalSearch prominent />
+          </div>
+          <nav aria-label="Acesso rápido" className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
+            <Link href="#mais-usadas" className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-primary">
+              Mais usadas <ArrowRight aria-hidden="true" className="size-3.5" />
             </Link>
-          </Button>
+            <Link href="/ferramentas/imagens" className="text-muted-foreground hover:text-foreground">Imagens</Link>
+            <Link href="/ferramentas/pdfs" className="text-muted-foreground hover:text-foreground">PDFs</Link>
+            <Link href="#ferramentas" className="text-muted-foreground hover:text-foreground">Todas as categorias</Link>
+          </nav>
         </div>
       </div>
     </section>
