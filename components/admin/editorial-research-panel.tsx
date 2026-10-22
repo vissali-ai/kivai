@@ -122,6 +122,27 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionRestored, results, selectedPautas, draftIds, dismissedInSession, selected, query, period, region, draftModel]);
 
+  function resetResearchSession() {
+    // Limpa a varredura somente depois de confirmar que todos os rascunhos solicitados foram criados.
+    // Também remove o cache da aba para que a lista não reapareça ao voltar do editor.
+    try { window.sessionStorage.removeItem(EDITORIAL_SESSION_KEY); } catch {
+      // A falta de acesso ao storage não deve bloquear o fluxo de rascunhos.
+    }
+    setResults(null);
+    setSelectedPautas([]);
+    setDraftIds({});
+    setDraftErrors({});
+    setDismissedInSession([]);
+    setSelected([]);
+    setQuery("");
+    setDirectSourceUrl("");
+    setPeriod("7d");
+    setRegion("brasil");
+    setDraftModel("auto");
+    setManage(false);
+    setEditing(null);
+  }
+
   function togglePauta(url: string) {
     setSelectedPautas((old) => old.includes(url) ? old.filter((value) => value !== url) : [...old, url]);
   }
@@ -170,11 +191,8 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
     setMessage("Lendo a fonte com Gemini e preparando a reportagem...");
     try {
       const data = await requestDraft(result);
-      const nextDraftIds = { ...draftIds, [result.sourceUrl]: data.id };
-      const nextSelected = selectedPautas.filter((url) => url !== result.sourceUrl);
-      setDraftIds(nextDraftIds);
-      setSelectedPautas(nextSelected);
-      persistSession(nextDraftIds, nextSelected); // Guarda o resultado antes de navegar para o editor.
+      resetResearchSession();
+      setMessage("Rascunho salvo. Pesquisa e seleções reiniciadas.");
       router.push("/admin/blog/" + encodeURIComponent(data.id));
     } catch (error) {
       const detail = error instanceof Error ? error.message : "Falha ao criar rascunho.";
@@ -220,7 +238,12 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
           }
         }
       }
-      setMessage(`${completed} pauta(s) adicionada(s) ao blog. ${failed} falha(s).${warnings ? " " + warnings + " rascunho(s) precisam recuperar a base no editor." : ""} Os resultados da pesquisa foram preservados.`);
+      if (failed === 0 && completed === queue.length) {
+        resetResearchSession();
+        setMessage(`${completed} pauta(s) adicionada(s) aos rascunhos. Pesquisa e seleções reiniciadas.${warnings ? " " + warnings + " rascunho(s) precisam recuperar a base no editor." : ""}`);
+      } else {
+        setMessage(`${completed} pauta(s) adicionada(s) aos rascunhos; ${failed} falha(s). A pesquisa e as pautas pendentes foram preservadas para nova tentativa.`);
+      }
     } finally {
       setBulkProgress("");
       setBulkRunning(false);
