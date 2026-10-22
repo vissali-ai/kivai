@@ -68,6 +68,8 @@ export default function CalculadoraDeDescontoClient() {
   const [desconto, setDesconto] = useState("");
 
   const resultado = useMemo(() => {
+    if (!precoOriginal.trim() || !desconto.trim()) return null;
+
     const preco = Number(precoOriginal);
     const percentual = Number(desconto);
 
