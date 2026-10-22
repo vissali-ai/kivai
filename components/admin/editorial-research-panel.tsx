@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Settings2, ExternalLink, Save, Trash2, Loader2, Undo2 } from "lucide-react";
 import type { EditorialTopic, EditorialTopicInput } from "@/lib/news-agent/editorial-topics";
@@ -9,6 +9,15 @@ import type { EditorialResearchResponse, EditorialResearchResult, SearchPeriod, 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GeminiFreeModelPicker } from "@/components/admin/gemini-free-model-picker";
+
+const EDITORIAL_SESSION_KEY = "kivai-editorial-research-v1";
+type SavedEditorialSession = {
+  results: EditorialResearchResponse | null;
+  selectedPautas: string[];
+  draftIds: Record<string, string>;
+  dismissedInSession: EditorialResearchResult[];
+  filters: { topics: string[]; query: string; period: SearchPeriod; region: SearchRegion; draftModel: string };
+};
 
 const categoryOptions = [
   ["tecnologia", "Tecnologia"],
@@ -37,6 +46,12 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
   const [region, setRegion] = useState<SearchRegion>("brasil");
   const [draftModel, setDraftModel] = useState("auto");
   const [results, setResults] = useState<EditorialResearchResponse | null>(null);
+  const [selectedPautas, setSelectedPautas] = useState<string[]>([]);
+  const [draftIds, setDraftIds] = useState<Record<string, string>>({});
+  const [draftErrors, setDraftErrors] = useState<Record<string, string>>({});
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState("");
+  const [sessionRestored, setSessionRestored] = useState(false);
   const [message, setMessage] = useState("");
   const [researching, setResearching] = useState(false);
   const [savingUrl, setSavingUrl] = useState("");
@@ -48,15 +63,80 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
   const [working, setWorking] = useState(false);
   const enabled = useMemo(() => topics.filter((topic) => topic.enabled), [topics]);
   const allSelected = enabled.length > 0 && selected.length === enabled.length;
+  const availablePautas = (results?.items || []).filter((item) => !draftIds[item.sourceUrl]);
+  const selectedAvailablePautas = availablePautas.filter((item) => selectedPautas.includes(item.sourceUrl));
+  const allPautasSelected = availablePautas.length > 0 && selectedAvailablePautas.length === availablePautas.length;
+
+  // Uma pesquisa não deve desaparecer quando o editor abre um rascunho e retorna ao agente.
+  // Somente URLs e metadados da curadoria são guardados na sessão da aba; textos gerados ficam no CMS.
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(EDITORIAL_SESSION_KEY);
+      if (stored) {
+        const saved = JSON.parse(stored) as Partial<SavedEditorialSession>;
+        if (saved.results && Array.isArray(saved.results.items) && typeof saved.results.notice === "string") {
+          setResults(saved.results);
+          setMessage("Pesquisa anterior recuperada. Você pode continuar selecionando pautas.");
+        }
+        if (Array.isArray(saved.selectedPautas)) {
+          setSelectedPautas(saved.selectedPautas.filter((value): value is string => typeof value === "string"));
+        }
+        if (saved.draftIds && typeof saved.draftIds === "object" && !Array.isArray(saved.draftIds)) {
+          setDraftIds(Object.fromEntries(Object.entries(saved.draftIds).filter(([url, id]) =>
+            typeof url === "string" && typeof id === "string" && /^[a-zA-Z0-9-]{1,100}$/.test(id))));
+        }
+        if (Array.isArray(saved.dismissedInSession)) setDismissedInSession(saved.dismissedInSession);
+        if (saved.filters) {
+          if (Array.isArray(saved.filters.topics)) {
+            setSelected(saved.filters.topics.filter((id) => initialTopics.some((topic) => topic.id === id && topic.enabled)));
+          }
+          if (typeof saved.filters.query === "string") setQuery(saved.filters.query);
+          if (["24h", "7d", "30d"].includes(saved.filters.period)) setPeriod(saved.filters.period);
+          if (["brasil", "internacional", "ambos"].includes(saved.filters.region)) setRegion(saved.filters.region);
+          if (typeof saved.filters.draftModel === "string") setDraftModel(saved.filters.draftModel);
+        }
+      }
+    } catch {
+      // Armazenamento indisponível não pode impedir a pesquisa editorial.
+    } finally {
+      setSessionRestored(true);
+    }
+  }, [initialTopics]);
+
+  function persistSession(nextDraftIds = draftIds, nextSelectedPautas = selectedPautas) {
+    try {
+      const data: SavedEditorialSession = {
+        results, selectedPautas: nextSelectedPautas, draftIds: nextDraftIds, dismissedInSession,
+        filters: { topics: selected, query, period, region, draftModel },
+      };
+      window.sessionStorage.setItem(EDITORIAL_SESSION_KEY, JSON.stringify(data));
+    } catch {
+      // O agente continua funcional mesmo se o armazenamento da aba estiver cheio ou bloqueado.
+    }
+  }
+
+  useEffect(() => {
+    if (!sessionRestored) return;
+    persistSession();
+  // A persistência acompanha os dados de pesquisa, filtros e rascunhos; não exige nova consulta.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionRestored, results, selectedPautas, draftIds, dismissedInSession, selected, query, period, region, draftModel]);
+
+  function togglePauta(url: string) {
+    setSelectedPautas((old) => old.includes(url) ? old.filter((value) => value !== url) : [...old, url]);
+  }
+
+  function toggleAllPautas() {
+    setSelectedPautas(allPautasSelected ? [] : availablePautas.map((item) => item.sourceUrl));
+  }
 
   function toggleTopic(id: string) {
     setSelected((old) => old.includes(id) ? old.filter((value) => value !== id) : [...old, id]);
   }
 
   async function search() {
-    if ((!selected.length && !query.trim()) || researching) return;
+    if ((!selected.length && !query.trim()) || researching || bulkRunning || Boolean(savingUrl)) return;
     setResearching(true);
-    setResults(null);
     setDismissedInSession([]);
     setMessage("Buscando links reais nas fontes de notícias cadastradas no Kivai...");
     try {
@@ -66,30 +146,89 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
       });
       const data = await readJson(response) as EditorialResearchResponse;
       setResults(data);
+      setSelectedPautas([]);
+      setDraftErrors({});
       setMessage(data.notice);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Falha na pesquisa.");
     } finally { setResearching(false); }
   }
 
+  async function requestDraft(result: EditorialResearchResult) {
+    const response = await fetch("/api/admin/news-agent/draft", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...result, model: draftModel }),
+    });
+    const data = await readJson(response) as { id?: string; existing?: boolean; warning?: string };
+    if (!data.id) throw new Error("O servidor não retornou o identificador do rascunho.");
+    return { id: data.id, existing: data.existing, warning: data.warning };
+  }
+
   async function saveDraft(result: EditorialResearchResult) {
-    if (savingUrl) return;
+    if (savingUrl || bulkRunning) return;
     setSavingUrl(result.sourceUrl);
-    setMessage("Lendo a fonte com Gemini e preparando uma reportagem-base completa...");
+    setMessage("Lendo a fonte com Gemini e preparando a reportagem...");
     try {
-      const response = await fetch("/api/admin/news-agent/draft", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...result, model: draftModel }),
-      });
-      const data = await readJson(response) as { id: string; existing?: boolean };
-      router.push("/admin/blog/" + data.id);
+      const data = await requestDraft(result);
+      const nextDraftIds = { ...draftIds, [result.sourceUrl]: data.id };
+      const nextSelected = selectedPautas.filter((url) => url !== result.sourceUrl);
+      setDraftIds(nextDraftIds);
+      setSelectedPautas(nextSelected);
+      persistSession(nextDraftIds, nextSelected); // Guarda o resultado antes de navegar para o editor.
+      router.push("/admin/blog/" + encodeURIComponent(data.id));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Falha ao criar rascunho.");
+      const detail = error instanceof Error ? error.message : "Falha ao criar rascunho.";
+      setDraftErrors((old) => ({ ...old, [result.sourceUrl]: detail }));
+      setMessage(detail);
     } finally { setSavingUrl(""); }
   }
 
+  async function saveSelectedDrafts() {
+    if (bulkRunning || savingUrl || researching || dismissingUrl || !selectedAvailablePautas.length) return;
+    const queue = [...selectedAvailablePautas];
+    let completed = 0;
+    let failed = 0;
+    let warnings = 0;
+    let nextDraftIds = { ...draftIds };
+    let nextSelected = [...selectedPautas];
+    setBulkRunning(true);
+    setDraftErrors({});
+    try {
+      for (const [index, item] of queue.entries()) {
+        setBulkProgress(`Preparando ${index + 1} de ${queue.length}: ${item.title}`);
+        try {
+          // Execução sequencial: cada reportagem pode consumir tempo e cota do Gemini.
+          const data = await requestDraft(item);
+          nextDraftIds = { ...nextDraftIds, [item.sourceUrl]: data.id };
+          nextSelected = nextSelected.filter((url) => url !== item.sourceUrl);
+          setDraftIds(nextDraftIds);
+          setSelectedPautas(nextSelected);
+          persistSession(nextDraftIds, nextSelected);
+          completed++;
+          if (data.warning) {
+            warnings++;
+            setDraftErrors((old) => ({ ...old, [item.sourceUrl]: data.warning || "" }));
+          }
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : "Falha ao preparar a pauta.";
+          failed++;
+          setDraftErrors((old) => ({ ...old, [item.sourceUrl]: detail }));
+          // Evita gastar novas chamadas quando a cota do Gemini foi esgotada.
+          if (/cota|limite|429|quota/i.test(detail)) {
+            setMessage(`Limite do Gemini atingido após ${completed} rascunho(s). Pautas restantes continuam selecionadas.`);
+            return;
+          }
+        }
+      }
+      setMessage(`${completed} pauta(s) adicionada(s) ao blog. ${failed} falha(s).${warnings ? " " + warnings + " rascunho(s) precisam recuperar a base no editor." : ""} Os resultados da pesquisa foram preservados.`);
+    } finally {
+      setBulkProgress("");
+      setBulkRunning(false);
+    }
+  }
+
   async function dismissSuggestion(item: EditorialResearchResult) {
-    if (dismissingUrl || savingUrl) return;
+    if (dismissingUrl || savingUrl || bulkRunning) return;
     setDismissingUrl(item.sourceUrl);
     try {
       await readJson(await fetch("/api/admin/news-agent/dismiss", {
@@ -97,6 +236,7 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
         body: JSON.stringify({ sourceUrl: item.sourceUrl }),
       }));
       setResults((old) => old ? { ...old, items: old.items.filter((article) => article.sourceUrl !== item.sourceUrl) } : old);
+      setSelectedPautas((old) => old.filter((url) => url !== item.sourceUrl));
       setDismissedInSession((old) => [item, ...old.filter((entry) => entry.sourceUrl !== item.sourceUrl)].slice(0, 8));
       setMessage("Sugestão descartada. Ela não voltará às próximas pesquisas; use Desfazer para restaurá-la.");
     } catch (error) {
@@ -104,7 +244,7 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
     } finally { setDismissingUrl(""); }
   }
   async function restoreSuggestion(item: EditorialResearchResult) {
-    if (dismissingUrl) return;
+    if (dismissingUrl || bulkRunning) return;
     setDismissingUrl(item.sourceUrl);
     try {
       await readJson(await fetch("/api/admin/news-agent/dismiss", {
@@ -196,7 +336,7 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
             <option value="brasil">Brasil</option><option value="internacional">Internacional</option><option value="ambos">Brasil e internacional</option>
           </select></label>
       </div>
-      <Button disabled={researching || (!selected.length && !query.trim())} onClick={search}>
+      <Button disabled={researching || bulkRunning || Boolean(savingUrl) || (!selected.length && !query.trim())} onClick={search}>
         {researching ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Search className="mr-2 size-4" />}
         {researching ? "Pesquisando..." : "Pesquisar matérias"}
       </Button>
@@ -207,7 +347,7 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input type="url" placeholder="https://site.com.br/materia" value={directSourceUrl}
             onChange={(event) => setDirectSourceUrl(event.target.value)} />
-          <Button variant="outline" disabled={Boolean(savingUrl) || !directSourceUrl.trim()} onClick={() => void saveDraft({
+          <Button variant="outline" disabled={Boolean(savingUrl) || bulkRunning || !directSourceUrl.trim()} onClick={() => void saveDraft({
             title: "", excerpt: "", sourceName: "", sourceUrl: directSourceUrl.trim(),
             publishedAt: null, categorySlug: "noticias",
           })}>
@@ -266,18 +406,46 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
     {results && <section className="space-y-4">
       <div><h2 className="text-lg font-semibold">Links de reportagens ({results.items.length})</h2>
         <p className="text-xs text-muted-foreground">{results.notice}</p></div>
+      {results.items.length > 0 && <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-card p-3">
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <input type="checkbox" className="size-4 accent-primary" checked={allPautasSelected}
+            disabled={bulkRunning || Boolean(savingUrl) || !availablePautas.length}
+            onChange={toggleAllPautas} />
+          Selecionar todas as disponíveis
+        </label>
+        <span className="text-xs text-muted-foreground">{selectedAvailablePautas.length} selecionada(s)</span>
+        <Button size="sm" disabled={bulkRunning || Boolean(savingUrl) || !selectedAvailablePautas.length}
+          onClick={() => void saveSelectedDrafts()}>
+          {bulkRunning ? <Loader2 className="mr-1 size-4 animate-spin" /> : <Save className="mr-1 size-4" />}
+          {bulkRunning ? "Preparando rascunhos..." : "Preparar selecionadas como rascunho"}
+        </Button>
+        {selectedAvailablePautas.length > 0 && <Button size="sm" variant="ghost" disabled={bulkRunning}
+          onClick={() => setSelectedPautas([])}>Limpar seleção</Button>}
+        {bulkProgress && <p role="status" aria-live="polite" className="w-full text-xs text-muted-foreground">{bulkProgress}</p>}
+      </div>}
       <div className="grid gap-3 lg:grid-cols-2">
         {results.items.map((item) => <article key={item.sourceUrl} className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
-          <h3 className="text-base font-semibold leading-snug">{item.title}</h3>
+          <div className="flex items-start gap-3">
+            {!draftIds[item.sourceUrl] && <input type="checkbox" className="mt-1 size-4 shrink-0 accent-primary"
+              aria-label={"Selecionar pauta: " + item.title}
+              checked={selectedPautas.includes(item.sourceUrl)}
+              disabled={bulkRunning || Boolean(savingUrl)}
+              onChange={() => togglePauta(item.sourceUrl)} />}
+            <h3 className="text-base font-semibold leading-snug">{item.title}</h3>
+          </div>
           <p className="text-xs text-muted-foreground">{item.sourceName} {item.publishedAt ? "· Data indicada: " + new Date(item.publishedAt).toLocaleDateString("pt-BR") : "· Data a confirmar na fonte"}</p>
           <p className="flex-1 text-sm text-muted-foreground">{item.excerpt || "Consulte a fonte original para obter os detalhes da matéria."}</p>
+          {draftIds[item.sourceUrl] && <p className="text-xs font-medium text-primary">Pauta adicionada ao blog</p>}
+          {draftErrors[item.sourceUrl] && <p className="text-xs text-amber-300" role="alert">{draftErrors[item.sourceUrl]}</p>}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild><a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-1 size-4"/>Ver fonte</a></Button>
-            <Button size="sm" disabled={Boolean(savingUrl)} onClick={() => saveDraft(item)}>
-              {savingUrl === item.sourceUrl ? <Loader2 className="mr-1 size-4 animate-spin"/> : <Save className="mr-1 size-4"/>}
-              Salvar pauta como rascunho
-            </Button>
-            <Button variant="outline" size="sm" disabled={Boolean(dismissingUrl) || Boolean(savingUrl)} onClick={() => void dismissSuggestion(item)}>
+            {draftIds[item.sourceUrl]
+              ? <Button size="sm" variant="outline" asChild><a href={"/admin/blog/" + encodeURIComponent(draftIds[item.sourceUrl])}>Abrir no editor</a></Button>
+              : <Button size="sm" disabled={Boolean(savingUrl) || bulkRunning} onClick={() => void saveDraft(item)}>
+                {savingUrl === item.sourceUrl ? <Loader2 className="mr-1 size-4 animate-spin"/> : <Save className="mr-1 size-4"/>}
+                Salvar pauta como rascunho
+              </Button>}
+            <Button variant="outline" size="sm" disabled={Boolean(dismissingUrl) || Boolean(savingUrl) || bulkRunning} onClick={() => void dismissSuggestion(item)}>
               {dismissingUrl === item.sourceUrl ? <Loader2 className="mr-1 size-4 animate-spin"/> : <Trash2 className="mr-1 size-4"/>}Descartar sugestão
             </Button>
           </div>
@@ -287,7 +455,7 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
         <p className="text-sm font-medium">Sugestões descartadas nesta pesquisa</p>
         {dismissedInSession.map((item) => <div key={item.sourceUrl} className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="min-w-0 flex-1">{item.title}</span>
-          <Button size="sm" variant="ghost" disabled={Boolean(dismissingUrl)} onClick={() => void restoreSuggestion(item)}><Undo2 className="mr-1 size-4"/>Desfazer</Button>
+          <Button size="sm" variant="ghost" disabled={Boolean(dismissingUrl) || bulkRunning} onClick={() => void restoreSuggestion(item)}><Undo2 className="mr-1 size-4"/>Desfazer</Button>
         </div>)}
       </div>}
     </section>}
