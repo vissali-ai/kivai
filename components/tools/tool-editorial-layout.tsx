@@ -87,7 +87,7 @@ export async function ToolEditorialLayout({
             </ol>
           </article>
 
-          <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
+          <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Quando utilizar</h2>
             <div className="mt-5 space-y-4">
               {useCases.map((item) => (
@@ -100,7 +100,7 @@ export async function ToolEditorialLayout({
           </article>
         </div>
 
-        <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
+        <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-2xl font-semibold">{specificationsTitle}</h2>
           <dl className="mt-5 grid gap-4 sm:grid-cols-2">
             {specifications.map((item) => (
@@ -113,12 +113,12 @@ export async function ToolEditorialLayout({
         </article>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
+          <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Privacidade e processamento</h2>
             <p className="mt-4 leading-7 text-muted-foreground">{privacy}</p>
           </article>
 
-          <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
+          <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Limitações importantes</h2>
             <ul className="mt-4 space-y-3">
               {limitations.map((item) => (
@@ -131,7 +131,7 @@ export async function ToolEditorialLayout({
           </article>
         </div>
 
-        <article className="rounded-xl border border-border bg-background p-5 sm:p-6">
+        <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-2xl font-semibold">Perguntas frequentes</h2>
           <div className="mt-5 space-y-3">
             {faqs.map((item) => (
@@ -146,7 +146,7 @@ export async function ToolEditorialLayout({
         {afterFaq ? <div className="py-2">{afterFaq}</div> : null}
 
         <div className={relatedArticles.length ? "grid gap-6 lg:grid-cols-2" : undefined}>
-          <nav aria-label="Ferramentas relacionadas" className="rounded-xl border border-border bg-background p-5 sm:p-6">
+          <nav aria-label="Ferramentas relacionadas" className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2>
             <div className="mt-4 flex flex-wrap gap-3">
               {relatedTools.map((item) => (
@@ -158,7 +158,7 @@ export async function ToolEditorialLayout({
           </nav>
 
           {relatedArticles.length ? (
-            <nav aria-label="Conteúdos relacionados" className="rounded-xl border border-border bg-background p-5 sm:p-6">
+            <nav aria-label="Conteúdos relacionados" className="rounded-lg border border-border bg-card p-5 sm:p-6">
               <h2 className="text-2xl font-semibold">Conteúdos relacionados</h2>
               <div className="mt-4 space-y-3">
                 {relatedArticles.map((item) => (
