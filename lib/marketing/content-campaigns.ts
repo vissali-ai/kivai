@@ -4,6 +4,7 @@ import { listMarketingAudienceUsers, matchesMarketingAudience, type MarketingAud
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
 import { getCustomerMarketingTemplate } from "@/lib/marketing/templates";
+import { adjustDigestCount, contentEmailSubject, pickFeaturedBlogPosts, withoutRepeatedTitleHeading } from "@/lib/marketing/content-email-copy";
 import { tools } from "@/lib/tools";
 
 const SITE_URL = "https://www.kivai.com.br";
@@ -19,6 +20,8 @@ type BlogPostRow = {
   slug: string;
   excerpt: string;
   published_at: string | null;
+  featured: boolean | null;
+  featured_order: number | null;
 };
 
 type CmsToolRow = {
@@ -35,6 +38,10 @@ function render(value: string, replacements: Record<string, string>) {
     next = next.replaceAll(`{{${key}}}`, replacement);
   }
   return next;
+}
+
+function escapeEmailHtml(value: string) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 
 async function queueEmail(input: {
@@ -97,7 +104,7 @@ export async function processContentCampaigns() {
     getCustomerMarketingTemplate("new_post"),
     getCustomerMarketingTemplate("blog_digest"),
     getCustomerMarketingTemplate("new_tool"),
-    supabaseRest<BlogPostRow[]>("blog_posts?select=id,title,slug,excerpt,published_at&status=eq.published&order=published_at.desc.nullslast,created_at.desc&limit=100"),
+    supabaseRest<BlogPostRow[]>("blog_posts?select=id,title,slug,excerpt,published_at,featured,featured_order&status=eq.published&order=published_at.desc.nullslast,created_at.desc&limit=100"),
     supabaseRest<CmsToolRow[]>("site_contents?select=slug,title,short_description,path,published_at&content_type=eq.tool&status=eq.published"),
   ]);
 
@@ -116,16 +123,24 @@ export async function processContentCampaigns() {
     toolEmailsQueued: 0,
   };
 
-  if (pendingBlogs.length > 3 && digestTemplate?.enabled) {
-    const featured = pendingBlogs.slice(0, 3);
-    const links = `<ul>${featured.map((post) => `<li><a href="${SITE_URL}/blog/${post.slug}">${post.title}</a></li>`).join("")}</ul>`;
+  if (pendingBlogs.length >= 2 && digestTemplate?.enabled) {
+    const featured = pickFeaturedBlogPosts(pendingBlogs);
+    const mainPost = featured[0];
+    const links = `<ul>${featured.map((post) => `<li><a href="${SITE_URL}/blog/${encodeURIComponent(post.slug)}">${escapeEmailHtml(post.title)}</a></li>`).join("")}</ul>`;
     const batchId = featured.map((post) => post.id.slice(0, 8)).join("-");
+    const replacements = { links, titulo: mainPost.title, quantidade: String(featured.length) };
+    const renderedMessage = render(digestTemplate.message, replacements);
+    const digestMessage = adjustDigestCount(
+      digestTemplate.message.includes("{{links}}") ? renderedMessage : `${renderedMessage}\n${links}`,
+      featured.length,
+    );
+    const preheader = `Confira também: ${featured.slice(1).map((post) => post.title).join(" • ")}`;
     for (const user of users) {
       const status = await queueEmail({
         userId: user.id,
         eventKey: `blog_digest_${batchId}_${user.id}`,
-        subject: digestTemplate.subject,
-        message: render(digestTemplate.message, { links }),
+        subject: contentEmailSubject("blog_digest", render(digestTemplate.subject, replacements), mainPost.title),
+        message: digestMessage,
         ctaLabel: digestTemplate.cta_label,
         ctaUrl: digestTemplate.cta_url,
         flowKey: "blog_digest",
@@ -133,6 +148,9 @@ export async function processContentCampaigns() {
         metadata: {
           post_ids: pendingBlogs.map((post) => post.id),
           featured_post_ids: featured.map((post) => post.id),
+          preheader,
+          headline: mainPost.title,
+          eyebrow: "Novidades no blog",
           template_version: digestTemplate.updated_at,
         },
       });
@@ -149,13 +167,13 @@ export async function processContentCampaigns() {
         const status = await queueEmail({
           userId: user.id,
           eventKey: `new_post_${post.id}_${user.id}`,
-          subject: render(newPostTemplate.subject, { titulo: post.title, resumo: post.excerpt, slug: post.slug, link: postUrl }),
-          message: render(newPostTemplate.message, { titulo: post.title, resumo: post.excerpt, slug: post.slug, link: postUrl }),
+          subject: contentEmailSubject("new_post", render(newPostTemplate.subject, { titulo: post.title, resumo: post.excerpt, slug: post.slug, link: postUrl }), post.title),
+          message: withoutRepeatedTitleHeading(render(newPostTemplate.message, { titulo: post.title, resumo: post.excerpt, slug: post.slug, link: postUrl }), post.title),
           ctaLabel: newPostTemplate.cta_label,
           ctaUrl: newPostTemplate.cta_url ? render(newPostTemplate.cta_url, { titulo: post.title, resumo: post.excerpt, slug: post.slug, link: postUrl }) : postUrl,
           flowKey: "new_post",
           recipientEmail: user.email,
-          metadata: { post_id: post.id, post_slug: post.slug, template_version: newPostTemplate.updated_at },
+          metadata: { post_id: post.id, post_slug: post.slug, preheader: post.excerpt, headline: post.title, eyebrow: "Nova publicação", template_version: newPostTemplate.updated_at },
         });
         if (status !== "duplicate") results.blogEmailsQueued += 1;
       }
@@ -184,13 +202,13 @@ export async function processContentCampaigns() {
         const status = await queueEmail({
           userId: user.id,
           eventKey: `new_tool_${tool.slug}_${user.id}`,
-          subject: render(newToolTemplate.subject, { titulo: tool.title, resumo: tool.description, slug: tool.slug, link: toolUrl }),
-          message: render(newToolTemplate.message, { titulo: tool.title, resumo: tool.description, slug: tool.slug, link: toolUrl }),
+          subject: contentEmailSubject("new_tool", render(newToolTemplate.subject, { titulo: tool.title, resumo: tool.description, slug: tool.slug, link: toolUrl }), tool.title),
+          message: withoutRepeatedTitleHeading(render(newToolTemplate.message, { titulo: tool.title, resumo: tool.description, slug: tool.slug, link: toolUrl }), tool.title),
           ctaLabel: newToolTemplate.cta_label,
           ctaUrl: newToolTemplate.cta_url ? render(newToolTemplate.cta_url, { titulo: tool.title, resumo: tool.description, slug: tool.slug, link: toolUrl }) : toolUrl,
           flowKey: "new_tool",
           recipientEmail: user.email,
-          metadata: { tool_slug: tool.slug, template_version: newToolTemplate.updated_at },
+          metadata: { tool_slug: tool.slug, preheader: tool.description, headline: tool.title, eyebrow: "Nova ferramenta", template_version: newToolTemplate.updated_at },
         });
         if (status !== "duplicate") results.toolEmailsQueued += 1;
       }
