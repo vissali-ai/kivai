@@ -6,8 +6,8 @@ export const customerMarketingFlows = [
   { key: "renewal", label: "Renovação", description: "Fluxo automático para assinantes próximos do vencimento.", automatic: true },
   { key: "winback", label: "Recuperação", description: "Fluxo automático de recuperação com cortesia após o vencimento quando elegível.", automatic: true },
   { key: "cross_sell", label: "Venda cruzada", description: "Apresenta serviços Kivai complementares às ferramentas e planos.", automatic: false },
-  { key: "new_post", label: "Novas publicações", description: "Envia automaticamente novas publicações do blog; quando há mais de três, o sistema envia um resumo com três links para evitar excesso de e-mails.", automatic: true },
-  { key: "blog_digest", label: "Resumo de publicações", description: "Agrupa lotes com mais de três novos posts em um único e-mail com três links em destaque.", automatic: true },
+  { key: "new_post", label: "Novas publicações", description: "Envia matérias únicas com a manchete no assunto; quando há duas ou mais novidades, agrupa em um resumo com até três links, priorizando o destaque editorial.", automatic: true },
+  { key: "blog_digest", label: "Resumo de publicações", description: "Agrupa duas ou mais novas matérias em um e-mail com até três links e o título principal no assunto.", automatic: true },
   { key: "new_tool", label: "Lançamento de ferramenta", description: "Envia automaticamente um e-mail quando uma nova ferramenta Kivai é lançada.", automatic: true },
 ] as const;
 

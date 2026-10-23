@@ -4,6 +4,7 @@ import { listRegisteredEmailUsers } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deliverCustomerEmail } from "@/lib/marketing/email-delivery";
 import { getCustomerMarketingTemplate } from "@/lib/marketing/templates";
+import { contentEmailSubject, withoutRepeatedTitleHeading } from "@/lib/marketing/content-email-copy";
 
 const SITE_URL = "https://www.kivai.com.br";
 
@@ -42,12 +43,12 @@ export async function queueNewPostCampaign(post: PublishedPostCampaign, options:
       event_key: `new_post_${post.id}_${user.id}`,
       channel: "email",
       status: "ready",
-      subject: render(template.subject, post),
-      message: render(template.message, post),
+      subject: contentEmailSubject("new_post", render(template.subject, post), post.title),
+      message: withoutRepeatedTitleHeading(render(template.message, post), post.title),
       cta_label: template.cta_label || "Ler publicação completa",
       cta_url: template.cta_url ? render(template.cta_url, post) : postUrl,
       scheduled_for: new Date().toISOString(),
-      metadata: { source: "automatic_blog_post", flow_key: "new_post", kind: "new_blog_post", layout: "kivai_campaign", secondary_cta_label: template.secondary_cta_label || "", secondary_cta_url: template.secondary_cta_url ? render(template.secondary_cta_url, post) : "", post_id: post.id, post_slug: post.slug, post_published_at: post.publishedAt, recipient_email: user.email, template_version: template.updated_at },
+      metadata: { source: "automatic_blog_post", flow_key: "new_post", kind: "new_blog_post", layout: "kivai_campaign", secondary_cta_label: template.secondary_cta_label || "", secondary_cta_url: template.secondary_cta_url ? render(template.secondary_cta_url, post) : "", post_id: post.id, post_slug: post.slug, post_published_at: post.publishedAt, preheader: post.excerpt, headline: post.title, eyebrow: "Nova publicação", recipient_email: user.email, template_version: template.updated_at },
     }))),
   });
   const delivery = options.deliverNow === false ? null : await deliverPendingBlogPostEmails(50);
