@@ -33,6 +33,12 @@ for (const route of authenticationRoutes) {
   });
 }
 
+test("cadastro responde com cache desabilitado", async ({ request }) => {
+  const response = await request.get("/conta/cadastro");
+  expect(response.ok()).toBeTruthy();
+  expect(response.headers()["cache-control"]).toContain("no-store");
+});
+
 test("WhatsApp sem observacoes extras continua nao obrigatorio", async ({ page }) => {
   await page.goto("/conta/cadastro");
   const form = page.locator("form").filter({ has: page.getByRole("button", { name: "Criar conta" }) });
