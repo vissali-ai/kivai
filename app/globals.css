@@ -55,12 +55,12 @@
 }
 
 /* =========================================================
-   KIVAI — NEUTRAL DARK DESIGN SYSTEM
+   KIVAI — UNIFIED LIGHT DESIGN SYSTEM
    ========================================================= */
 
 :root {
   color-scheme: light;
-  /* Tema claro suave do portal público Kivai. */
+  /* Tema cinza-claro suave em todas as áreas do Kivai. */
   --background: #ECEFF3;
   --foreground: #202938;
   --card: #F9FAFC;
@@ -95,9 +95,7 @@
   --sidebar-ring: #5847AD;
 }
 
-.dark,
-:root:has([data-kivai-admin]),
-:root:has([data-kivai-dark-surface]) {
+.dark {
   color-scheme: dark;
   --background: oklch(0.12 0.004 260);
   --foreground: oklch(0.97 0.003 260);
