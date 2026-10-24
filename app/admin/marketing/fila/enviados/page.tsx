@@ -36,8 +36,8 @@ export default async function SentPage() {
   const userMap = new Map(users.map((user) => [user.id, user]));
 
   return (
-    <div className="border border-white/10 bg-card">
-      <header className="flex items-start justify-between gap-4 border-b border-white/10 p-5">
+    <div className="border border-border bg-card">
+      <header className="flex items-start justify-between gap-4 border-b border-border p-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Enviados</p>
           <h2 className="mt-1 text-xl font-semibold">E-mails enviados pelo Kivai</h2>
@@ -62,7 +62,7 @@ export default async function SentPage() {
                 <Link href={`/admin/marketing/fila/enviados/${item.id}`} className="min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="truncate text-sm font-medium">{item.subject || item.event_key}</p>
-                    <span className="shrink-0 border border-white/10 px-1.5 py-0.5 text-[9px] text-muted-foreground">{item.status}</span>
+                    <span className="shrink-0 border border-border px-1.5 py-0.5 text-[9px] text-muted-foreground">{item.status}</span>
                   </div>
                   <p className="mt-1 truncate text-xs text-muted-foreground">{preview}</p>
                 </Link>
@@ -72,14 +72,14 @@ export default async function SentPage() {
                   {canRetry ? (
                     <form action={retryCommunicationNow}>
                       <input type="hidden" name="communicationId" value={item.id} />
-                      <button title={item.status === "failed" ? "Tentar novamente" : "Enviar agora"} className="inline-flex size-8 items-center justify-center border border-white/10 text-muted-foreground hover:text-primary">
+                      <button title={item.status === "failed" ? "Tentar novamente" : "Enviar agora"} className="inline-flex size-8 items-center justify-center border border-border text-muted-foreground hover:text-primary">
                         <RefreshCcw className="size-4" />
                       </button>
                     </form>
                   ) : null}
                   <form action={discardCommunicationLog}>
                     <input type="hidden" name="communicationId" value={item.id} />
-                    <button title="Mover para descartados" className="inline-flex size-8 items-center justify-center border border-white/10 text-muted-foreground hover:text-red-300">
+                    <button title="Mover para descartados" className="inline-flex size-8 items-center justify-center border border-border text-muted-foreground hover:text-red-700">
                       <Trash2 className="size-4" />
                     </button>
                   </form>

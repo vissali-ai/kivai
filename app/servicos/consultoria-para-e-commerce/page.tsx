@@ -18,7 +18,7 @@ export default function ConsultoriaParaEcommercePage() {
         hideProcess
       />
 
-      <section className="border-t border-white/5 bg-[#07080d] py-16 sm:py-20">
+      <section className="border-t border-border bg-background py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
@@ -27,13 +27,13 @@ export default function ConsultoriaParaEcommercePage() {
           </div>
 
           <div className="relative mx-auto mt-10 max-w-5xl overflow-hidden">
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#07080d] to-transparent sm:w-24" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#07080d] to-transparent sm:w-24" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-background to-transparent sm:w-24" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-background to-transparent sm:w-24" />
 
             <div className="kivai-client-marquee flex w-max items-center gap-6 py-2">
               {[0, 1].map((group) => (
                 <div key={group} className="flex items-center gap-6" aria-hidden={group === 1}>
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
                     <img
                       src="/clients/sou-ofertas-online.svg"
                       alt={group === 0 ? "Sou Ofertas Online" : ""}
@@ -41,7 +41,7 @@ export default function ConsultoriaParaEcommercePage() {
                     />
                   </div>
 
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
                     <img
                       src="https://http2.mlstatic.com/D_NQ_NP_861528-MLA81184928992_122024-O.webp"
                       alt={group === 0 ? "Panela de Ferro Mineira" : ""}
@@ -49,7 +49,7 @@ export default function ConsultoriaParaEcommercePage() {
                     />
                   </div>
 
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
                     <img
                       src="/clients/at-shopping-transparent.png"
                       alt={group === 0 ? "AT shopping" : ""}
@@ -57,7 +57,7 @@ export default function ConsultoriaParaEcommercePage() {
                     />
                   </div>
 
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
                     <img
                       src="/clients/coimbra.webp"
                       alt={group === 0 ? "Coimbra" : ""}
@@ -65,7 +65,7 @@ export default function ConsultoriaParaEcommercePage() {
                     />
                   </div>
 
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-4 sm:w-60">
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
                     <img
                       src="/clients/droga-clara.webp"
                       alt={group === 0 ? "Droga Clara" : ""}

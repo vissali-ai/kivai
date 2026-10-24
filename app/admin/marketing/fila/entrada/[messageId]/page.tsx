@@ -60,8 +60,8 @@ export default async function InboxMessagePage({ params }: { params: Promise<{ m
   const bodyText = message.text_body?.trim() || htmlAsText || "";
 
   return (
-    <article className="border border-white/10 bg-card">
-      <header className="border-b border-white/10 p-5">
+    <article className="border border-border bg-card">
+      <header className="border-b border-border p-5">
         <Link href="/admin/marketing/fila/entrada" className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-primary">
           <ArrowLeft className="size-4" /> Voltar para a caixa de entrada
         </Link>
@@ -83,7 +83,7 @@ export default async function InboxMessagePage({ params }: { params: Promise<{ m
             ) : null}
             <form action={discardInboxMessage}>
               <input type="hidden" name="messageId" value={message.id} />
-              <button className="inline-flex h-9 items-center gap-2 border border-red-400/30 bg-red-500/10 px-3 text-xs font-semibold text-red-300">
+              <button className="inline-flex h-9 items-center gap-2 border border-red-400/30 bg-red-500/10 px-3 text-xs font-semibold text-red-700">
                 <Trash2 className="size-4" /> Descartar
               </button>
             </form>

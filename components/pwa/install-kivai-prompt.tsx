@@ -84,7 +84,7 @@ export function InstallKivaiPrompt() {
           <p className="text-sm font-semibold">Tenha o Kivai na tela inicial</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">Acesse suas ferramentas em um toque, sem procurar o site novamente.</p>
         </div>
-        <button type="button" aria-label="Dispensar convite para instalar" className="rounded-md p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground" onClick={() => { deferInstallOffer(); setVisible(false); }}>
+        <button type="button" aria-label="Dispensar convite para instalar" className="rounded-md p-1 text-muted-foreground hover:bg-muted/70 hover:text-foreground" onClick={() => { deferInstallOffer(); setVisible(false); }}>
           <X className="size-4" aria-hidden="true" />
         </button>
       </div>

@@ -62,7 +62,7 @@ export function BlogPublicationControls({
   }
 
   return (
-    <section className="mb-5 space-y-5 border border-white/10 bg-card p-5">
+    <section className="mb-5 space-y-5 border border-border bg-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Publicação pública</p>
@@ -75,20 +75,20 @@ export function BlogPublicationControls({
       <fieldset className="space-y-3">
         <legend className="text-sm font-semibold">Blocos disponíveis no site público</legend>
         <p className="text-xs text-muted-foreground">Desmarque para ocultar sem apagar. Use Excluir para remover definitivamente.</p>
-        <div className="grid gap-3 md:grid-cols-2">{blocks.filter(([key]) => !isDeleted(key)).map(([key, label]) => <div key={key} className="flex items-center justify-between gap-3 border border-white/10 p-4 text-sm"><label className="flex min-w-0 flex-1 items-center justify-between gap-3"><span>{label}</span><input type="checkbox" className="size-4" checked={blockVisibility[key] !== false} onChange={(event) => setBlockVisibility((current) => ({ ...current, [key]: event.target.checked }))} /></label><Button type="button" variant="ghost" size="sm" className="shrink-0 text-destructive hover:text-destructive" onClick={() => deleteBlock(key, label)}><Trash2 className="size-4" />Excluir</Button></div>)}</div>
+        <div className="grid gap-3 md:grid-cols-2">{blocks.filter(([key]) => !isDeleted(key)).map(([key, label]) => <div key={key} className="flex items-center justify-between gap-3 border border-border p-4 text-sm"><label className="flex min-w-0 flex-1 items-center justify-between gap-3"><span>{label}</span><input type="checkbox" className="size-4" checked={blockVisibility[key] !== false} onChange={(event) => setBlockVisibility((current) => ({ ...current, [key]: event.target.checked }))} /></label><Button type="button" variant="ghost" size="sm" className="shrink-0 text-destructive hover:text-destructive" onClick={() => deleteBlock(key, label)}><Trash2 className="size-4" />Excluir</Button></div>)}</div>
       </fieldset>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="flex items-start gap-3 border border-white/10 p-4 text-sm">
+        <label className="flex items-start gap-3 border border-border p-4 text-sm">
           <input type="checkbox" className="mt-1 size-4" checked={indexable} onChange={(event) => { const checked = event.target.checked; setIndexable(checked); if (!checked) setIncludeInSitemap(false); }} />
           <span><strong>Permitir indexação</strong><small className="mt-1 block text-muted-foreground">Marcado: index, follow. Desmarcado: noindex, nofollow.</small></span>
         </label>
-        <label className="flex items-start gap-3 border border-white/10 p-4 text-sm">
+        <label className="flex items-start gap-3 border border-border p-4 text-sm">
           <input type="checkbox" className="mt-1 size-4" disabled={!indexable} checked={indexable && includeInSitemap} onChange={(event) => setIncludeInSitemap(event.target.checked)} />
           <span><strong>Incluir no sitemap</strong><small className="mt-1 block text-muted-foreground">Só pode entrar no sitemap se a publicação estiver indexável.</small></span>
         </label>
       </div>
-      {!published ? <p className="text-xs text-amber-300">A matéria ainda não está publicada. As preferências ficam salvas e passam a valer quando ela for publicada.</p> : null}
+      {!published ? <p className="text-xs text-amber-700">A matéria ainda não está publicada. As preferências ficam salvas e passam a valer quando ela for publicada.</p> : null}
       {message ? <p className="text-xs text-muted-foreground" role="status">{message}</p> : null}
     </section>
   );

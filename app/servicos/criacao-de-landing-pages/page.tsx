@@ -192,10 +192,10 @@ export default async function CriacaoDeLandingPagesPage() {
         audience="Empresas, profissionais, eventos, artistas e projetos"
         faqs={landingPageFaqs}
       />
-      <section className="relative isolate overflow-hidden border-b border-white/5">
+      <section className="relative isolate overflow-hidden border-b border-border">
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
+          className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(32,41,56,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(32,41,56,0.035)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
         />
 
         <div
@@ -220,7 +220,7 @@ export default async function CriacaoDeLandingPagesPage() {
 
             <h1 className="mt-7 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-7xl lg:leading-[1.02]">
               Criação de landing pages que conectam sua ideia e{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 geram ação.
               </span>
             </h1>
@@ -244,7 +244,7 @@ export default async function CriacaoDeLandingPagesPage() {
 
               <a
                 href="#para-quem"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
               >
                 Conhecer possibilidades
               </a>
@@ -272,7 +272,7 @@ export default async function CriacaoDeLandingPagesPage() {
 
       <section
         id="para-quem"
-        className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28"
+        className="relative border-b border-border py-20 sm:py-24 lg:py-28"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
@@ -283,7 +283,7 @@ export default async function CriacaoDeLandingPagesPage() {
 
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Uma página pensada para o seu{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 objetivo real.
               </span>
             </h2>
@@ -301,7 +301,7 @@ export default async function CriacaoDeLandingPagesPage() {
               return (
                 <article
                   key={audience.title}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-white/[0.045]"
+                  className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 transition duration-300 hover:border-primary/30 hover:bg-card"
                 >
                   <span className="flex size-12 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
                     <Icon className="size-5" />
@@ -321,7 +321,7 @@ export default async function CriacaoDeLandingPagesPage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden border-b border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-28">
+      <section className="relative overflow-hidden border-b border-border bg-background py-20 sm:py-24 lg:py-28">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-primary/[0.08] blur-[140px]"
@@ -336,7 +336,7 @@ export default async function CriacaoDeLandingPagesPage() {
 
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Mais do que estar online.{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 Direcione o próximo passo.
               </span>
             </h2>
@@ -349,7 +349,7 @@ export default async function CriacaoDeLandingPagesPage() {
               return (
                 <article
                   key={benefit.title}
-                  className="rounded-3xl border border-white/10 bg-white/[0.025] p-6"
+                  className="rounded-3xl border border-border bg-card p-6"
                 >
                   <span className="flex size-12 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
                     <Icon className="size-5" />
@@ -401,7 +401,7 @@ export default async function CriacaoDeLandingPagesPage() {
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28">
+      <section className="relative border-b border-border py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
@@ -411,7 +411,7 @@ export default async function CriacaoDeLandingPagesPage() {
 
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Da ideia à publicação com um{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 processo claro.
               </span>
             </h2>
@@ -421,7 +421,7 @@ export default async function CriacaoDeLandingPagesPage() {
             {process.map((step) => (
               <article
                 key={step.number}
-                className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6"
+                className="relative overflow-hidden rounded-3xl border border-border bg-card p-6"
               >
                 <span className="text-4xl font-semibold tracking-tighter text-primary/25">
                   {step.number}
@@ -470,7 +470,7 @@ export default async function CriacaoDeLandingPagesPage() {
         />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-gradient-to-br from-primary/[0.13] via-white/[0.035] to-cyan-400/[0.07] px-6 py-14 text-center sm:px-10 sm:py-16 lg:px-16">
+          <div className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-gradient-to-br from-primary/[0.13] via-card to-cyan-400/[0.07] px-6 py-14 text-center sm:px-10 sm:py-16 lg:px-16">
             <div className="mx-auto max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
                 <Sparkles className="size-4" />
@@ -479,7 +479,7 @@ export default async function CriacaoDeLandingPagesPage() {
 
               <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                 Vamos transformar sua ideia em uma{" "}
-                <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+                <span className="text-primary">
                   presença digital profissional?
                 </span>
               </h2>

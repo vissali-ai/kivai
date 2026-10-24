@@ -163,7 +163,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
         Os relatórios específicos de cada modalidade serão incorporados em etapas posteriores.
       </p>
 
-      <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.035] p-5">
+      <div className="mt-5 rounded-xl border border-border bg-card p-5">
         <label htmlFor="google-ads-campaign-report" className="text-sm font-medium">
           Importar relatório de campanhas CSV (até 5 MB)
         </label>
@@ -176,7 +176,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
           type="file"
           accept=".csv,text/csv"
           onChange={importFile}
-          className="mt-3 block w-full text-xs file:mr-3 file:rounded-lg file:border file:border-white/15 file:bg-background file:px-3 file:py-2 file:text-foreground"
+          className="mt-3 block w-full text-xs file:mr-3 file:rounded-lg file:border file:border-border file:bg-background file:px-3 file:py-2 file:text-foreground"
         />
         {error ? <p role="alert" className="mt-3 text-sm text-red-400">{error}</p> : null}
         {fileName ? (
@@ -193,11 +193,11 @@ export function CampaignReportSection({ goals, onSnapshot }: {
           {showScope ? "Ocultar modalidades e limites da análise" : "Ver modalidades e limites da análise"}
         </button>
         {showScope ? (
-          <div className="mt-3 rounded-lg border border-white/10 bg-background p-4">
+          <div className="mt-3 rounded-lg border border-border bg-background p-4">
             <p className="text-sm font-medium">Modalidades previstas na arquitetura</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {supportedTypes.map((type) => (
-                <span key={type} className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-muted-foreground">
+                <span key={type} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
                   {GOOGLE_ADS_CHANNELS[type].label}
                 </span>
               ))}
@@ -213,14 +213,14 @@ export function CampaignReportSection({ goals, onSnapshot }: {
 
         {campaigns.length > 0 ? (
           <div className="mt-7">
-            <div className="grid gap-4 rounded-xl border border-white/10 bg-background p-4 sm:grid-cols-2">
+            <div className="grid gap-4 rounded-xl border border-border bg-background p-4 sm:grid-cols-2">
               <label className="text-xs font-medium text-muted-foreground">
                 Início do período exportado
-                <input className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportStart} onChange={(event) => setReportStart(event.target.value)} />
+                <input className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportStart} onChange={(event) => setReportStart(event.target.value)} />
               </label>
               <label className="text-xs font-medium text-muted-foreground">
                 Fim do período exportado
-                <input className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportEnd} onChange={(event) => setReportEnd(event.target.value)} />
+                <input className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary" type="date" value={reportEnd} onChange={(event) => setReportEnd(event.target.value)} />
               </label>
               {includesPartialDay ? (
                 <p role="alert" className="sm:col-span-2 rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-xs leading-6 text-amber-200">
@@ -242,12 +242,12 @@ export function CampaignReportSection({ goals, onSnapshot }: {
             </div>
             <div className="flex flex-wrap gap-2" aria-label="Filtrar por tipo de campanha">
               <button type="button" onClick={() => setSelected("all")} aria-pressed={selected === "all"}
-                className={"rounded-full border px-3 py-1.5 text-xs font-medium " + (selected === "all" ? "border-primary bg-primary text-primary-foreground" : "border-white/10 hover:border-primary/40")}>
+                className={"rounded-full border px-3 py-1.5 text-xs font-medium " + (selected === "all" ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/40")}>
                 Todos ({campaigns.length})
               </button>
               {channelTypes.map((type) => (
                 <button key={type} type="button" onClick={() => setSelected(type)} aria-pressed={selected === type}
-                  className={"rounded-full border px-3 py-1.5 text-xs font-medium " + (selected === type ? "border-primary bg-primary text-primary-foreground" : "border-white/10 hover:border-primary/40")}>
+                  className={"rounded-full border px-3 py-1.5 text-xs font-medium " + (selected === type ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/40")}>
                   {describeCampaignChannel(type).label}
                 </button>
               ))}
@@ -261,7 +261,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                 { label: "CPA", value: totals.conversions > 0 ? decimal(totals.cost / totals.conversions) : "N/D" },
                 { label: "ROAS", value: totals.valueComplete && totals.cost > 0 ? decimal(totals.value / totals.cost) + "x" : "N/D" },
               ].map(({ label, value }) => (
-                <div key={label} className="rounded-lg border border-white/10 bg-background p-3">
+                <div key={label} className="rounded-lg border border-border bg-background p-3">
                   <p className="text-xs text-muted-foreground">{label}</p>
                   <p className="mt-1 break-words text-lg font-semibold tabular-nums">{value}</p>
                 </div>
@@ -289,13 +289,13 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                         const relative = pace.differencePct >= 0 ? "acima" : "abaixo";
                         const positiveTarget = pace.label === "Investimento" ? pace.differencePct <= 0 : pace.differencePct >= 0;
                         return (
-                          <article key={pace.label} className="rounded-xl border border-white/10 bg-background p-4">
+                          <article key={pace.label} className="rounded-xl border border-border bg-background p-4">
                             <p className="text-xs font-medium text-muted-foreground">{pace.label}</p>
                             <p className="mt-2 text-xl font-semibold tabular-nums">{show(pace.actual)}</p>
                             <p className="mt-1 text-xs leading-6 text-muted-foreground">
                               Meta acumulada: <strong className="text-foreground">{show(pace.expectedToDate)}</strong>
                             </p>
-                            <p className={"mt-2 text-sm font-semibold tabular-nums " + (positiveTarget ? "text-emerald-400" : "text-amber-300")}>
+                            <p className={"mt-2 text-sm font-semibold tabular-nums " + (positiveTarget ? "text-emerald-400" : "text-amber-700")}>
                               {pace.differencePct >= 0 ? "+" : ""}{decimal(pace.differencePct)}% {relative}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -320,7 +320,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                 ) : null}
               </>
             ) : (
-              <p className="mt-4 rounded-lg border border-white/10 p-3 text-xs leading-6 text-muted-foreground">
+              <p className="mt-4 rounded-lg border border-border p-3 text-xs leading-6 text-muted-foreground">
                 O plano mensal informado pertence ao cliente como um todo. Para comparar as metas com o resultado total,
                 selecione "Todos". O filtro por modalidade serve para investigar o desempenho sem atribuir toda a meta a um tipo de campanha.
               </p>
@@ -330,7 +330,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                 const detail = describeCampaignChannel(campaign.channel);
                 const issues = campaignNeedsContext(campaign);
                 return (
-                  <article key={campaign.name + campaign.channel + index} className="rounded-xl border border-white/10 bg-background p-4">
+                  <article key={campaign.name + campaign.channel + index} className="rounded-xl border border-border bg-background p-4">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <h3 className="font-semibold">{campaign.name}</h3>
                       <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary">{detail.label}</span>
@@ -343,7 +343,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                       <span className="font-semibold text-foreground">O que aprofundar: </span>{detail.focus}
                     </p>
                     {issues.length > 0 ? (
-                      <div className="mt-3 space-y-1.5 border-t border-white/10 pt-3">
+                      <div className="mt-3 space-y-1.5 border-t border-border pt-3">
                         {issues.map((issue) => <p key={issue} className="text-xs leading-5 text-muted-foreground">{issue}</p>)}
                       </div>
                     ) : null}
@@ -351,7 +351,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                 );
               })}
             </div>
-            <div className="mt-8 rounded-xl border border-white/10 bg-background p-4">
+            <div className="mt-8 rounded-xl border border-border bg-background p-4">
               <h3 className="text-sm font-semibold">Uma campanha foi criada ou alterada recentemente?</h3>
               <p className="mt-2 text-xs leading-6 text-muted-foreground">
                 Selecione uma campanha e informe o início real ou a última alteração significativa. Essas datas não são
@@ -361,7 +361,7 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                 <label className="text-xs font-medium text-muted-foreground">
                   Campanha
                   <select value={focusIndex} onChange={(event) => { setFocusIndex(event.target.value); setStartedOn(""); setChangedOn(""); }}
-                    className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground">
+                    className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground">
                     <option value="">Selecionar</option>
                     {campaigns.map((campaign, index) => <option key={index} value={String(index)}>{campaign.name} ({describeCampaignChannel(campaign.channel).label})</option>)}
                   </select>
@@ -369,12 +369,12 @@ export function CampaignReportSection({ goals, onSnapshot }: {
                 <label className="text-xs font-medium text-muted-foreground">
                   Data real de início (opcional)
                   <input type="date" value={startedOn} onChange={(event) => setStartedOn(event.target.value)}
-                    disabled={!focusedCampaign} className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground disabled:opacity-50" />
+                    disabled={!focusedCampaign} className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground disabled:opacity-50" />
                 </label>
                 <label className="text-xs font-medium text-muted-foreground">
                   Última mudança importante (opcional)
                   <input type="date" value={changedOn} onChange={(event) => setChangedOn(event.target.value)}
-                    disabled={!focusedCampaign} className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2 text-sm text-foreground disabled:opacity-50" />
+                    disabled={!focusedCampaign} className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground disabled:opacity-50" />
                 </label>
               </div>
               {focusedDiagnostics ? <GoogleAdsDiagnosticFeed insights={focusedDiagnostics.insights} title={"Acompanhamento: " + focusedCampaign?.name} /> : null}

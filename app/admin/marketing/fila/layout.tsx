@@ -24,7 +24,7 @@ export default async function CommunicationQueueLayout({ children }: { children:
 
   return (
     <div className="space-y-6">
-      <section className="border border-white/10 bg-card p-5 sm:p-6">
+      <section className="border border-border bg-card p-5 sm:p-6">
         <Link href="/admin/marketing" className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-primary">
           <ArrowLeft className="size-4" /> Voltar ao Marketing
         </Link>
@@ -39,7 +39,7 @@ export default async function CommunicationQueueLayout({ children }: { children:
           <MailNavigation counts={counts} />
           <Link
             href="/admin/marketing/fila/descadastros"
-            className="mt-3 flex items-center justify-between border border-white/10 bg-background/20 px-3 py-3 text-xs font-medium text-muted-foreground hover:border-primary/20 hover:text-foreground"
+            className="mt-3 flex items-center justify-between border border-border bg-background/20 px-3 py-3 text-xs font-medium text-muted-foreground hover:border-primary/20 hover:text-foreground"
           >
             Preferências de marketing
           </Link>

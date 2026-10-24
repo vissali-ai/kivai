@@ -19,8 +19,8 @@ export default async function UnsubscribesPage() {
   const userMap = new Map(users.map((user) => [user.id, user]));
 
   return (
-    <div className="border border-white/10 bg-card">
-      <header className="flex items-start justify-between gap-4 border-b border-white/10 p-5">
+    <div className="border border-border bg-card">
+      <header className="flex items-start justify-between gap-4 border-b border-border p-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Preferências</p>
           <h2 className="mt-1 text-xl font-semibold">Descadastros de marketing</h2>
@@ -32,7 +32,7 @@ export default async function UnsubscribesPage() {
       </header>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[560px] text-left text-sm">
-          <thead className="bg-white/[0.03] text-xs text-muted-foreground">
+          <thead className="bg-card text-xs text-muted-foreground">
             <tr><th className="px-4 py-3">Nome</th><th className="px-4 py-3">E-mail</th><th className="px-4 py-3">Descadastro</th></tr>
           </thead>
           <tbody className="divide-y divide-white/10">

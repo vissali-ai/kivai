@@ -40,9 +40,9 @@ function validPublication(value: unknown): value is Publication {
   return ["id", "date", "title", "network", "format", "objective", "status"].every((key) => typeof item[key as keyof Publication] === "string");
 }
 function statusClass(status: string) {
-  if (status === "Publicado") return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+  if (status === "Publicado") return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-700";
   if (status === "Agendado" || status === "Aprovado") return "border-primary/30 bg-primary/10 text-primary";
-  if (status === "Em produção" || status === "Em revisão") return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+  if (status === "Em produção" || status === "Em revisão") return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-700";
   return "border-border bg-muted/60 text-muted-foreground";
 }
 function csvCell(value: string) { const safe = /^[\s]*[=+@-]/.test(value) ? `'${value}` : value; return `"${safe.replaceAll('"', '""')}"`; }

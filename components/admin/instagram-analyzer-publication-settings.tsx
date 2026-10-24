@@ -76,9 +76,9 @@ export function InstagramAnalyzerPublicationSettings({
         </div>
       </header>
 
-      {message ? <p role="status" className="border border-white/10 bg-muted/10 p-3 text-sm">{message}</p> : null}
+      {message ? <p role="status" className="border border-border bg-muted/10 p-3 text-sm">{message}</p> : null}
 
-      <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+      <section className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-6">
         <div className="sm:col-span-2">
           <h2 className="font-semibold">Publicação e SEO da URL</h2>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">Estas configurações valem para a única URL pública e não mudam entre Grátis e Pro.</p>
@@ -110,11 +110,11 @@ export function InstagramAnalyzerPublicationSettings({
             <option value="archived">Arquivado</option>
           </select>
         </label>
-        <label className="flex items-center justify-between gap-3 border border-white/10 p-3 text-sm">
+        <label className="flex items-center justify-between gap-3 border border-border p-3 text-sm">
           <span>Permitir indexação no Google</span>
           <input type="checkbox" className="size-4" checked={meta.indexable} onChange={(e) => setMeta((current) => ({ ...current, indexable: e.target.checked }))} />
         </label>
-        <label className="flex items-center justify-between gap-3 border border-white/10 p-3 text-sm">
+        <label className="flex items-center justify-between gap-3 border border-border p-3 text-sm">
           <span>Incluir no sitemap</span>
           <input type="checkbox" className="size-4" checked={meta.includeInSitemap} onChange={(e) => setMeta((current) => ({ ...current, includeInSitemap: e.target.checked }))} />
         </label>

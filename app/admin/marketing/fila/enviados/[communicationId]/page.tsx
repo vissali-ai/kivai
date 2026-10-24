@@ -37,8 +37,8 @@ export default async function SentMessagePage({ params }: { params: Promise<{ co
   const canRetry = item.status === "ready" || item.status === "failed";
 
   return (
-    <article className="border border-white/10 bg-card">
-      <header className="border-b border-white/10 p-5">
+    <article className="border border-border bg-card">
+      <header className="border-b border-border p-5">
         <Link href="/admin/marketing/fila/enviados" className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-primary">
           <ArrowLeft className="size-4" /> Voltar para enviados
         </Link>
@@ -60,7 +60,7 @@ export default async function SentMessagePage({ params }: { params: Promise<{ co
             ) : null}
             <form action={discardCommunicationLog}>
               <input type="hidden" name="communicationId" value={item.id} />
-              <button className="inline-flex h-9 items-center gap-2 border border-red-400/30 bg-red-500/10 px-3 text-xs font-semibold text-red-300">
+              <button className="inline-flex h-9 items-center gap-2 border border-red-400/30 bg-red-500/10 px-3 text-xs font-semibold text-red-700">
                 <Trash2 className="size-4" /> Descartar
               </button>
             </form>
@@ -70,11 +70,11 @@ export default async function SentMessagePage({ params }: { params: Promise<{ co
 
       <div className="p-5 sm:p-6">
         <div className="mb-5 flex flex-wrap gap-2 text-xs">
-          <span className="border border-white/10 px-2 py-1 text-muted-foreground">Status: {item.status}</span>
-          {item.error ? <span className="border border-red-400/20 bg-red-500/5 px-2 py-1 text-red-300">Erro registrado</span> : null}
+          <span className="border border-border px-2 py-1 text-muted-foreground">Status: {item.status}</span>
+          {item.error ? <span className="border border-red-400/20 bg-red-500/5 px-2 py-1 text-red-700">Erro registrado</span> : null}
         </div>
         <div className="whitespace-pre-wrap text-sm leading-7 text-foreground">{item.message}</div>
-        {item.error ? <p className="mt-6 border border-red-400/20 bg-red-500/5 p-3 text-xs leading-5 text-red-300">{item.error}</p> : null}
+        {item.error ? <p className="mt-6 border border-red-400/20 bg-red-500/5 p-3 text-xs leading-5 text-red-700">{item.error}</p> : null}
       </div>
     </article>
   );

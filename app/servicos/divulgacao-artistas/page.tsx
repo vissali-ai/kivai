@@ -149,10 +149,10 @@ export default async function DivulgacaoArtistasPage() {
         audience="Artistas, bandas, músicos, produtores e projetos musicais"
         faqs={artistFaqs}
       />
-      <section className="relative isolate overflow-hidden border-b border-white/5">
+      <section className="relative isolate overflow-hidden border-b border-border">
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
+          className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(32,41,56,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(32,41,56,0.035)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
         />
 
         <div
@@ -177,7 +177,7 @@ export default async function DivulgacaoArtistasPage() {
 
             <h1 className="mt-7 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-7xl lg:leading-[1.02]">
               Divulgação para artistas e bandas: sua música pode{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 chegar mais longe.
               </span>
             </h1>
@@ -198,7 +198,7 @@ export default async function DivulgacaoArtistasPage() {
 
               <a
                 href="#audiencia"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
               >
                 Conhecer os canais
               </a>
@@ -226,7 +226,7 @@ export default async function DivulgacaoArtistasPage() {
 
       <section
         id="audiencia"
-        className="relative border-b border-white/5 py-20 sm:py-24"
+        className="relative border-b border-border py-20 sm:py-24"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
@@ -237,7 +237,7 @@ export default async function DivulgacaoArtistasPage() {
 
             <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
               Uma rede de divulgação em{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 diferentes plataformas.
               </span>
             </h2>
@@ -259,7 +259,7 @@ export default async function DivulgacaoArtistasPage() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`Abrir ${channel.name} em nova aba`}
-      className="group rounded-3xl border border-white/10 bg-white/[0.025] p-5 transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-white/[0.045]"
+      className="group rounded-3xl border border-border bg-card p-5 transition duration-300 hover:border-primary/30 hover:bg-card"
     >
       <div className="flex items-start justify-between gap-3">
         <span className="flex size-11 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
@@ -284,7 +284,7 @@ export default async function DivulgacaoArtistasPage() {
         {channel.label}
       </p>
 
-      <div className="mt-5 border-t border-white/10 pt-4">
+      <div className="mt-5 border-t border-border pt-4">
         <p className="text-xs leading-5 text-muted-foreground">
           {channel.detail}
         </p>
@@ -305,7 +305,7 @@ export default async function DivulgacaoArtistasPage() {
 
       <section
         id="planos"
-        className="relative overflow-hidden border-b border-white/5 py-20 sm:py-24 lg:py-28"
+        className="relative overflow-hidden border-b border-border py-20 sm:py-24 lg:py-28"
       >
         <div
           aria-hidden="true"
@@ -321,7 +321,7 @@ export default async function DivulgacaoArtistasPage() {
 
             <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
               Duas formas de colocar seu{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 projeto em circulação.
               </span>
             </h2>
@@ -333,13 +333,13 @@ export default async function DivulgacaoArtistasPage() {
           </div>
 
           <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-2">
-            <article className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6 sm:p-8">
+            <article className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8">
               <div className="flex items-start justify-between gap-4">
-                <span className="flex size-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
+                <span className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card">
                   <Megaphone className="size-5" />
                 </span>
 
-                <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-muted-foreground">
+                <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
                   Publicação direta
                 </span>
               </div>
@@ -364,13 +364,13 @@ export default async function DivulgacaoArtistasPage() {
                 </p>
               </div>
 
-              <div className="mt-8 space-y-4 border-t border-white/10 pt-7">
+              <div className="mt-8 space-y-4 border-t border-border pt-7">
                 {simpleFeatures.map((feature) => (
                   <div
                     key={feature}
                     className="flex items-start gap-3 text-sm text-foreground/90"
                   >
-                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-primary">
+                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-card text-primary">
                       <Check className="size-3.5" />
                     </span>
 
@@ -383,14 +383,14 @@ export default async function DivulgacaoArtistasPage() {
   href="https://pay.sumup.com/b2c/QWA5MLJ4"
   target="_blank"
   rel="noopener noreferrer"
-  className="mt-9 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3.5 text-sm font-semibold transition hover:border-primary/30 hover:bg-primary/10"
+  className="mt-9 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3.5 text-sm font-semibold transition hover:border-primary/30 hover:bg-primary/10"
 >
   Quero divulgar por R$ 10
   <ArrowRight className="size-4" />
 </a>
             </article>
 
-            <article className="relative overflow-hidden rounded-3xl border border-primary/35 bg-gradient-to-b from-primary/[0.14] via-white/[0.035] to-cyan-400/[0.05] p-6 shadow-[0_0_80px_rgba(99,102,241,0.09)] sm:p-8">
+            <article className="relative overflow-hidden rounded-3xl border border-primary/35 bg-gradient-to-b from-primary/[0.14] via-card to-cyan-400/[0.05] p-6 shadow-[0_0_80px_rgba(99,102,241,0.09)] sm:p-8">
               <div
                 aria-hidden="true"
                 className="absolute -right-16 -top-16 size-52 rounded-full bg-primary/15 blur-3xl"

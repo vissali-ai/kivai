@@ -62,7 +62,7 @@ export function EmailRichTextEditor({
   }, [editor, value]);
 
   if (!editor) {
-    return <div className="min-h-[360px] border border-white/10 p-4 text-sm text-muted-foreground">Carregando editor...</div>;
+    return <div className="min-h-[360px] border border-border p-4 text-sm text-muted-foreground">Carregando editor...</div>;
   }
 
   const addLink = () => {
@@ -120,8 +120,8 @@ export function EmailRichTextEditor({
   ];
 
   return (
-    <div className="min-w-0 max-w-full overflow-hidden border border-white/10 bg-background">
-      <div className="border-b border-white/10">
+    <div className="min-w-0 max-w-full overflow-hidden border border-border bg-background">
+      <div className="border-b border-border">
         <div className="flex flex-wrap gap-1 p-2">
           {tools.map(({ title, icon: Icon, active, run }) => (
             <Button key={title} type="button" variant={active ? "secondary" : "ghost"} size="icon-sm" title={title} onClick={run}>
@@ -135,7 +135,7 @@ export function EmailRichTextEditor({
           <Button type="button" variant="ghost" size="icon-sm" title="Desfazer" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}><Undo2 /></Button>
           <Button type="button" variant="ghost" size="icon-sm" title="Refazer" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()}><Redo2 /></Button>
         </div>
-        <div className="border-t border-white/10 p-3">
+        <div className="border-t border-border p-3">
           <p className="mb-2 text-xs text-muted-foreground">Adicionar imagem ao e-mail</p>
           <MediaUploadActions onSelect={insertImage} />
         </div>

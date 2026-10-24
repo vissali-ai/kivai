@@ -32,8 +32,8 @@ export default async function InboxPage() {
   const userMap = new Map(users.map((user) => [user.id, user]));
 
   return (
-    <div className="border border-white/10 bg-card">
-      <header className="flex items-start justify-between gap-4 border-b border-white/10 p-5">
+    <div className="border border-border bg-card">
+      <header className="flex items-start justify-between gap-4 border-b border-border p-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Caixa de entrada</p>
           <h2 className="mt-1 text-xl font-semibold">Mensagens recebidas</h2>
@@ -75,14 +75,14 @@ export default async function InboxPage() {
                   {!item.is_read ? (
                     <form action={markInboxMessageRead}>
                       <input type="hidden" name="messageId" value={item.id} />
-                      <button title="Marcar como lida" className="inline-flex size-8 items-center justify-center border border-white/10 text-muted-foreground hover:text-primary">
+                      <button title="Marcar como lida" className="inline-flex size-8 items-center justify-center border border-border text-muted-foreground hover:text-primary">
                         <MailOpen className="size-4" />
                       </button>
                     </form>
                   ) : null}
                   <form action={discardInboxMessage}>
                     <input type="hidden" name="messageId" value={item.id} />
-                    <button title="Mover para descartados" className="inline-flex size-8 items-center justify-center border border-white/10 text-muted-foreground hover:text-red-300">
+                    <button title="Mover para descartados" className="inline-flex size-8 items-center justify-center border border-border text-muted-foreground hover:text-red-700">
                       <Trash2 className="size-4" />
                     </button>
                   </form>

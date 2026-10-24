@@ -133,11 +133,11 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
         </div>
       </header>
 
-      {message ? <p role="status" className="border border-white/10 bg-muted/10 p-3 text-sm">{message}</p> : null}
+      {message ? <p role="status" className="border border-border bg-muted/10 p-3 text-sm">{message}</p> : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-6">
-          <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+          <section className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-6">
             <div className="sm:col-span-2"><h2 className="font-semibold">Identificação e endereço</h2></div>
             <label className={fieldClass}><span>Tipo</span><select disabled={Boolean(draft.existingToolSlug)} value={draft.contentType} onChange={(e) => { const contentType = e.target.value as SiteContentType; setDraft({ ...draft, contentType, path: pathFor(contentType, draft.slug), hubId: contentType === "tool" ? draft.hubId : null }); }} className="h-10 w-full rounded-md border border-input bg-background px-3"><option value="tool">Ferramenta</option><option value="resource">Material ou guia</option><option value="page">Página</option></select></label>
             <label className={fieldClass}><span>Hub</span><select disabled={draft.contentType !== "tool"} value={draft.hubId ?? ""} onChange={(e) => setDraft({ ...draft, hubId: e.target.value || null })} className="h-10 w-full rounded-md border border-input bg-background px-3"><option value="">Sem hub</option>{hubs.map((hub) => <option key={hub.id} value={hub.id}>{hub.name}</option>)}</select></label>
@@ -149,7 +149,7 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
           <fieldset className="space-y-3 rounded-xl border border-primary/20 bg-card p-4 sm:p-6">
             <legend className="px-1 font-semibold">Visibilidade dos blocos no site público</legend>
             <p className="text-xs leading-5 text-muted-foreground">Desative um bloco para mantê-lo salvo no Admin sem exibi-lo na página pública.</p>
-            <div className="grid gap-3 sm:grid-cols-2">{publicBlocks.map((block) => <label key={block.key} className="flex items-center justify-between gap-4 border border-white/10 p-3 text-sm"><span>{block.label}</span><input type="checkbox" className="size-4" checked={isBlockVisible(block.key)} onChange={(e) => setBlockVisible(block.key, e.target.checked)} /></label>)}</div>
+            <div className="grid gap-3 sm:grid-cols-2">{publicBlocks.map((block) => <label key={block.key} className="flex items-center justify-between gap-4 border border-border p-3 text-sm"><span>{block.label}</span><input type="checkbox" className="size-4" checked={isBlockVisible(block.key)} onChange={(e) => setBlockVisible(block.key, e.target.checked)} /></label>)}</div>
           </fieldset>
 
           <section className="space-y-5 rounded-xl border border-primary/20 bg-card p-4 sm:p-6">
@@ -159,8 +159,8 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
             </div>
 
             {originalFields.length ? <div className="space-y-4">{originalFields.map((item, index) => (
-              <article key={`${item.key}-${index}`} className="grid gap-3 rounded-lg border border-white/10 bg-muted/5 p-4 sm:grid-cols-2">
-                <div className="sm:col-span-2 flex items-center justify-between gap-4 border-b border-white/10 pb-3"><span className="text-sm font-medium">Exibir este campo no site público</span><input type="checkbox" className="size-4" checked={isBlockVisible(`field:${item.key}`)} onChange={(e) => setBlockVisible(`field:${item.key}`, e.target.checked)} /></div>
+              <article key={`${item.key}-${index}`} className="grid gap-3 rounded-lg border border-border bg-muted/5 p-4 sm:grid-cols-2">
+                <div className="sm:col-span-2 flex items-center justify-between gap-4 border-b border-border pb-3"><span className="text-sm font-medium">Exibir este campo no site público</span><input type="checkbox" className="size-4" checked={isBlockVisible(`field:${item.key}`)} onChange={(e) => setBlockVisible(`field:${item.key}`, e.target.checked)} /></div>
                 <label className={fieldClass}><span>Nome do campo</span><Input value={item.label} onChange={(e) => updateOriginalField(index, { label: e.target.value })} /></label>
                 <label className={fieldClass}><span>Identificador</span><Input value={item.key} onChange={(e) => updateOriginalField(index, { key: slugify(e.target.value) })} /></label>
                 <label className={fieldClass}><span>Tipo</span><select value={item.type} onChange={(e) => updateOriginalField(index, { type: e.target.value as SiteOriginalFieldType })} className="h-10 w-full rounded-md border border-input bg-background px-3">{originalFieldTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label>
@@ -170,18 +170,18 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
                   {item.type === "boolean" ? <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={Boolean(item.value)} onChange={(e) => updateOriginalField(index, { value: e.target.checked })} /><span>{item.label}</span></label> : null}
                   {item.type === "number" ? <label className={fieldClass}><span>Valor</span><Input type="number" value={Number(item.value) || 0} onChange={(e) => updateOriginalField(index, { value: Number(e.target.value) })} /></label> : null}
                   {item.type === "text" || item.type === "url" ? <label className={fieldClass}><span>Valor</span><Input type={item.type === "url" ? "url" : "text"} value={String(item.value ?? "")} onChange={(e) => updateOriginalField(index, { value: e.target.value })} /></label> : null}
-                  {item.type === "image" ? <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]"><div className="space-y-3"><label className={fieldClass}><span>URL da imagem</span><Input value={String(item.value ?? "")} onChange={(e) => updateOriginalField(index, { value: e.target.value })} /></label><label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:bg-muted/20"><Upload className="size-4" />{uploadingIndex === index ? "Enviando..." : "Enviar/substituir imagem"}<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingIndex === index} onChange={(e) => uploadImage(index, e.target.files?.[0])} /></label></div><div className="flex min-h-32 items-center justify-center border border-white/10 bg-black/20 p-2">{String(item.value ?? "") ? <img src={String(item.value)} alt={item.label} className="max-h-48 max-w-full object-contain" /> : <span className="text-xs text-muted-foreground">Sem imagem</span>}</div></div> : null}
+                  {item.type === "image" ? <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]"><div className="space-y-3"><label className={fieldClass}><span>URL da imagem</span><Input value={String(item.value ?? "")} onChange={(e) => updateOriginalField(index, { value: e.target.value })} /></label><label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:bg-muted/20"><Upload className="size-4" />{uploadingIndex === index ? "Enviando..." : "Enviar/substituir imagem"}<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingIndex === index} onChange={(e) => uploadImage(index, e.target.files?.[0])} /></label></div><div className="flex min-h-32 items-center justify-center border border-border bg-black/20 p-2">{String(item.value ?? "") ? <img src={String(item.value)} alt={item.label} className="max-h-48 max-w-full object-contain" /> : <span className="text-xs text-muted-foreground">Sem imagem</span>}</div></div> : null}
                 </div>
                 <div className="sm:col-span-2 flex justify-end"><Button type="button" size="sm" variant="ghost" onClick={() => setOriginalFields(originalFields.filter((_, itemIndex) => itemIndex !== index))}><X />Remover campo</Button></div>
               </article>
-            ))}</div> : <p className="border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">Esta publicação ainda não possui campos específicos cadastrados.</p>}
+            ))}</div> : <p className="border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Esta publicação ainda não possui campos específicos cadastrados.</p>}
           </section>
 
           {draft.existingToolSlug === "imprimir-frente-e-verso" && <PrinterCatalogEditor value={draft.customData.printers} onChange={printers => setDraft(current => ({ ...current, customData: { ...current.customData, printers } }))} />}
 
-          <section className="min-w-0 rounded-xl border border-white/10 bg-card p-3 sm:p-6"><h2 className="font-semibold">Conteúdo original da publicação</h2><p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">Edite somente o conteúdo que realmente pertence à página.</p><RichTextEditor value={draft.contentHtml} onChange={(contentHtml) => setDraft((current) => ({ ...current, contentHtml }))} /></section>
+          <section className="min-w-0 rounded-xl border border-border bg-card p-3 sm:p-6"><h2 className="font-semibold">Conteúdo original da publicação</h2><p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">Edite somente o conteúdo que realmente pertence à página.</p><RichTextEditor value={draft.contentHtml} onChange={(contentHtml) => setDraft((current) => ({ ...current, contentHtml }))} /></section>
 
-          <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+          <section className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-6">
             <div className="sm:col-span-2"><h2 className="font-semibold">SEO</h2></div>
             <label className={fieldClass}><span>Título SEO</span><Input value={draft.seoTitle} onChange={(e) => setDraft({ ...draft, seoTitle: e.target.value })} /></label>
             <label className={fieldClass}><span>URL canônica</span><Input type="url" value={draft.canonicalUrl} onChange={(e) => setDraft({ ...draft, canonicalUrl: e.target.value })} /></label>
@@ -190,7 +190,7 @@ export function SiteContentEditorV2({ initialContent, hubs }: { initialContent: 
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-6 lg:h-fit">
-          <fieldset className="space-y-4 rounded-xl border border-white/10 bg-card p-5">
+          <fieldset className="space-y-4 rounded-xl border border-border bg-card p-5">
             <legend className="px-1 font-semibold">Publicação</legend>
             {awaitingImplementation ? <p className="text-xs text-amber-200">Publicação bloqueada enquanto a implementação técnica estiver pendente.</p> : null}
             <label className={fieldClass}><span>Status</span><select disabled={awaitingImplementation} value={awaitingImplementation ? "draft" : draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as SitePublicationStatus })} className="h-10 w-full rounded-md border border-input bg-background px-3"><option value="draft">Rascunho</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select></label>

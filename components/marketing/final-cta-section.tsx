@@ -7,7 +7,7 @@ import {
 
 export function FinalCtaSection() {
   return (
-    <section className="relative overflow-hidden border-t border-white/5 py-24 sm:py-28 lg:py-32">
+    <section className="relative overflow-hidden border-t border-border py-24 sm:py-28 lg:py-32">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -17,7 +17,7 @@ export function FinalCtaSection() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-gradient-to-br from-primary/[0.13] via-white/[0.035] to-cyan-400/[0.07] px-6 py-14 shadow-[0_0_90px_rgba(99,102,241,0.08)] sm:px-10 sm:py-16 lg:px-16 lg:py-20">
+        <div className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-gradient-to-br from-primary/[0.13] via-card to-cyan-400/[0.07] px-6 py-14 shadow-[0_0_90px_rgba(99,102,241,0.08)] sm:px-10 sm:py-16 lg:px-16 lg:py-20">
           <div
             aria-hidden="true"
             className="absolute -left-20 -top-20 size-64 rounded-full bg-primary/10 blur-3xl"
@@ -46,7 +46,7 @@ export function FinalCtaSection() {
 
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-6xl">
               Resolva mais tarefas em{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 menos tempo.
               </span>
             </h2>
@@ -68,7 +68,7 @@ export function FinalCtaSection() {
 
               <a
                 href="#precos"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
               >
                 Conhecer o Premium
               </a>

@@ -40,7 +40,7 @@ export function PaymentReturnClient({ reference }: { reference: string }) {
     confirm();
   }, [reference]);
 
-  return <div className="mx-auto max-w-xl border border-white/10 bg-card p-6 sm:p-8">
+  return <div className="mx-auto max-w-xl border border-border bg-card p-6 sm:p-8">
     {status === "checking" ? <Loader2 className="size-7 animate-spin text-primary" /> : status === "success" ? <CheckCircle2 className="size-8 text-emerald-400" /> : null}
     <h1 className="mt-4 text-2xl font-semibold">{status === "success" ? "Assinatura ativada" : "Confirmação de pagamento"}</h1>
     <p className="mt-3 text-sm leading-6 text-muted-foreground">{message}</p>

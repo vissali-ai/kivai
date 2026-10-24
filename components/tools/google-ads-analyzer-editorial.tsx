@@ -93,7 +93,7 @@ const questions = [
 export function GoogleAdsAnalyzerEditorial() {
   return (
     <article className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8" aria-labelledby="guia-analisador-google-ads">
-      <div className="border-t border-white/10 pt-14">
+      <div className="border-t border-border pt-14">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
           <BookOpen className="size-4" aria-hidden="true" /> Guia de análise de campanhas
         </p>
@@ -114,7 +114,7 @@ export function GoogleAdsAnalyzerEditorial() {
         <h3 id="como-utilizar" className="text-xl font-semibold">Como utilizar a ferramenta</h3>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {workflow.map((item, index) => (
-            <section key={item.title} className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
+            <section key={item.title} className="rounded-xl border border-border bg-card p-5">
               <p className="text-xs font-semibold text-primary">Etapa {index + 1}</p>
               <h4 className="mt-2 font-semibold">{item.title}</h4>
               <p className="mt-3 text-sm leading-7 text-muted-foreground">{item.text}</p>
@@ -133,7 +133,7 @@ export function GoogleAdsAnalyzerEditorial() {
         </p>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {capabilities.map((item) => (
-            <section key={item.title} className="rounded-xl border border-white/10 p-5">
+            <section key={item.title} className="rounded-xl border border-border p-5">
               <h4 className="flex items-start gap-2 text-sm font-semibold">
                 <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
                 {item.title}
@@ -144,7 +144,7 @@ export function GoogleAdsAnalyzerEditorial() {
         </div>
       </section>
 
-      <section className="mt-12 rounded-xl border border-white/10 bg-white/[0.025] p-6" aria-labelledby="quando-nao-otimizar">
+      <section className="mt-12 rounded-xl border border-border bg-card p-6" aria-labelledby="quando-nao-otimizar">
         <h3 id="quando-nao-otimizar" className="text-xl font-semibold">Otimizar também significa saber quando não mexer</h3>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">
           Uma alteração feita sem fundamento pode prejudicar campanhas que estavam começando a entregar
@@ -160,7 +160,7 @@ export function GoogleAdsAnalyzerEditorial() {
         <h3 id="faq-google-ads" className="text-xl font-semibold">Perguntas frequentes sobre análise de Google Ads</h3>
         <div className="mt-5 space-y-3">
           {questions.map((item) => (
-            <details key={item.q} className="group rounded-xl border border-white/10 bg-white/[0.025] p-4">
+            <details key={item.q} className="group rounded-xl border border-border bg-card p-4">
               <summary className="cursor-pointer text-sm font-semibold leading-6">{item.q}</summary>
               <p className="mt-3 text-sm leading-7 text-muted-foreground">{item.a}</p>
             </details>

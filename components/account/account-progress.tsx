@@ -82,7 +82,7 @@ export function AccountProgress({ userId, firstMissionDone }: {
             <p><span className="font-semibold text-primary">{completed}</span> de {MAX_MILESTONES} marcos alcançados</p>
             <span className="text-xs text-muted-foreground">{Math.round(100 * completed / MAX_MILESTONES)}%</span>
           </div>
-          <div role="progressbar" aria-label="Progresso nas conquistas" aria-valuemin={0} aria-valuemax={MAX_MILESTONES} aria-valuenow={completed} className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+          <div role="progressbar" aria-label="Progresso nas conquistas" aria-valuemin={0} aria-valuemax={MAX_MILESTONES} aria-valuenow={completed} className="mt-2 h-2 overflow-hidden rounded-full bg-muted/70">
             <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${completed / MAX_MILESTONES * 100}%` }} />
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-3">

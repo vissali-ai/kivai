@@ -97,7 +97,7 @@ export function EditorialAiPanel({ postId, sourceUrl, onApplyArticle, onApplyBas
         <h3 className="mt-3 font-semibold">{base.baseTitle}</h3>
         {base.baseSubtitle && <p className="text-sm text-muted-foreground">{base.baseSubtitle}</p>}
         <div className="prose prose-sm mt-3 max-w-none text-foreground dark:prose-invert" dangerouslySetInnerHTML={{ __html: base.baseHtml }} />
-        {base.researchNotes && <p className="mt-2 border-t border-border pt-2 text-xs text-amber-300">Pontos a conferir: {base.researchNotes}</p>}
+        {base.researchNotes && <p className="mt-2 border-t border-border pt-2 text-xs text-amber-700">Pontos a conferir: {base.researchNotes}</p>}
         <Button size="sm" className="mt-3" variant="outline" onClick={confirmRestoreBase}><RotateCcw className="mr-1 size-4"/>Repor matéria-base no editor</Button>
       </details>
       <div className="space-y-1 border-t border-border pt-3">

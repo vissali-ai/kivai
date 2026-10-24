@@ -41,10 +41,10 @@ const externalLinks = [
 export default function PrivacyPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-6 py-20">
-      <article className="rounded-3xl border border-white/10 bg-white/5 p-8 md:p-12">
+      <article className="rounded-3xl border border-border bg-card p-8 md:p-12">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary hover:bg-primary/10 hover:text-foreground"
+          className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary hover:bg-primary/10 hover:text-foreground"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
           Voltar para a página inicial
@@ -88,9 +88,9 @@ export default function PrivacyPage() {
           </PolicySection>
 
           <PolicySection title="3. Finalidades e bases legais">
-            <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <div className="overflow-x-auto rounded-2xl border border-border">
               <table className="w-full min-w-160 text-left text-sm">
-                <thead className="bg-white/5 text-foreground">
+                <thead className="bg-card text-foreground">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Tratamento</th>
                     <th className="px-4 py-3 font-semibold">Finalidade</th>
@@ -299,8 +299,8 @@ export default function PrivacyPage() {
           </PolicySection>
         </div>
 
-        <div className="mt-12 border-t border-white/10 pt-8">
-          <Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium transition hover:border-primary hover:bg-primary/10">
+        <div className="mt-12 border-t border-border pt-8">
+          <Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium transition hover:border-primary hover:bg-primary/10">
             <ArrowLeft className="size-4" aria-hidden="true" />
             Voltar para a página inicial
           </Link>

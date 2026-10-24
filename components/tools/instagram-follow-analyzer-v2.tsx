@@ -201,21 +201,21 @@ export function InstagramFollowAnalyzerV2() {
         </button>
 
         {tutorialOpen ? (
-          <div className="border-t border-white/10 px-6 pb-8 pt-6 sm:px-8">
+          <div className="border-t border-border px-6 pb-8 pt-6 sm:px-8">
             <div className="flex justify-end">
               <a href={META_EXPORT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">Abrir página oficial da Meta <ExternalLink className="size-4" /></a>
             </div>
 
             <div className="mt-8 space-y-8">
               {tutorialSteps.map(([title, description], index) => (
-                <article key={title} className="grid gap-5 border-b border-white/10 pb-8 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_300px] md:items-start">
+                <article key={title} className="grid gap-5 border-b border-border pb-8 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_300px] md:items-start">
                   <div className="md:pt-3">
                     <span className="inline-flex border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Passo {index + 1} de {tutorialSteps.length}</span>
                     <h3 className="mt-3 text-lg font-semibold">{title}</h3>
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>
                     {index === 7 ? <p className="mt-3 border-l-2 border-primary pl-3 text-sm leading-6 text-foreground/90">Importante: escolha <strong>Desde o início</strong>. Um intervalo menor pode deixar pessoas de fora da análise.</p> : null}
                   </div>
-                  <button type="button" onClick={() => setExpandedScreenshot(index)} className="group relative mx-auto block w-full max-w-[300px] overflow-hidden border border-white/10 bg-black text-left transition hover:border-primary/40" aria-label={`Ampliar imagem do passo ${index + 1}`}>
+                  <button type="button" onClick={() => setExpandedScreenshot(index)} className="group relative mx-auto block w-full max-w-[300px] overflow-hidden border border-border bg-black text-left transition hover:border-primary/40" aria-label={`Ampliar imagem do passo ${index + 1}`}>
                     <SpriteSlice index={index} />
                     <span className="absolute inset-x-0 bottom-0 bg-black/75 px-3 py-2 text-center text-xs text-white opacity-0 transition group-hover:opacity-100">Clique para ampliar</span>
                   </button>
@@ -231,18 +231,18 @@ export function InstagramFollowAnalyzerV2() {
         ) : null}
       </section>
 
-      <section id="instagram-analyzer-upload" className="scroll-mt-24 border border-white/10 bg-card p-6 sm:p-8">
+      <section id="instagram-analyzer-upload" className="scroll-mt-24 border border-border bg-card p-6 sm:p-8">
         <div className="flex items-start gap-4">
           <div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><Users className="size-5" /></div>
           <div><h2 className="text-xl font-semibold">Importe seus dados do Instagram</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Envie o arquivo exportado do Instagram e aguarde a análise completa.</p></div>
         </div>
-        <label className="mt-6 flex cursor-pointer flex-col items-center justify-center border border-dashed border-white/15 bg-white/[0.02] px-6 py-10 text-center transition hover:border-primary/40 hover:bg-primary/[0.03]">
+        <label className="mt-6 flex cursor-pointer flex-col items-center justify-center border border-dashed border-border bg-white/[0.02] px-6 py-10 text-center transition hover:border-primary/40 hover:bg-primary/[0.03]">
           <Upload className="mb-3 size-6 text-primary" /><span className="font-medium">Selecione o arquivo ZIP ou JSON</span>
           <input type="file" accept=".zip,.json,application/zip,application/json" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} />
         </label>
         {fileName ? <p className="mt-3 text-xs text-muted-foreground">Arquivo: {fileName}</p> : null}
         {pending ? <p className="mt-4 text-sm text-primary">Analisando dados...</p> : null}
-        {error ? <p className="mt-4 border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</p> : null}
+        {error ? <p className="mt-4 border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-700">{error}</p> : null}
       </section>
 
       {result ? (
@@ -250,13 +250,13 @@ export function InstagramFollowAnalyzerV2() {
           <div className="grid gap-3 sm:grid-cols-3">
             {tabs.map((tab) => <Button key={tab.key} type="button" variant={activeTab === tab.key ? "default" : "outline"} className="h-auto justify-between px-4 py-4" onClick={() => setActiveTab(tab.key)}><span>{tab.label}</span><span className="text-sm tabular-nums">{tab.count.toLocaleString("pt-BR")}</span></Button>)}
           </div>
-          <div className="border border-white/10 bg-card">
-            <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="border border-border bg-card">
+            <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
               <div><h3 className="font-semibold">{tabs.find((tab) => tab.key === activeTab)?.label}</h3><p className="mt-1 text-xs text-muted-foreground">Cruzamento dos @ presentes nos arquivos oficiais da Meta.</p></div>
               <div className="relative w-full sm:w-72"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Pesquisar @" className="h-10 pl-9" /></div>
             </div>
             <div className="max-h-[520px] overflow-auto">
-              {filtered.length ? filtered.map((username) => <div key={username} className="flex items-center justify-between border-b border-white/5 px-4 py-3 last:border-b-0"><span className="text-sm font-medium">@{username}</span><a href={`https://www.instagram.com/${encodeURIComponent(username)}/`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Abrir Instagram</a></div>) : <p className="p-6 text-sm text-muted-foreground">Nenhum perfil encontrado.</p>}
+              {filtered.length ? filtered.map((username) => <div key={username} className="flex items-center justify-between border-b border-border px-4 py-3 last:border-b-0"><span className="text-sm font-medium">@{username}</span><a href={`https://www.instagram.com/${encodeURIComponent(username)}/`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Abrir Instagram</a></div>) : <p className="p-6 text-sm text-muted-foreground">Nenhum perfil encontrado.</p>}
             </div>
           </div>
         </section>

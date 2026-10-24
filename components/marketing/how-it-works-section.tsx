@@ -37,7 +37,7 @@ export function HowItWorksSection() {
   return (
     <section
       id="como-funciona"
-      className="relative overflow-hidden border-t border-white/5 py-24 sm:py-28 lg:py-32"
+      className="relative overflow-hidden border-t border-border py-24 sm:py-28 lg:py-32"
     >
       <div
         aria-hidden="true"
@@ -55,7 +55,7 @@ export function HowItWorksSection() {
 
           <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             Da necessidade ao resultado em{" "}
-            <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="text-primary">
               poucos passos.
             </span>
           </h2>
@@ -78,7 +78,7 @@ export function HowItWorksSection() {
             return (
               <article
                 key={step.number}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-white/[0.04] sm:p-7"
+                className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 transition duration-300 hover:border-primary/30 hover:bg-card sm:p-7"
               >
                 <div className="absolute right-5 top-4 text-5xl font-semibold tracking-tighter text-white/[0.035] sm:text-6xl">
                   {step.number}
@@ -90,7 +90,7 @@ export function HowItWorksSection() {
                       <Icon className="size-5" />
                     </div>
 
-                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-muted-foreground">
+                    <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
                       Passo {step.number}
                     </span>
                   </div>
@@ -103,7 +103,7 @@ export function HowItWorksSection() {
                     {step.description}
                   </p>
 
-                  <div className="mt-7 flex items-center gap-2 border-t border-white/10 pt-5 text-sm font-medium text-foreground/90">
+                  <div className="mt-7 flex items-center gap-2 border-t border-border pt-5 text-sm font-medium text-foreground/90">
                     <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <Check className="size-3.5" />
                     </span>
@@ -115,7 +115,7 @@ export function HowItWorksSection() {
           })}
         </div>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-5 rounded-3xl border border-white/10 bg-gradient-to-r from-primary/[0.07] via-white/[0.025] to-cyan-400/[0.05] p-5 sm:flex-row sm:p-6">
+        <div className="mt-8 flex flex-col items-center justify-between gap-5 rounded-3xl border border-border bg-gradient-to-r from-primary/[0.07] via-white/[0.025] to-cyan-400/[0.05] p-5 sm:flex-row sm:p-6">
           <div className="flex items-start gap-4">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-[0_0_35px_rgba(99,102,241,0.2)]">
               <Sparkles className="size-5" />
@@ -135,7 +135,7 @@ export function HowItWorksSection() {
 
           <a
             href="#ferramentas"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
           >
             Explorar ferramentas
             <ArrowRight className="size-4" />

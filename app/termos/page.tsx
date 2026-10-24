@@ -27,8 +27,8 @@ const legalReferences = [
 export default function TermsPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-6 py-20">
-      <article className="rounded-3xl border border-white/10 bg-white/5 p-8 md:p-12">
-        <Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary hover:bg-primary/10 hover:text-foreground">
+      <article className="rounded-3xl border border-border bg-muted/70 p-8 md:p-12">
+        <Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/70 px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary hover:bg-primary/10 hover:text-foreground">
           <ArrowLeft className="size-4" aria-hidden="true" />
           Voltar para a página inicial
         </Link>
@@ -148,8 +148,8 @@ export default function TermsPage() {
           </TermsSection>
         </div>
 
-        <div className="mt-12 border-t border-white/10 pt-8">
-          <Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium transition hover:border-primary hover:bg-primary/10">
+        <div className="mt-12 border-t border-border pt-8">
+          <Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/70 px-5 py-3 text-sm font-medium transition hover:border-primary hover:bg-primary/10">
             <ArrowLeft className="size-4" aria-hidden="true" />
             Voltar para a página inicial
           </Link>

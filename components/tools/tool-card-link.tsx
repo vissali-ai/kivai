@@ -102,7 +102,7 @@ export function ToolCardLink({ href, toolTitle, children, className = "", prefet
     {favoriteEnabled ? <div className={favoritePlacement === "title" ? "absolute right-3 top-[3.75rem] z-10 flex items-center gap-2" : "relative z-10 mt-3 flex items-center justify-end gap-2"}>
       {error ? <span role="alert" className="text-xs text-red-400">{error}</span> : null}
       <button type="button" title={label} aria-label={label} aria-pressed={saved} disabled={!favorites || favorites.loading || busy}
-        onClick={() => void toggle()} className={`inline-flex size-9 shrink-0 items-center justify-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 ${saved ? "border-primary/50 bg-primary/15 text-primary" : "border-white/15 bg-background text-muted-foreground hover:border-primary hover:text-primary"}`}>
+        onClick={() => void toggle()} className={`inline-flex size-9 shrink-0 items-center justify-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 ${saved ? "border-primary/50 bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary"}`}>
         {busy ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : <Star aria-hidden="true" className={`size-4 ${saved ? "fill-current" : ""}`} />}
       </button>
     </div> : null}

@@ -44,7 +44,7 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
 
   const draft = variants[activePlan];
   const planLabel = activePlan === "free" ? "Grátis" : "Pro";
-  const accent = activePlan === "pro" ? "border-primary/30 bg-primary/[0.025]" : "border-white/10 bg-card";
+  const accent = activePlan === "pro" ? "border-primary/30 bg-primary/[0.025]" : "border-border bg-card";
 
   function update(mutator: (current: InstagramAnalyzerConfig) => InstagramAnalyzerConfig) {
     setVariants((current) => ({ ...current, [activePlan]: mutator(current[activePlan]) }));
@@ -148,7 +148,7 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
   const planItems = activePlan === "free" ? draft.freePlanDetail : draft.proPlanDetail;
 
   return (
-    <main className="mx-auto mt-8 max-w-6xl space-y-6 border-t border-white/10 pt-8">
+    <main className="mx-auto mt-8 max-w-6xl space-y-6 border-t border-border pt-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Personalização por plano</p>
@@ -166,14 +166,14 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
         <Button type="button" variant="outline" disabled title="Será liberado quando o plano Agency estiver pronto">Agency em breve</Button>
       </div>
 
-      {message ? <p role="status" className="border border-white/10 bg-muted/10 p-3 text-sm">{message}</p> : null}
+      {message ? <p role="status" className="border border-border bg-muted/10 p-3 text-sm">{message}</p> : null}
 
       <fieldset className={`space-y-4 rounded-xl border p-4 sm:p-6 ${accent}`}>
         <legend className="px-1 font-semibold">Blocos visíveis na versão {planLabel}</legend>
         <p className="text-xs leading-5 text-muted-foreground">Você pode esconder blocos inteiros sem afetar a outra versão. As regras de acesso e os limites do plano continuam protegidos no sistema.</p>
         <div className="grid gap-3 sm:grid-cols-2">
           {blocks.map(([key, label]) => (
-            <label key={key} className="flex items-center justify-between gap-3 border border-white/10 bg-card p-3 text-sm">
+            <label key={key} className="flex items-center justify-between gap-3 border border-border bg-card p-3 text-sm">
               <span>{label}</span>
               <input type="checkbox" className="size-4" checked={draft.sectionVisibility[key] !== false} onChange={(event) => setVisibility(key, event.target.checked)} />
             </label>
@@ -181,7 +181,7 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
         </div>
       </fieldset>
 
-      <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+      <section className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-6">
         <div className="sm:col-span-2"><h3 className="font-semibold">Topo da versão {planLabel}</h3></div>
         <label className={fieldClass}><span>Texto superior</span><Input value={draft.eyebrow} onChange={(e) => setField("eyebrow", e.target.value)} /></label>
         <label className={fieldClass}><span>Título principal</span><Input value={draft.pageTitle} onChange={(e) => setField("pageTitle", e.target.value)} /></label>
@@ -202,7 +202,7 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
 
         <div className="space-y-5">
           {draft.tutorialSteps.map((step, index) => (
-            <article key={`${activePlan}-${index}`} className="grid gap-4 rounded-lg border border-white/10 bg-muted/5 p-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <article key={`${activePlan}-${index}`} className="grid gap-4 rounded-lg border border-border bg-muted/5 p-4 lg:grid-cols-[minmax(0,1fr)_280px]">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Passo {index + 1}</p><Button type="button" size="sm" variant="ghost" onClick={() => removeStep(index)}><Trash2 className="size-4" />Remover</Button></div>
                 <label className={fieldClass}><span>Título</span><Input value={step.title} onChange={(e) => setStep(index, "title", e.target.value)} /></label>
@@ -210,7 +210,7 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
                 <label className={fieldClass}><span>URL da imagem</span><Input value={step.imageUrl} onChange={(e) => setStep(index, "imageUrl", e.target.value)} /></label>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:bg-muted/20"><Upload className="size-4" />{uploadingStep === index ? "Enviando..." : "Enviar/substituir imagem"}<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingStep === index} onChange={(e) => uploadStepImage(index, e.target.files?.[0])} /></label>
               </div>
-              <div className="flex min-h-52 items-center justify-center border border-white/10 bg-black/20 p-3">{step.imageUrl ? <img src={step.imageUrl} alt={`Prévia ${planLabel} passo ${index + 1}`} className="max-h-96 w-auto max-w-full object-contain" /> : <p className="text-center text-xs text-muted-foreground">Nenhuma imagem configurada.</p>}</div>
+              <div className="flex min-h-52 items-center justify-center border border-border bg-black/20 p-3">{step.imageUrl ? <img src={step.imageUrl} alt={`Prévia ${planLabel} passo ${index + 1}`} className="max-h-96 w-auto max-w-full object-contain" /> : <p className="text-center text-xs text-muted-foreground">Nenhuma imagem configurada.</p>}</div>
             </article>
           ))}
         </div>
@@ -218,14 +218,14 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
         <label className={fieldClass}><span>Texto final do tutorial</span><Input value={draft.finalCta} onChange={(e) => setField("finalCta", e.target.value)} /></label>
       </section>
 
-      <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+      <section className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-6">
         <div className="sm:col-span-2"><h3 className="font-semibold">Área de análise</h3></div>
         <label className={fieldClass}><span>Título</span><Input value={draft.uploadTitle} onChange={(e) => setField("uploadTitle", e.target.value)} /></label>
         <label className={fieldClass}><span>Texto do seletor</span><Input value={draft.uploadLabel} onChange={(e) => setField("uploadLabel", e.target.value)} /></label>
         <label className={`${fieldClass} sm:col-span-2`}><span>Descrição</span><textarea className={textareaClass} value={draft.uploadDescription} onChange={(e) => setField("uploadDescription", e.target.value)} /></label>
       </section>
 
-      <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+      <section className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-6">
         <div className="sm:col-span-2"><h3 className="font-semibold">Conteúdo complementar</h3></div>
         <label className={fieldClass}><span>Título “Para quem é”</span><Input value={draft.audienceTitle} onChange={(e) => setField("audienceTitle", e.target.value)} /></label>
         <label className={fieldClass}><span>Título da explicação dos planos</span><Input value={draft.plansTitle} onChange={(e) => setField("plansTitle", e.target.value)} /></label>
@@ -235,10 +235,10 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
         <label className={`${fieldClass} sm:col-span-2`}><span>Itens do plano {planLabel}, um por linha</span><textarea className={textareaClass} value={planItems.join("\n")} onChange={(e) => setField(activePlan === "free" ? "freePlanDetail" : "proPlanDetail", e.target.value.split("\n").map((item) => item.trim()).filter(Boolean))} /></label>
       </section>
 
-      <section className="space-y-4 rounded-xl border border-white/10 bg-card p-4 sm:p-6">
+      <section className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3"><h3 className="font-semibold">FAQ da versão {planLabel}</h3><Button type="button" size="sm" variant="outline" onClick={addFaq}><Plus />Adicionar dúvida</Button></div>
         {draft.faqItems.map((item, index) => (
-          <div key={`${activePlan}-faq-${index}`} className="grid gap-3 border border-white/10 p-4 sm:grid-cols-[1fr_1.5fr_auto]">
+          <div key={`${activePlan}-faq-${index}`} className="grid gap-3 border border-border p-4 sm:grid-cols-[1fr_1.5fr_auto]">
             <Input value={item.question} onChange={(e) => setFaq(index, "question", e.target.value)} placeholder="Pergunta" />
             <textarea className={textareaClass} value={item.answer} onChange={(e) => setFaq(index, "answer", e.target.value)} placeholder="Resposta" />
             <Button type="button" size="sm" variant="ghost" onClick={() => removeFaq(index)}><Trash2 className="size-4" /></Button>
@@ -246,7 +246,7 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
         ))}
       </section>
 
-      <section className="grid gap-4 rounded-xl border border-white/10 bg-card p-4 sm:grid-cols-2 sm:p-6">
+      <section className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-6">
         <div className="sm:col-span-2"><h3 className="font-semibold">Privacidade da versão {planLabel}</h3></div>
         <label className={fieldClass}><span>Título</span><Input value={draft.privacyTitle} onChange={(e) => setField("privacyTitle", e.target.value)} /></label>
         <label className={fieldClass}><span>Texto do link</span><Input value={draft.privacyLinkLabel} onChange={(e) => setField("privacyLinkLabel", e.target.value)} /></label>

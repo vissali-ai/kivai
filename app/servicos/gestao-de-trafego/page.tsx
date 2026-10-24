@@ -147,10 +147,10 @@ export default async function GestaoDeTrafegoPage() {
         audience="Empresas, profissionais e e-commerces"
         faqs={trafficFaqs}
       />
-      <section className="relative isolate overflow-hidden border-b border-white/5">
+      <section className="relative isolate overflow-hidden border-b border-border">
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
+          className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(32,41,56,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(32,41,56,0.035)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
         />
 
         <div
@@ -175,7 +175,7 @@ export default async function GestaoDeTrafegoPage() {
 
             <h1 className="mt-7 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-7xl lg:leading-[1.02]">
               Gestão de tráfego pago para empresas que querem{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 gerar oportunidades reais.
               </span>
             </h1>
@@ -199,7 +199,7 @@ export default async function GestaoDeTrafegoPage() {
 
               <a
                 href="#servicos"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
               >
                 Conhecer a gestão
               </a>
@@ -227,7 +227,7 @@ export default async function GestaoDeTrafegoPage() {
 
       <section
         id="servicos"
-        className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28"
+        className="relative border-b border-border py-20 sm:py-24 lg:py-28"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
@@ -238,7 +238,7 @@ export default async function GestaoDeTrafegoPage() {
 
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Campanhas pensadas para cada{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 objetivo e momento.
               </span>
             </h2>
@@ -256,7 +256,7 @@ export default async function GestaoDeTrafegoPage() {
               return (
                 <article
                   key={service.title}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-white/[0.045]"
+                  className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 transition duration-300 hover:border-primary/30 hover:bg-card"
                 >
                   <div
                     aria-hidden="true"
@@ -283,7 +283,7 @@ export default async function GestaoDeTrafegoPage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden border-b border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-28">
+      <section className="relative overflow-hidden border-b border-border bg-background py-20 sm:py-24 lg:py-28">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-primary/[0.08] blur-[140px]"
@@ -299,7 +299,7 @@ export default async function GestaoDeTrafegoPage() {
 
               <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                 Mais do que colocar{" "}
-                <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+                <span className="text-primary">
                   campanhas no ar.
                 </span>
               </h2>
@@ -338,7 +338,7 @@ export default async function GestaoDeTrafegoPage() {
               </div>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <div className="rounded-2xl border border-border bg-card p-4">
                   <p className="text-sm font-semibold text-foreground">
                     Google Ads
                   </p>
@@ -347,7 +347,7 @@ export default async function GestaoDeTrafegoPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <div className="rounded-2xl border border-border bg-card p-4">
                   <p className="text-sm font-semibold text-foreground">
                     Meta Ads
                   </p>
@@ -361,7 +361,7 @@ export default async function GestaoDeTrafegoPage() {
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28">
+      <section className="relative border-b border-border py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
@@ -371,7 +371,7 @@ export default async function GestaoDeTrafegoPage() {
 
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Uma gestão construída com{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 método e acompanhamento.
               </span>
             </h2>
@@ -381,7 +381,7 @@ export default async function GestaoDeTrafegoPage() {
             {processSteps.map((step) => (
               <article
                 key={step.number}
-                className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6"
+                className="relative overflow-hidden rounded-3xl border border-border bg-card p-6"
               >
                 <span className="text-4xl font-semibold tracking-tighter text-primary/25">
                   {step.number}
@@ -430,7 +430,7 @@ export default async function GestaoDeTrafegoPage() {
         />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-gradient-to-br from-primary/[0.13] via-white/[0.035] to-cyan-400/[0.07] px-6 py-14 text-center sm:px-10 sm:py-16 lg:px-16">
+          <div className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-gradient-to-br from-primary/[0.13] via-card to-cyan-400/[0.07] px-6 py-14 text-center sm:px-10 sm:py-16 lg:px-16">
             <div className="mx-auto max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
                 <BarChart3 className="size-4" />
@@ -439,7 +439,7 @@ export default async function GestaoDeTrafegoPage() {
 
               <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                 Quer entender como o tráfego pago pode{" "}
-                <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+                <span className="text-primary">
                   ajudar seu negócio?
                 </span>
               </h2>

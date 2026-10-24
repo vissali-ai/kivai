@@ -55,58 +55,48 @@
 }
 
 /* =========================================================
-   KIVAI — NEUTRAL DARK DESIGN SYSTEM
+   KIVAI — UNIFIED LIGHT DESIGN SYSTEM
    ========================================================= */
 
 :root {
-  color-scheme: dark;
-
-  --background: oklch(0.12 0.004 260);
-  --foreground: oklch(0.97 0.003 260);
-
-  --card: oklch(0.165 0.005 260);
-  --card-foreground: oklch(0.97 0.003 260);
-
-  --popover: oklch(0.165 0.005 260);
-  --popover-foreground: oklch(0.97 0.003 260);
-
-  --primary: oklch(0.70 0.19 275);
-  --primary-foreground: oklch(0.985 0 0);
-
-  --secondary: oklch(0.22 0.006 260);
-  --secondary-foreground: oklch(0.95 0.004 260);
-
-  --muted: oklch(0.21 0.005 260);
-  --muted-foreground: oklch(0.76 0.008 260);
-
-  --accent: oklch(0.25 0.028 275);
-  --accent-foreground: oklch(0.97 0.003 260);
-
-  --destructive: oklch(0.64 0.22 25);
-
-  --border: oklch(1 0 0 / 13%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.70 0.19 275);
-
-  --chart-1: oklch(0.70 0.19 275);
-  --chart-2: oklch(0.72 0.16 220);
-  --chart-3: oklch(0.7 0.18 305);
-  --chart-4: oklch(0.74 0.16 165);
-  --chart-5: oklch(0.76 0.17 75);
-
-  --radius: 0.625rem;
-
-  --sidebar: oklch(0.145 0.005 260);
-  --sidebar-foreground: oklch(0.97 0.003 260);
-  --sidebar-primary: oklch(0.70 0.19 275);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.22 0.008 260);
-  --sidebar-accent-foreground: oklch(0.97 0.003 260);
-  --sidebar-border: oklch(1 0 0 / 13%);
-  --sidebar-ring: oklch(0.70 0.19 275);
+  color-scheme: light;
+  /* Tema cinza-claro suave em todas as áreas do Kivai. */
+  --background: #ECEFF3;
+  --foreground: #202938;
+  --card: #F9FAFC;
+  --card-foreground: #202938;
+  --popover: #FFFFFF;
+  --popover-foreground: #202938;
+  --primary: #5847AD;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E4E9F1;
+  --secondary-foreground: #283347;
+  --muted: #E4E8EF;
+  --muted-foreground: #546174;
+  --accent: #EDE9F9;
+  --accent-foreground: #342965;
+  --destructive: #B53643;
+  --border: #D5DCE7;
+  --input: #CFD7E3;
+  --ring: #5847AD;
+  --chart-1: #5847AD;
+  --chart-2: #276C94;
+  --chart-3: #88558D;
+  --chart-4: #287D68;
+  --chart-5: #986B37;
+  --radius: 0.75rem;
+  --sidebar: #F9FAFC;
+  --sidebar-foreground: #202938;
+  --sidebar-primary: #5847AD;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E4E9F1;
+  --sidebar-accent-foreground: #202938;
+  --sidebar-border: #D5DCE7;
+  --sidebar-ring: #5847AD;
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.12 0.004 260);
   --foreground: oklch(0.97 0.003 260);
 

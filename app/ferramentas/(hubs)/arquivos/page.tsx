@@ -76,10 +76,10 @@ export default function ArquivosPage() {
               >
                 <div className="flex min-h-[152px] flex-col">
                   <div className="flex items-start justify-between">
-                    <span className="flex size-8 items-center justify-center text-slate-300">
+                    <span className="flex size-8 items-center justify-center text-slate-700">
                       <Archive className="size-4" aria-hidden="true" />
                     </span>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span>
+                    <span className="rounded-full border border-border bg-muted/70 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span>
                   </div>
                   <h2 className="mt-3 pr-10 text-sm font-semibold leading-5">{tool.name}</h2>
                   <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
