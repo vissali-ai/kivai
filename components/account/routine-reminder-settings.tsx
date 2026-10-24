@@ -109,7 +109,7 @@ export function RoutineReminderSettings() {
   }
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-card p-5 sm:p-6" aria-labelledby="routine-reminders-title">
+    <section className="rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="routine-reminders-title">
       <div className="flex items-start gap-3">
         <BellRing className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" />
         <div>
