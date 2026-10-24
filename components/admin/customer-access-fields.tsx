@@ -20,7 +20,7 @@ export function CustomerAccessFields({ defaultPlan, defaultAccessUntil = "" }: P
           name="planCode"
           value={plan}
           onChange={(event) => setPlan(event.target.value as Props["defaultPlan"])}
-          className="mt-1 h-9 w-full border border-white/10 bg-background px-2 text-sm text-foreground"
+          className="mt-1 h-9 w-full border border-border bg-background px-2 text-sm text-foreground"
         >
           <option value="free">Grátis</option>
           <option value="pro">Pro</option>
@@ -36,10 +36,10 @@ export function CustomerAccessFields({ defaultPlan, defaultAccessUntil = "" }: P
           defaultValue={defaultAccessUntil}
           required={requiresValidity}
           aria-required={requiresValidity}
-          className="mt-1 h-9 w-full border border-white/10 bg-background px-2"
+          className="mt-1 h-9 w-full border border-border bg-background px-2"
         />
         {requiresValidity ? (
-          <span className="mt-1 block text-[11px] text-amber-300">
+          <span className="mt-1 block text-[11px] text-amber-700">
             Informe a validade para conceder acesso Pro ou Agency.
           </span>
         ) : null}

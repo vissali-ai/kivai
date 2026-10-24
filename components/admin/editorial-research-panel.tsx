@@ -346,7 +346,7 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
           <input type="checkbox" checked={selected.includes(topic.id)} onChange={() => toggleTopic(topic.id)} className="size-4 accent-primary" />
           <span>{topic.name}</span></label>)}
       </div>
-      {!enabled.length && <p className="text-sm text-amber-300">Nenhum tema ativo. Cadastre um tema em Gerenciar temas.</p>}
+      {!enabled.length && <p className="text-sm text-amber-700">Nenhum tema ativo. Cadastre um tema em Gerenciar temas.</p>}
       <label className="block space-y-2 text-sm"><span className="font-medium">Busca personalizada (opcional)</span>
         <Input maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ex.: novos recursos do Google Ads para pequenas empresas" /></label>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -459,7 +459,7 @@ export function EditorialResearchPanel({ initialTopics, initialSources }: {
           <p className="text-xs text-muted-foreground">{item.sourceName} {item.publishedAt ? "· Data indicada: " + new Date(item.publishedAt).toLocaleDateString("pt-BR") : "· Data a confirmar na fonte"}</p>
           <p className="flex-1 text-sm text-muted-foreground">{item.excerpt || "Consulte a fonte original para obter os detalhes da matéria."}</p>
           {draftIds[item.sourceUrl] && <p className="text-xs font-medium text-primary">Pauta adicionada ao blog</p>}
-          {draftErrors[item.sourceUrl] && <p className="text-xs text-amber-300" role="alert">{draftErrors[item.sourceUrl]}</p>}
+          {draftErrors[item.sourceUrl] && <p className="text-xs text-amber-700" role="alert">{draftErrors[item.sourceUrl]}</p>}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild><a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-1 size-4"/>Ver fonte</a></Button>
             {draftIds[item.sourceUrl]
