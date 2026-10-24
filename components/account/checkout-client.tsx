@@ -115,7 +115,7 @@ export function CheckoutClient({ plan, billing }: { plan: "pro" | "agency"; bill
 
   return <div className="mx-auto max-w-2xl space-y-6">
     <Script src="https://gateway.sumup.com/gateway/ecom/card/v2/sdk.js" strategy="afterInteractive" onLoad={() => setSdkReady(true)} />
-    <section className="border border-white/10 bg-card p-6 sm:p-8">
+    <section className="border border-border bg-card p-6 sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Assinatura Kivai</p>
       <h1 className="mt-2 text-3xl font-semibold">Plano {planName}</h1>
       <p className="mt-3 text-lg font-semibold text-primary">{price}</p>
@@ -125,9 +125,9 @@ export function CheckoutClient({ plan, billing }: { plan: "pro" | "agency"; bill
 
     {status === "checking" ? <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />Validando sua conta...</p> : null}
     {status === "ready" ? <Button className="h-12 w-full" onClick={start}><CreditCard />Continuar para pagamento seguro</Button> : null}
-    {status === "starting" ? <p className="flex items-center gap-2 border border-white/10 bg-card p-5 text-sm"><Loader2 className="size-4 animate-spin text-primary" />Preparando seu pagamento...</p> : null}
+    {status === "starting" ? <p className="flex items-center gap-2 border border-border bg-card p-5 text-sm"><Loader2 className="size-4 animate-spin text-primary" />Preparando seu pagamento...</p> : null}
 
-    {status === "widget" ? <section className="border border-white/10 bg-card p-5 sm:p-6"><h2 className="font-semibold">Autorize seu cartão para a assinatura mensal</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">A SumUp fará a autenticação necessária e solicitará seu consentimento para as cobranças recorrentes. A autorização inicial de tokenização é estornada pela própria SumUp; em seguida o Kivai realiza a primeira cobrança do plano.</p><div id="sumup-card" className="mt-5 min-h-60" /></section> : null}
+    {status === "widget" ? <section className="border border-border bg-card p-5 sm:p-6"><h2 className="font-semibold">Autorize seu cartão para a assinatura mensal</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">A SumUp fará a autenticação necessária e solicitará seu consentimento para as cobranças recorrentes. A autorização inicial de tokenização é estornada pela própria SumUp; em seguida o Kivai realiza a primeira cobrança do plano.</p><div id="sumup-card" className="mt-5 min-h-60" /></section> : null}
     {status === "activating" ? <p className="flex items-center gap-2 border border-primary/20 bg-primary/[0.03] p-5 text-sm"><Loader2 className="size-4 animate-spin text-primary" />Confirmando a primeira cobrança e ativando o plano...</p> : null}
     {status === "done" ? <div className="flex items-center gap-3 border border-emerald-500/25 bg-emerald-500/5 p-5 text-sm"><CheckCircle2 className="size-5 text-emerald-400" /><span>Pagamento confirmado. Seu plano {planName} está ativo.</span></div> : null}
     {message ? <div className="border border-red-500/25 bg-red-500/5 p-4 text-sm text-red-200">{message}{status === "error" ? <Button type="button" variant="outline" size="sm" className="mt-3 block" onClick={() => { mounted.current = false; setSetup(null); setStatus("ready"); setMessage(""); }}>Tentar novamente</Button> : null}</div> : null}

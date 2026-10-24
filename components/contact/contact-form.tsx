@@ -25,7 +25,7 @@ const initialFields: Fields = {
 };
 
 const fieldClass =
-  "mt-2 w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:border-white/20 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/15 disabled:cursor-not-allowed disabled:opacity-60";
+  "mt-2 w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:border-border focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/15 disabled:cursor-not-allowed disabled:opacity-60";
 
 function validate(fields: Fields): FieldErrors {
   const errors: FieldErrors = {};
@@ -90,7 +90,7 @@ export function ContactForm() {
   }
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-card/80 p-5 shadow-2xl shadow-black/15 backdrop-blur-sm sm:p-8" aria-labelledby="contact-form-title">
+    <section className="rounded-3xl border border-border bg-card/80 p-5 shadow-2xl shadow-black/15 backdrop-blur-sm sm:p-8" aria-labelledby="contact-form-title">
       <div className="mb-7">
         <h2 id="contact-form-title" className="text-xl font-semibold tracking-tight sm:text-2xl">
           Como podemos ajudar?

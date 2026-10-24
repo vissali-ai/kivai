@@ -58,7 +58,7 @@ export function MyFavoriteTools() {
         <Button asChild variant="outline" size="sm"><Link href="/ferramentas">Explorar ferramentas <ArrowRight className="size-4" /></Link></Button>
       </div>
       {loading ? <p className="mt-4 text-sm text-muted-foreground">Carregando seus favoritos...</p>
-        : items.length === 0 && !error ? <p className="mt-5 rounded-xl border border-dashed border-white/15 p-5 text-sm text-muted-foreground">Você ainda não adicionou nenhuma ferramenta. Abra uma ferramenta e clique em Salvar nos favoritos para encontrá-la aqui.</p>
+        : items.length === 0 && !error ? <p className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">Você ainda não adicionou nenhuma ferramenta. Abra uma ferramenta e clique em Salvar nos favoritos para encontrá-la aqui.</p>
         : null}
       {items.length > 0 ? <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => <div key={item.tool_slug} className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-background/40 p-3">
@@ -67,7 +67,7 @@ export function MyFavoriteTools() {
             <span className="mt-1 block text-xs text-muted-foreground">Abrir ferramenta</span>
           </Link>
           <button type="button" aria-label={`Remover ${item.tool_title} dos favoritos`} disabled={Boolean(removing)}
-            onClick={() => void remove(item)} className="rounded-lg p-2 text-muted-foreground hover:bg-white/5 hover:text-red-400 disabled:opacity-40">
+            onClick={() => void remove(item)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted/70 hover:text-red-400 disabled:opacity-40">
             <Trash2 aria-hidden="true" className="size-4" />
           </button>
         </div>)}

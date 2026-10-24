@@ -23,7 +23,7 @@ export async function ManagedContentLinks({ location, title, contentType }: { lo
               href={item.path}
               className={lightHome
                 ? "group rounded-xl border border-[#D8DEE6] bg-[#F9FAFC] p-5 transition-colors hover:border-[#A8B1C3] hover:bg-white"
-                : "group rounded-2xl border border-white/10 bg-white/[0.025] p-5 transition hover:border-primary/35"}
+                : "group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/35"}
             >
               <h3 className="font-semibold">{item.title}</h3>
               <p className={lightHome ? "mt-2 line-clamp-3 text-sm leading-6 text-[#566375]" : "mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground"}>
