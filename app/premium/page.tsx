@@ -79,7 +79,7 @@ export default function PremiumPage() {
           <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:mt-16 lg:grid-cols-2">
             <article className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-white/[0.04] text-foreground">
+                <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card text-foreground">
                   <Zap className="size-5" />
                 </div>
 
@@ -109,7 +109,7 @@ export default function PremiumPage() {
                     key={feature}
                     className="flex items-start gap-3 text-sm text-foreground/90"
                   >
-                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-primary">
+                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-card text-primary">
                       <Check className="size-3.5" />
                     </span>
 
@@ -120,14 +120,14 @@ export default function PremiumPage() {
 
               <Link
                 href="/#ferramentas"
-                className="mt-9 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white/[0.04] px-5 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10"
+                className="mt-9 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10"
               >
                 Explorar ferramentas grátis
                 <ArrowRight className="size-4" />
               </Link>
             </article>
 
-            <article className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-b from-primary/[0.12] via-white/[0.035] to-cyan-400/[0.04] p-6 shadow-[0_0_70px_rgba(99,102,241,0.08)] sm:p-8">
+            <article className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-b from-primary/[0.12] via-card to-cyan-400/[0.04] p-6 shadow-[0_0_70px_rgba(99,102,241,0.08)] sm:p-8">
               <div
                 aria-hidden="true"
                 className="absolute -right-16 -top-16 size-48 rounded-full bg-primary/10 blur-3xl"
@@ -184,9 +184,9 @@ export default function PremiumPage() {
               </div>
             </article>
           </div>
-                    <div className="mx-auto mt-6 flex max-w-5xl flex-col items-center justify-between gap-4 rounded-2xl border border-border bg-white/[0.02] px-5 py-4 sm:flex-row">
+                    <div className="mx-auto mt-6 flex max-w-5xl flex-col items-center justify-between gap-4 rounded-2xl border border-border bg-card px-5 py-4 sm:flex-row">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-white/[0.04] text-primary">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary">
                 <CreditCard className="size-4" />
               </div>
 

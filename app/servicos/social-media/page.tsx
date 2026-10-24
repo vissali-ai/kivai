@@ -200,12 +200,12 @@ function TestimonialCard({
   testimonial: (typeof testimonials)[number];
 }) {
   return (
-    <article className="flex w-[min(22rem,calc(100vw-3rem))] shrink-0 flex-col rounded-3xl border border-white/10 bg-white/[0.035] p-6 sm:w-[23rem] sm:p-7">
+    <article className="flex w-[min(22rem,calc(100vw-3rem))] shrink-0 flex-col rounded-3xl border border-border bg-card p-6 sm:w-[23rem] sm:p-7">
       <Quote className="size-6 text-primary/70" aria-hidden="true" />
       <blockquote className="mt-5 flex-1 text-sm leading-7 text-foreground/90 sm:text-base">
         “{testimonial.quote}”
       </blockquote>
-      <footer className="mt-7 flex items-center gap-3 border-t border-white/10 pt-5">
+      <footer className="mt-7 flex items-center gap-3 border-t border-border pt-5">
         <span
           aria-hidden="true"
           className="flex size-11 shrink-0 items-center justify-center rounded-full border border-primary/35 bg-gradient-to-br from-primary/25 to-cyan-400/10 text-xs font-semibold text-primary"
@@ -238,10 +238,10 @@ export default async function SocialMediaPage() {
         audience="Empresas, profissionais e e-commerces"
         faqs={socialMediaFaqs}
       />
-      <section className="relative isolate overflow-hidden border-b border-white/5">
+      <section className="relative isolate overflow-hidden border-b border-border">
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
+          className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(32,41,56,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(32,41,56,0.035)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
         />
         <div
           aria-hidden="true"
@@ -265,7 +265,7 @@ export default async function SocialMediaPage() {
 
             <h1 className="mt-7 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-7xl lg:leading-[1.02]">
               Social Media para empresas: conteúdo com estratégia para fortalecer suas{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 redes sociais.
               </span>
             </h1>
@@ -298,7 +298,7 @@ export default async function SocialMediaPage() {
               </a>
               <a
                 href="#entregas"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/10 sm:w-auto"
               >
                 Conhecer o serviço
               </a>
@@ -318,7 +318,7 @@ export default async function SocialMediaPage() {
         </div>
       </section>
 
-      <section id="entregas" className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28">
+      <section id="entregas" className="relative border-b border-border py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
@@ -327,7 +327,7 @@ export default async function SocialMediaPage() {
             </div>
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Muito mais do que{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 simplesmente postar.
               </span>
             </h2>
@@ -344,7 +344,7 @@ export default async function SocialMediaPage() {
               return (
                 <article
                   key={delivery.title}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-white/[0.045]"
+                  className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 transition duration-300 hover:border-primary/30 hover:bg-card"
                 >
                   <span className="flex size-12 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
                     <Icon className="size-5" />
@@ -358,7 +358,7 @@ export default async function SocialMediaPage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden border-b border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-28">
+      <section className="relative overflow-hidden border-b border-border bg-background py-20 sm:py-24 lg:py-28">
         <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-primary/[0.08] blur-[140px]" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
@@ -369,7 +369,7 @@ export default async function SocialMediaPage() {
               </div>
               <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                 Mais do que preencher{" "}
-                <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">o feed.</span>
+                <span className="text-primary">o feed.</span>
               </h2>
               <p className="mt-6 text-base leading-8 text-muted-foreground sm:text-lg">
                 O conteúdo precisa ter função dentro da estratégia da empresa. Por isso,
@@ -397,11 +397,11 @@ export default async function SocialMediaPage() {
                 </div>
               </div>
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <div className="rounded-2xl border border-border bg-card p-4">
                   <p className="text-sm font-semibold">Planejamento</p>
                   <p className="mt-2 text-xs leading-5 text-muted-foreground">Organização dos temas e objetivos do conteúdo.</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <div className="rounded-2xl border border-border bg-card p-4">
                   <p className="text-sm font-semibold">Conteúdo</p>
                   <p className="mt-2 text-xs leading-5 text-muted-foreground">Desenvolvimento das publicações e mensagens da marca.</p>
                 </div>
@@ -411,7 +411,7 @@ export default async function SocialMediaPage() {
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28">
+      <section className="relative border-b border-border py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
@@ -420,12 +420,12 @@ export default async function SocialMediaPage() {
             </div>
             <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
               Um processo organizado do planejamento à{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">publicação.</span>
+              <span className="text-primary">publicação.</span>
             </h2>
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4">
             {processSteps.map((step) => (
-              <article key={step.number} className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6">
+              <article key={step.number} className="relative overflow-hidden rounded-3xl border border-border bg-card p-6">
                 <span className="text-4xl font-semibold tracking-tighter text-primary/25">{step.number}</span>
                 <h3 className="mt-6 text-lg font-semibold tracking-tight">{step.title}</h3>
                 <p className="mt-3 text-sm leading-7 text-muted-foreground">{step.description}</p>
@@ -437,7 +437,7 @@ export default async function SocialMediaPage() {
 
       <section
         aria-labelledby="depoimentos-title"
-        className="relative overflow-hidden border-b border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-28"
+        className="relative overflow-hidden border-b border-border bg-background py-20 sm:py-24 lg:py-28"
       >
         <div
           aria-hidden="true"
@@ -455,7 +455,7 @@ export default async function SocialMediaPage() {
               className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl"
             >
               Resultados construídos com{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 parceria e estratégia.
               </span>
             </h2>
@@ -469,11 +469,11 @@ export default async function SocialMediaPage() {
         <div className="testimonial-marquee relative mt-12">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-[#07080d] to-transparent sm:w-20"
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background to-transparent sm:w-20"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-[#07080d] to-transparent sm:w-20"
+            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent sm:w-20"
           />
 
           <div className="testimonial-marquee-track flex gap-4 px-4">
@@ -515,7 +515,7 @@ export default async function SocialMediaPage() {
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-28">
+      <section className="relative border-b border-border bg-background py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
@@ -524,7 +524,7 @@ export default async function SocialMediaPage() {
             </div>
             <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
               Conteúdos adaptados à comunicação da{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">sua empresa.</span>
+              <span className="text-primary">sua empresa.</span>
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
               Os formatos são definidos conforme o planejamento, os canais e os objetivos de cada ciclo de conteúdo.
@@ -534,7 +534,7 @@ export default async function SocialMediaPage() {
             {contentFormats.map((format) => {
               const Icon = format.icon;
               return (
-                <div key={format.label} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                <div key={format.label} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon className="size-4" /></span>
                   <span className="text-sm font-medium leading-5">{format.label}</span>
                 </div>
@@ -544,7 +544,7 @@ export default async function SocialMediaPage() {
         </div>
       </section>
 
-      <section className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28">
+      <section className="relative border-b border-border py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
             <article className="rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/[0.11] via-white/[0.03] to-cyan-400/[0.05] p-6 sm:p-8">
@@ -556,12 +556,12 @@ export default async function SocialMediaPage() {
               <p className="mt-5 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm font-semibold leading-6">
                 Social Media e Gestão de Tráfego são serviços independentes e podem ser contratados separadamente ou de forma complementar.
               </p>
-              <Link href="/servicos/gestao-de-trafego" className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-semibold transition hover:border-primary/30 hover:bg-primary/10">
+              <Link href="/servicos/gestao-de-trafego" className="mt-6 inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold transition hover:border-primary/30 hover:bg-primary/10">
                 Conhecer Gestão de Tráfego <ArrowRight className="size-4" />
               </Link>
             </article>
 
-            <aside className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 sm:p-8">
+            <aside className="rounded-3xl border border-border bg-card p-6 sm:p-8">
               <span className="flex size-12 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary"><Images className="size-5" /></span>
               <h2 className="mt-7 text-2xl font-semibold tracking-tight">Sobre fotos e vídeos</h2>
               <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
@@ -598,7 +598,7 @@ export default async function SocialMediaPage() {
       <section className="relative overflow-hidden py-20 sm:py-24 lg:py-28">
         <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-[480px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.08] blur-[150px]" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-gradient-to-br from-primary/[0.13] via-white/[0.035] to-cyan-400/[0.07] px-6 py-14 text-center sm:px-10 sm:py-16 lg:px-16">
+          <div className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-gradient-to-br from-primary/[0.13] via-card to-cyan-400/[0.07] px-6 py-14 text-center sm:px-10 sm:py-16 lg:px-16">
             <div className="mx-auto max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
                 <CircleCheck className="size-4" />
@@ -606,7 +606,7 @@ export default async function SocialMediaPage() {
               </div>
               <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                 Quer fortalecer a presença da sua empresa nas{" "}
-                <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">redes sociais?</span>
+                <span className="text-primary">redes sociais?</span>
               </h2>
               <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
                 Entre em contato para entender como o serviço de Social Media pode ser estruturado de acordo com o momento, objetivos e necessidades da sua empresa.
