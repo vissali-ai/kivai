@@ -29,7 +29,7 @@ export function MailNavigation({ counts }: { counts: Counts }) {
           <Link
             key={href}
             href={href}
-            className={`flex items-center justify-between gap-3 border px-3 py-3 text-sm transition-colors ${active ? "border-primary/30 bg-primary/10 text-primary" : "border-white/10 bg-background/20 text-muted-foreground hover:border-primary/20 hover:text-foreground"}`}
+            className={`flex items-center justify-between gap-3 border px-3 py-3 text-sm transition-colors ${active ? "border-primary/30 bg-primary/10 text-primary" : "border-border bg-background/20 text-muted-foreground hover:border-primary/20 hover:text-foreground"}`}
           >
             <span className="flex min-w-0 items-center gap-2">
               <Icon className="size-4 shrink-0" />

@@ -47,8 +47,8 @@ export default async function DiscardedPage() {
   ].sort((a, b) => new Date(b.discardedAt).getTime() - new Date(a.discardedAt).getTime());
 
   return (
-    <div className="border border-white/10 bg-card">
-      <header className="border-b border-white/10 p-5">
+    <div className="border border-border bg-card">
+      <header className="border-b border-border p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Descartados</p>
         <h2 className="mt-1 text-xl font-semibold">Itens removidos das caixas principais</h2>
         <p className="mt-2 text-xs leading-5 text-muted-foreground">Restaure um item para a caixa original ou exclua definitivamente.</p>
@@ -58,7 +58,7 @@ export default async function DiscardedPage() {
         {items.map((item) => (
           <article key={`${item.kind}-${item.id}`} className="grid items-center gap-3 p-4 sm:grid-cols-[110px_minmax(0,1fr)_auto]">
             <div>
-              <span className="border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase text-muted-foreground">
+              <span className="border border-border px-2 py-1 text-[10px] font-semibold uppercase text-muted-foreground">
                 {item.kind === "inbox" ? "Recebido" : "Enviado"}
               </span>
             </div>
@@ -71,12 +71,12 @@ export default async function DiscardedPage() {
               {item.kind === "inbox" ? (
                 <>
                   <form action={restoreInboxMessage}><input type="hidden" name="messageId" value={item.id} /><button title="Restaurar" className="inline-flex size-8 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><ArchiveRestore className="size-4" /></button></form>
-                  <form action={deleteInboxMessage}><input type="hidden" name="messageId" value={item.id} /><button title="Excluir definitivamente" className="inline-flex size-8 items-center justify-center border border-red-400/30 bg-red-500/10 text-red-300"><Trash2 className="size-4" /></button></form>
+                  <form action={deleteInboxMessage}><input type="hidden" name="messageId" value={item.id} /><button title="Excluir definitivamente" className="inline-flex size-8 items-center justify-center border border-red-400/30 bg-red-500/10 text-red-700"><Trash2 className="size-4" /></button></form>
                 </>
               ) : (
                 <>
                   <form action={restoreCommunicationLog}><input type="hidden" name="communicationId" value={item.id} /><button title="Restaurar" className="inline-flex size-8 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><ArchiveRestore className="size-4" /></button></form>
-                  <form action={deleteCommunicationLog}><input type="hidden" name="communicationId" value={item.id} /><button title="Excluir definitivamente" className="inline-flex size-8 items-center justify-center border border-red-400/30 bg-red-500/10 text-red-300"><Trash2 className="size-4" /></button></form>
+                  <form action={deleteCommunicationLog}><input type="hidden" name="communicationId" value={item.id} /><button title="Excluir definitivamente" className="inline-flex size-8 items-center justify-center border border-red-400/30 bg-red-500/10 text-red-700"><Trash2 className="size-4" /></button></form>
                 </>
               )}
             </div>
