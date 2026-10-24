@@ -41,7 +41,7 @@ export function WhatsappSupportSettings({
   }
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-card p-5 sm:p-6">
+    <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
       <div className="flex items-start gap-3">
         <MessageCircle aria-hidden="true" className="mt-1 size-6 text-primary" />
         <div>
