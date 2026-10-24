@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
         { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
         { key: "Content-Type", value: "application/javascript; charset=utf-8" },
       ],
+    }, {
+      // Sempre revalidar o HTML do cadastro apos publicacoes de interface.
+      // Nao altera o cache de imagens/JS/CSS nem APIs do projeto.
+      source: "/conta/cadastro",
+      headers: [
+        { key: "Cache-Control", value: "private, no-store, max-age=0, must-revalidate" },
+      ],
     }];
   },
   async redirects() {

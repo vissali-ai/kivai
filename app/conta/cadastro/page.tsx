@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { UserSignupForm } from "@/components/account/user-signup-form";
 import { noIndexRobots } from "@/lib/seo";
 
+// Cadastro nao deve reutilizar HTML de deploys anteriores.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Criar conta",
   robots: noIndexRobots,
