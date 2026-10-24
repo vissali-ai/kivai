@@ -61,34 +61,34 @@ export default async function AdminSubscriptionsPage() {
       </header>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <div className="border border-white/10 bg-card p-4"><p className="text-xs text-muted-foreground">Pendentes</p><p className="mt-2 text-2xl font-semibold">{pending.length}</p></div>
+        <div className="border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Pendentes</p><p className="mt-2 text-2xl font-semibold">{pending.length}</p></div>
         <div className="border border-primary/20 bg-primary/[0.04] p-4"><p className="text-xs text-muted-foreground">Cliente informou pagamento</p><p className="mt-2 text-2xl font-semibold text-primary">{reported}</p></div>
-        <div className="border border-white/10 bg-card p-4"><p className="text-xs text-muted-foreground">Assinantes ativos</p><p className="mt-2 text-2xl font-semibold">{capacity.activeSubscribers}</p></div>
+        <div className="border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Assinantes ativos</p><p className="mt-2 text-2xl font-semibold">{capacity.activeSubscribers}</p></div>
       </section>
 
-      <section className="space-y-3 border border-white/10 bg-card p-5" aria-label="Capacidade de armazenamento">
+      <section className="space-y-3 border border-border bg-card p-5" aria-label="Capacidade de armazenamento">
         <div><h2 className="text-lg font-semibold">Capacidade de armazenamento</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Medição atual do banco e dos arquivos no Supabase. Referência do plano Free: 500 MB de banco e 1 GB de arquivos. Confira o plano contratado no Supabase antes de usar esses limites como alerta.</p></div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="border border-white/10 p-3"><p className="text-xs text-muted-foreground">Banco de dados</p><p className="mt-1 text-xl font-semibold">{formatBytes(capacity.databaseBytes)}</p><p className="text-xs text-muted-foreground">{Math.round(capacity.databaseBytes / FREE_DATABASE_BYTES * 100)}% da referência Free</p></div>
-          <div className="border border-white/10 p-3"><p className="text-xs text-muted-foreground">Arquivos armazenados</p><p className="mt-1 text-xl font-semibold">{formatBytes(capacity.storageBytes)}</p><p className="text-xs text-muted-foreground">{Math.round(capacity.storageBytes / FREE_STORAGE_BYTES * 100)}% da referência Free</p></div>
-          <div className="border border-white/10 p-3"><p className="text-xs text-muted-foreground">Projetos pagos</p><p className="mt-1 text-xl font-semibold">{capacity.projectCount}</p><p className="text-xs text-muted-foreground">{formatBytes(capacity.projectPayloadBytes)} em conteúdo salvo</p></div>
-          <div className="border border-white/10 p-3"><p className="text-xs text-muted-foreground">Históricos do Instagram</p><p className="mt-1 text-xl font-semibold">{capacity.snapshotCount}</p><p className="text-xs text-muted-foreground">{formatBytes(capacity.snapshotStorageBytes)} em arquivos privados</p></div>
+          <div className="border border-border p-3"><p className="text-xs text-muted-foreground">Banco de dados</p><p className="mt-1 text-xl font-semibold">{formatBytes(capacity.databaseBytes)}</p><p className="text-xs text-muted-foreground">{Math.round(capacity.databaseBytes / FREE_DATABASE_BYTES * 100)}% da referência Free</p></div>
+          <div className="border border-border p-3"><p className="text-xs text-muted-foreground">Arquivos armazenados</p><p className="mt-1 text-xl font-semibold">{formatBytes(capacity.storageBytes)}</p><p className="text-xs text-muted-foreground">{Math.round(capacity.storageBytes / FREE_STORAGE_BYTES * 100)}% da referência Free</p></div>
+          <div className="border border-border p-3"><p className="text-xs text-muted-foreground">Projetos pagos</p><p className="mt-1 text-xl font-semibold">{capacity.projectCount}</p><p className="text-xs text-muted-foreground">{formatBytes(capacity.projectPayloadBytes)} em conteúdo salvo</p></div>
+          <div className="border border-border p-3"><p className="text-xs text-muted-foreground">Históricos do Instagram</p><p className="mt-1 text-xl font-semibold">{capacity.snapshotCount}</p><p className="text-xs text-muted-foreground">{formatBytes(capacity.snapshotStorageBytes)} em arquivos privados</p></div>
         </div>
-        {capacity.databaseBytes >= FREE_DATABASE_BYTES * 0.7 || capacity.storageBytes >= FREE_STORAGE_BYTES * 0.7 ? <p role="status" className="text-sm text-amber-300">Uso acima de 70% de uma cota gratuita de referência. Confira o consumo e planeje a ampliação antes de atingir o limite.</p> : null}
+        {capacity.databaseBytes >= FREE_DATABASE_BYTES * 0.7 || capacity.storageBytes >= FREE_STORAGE_BYTES * 0.7 ? <p role="status" className="text-sm text-amber-700">Uso acima de 70% de uma cota gratuita de referência. Confira o consumo e planeje a ampliação antes de atingir o limite.</p> : null}
       </section>
 
       <section className="space-y-3">
         {requests.length === 0 ? (
-          <div className="border border-white/10 bg-card p-8 text-center text-sm text-muted-foreground">Nenhuma solicitação de contratação registrada ainda.</div>
+          <div className="border border-border bg-card p-8 text-center text-sm text-muted-foreground">Nenhuma solicitação de contratação registrada ainda.</div>
         ) : requests.map((request) => {
           const canConfirm = request.status === "awaiting_payment" || request.status === "payment_reported";
           return (
-            <article key={request.id} className={`border p-5 ${request.status === "payment_reported" ? "border-primary/30 bg-primary/[0.04]" : "border-white/10 bg-card"}`}>
+            <article key={request.id} className={`border p-5 ${request.status === "payment_reported" ? "border-primary/30 bg-primary/[0.04]" : "border-border bg-card"}`}>
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="font-semibold">{request.customer_name || request.customer_email}</h2>
-                    <span className="border border-white/10 px-2 py-1 text-[11px] text-muted-foreground">{statusLabel[request.status]}</span>
+                    <span className="border border-border px-2 py-1 text-[11px] text-muted-foreground">{statusLabel[request.status]}</span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{request.customer_email}</p>
                   <div className="mt-4 grid gap-3 text-sm sm:grid-cols-4">
@@ -115,9 +115,9 @@ export default async function AdminSubscriptionsPage() {
                       </form>
                     </>
                   ) : request.status === "active" ? (
-                    <div className="flex items-center justify-center gap-2 border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-300"><CheckCircle2 className="size-4" /> Plano ativado</div>
+                    <div className="flex items-center justify-center gap-2 border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700"><CheckCircle2 className="size-4" /> Plano ativado</div>
                   ) : (
-                    <div className="flex items-center justify-center gap-2 border border-white/10 px-4 py-3 text-sm text-muted-foreground"><Clock3 className="size-4" /> Solicitação encerrada</div>
+                    <div className="flex items-center justify-center gap-2 border border-border px-4 py-3 text-sm text-muted-foreground"><Clock3 className="size-4" /> Solicitação encerrada</div>
                   )}
                 </div>
               </div>
