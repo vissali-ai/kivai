@@ -96,7 +96,8 @@
 }
 
 .dark,
-:root:has([data-kivai-admin]) {
+:root:has([data-kivai-admin]),
+:root:has([data-kivai-dark-surface]) {
   color-scheme: dark;
   --background: oklch(0.12 0.004 260);
   --foreground: oklch(0.97 0.003 260);

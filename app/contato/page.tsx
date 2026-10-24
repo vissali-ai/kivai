@@ -68,7 +68,7 @@ export default function ContactPage() {
                   key={label}
                   className="flex items-center gap-3 text-sm text-muted-foreground"
                 >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-primary">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-white/[0.04] text-primary">
                     <Icon className="size-4" aria-hidden="true" />
                   </span>
                   {label}
@@ -76,7 +76,7 @@ export default function ContactPage() {
               ))}
             </ul>
 
-            <div className="mt-9 rounded-2xl border border-white/10 bg-white/[0.025] p-5">
+            <div className="mt-9 rounded-2xl border border-border bg-white/[0.025] p-5">
               <div className="flex items-start gap-3">
                 <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div>
@@ -100,7 +100,7 @@ export default function ContactPage() {
           <ContactForm />
         </div>
 
-        <section className="mt-16 border-t border-white/10 pt-10 sm:mt-20">
+        <section className="mt-16 border-t border-border pt-10 sm:mt-20">
           <div className="grid gap-6 md:grid-cols-2">
             <article className="rounded-2xl border border-border bg-muted/10 p-6">
               <h2 className="text-xl font-semibold">Para facilitar o atendimento</h2>

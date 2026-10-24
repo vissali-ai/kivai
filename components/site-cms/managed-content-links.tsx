@@ -7,9 +7,8 @@ export async function ManagedContentLinks({ location, title, contentType }: { lo
   const items = await listPublishedContentsAt(location, contentType);
   if (!items.length) return null;
 
-  // Apenas o bloco da página inicial acompanha o novo fundo claro.
-  // Demais usos deste componente mantêm suas classes e estilos anteriores.
-  const lightHome = location === "home";
+  // O mesmo tema claro cobre todos os blocos públicos de conteúdo.
+  const lightHome = true;
 
   return (
     <section className={lightHome ? "border-t border-[#D8DEE6] bg-[#ECEFF3] py-12 text-[#202938]" : "border-t border-white/5 bg-background py-12"}>

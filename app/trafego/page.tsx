@@ -62,7 +62,7 @@ export default async function TrafegoPage() {
   if (!service) return null;
 
   return (
-    <main className="min-h-screen bg-[#07070b] text-white selection:bg-violet-500/30">
+    <main data-kivai-dark-surface className="min-h-screen bg-[#07070b] text-white selection:bg-violet-500/30">
       <ServiceStructuredData title={service.title} description={service.shortDescription} />
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#07070b]/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
