@@ -42,7 +42,7 @@ export default async function EmailPreferencesPage({ searchParams }: { searchPar
 
   return (
     <main className="mx-auto min-h-[70vh] w-full max-w-2xl px-4 py-20 sm:px-6">
-      <section className="rounded-3xl border border-white/10 bg-card p-6 sm:p-8">
+      <section className="rounded-3xl border border-border bg-card p-6 sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Preferências de e-mail</p>
         <h1 className="mt-3 text-3xl font-semibold">Comunicações do Kivai</h1>
         {!preference ? (
@@ -57,7 +57,7 @@ export default async function EmailPreferencesPage({ searchParams }: { searchPar
             <p className="text-sm leading-6 text-muted-foreground">Deseja continuar recebendo nossos contatos de marketing? Se preferir, você pode interromper esses e-mails a qualquer momento.</p>
             <form action={unsubscribeMarketing}>
               <input type="hidden" name="token" value={token} />
-              <button className="rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-300">Não quero receber mais e-mails de marketing</button>
+              <button className="rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-700">Não quero receber mais e-mails de marketing</button>
             </form>
             <p className="text-xs leading-5 text-muted-foreground">Esta opção não bloqueia comunicações transacionais importantes relacionadas à sua conta.</p>
           </div>
