@@ -79,9 +79,9 @@ function saveFile(name: string, body: string, mimeType: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-const inputClass = "mt-1.5 w-full rounded-lg border border-white/15 bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-primary/60";
+const inputClass = "mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-primary/60";
 const fieldClass = "block text-xs font-medium text-muted-foreground";
-const cardClass = "rounded-xl border border-white/10 bg-white/[0.035] p-5";
+const cardClass = "rounded-xl border border-border bg-card p-5";
 
 function Field({ label, value, onChange, placeholder, type = "text" }: {
   label: string; value: string; onChange: (value: string) => void; placeholder?: string; type?: string;
@@ -226,7 +226,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
                   <Field label="Meta mensal de receita atribuída ao Google Ads (R$)" value={monthlyRevenue} onChange={setMonthlyRevenue} placeholder="Ex.: 12000" />
                 </div>
               </div>
-              <button onClick={exportPlan} type="button" className="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-medium hover:border-primary/50">
+              <button onClick={exportPlan} type="button" className="mt-6 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium hover:border-primary/50">
                 <Download className="size-4" aria-hidden="true" /> Baixar planejamento
               </button>
             </div>
@@ -247,7 +247,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
           </p>
           <div className={cardClass + " mt-5"}>
             <label className="block text-sm font-medium" htmlFor="ads-csv">Importar relatório CSV (até 5 MB)</label>
-            <input id="ads-csv" type="file" accept=".csv,text/csv" onChange={onReport} className="mt-3 block w-full text-xs file:mr-3 file:rounded-lg file:border file:border-white/15 file:bg-background file:px-3 file:py-2 file:text-foreground" />
+            <input id="ads-csv" type="file" accept=".csv,text/csv" onChange={onReport} className="mt-3 block w-full text-xs file:mr-3 file:rounded-lg file:border file:border-border file:bg-background file:px-3 file:py-2 file:text-foreground" />
             {fileError ? <p role="alert" className="mt-3 text-sm text-red-400">{fileError}</p> : null}
             {fileName ? <p className="mt-3 text-xs text-muted-foreground">Relatório carregado: {fileName} ({terms.length} termos)</p> : null}
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -264,12 +264,12 @@ export default function GoogleAdsTrafficAnalyzerClient() {
                 <p className="mt-5 text-xs leading-5 text-muted-foreground">
                   Zero conversões não prova irrelevância. Antes de negativar, confira intenção de busca, janela de conversão, volume e possíveis bloqueios a termos rentáveis. O custo histórico não é economia garantida.
                 </p>
-                <div className="mt-4 overflow-x-auto rounded-lg border border-white/10">
+                <div className="mt-4 overflow-x-auto rounded-lg border border-border">
                   <table className="min-w-[560px] w-full text-left text-sm">
                     <thead className="bg-background text-xs text-muted-foreground"><tr><th className="p-3">Termo para revisão</th><th className="p-3">Cliques</th><th className="p-3">Custo</th><th className="p-3">Conversões</th></tr></thead>
                     <tbody>
                       {candidates.slice(0, 100).map((term, index) => (
-                        <tr key={term.term + index} className="border-t border-white/10">
+                        <tr key={term.term + index} className="border-t border-border">
                           <td className="p-3">{term.term}</td><td className="p-3 tabular-nums">{formatCount(term.clicks)}</td><td className="p-3 tabular-nums">{money(term.cost)}</td><td className="p-3 tabular-nums">{formatCount(term.conversions)}</td>
                         </tr>
                       ))}
@@ -277,7 +277,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
                   </table>
                   {!candidates.length ? <p className="p-4 text-sm text-muted-foreground">Nenhum termo atende aos limites definidos.</p> : null}
                 </div>
-                <div className="mt-7 rounded-xl border border-white/10 bg-background p-4">
+                <div className="mt-7 rounded-xl border border-border bg-background p-4">
                   <h3 className="text-base font-semibold">Termos com potencial para novas palavras-chave</h3>
                   <p className="mt-2 text-xs leading-6 text-muted-foreground">
                     Consultas que já geraram conversões merecem análise como possíveis palavras-chave.
@@ -292,7 +292,7 @@ export default function GoogleAdsTrafficAnalyzerClient() {
                         </thead>
                         <tbody>
                           {keywordCandidates.map((term, index) => (
-                            <tr key={term.term + index} className="border-t border-white/10">
+                            <tr key={term.term + index} className="border-t border-border">
                               <td className="py-3 pr-3">{term.term}</td>
                               <td className="py-3 pr-3 tabular-nums">{formatCount(term.conversions)}</td>
                               <td className="py-3 pr-3 tabular-nums">{money(term.cost / term.conversions)}</td>
