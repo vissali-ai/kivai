@@ -55,8 +55,8 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
         <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">{config.pageTitle}</h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{config.heroDescription}</p>
         <div className="mt-6 flex flex-wrap gap-3 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2 border border-white/10 px-3 py-2"><Zap className="size-4 text-primary" /> {config.badgeOne}</span>
-          <span className="inline-flex items-center gap-2 border border-white/10 px-3 py-2"><ShieldCheck className="size-4 text-primary" /> {config.badgeTwo}</span>
+          <span className="inline-flex items-center gap-2 border border-border px-3 py-2"><Zap className="size-4 text-primary" /> {config.badgeOne}</span>
+          <span className="inline-flex items-center gap-2 border border-border px-3 py-2"><ShieldCheck className="size-4 text-primary" /> {config.badgeTwo}</span>
         </div>
       </section> : null}
 
@@ -64,12 +64,12 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
       <ToolFavoriteSlot className="mt-5" />
 
       {show("summaryPlans") ? <section className="mt-12 grid gap-4 md:grid-cols-3">
-        <div className="border border-white/10 bg-card p-5"><h2 className="font-semibold">{config.freeTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.freeDescription}</p></div>
+        <div className="border border-border bg-card p-5"><h2 className="font-semibold">{config.freeTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.freeDescription}</p></div>
         <div className="border border-primary/25 bg-primary/[0.04] p-5"><h2 className="font-semibold">{config.proTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.proDescription}</p></div>
-        <div className="border border-white/10 bg-card p-5"><h2 className="font-semibold">{config.agencyTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.agencyDescription}</p></div>
+        <div className="border border-border bg-card p-5"><h2 className="font-semibold">{config.agencyTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.agencyDescription}</p></div>
       </section> : null}
 
-      {show("audience") ? <section className="mt-16 border-t border-white/10 pt-12">
+      {show("audience") ? <section className="mt-16 border-t border-border pt-12">
         <div className="max-w-3xl">
           <div className="flex items-center gap-3"><UsersRound className="size-5 text-primary" /><h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.audienceTitle}</h2></div>
           <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">{config.audienceDescription}</p>
@@ -79,7 +79,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
       {show("plans") ? <section className="mt-12">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.plansTitle}</h2>
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
-          {plans.map((item) => <article key={item.title} className={`border p-5 sm:p-6 ${item.highlight ? "border-primary/30 bg-primary/[0.04]" : "border-white/10 bg-card"}`}>
+          {plans.map((item) => <article key={item.title} className={`border p-5 sm:p-6 ${item.highlight ? "border-primary/30 bg-primary/[0.04]" : "border-border bg-card"}`}>
             <h3 className="text-xl font-semibold">{item.title}</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>
             <ul className="mt-5 space-y-3">
@@ -100,7 +100,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
 
       {show("faq") ? <section className="mt-14">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.faqTitle}</h2>
-        <div className="mt-6 divide-y divide-white/10 border-y border-white/10">
+        <div className="mt-6 divide-y divide-white/10 border-y border-border">
           {config.faqItems.map((item) => <details key={item.question} className="group py-4">
             <summary className="cursor-pointer list-none pr-6 text-sm font-semibold marker:hidden sm:text-base">{item.question}</summary>
             <p className="mt-3 max-w-4xl text-sm leading-7 text-muted-foreground">{item.answer}</p>
@@ -117,7 +117,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
           </div>
         </div>
         <ul className="mt-6 grid gap-3 md:grid-cols-2">
-          {config.privacyItems.map((item) => <li key={item} className="flex gap-3 border border-white/10 bg-card/60 p-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" /><span>{item}</span></li>)}
+          {config.privacyItems.map((item) => <li key={item} className="flex gap-3 border border-border bg-card/60 p-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" /><span>{item}</span></li>)}
         </ul>
         <Link href="/privacidade" className="mt-6 inline-flex text-sm font-medium text-primary hover:underline">{config.privacyLinkLabel}</Link>
       </section> : null}

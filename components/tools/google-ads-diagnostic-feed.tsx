@@ -1,11 +1,11 @@
 import type { Diagnostic } from "@/lib/google-ads/diagnostics";
 
 const visuals = {
-  critical: { label: "Atenção imediata", tone: "border-red-400/35 bg-red-400/10 text-red-300" },
+  critical: { label: "Atenção imediata", tone: "border-red-400/35 bg-red-400/10 text-red-700" },
   attention: { label: "Investigar", tone: "border-amber-400/30 bg-amber-400/10 text-amber-200" },
   observe: { label: "Monitorar", tone: "border-sky-400/25 bg-sky-400/10 text-sky-200" },
   positive: { label: "Preservar", tone: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" },
-  missing: { label: "Dados pendentes", tone: "border-white/15 bg-white/[0.04] text-muted-foreground" },
+  missing: { label: "Dados pendentes", tone: "border-border bg-card text-muted-foreground" },
 } as const;
 
 const actions = {
@@ -20,7 +20,7 @@ export function GoogleAdsDiagnosticFeed({ insights, title = "Prioridades e recom
   insights: Diagnostic[]; title?: string;
 }) {
   return (
-    <section aria-label={title} className="mt-8 rounded-xl border border-white/10 bg-white/[0.025] p-5">
+    <section aria-label={title} className="mt-8 rounded-xl border border-border bg-card p-5">
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-xs leading-6 text-muted-foreground">
         Diagnóstico automático baseado em regras e nas métricas informadas. Não utiliza IA
@@ -32,7 +32,7 @@ export function GoogleAdsDiagnosticFeed({ insights, title = "Prioridades e recom
           {insights.map((item) => {
             const style = visuals[item.level];
             return (
-              <article key={item.id} className="rounded-lg border border-white/10 bg-background p-4">
+              <article key={item.id} className="rounded-lg border border-border bg-background p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className={"rounded-full border px-2.5 py-1 text-[11px] font-medium " + style.tone}>
                     {style.label}
@@ -41,7 +41,7 @@ export function GoogleAdsDiagnosticFeed({ insights, title = "Prioridades e recom
                 </div>
                 <h4 className="mt-3 text-sm font-semibold">{item.title}</h4>
                 <p className="mt-2 text-xs leading-6 text-muted-foreground">{item.finding}</p>
-                <div className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3">
+                <div className="mt-3 rounded-md border border-border bg-card p-3">
                   <p className="text-[11px] font-medium text-foreground">Evidência disponível</p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.evidence}</p>
                 </div>

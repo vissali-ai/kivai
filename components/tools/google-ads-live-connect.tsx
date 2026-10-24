@@ -335,16 +335,16 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
             "O recurso está sendo preparado. A conexão só será ativada quando o OAuth, a criptografia e o banco forem validados."}
         </p>
       ) : null}
-      {message ? <p className="mt-4 rounded-lg border border-white/10 p-3 text-xs leading-6">{message}</p> : null}
-      {error ? <p role="alert" className="mt-4 rounded-lg border border-red-500/20 p-3 text-xs leading-6 text-red-300">{error}</p> : null}
+      {message ? <p className="mt-4 rounded-lg border border-border p-3 text-xs leading-6">{message}</p> : null}
+      {error ? <p role="alert" className="mt-4 rounded-lg border border-red-500/20 p-3 text-xs leading-6 text-red-700">{error}</p> : null}
 
       {connections.length > 0 ? (
-        <div className="mt-7 rounded-xl border border-white/10 bg-background p-4 sm:p-5">
+        <div className="mt-7 rounded-xl border border-border bg-background p-4 sm:p-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <label className="block w-full max-w-sm text-xs font-medium text-muted-foreground">
               Autorização vinculada
               <select value={connectionId} onChange={(event) => setConnectionId(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2.5 text-sm text-foreground">
+                className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground">
                 {connections.map((conn, i) => (
                   <option key={conn.id} value={conn.id}>
                     Conexão {i + 1} · {new Date(conn.connected_at).toLocaleDateString("pt-BR")}
@@ -353,7 +353,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
               </select>
             </label>
             <button type="button" onClick={disconnect} disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50">
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50">
               <Unplug className="size-4" /> Desconectar
             </button>
           </div>
@@ -364,7 +364,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
             </label>
             <input id="google-ads-filter" value={accountFilter}
               onChange={(event) => setAccountFilter(event.target.value)}
-              className="mt-2 w-full rounded-lg border border-white/15 bg-background px-3 py-2.5 text-sm text-foreground"
+              className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground"
               placeholder="Ex.: clínica, loja ou ID da conta" />
             {loadingAccounts ? (
               <p className="mt-3 text-xs text-muted-foreground">Consultando suas contas e hierarquia MCC...</p>
@@ -381,7 +381,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
                 const key = account.customerId;
                 return (
                   <label key={key} className={"flex cursor-pointer items-start gap-3 rounded-lg border p-3 " +
-                    (selected === key ? "border-primary/50 bg-primary/[0.06]" : "border-white/10")}>
+                    (selected === key ? "border-primary/50 bg-primary/[0.06]" : "border-border")}>
                     <input type="radio" className="mt-1 size-4 accent-primary" name="google_ads_account"
                       value={key} checked={selected === key} disabled={account.manager}
                       onChange={() => { setSelected(key); setReport(null); }} />
@@ -407,7 +407,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
       ) : null}
 
       {report && snapshot && diagnostics ? (
-        <div className="mt-7 rounded-xl border border-white/10 bg-background p-4 sm:p-5">
+        <div className="mt-7 rounded-xl border border-border bg-background p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold">{report.account.name}</h3>
@@ -434,7 +434,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
               { label: "CPA médio", value: report.totals.conversions > 0
                 ? fmt(report.totals.cost / report.totals.conversions, report.account.currencyCode || "BRL") : "N/D" },
             ].map((item) => (
-              <div key={item.label} className="rounded-lg border border-white/10 p-3">
+              <div key={item.label} className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground">{item.label}</p>
                 <p className="mt-2 break-words text-lg font-semibold tabular-nums">{item.value}</p>
               </div>
@@ -444,7 +444,7 @@ export function GoogleAdsLiveConnect({ goals, onSnapshot }: {
             <h4 className="text-sm font-semibold">Meta proporcional até {report.to}</h4>
             {Object.values(diagnostics.pacing).filter((x): x is NonNullable<typeof x> => x !== null)
               .map((item) => (
-                <div key={item.label} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2.5 text-xs">
+                <div key={item.label} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2.5 text-xs">
                   <span className="font-medium">{item.label}</span>
                   <span className="text-muted-foreground">
                     {item.unit === "count" ? num(item.actual) : fmt(item.actual, report.account.currencyCode || "BRL")}
