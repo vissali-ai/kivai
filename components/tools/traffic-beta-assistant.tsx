@@ -156,18 +156,18 @@ export function TrafficBetaAssistant({ snapshot }: {
       </div>
 
       {logged === false ? (
-        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-background p-4">
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-background p-4">
           <Link href={signupUrl} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
             Criar conta e experimentar
           </Link>
-          <Link href={loginUrl} className="rounded-lg border border-white/15 px-4 py-2.5 text-sm font-medium">
+          <Link href={loginUrl} className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium">
             Já tenho conta
           </Link>
           <p className="text-xs leading-5 text-muted-foreground">Uma cota de 10 créditos por conta com e-mail confirmado.</p>
         </div>
       ) : null}
       {wallet && !wallet.eligible ? (
-        <p className="mt-5 rounded-lg border border-white/15 p-3 text-sm text-muted-foreground">
+        <p className="mt-5 rounded-lg border border-border p-3 text-sm text-muted-foreground">
           Confirme o e-mail do cadastro para ativar seus créditos beta.
         </p>
       ) : null}
@@ -177,7 +177,7 @@ export function TrafficBetaAssistant({ snapshot }: {
         </p>
       ) : null}
 
-      <details className="group mt-7 rounded-xl border border-white/10 bg-background/50 p-4">
+      <details className="group mt-7 rounded-xl border border-border bg-background/50 p-4">
         <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold">
           <CircleHelp className="size-4 text-primary" aria-hidden="true" />
           Que relatórios podem aprofundar a análise?
@@ -187,14 +187,14 @@ export function TrafficBetaAssistant({ snapshot }: {
           Quando um dado não estiver disponível, ou enquanto a integração não estiver ativa,
           basta exportar o relatório correspondente no Google Ads. As opções abaixo indicam o nome habitual da área.
         </p>
-        <div className="mt-4 overflow-x-auto rounded-lg border border-white/10">
+        <div className="mt-4 overflow-x-auto rounded-lg border border-border">
           <table className="min-w-[640px] w-full text-left text-xs">
             <thead className="bg-background text-muted-foreground">
               <tr><th className="p-3">Análise</th><th className="p-3">Pela API</th><th className="p-3">Se precisar baixar</th></tr>
             </thead>
             <tbody>
               {reportSources.map((source) => (
-                <tr key={source.kind} className="border-t border-white/10">
+                <tr key={source.kind} className="border-t border-border">
                   <td className="p-3 font-medium">{source.label}</td>
                   <td className="p-3 text-muted-foreground">{source.api}</td>
                   <td className="p-3 text-muted-foreground">{source.manual}</td>
@@ -205,7 +205,7 @@ export function TrafficBetaAssistant({ snapshot }: {
         </div>
       </details>
 
-      <div className="mt-7 rounded-xl border border-white/10 bg-background p-5">
+      <div className="mt-7 rounded-xl border border-border bg-background p-5">
         <div className="flex items-center gap-2">
           <FileUp className="size-4 text-primary" aria-hidden="true" />
           <h3 className="text-sm font-semibold">Relatórios complementares para a análise com IA (opcional)</h3>
@@ -218,7 +218,7 @@ export function TrafficBetaAssistant({ snapshot }: {
         <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1.2fr]">
           <label className="text-xs font-medium text-muted-foreground">
             Origem do relatório
-            <select className="mt-2 w-full rounded-lg border border-white/15 bg-background p-2.5 text-sm text-foreground"
+            <select className="mt-2 w-full rounded-lg border border-border bg-background p-2.5 text-sm text-foreground"
               value={kind} onChange={(event) => setKind(event.target.value as ReportKind)}>
               {reportSources.map((source) => <option key={source.kind} value={source.kind}>{source.label}</option>)}
             </select>
@@ -226,17 +226,17 @@ export function TrafficBetaAssistant({ snapshot }: {
           <label className="text-xs font-medium text-muted-foreground">
             Selecionar arquivo
             <input type="file" accept=".csv,.tsv,.txt,.xlsx" disabled={loading || files.length >= 3}
-              onChange={addReport} className="mt-2 block w-full text-xs file:mr-3 file:rounded-lg file:border file:border-white/15 file:bg-background file:px-3 file:py-2 file:text-foreground" />
+              onChange={addReport} className="mt-2 block w-full text-xs file:mr-3 file:rounded-lg file:border file:border-border file:bg-background file:px-3 file:py-2 file:text-foreground" />
           </label>
         </div>
         {fileError ? <p role="alert" className="mt-3 text-xs text-red-400">{fileError}</p> : null}
         {files.length ? (
           <div className="mt-4 space-y-2">
             {files.map((file, index) => (
-              <div key={file.name + index} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2">
+              <div key={file.name + index} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
                 <p className="min-w-0 flex-1 break-all text-xs">
                   {file.name}
-                  {file.truncated ? <span className="ml-2 text-amber-300">Prévia parcial do arquivo</span> : null}
+                  {file.truncated ? <span className="ml-2 text-amber-700">Prévia parcial do arquivo</span> : null}
                 </p>
                 <button type="button" disabled={loading} onClick={() => setFiles((previous) => previous.filter((_, i) => i !== index))}
                   className="text-xs font-medium text-primary hover:underline">Remover</button>
@@ -254,7 +254,7 @@ export function TrafficBetaAssistant({ snapshot }: {
       </label>
 
       {!snapshot ? (
-        <p className="mt-4 rounded-lg border border-white/10 bg-background p-3 text-xs text-muted-foreground">
+        <p className="mt-4 rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
           Para pedir diagnóstico com IA, importe um CSV de campanhas ou conecte uma conta Google Ads e atualize suas métricas.
         </p>
       ) : (
@@ -275,12 +275,12 @@ export function TrafficBetaAssistant({ snapshot }: {
       </p>
 
       {analysis ? (
-        <div className="mt-8 rounded-xl border border-white/10 bg-background p-5" aria-live="polite">
+        <div className="mt-8 rounded-xl border border-border bg-background p-5" aria-live="polite">
           <h3 className="text-lg font-semibold">Diagnóstico complementar com IA</h3>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">{analysis.summary}</p>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             {analysis.recommendations.map((item, index) => (
-              <article key={index} className="rounded-lg border border-white/10 p-4">
+              <article key={index} className="rounded-lg border border-border p-4">
                 <p className="text-xs font-medium text-primary">
                   {actionLabel[item.decision]} · Prioridade {item.priority}
                 </p>
@@ -294,7 +294,7 @@ export function TrafficBetaAssistant({ snapshot }: {
             ))}
           </div>
           {analysis.missingData.length > 0 ? (
-            <div className="mt-6 rounded-lg border border-white/10 p-4">
+            <div className="mt-6 rounded-lg border border-border p-4">
               <h4 className="text-sm font-semibold">Dados que podem aprimorar a análise</h4>
               <ul className="mt-2 list-inside list-disc space-y-1.5 text-xs leading-6 text-muted-foreground">
                 {analysis.missingData.map((item) => <li key={item}>{item}</li>)}
