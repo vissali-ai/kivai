@@ -134,6 +134,34 @@
   --sidebar-ring: oklch(0.70 0.19 275);
 }
 
+/* Superfícies de autenticação: as cores permanecem claras mesmo que
+   uma preferência/estilo de tema escuro seja aplicada externamente. */
+.kivai-auth-page {
+  color-scheme: light;
+  --background: #ECEFF3;
+  --foreground: #202938;
+  --card: #F9FAFC;
+  --card-foreground: #202938;
+  --popover: #FFFFFF;
+  --popover-foreground: #202938;
+  --primary: #5847AD;
+  --primary-foreground: #FFFFFF;
+  --border: #D5DCE7;
+  --input: #CFD7E3;
+  --ring: #5847AD;
+  --muted: #E4E8EF;
+  --muted-foreground: #546174;
+  --secondary: #E4E9F1;
+  --secondary-foreground: #283347;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.kivai-auth-page :is(input, select, textarea) {
+  color-scheme: light;
+  color: var(--foreground);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

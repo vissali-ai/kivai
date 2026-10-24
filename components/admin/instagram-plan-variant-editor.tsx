@@ -210,7 +210,7 @@ export function InstagramPlanVariantEditor({ initialVariants }: { initialVariant
                 <label className={fieldClass}><span>URL da imagem</span><Input value={step.imageUrl} onChange={(e) => setStep(index, "imageUrl", e.target.value)} /></label>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:bg-muted/20"><Upload className="size-4" />{uploadingStep === index ? "Enviando..." : "Enviar/substituir imagem"}<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingStep === index} onChange={(e) => uploadStepImage(index, e.target.files?.[0])} /></label>
               </div>
-              <div className="flex min-h-52 items-center justify-center border border-border bg-black/20 p-3">{step.imageUrl ? <img src={step.imageUrl} alt={`Prévia ${planLabel} passo ${index + 1}`} className="max-h-96 w-auto max-w-full object-contain" /> : <p className="text-center text-xs text-muted-foreground">Nenhuma imagem configurada.</p>}</div>
+              <div className="flex min-h-52 items-center justify-center border border-border bg-muted/70 p-3">{step.imageUrl ? <img src={step.imageUrl} alt={`Prévia ${planLabel} passo ${index + 1}`} className="max-h-96 w-auto max-w-full object-contain" /> : <p className="text-center text-xs text-muted-foreground">Nenhuma imagem configurada.</p>}</div>
             </article>
           ))}
         </div>
