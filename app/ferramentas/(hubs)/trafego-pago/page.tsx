@@ -67,10 +67,10 @@ export default function TrafegoPagoHub() {
               const content = (
                 <div className="flex min-h-[152px] flex-col">
                   <div className="flex items-start justify-between">
-                    <span className="flex size-8 items-center justify-center text-indigo-300">
+                    <span className="flex size-8 items-center justify-center text-indigo-700">
                       <Icon className="size-4" aria-hidden="true" />
                     </span>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">
+                    <span className="rounded-full border border-border bg-muted/70 px-2 py-0.5 text-[10px] text-muted-foreground">
                       {tool.available ? tool.badge : "Em breve"}
                     </span>
                   </div>
