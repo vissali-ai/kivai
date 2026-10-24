@@ -275,7 +275,7 @@ export function GlobalSearch({ prominent = false }: { prominent?: boolean }) {
               setSelectedIndex(0);
               inputRef.current?.focus();
             }}
-            className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-white/[0.06] hover:text-foreground"
+            className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
             aria-label="Limpar busca"
           >
             <X className="size-3.5" />
@@ -287,7 +287,7 @@ export function GlobalSearch({ prominent = false }: { prominent?: boolean }) {
         <div
           id={resultsId}
           role="listbox"
-          className={`absolute top-[calc(100%+8px)] z-[80] max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-card p-1.5 shadow-xl shadow-black/30 ${prominent ? "left-0 w-full" : "right-0 w-[min(92vw,430px)]"}`}
+          className={`absolute top-[calc(100%+8px)] z-[80] max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-card p-1.5 shadow-lg shadow-black/10 ${prominent ? "left-0 w-full" : "right-0 w-[min(92vw,430px)]"}`}
         >
           {orderedResults.length ? (
             <div className="space-y-1">
@@ -302,17 +302,17 @@ export function GlobalSearch({ prominent = false }: { prominent?: boolean }) {
                   className={`flex items-start gap-2.5 rounded-lg px-3 py-2.5 transition ${
                     selectedIndex === index
                       ? "bg-primary/10 text-foreground"
-                      : "hover:bg-white/[0.045]"
+                      : "hover:bg-muted/70"
                   }`}
                 >
-                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.025] text-primary">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 text-primary">
                     <ResultIcon type={item.type} />
                   </span>
 
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-medium text-foreground">{item.title}</span>
-                      <span className="rounded-full border border-white/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                      <span className="rounded-full border border-border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
                         {typeLabels[item.type]}
                       </span>
                     </span>
