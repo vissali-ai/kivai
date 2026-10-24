@@ -16,7 +16,7 @@ export function LoginForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <label className="block space-y-1.5 text-sm"><span>E-mail administrativo</span><Input name="email" type="email" required autoComplete="username" className="h-10" /></label>
       <label className="block space-y-1.5 text-sm"><span>Senha</span><Input name="password" type="password" required autoComplete="current-password" className="h-10" /></label>
-      {state.error ? <p className="border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{state.error}</p> : null}
+      {state.error ? <p className="border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-700">{state.error}</p> : null}
       <Button type="submit" disabled={pending} className="h-10 w-full"><LogIn />{pending ? "Entrando..." : "Entrar no painel"}</Button>
     </form>
   );
