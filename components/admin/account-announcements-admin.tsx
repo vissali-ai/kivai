@@ -80,7 +80,7 @@ export function AccountAnnouncementsAdmin({ initialNotices }: { initialNotices: 
     } finally { setBusy(false); }
   }
 
-  return <section className="rounded-2xl border border-white/10 bg-card p-5 sm:p-6">
+  return <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h2 className="flex items-center gap-2 text-xl font-semibold"><BellRing className="size-5 text-primary" /> Avisos no painel dos usuários</h2>
@@ -89,7 +89,7 @@ export function AccountAnnouncementsAdmin({ initialNotices }: { initialNotices: 
       <Button size="sm" variant="outline" type="button" disabled={busy} onClick={startNew}><Plus className="size-4" /> Novo aviso</Button>
     </div>
     <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <form onSubmit={save} className="grid content-start gap-3 rounded-xl border border-white/10 p-4">
+      <form onSubmit={save} className="grid content-start gap-3 rounded-xl border border-border p-4">
         <p className="text-sm font-semibold">{editingId ? "Editar aviso" : "Criar aviso"}</p>
         <label className="grid gap-1 text-sm"><span>Título</span>
           <Input required minLength={3} maxLength={140} value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} />
@@ -123,7 +123,7 @@ export function AccountAnnouncementsAdmin({ initialNotices }: { initialNotices: 
         <h3 className="text-sm font-semibold">Avisos cadastrados ({notices.length})</h3>
         {!notices.length ? <p className="text-sm text-muted-foreground">Nenhum aviso cadastrado.</p> : null}
         <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1">
-          {notices.map((notice) => <article key={notice.id} className={`rounded-xl border p-3 ${notice.id === editingId ? "border-primary/50" : "border-white/10"}`}>
+          {notices.map((notice) => <article key={notice.id} className={`rounded-xl border p-3 ${notice.id === editingId ? "border-primary/50" : "border-border"}`}>
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{notice.title}</p>
