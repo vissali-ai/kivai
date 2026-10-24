@@ -5,5 +5,5 @@ import { noIndexRobots } from "@/lib/seo";
 export const metadata: Metadata = { title: "Redefinir senha", robots: noIndexRobots };
 
 export default function ResetPasswordPage() {
-  return <main className="flex min-h-[78vh] items-center justify-center px-4 py-20"><ResetPasswordForm /></main>;
+  return <main className="kivai-auth-page flex min-h-[78vh] items-center justify-center px-4 py-20"><ResetPasswordForm /></main>;
 }
