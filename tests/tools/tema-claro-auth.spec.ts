@@ -20,11 +20,16 @@ for (const route of authenticationRoutes) {
       const card = node.querySelector("section");
       const cardBackground = card ? getComputedStyle(card).backgroundColor : "";
       const text = getComputedStyle(node).color;
-      return { background, cardBackground, text };
+      const input = node.querySelector("input:not([type=hidden])");
+      const inputBackground = input ? getComputedStyle(input).backgroundColor : "";
+      const inputText = input ? getComputedStyle(input).color : "";
+      return { background, cardBackground, text, inputBackground, inputText };
     });
     expect(palette.background).toBe("rgb(236, 239, 243)");
     expect(palette.cardBackground).toBe("rgb(249, 250, 252)");
     expect(palette.text).toBe("rgb(32, 41, 56)");
+    expect(palette.inputBackground).toBe("rgb(249, 250, 252)");
+    expect(palette.inputText).toBe("rgb(32, 41, 56)");
   });
 }
 
