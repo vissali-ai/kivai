@@ -16,8 +16,7 @@ export function Hero() {
 
         <p className="mt-5 max-w-3xl text-[15px] leading-7 text-[#546174] sm:mt-6 sm:text-lg sm:leading-8">
           Ferramentas e serviços para criar, otimizar e acelerar seus resultados
-          no digital. Favorite suas ferramentas e crie um painel personalizado do
-          seu jeito.
+          no digital. Favorite suas ferramentas e crie um painel personalizado.
         </p>
 
         <div className="mt-8">
