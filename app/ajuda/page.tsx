@@ -122,7 +122,7 @@ export default function AjudaPage() {
           <h2 id="help-topics-title" className="sr-only">Principais assuntos de ajuda</h2>
           {helpTopics.map(({ icon: Icon, title, text }) => (
             <article key={title} className="rounded-2xl border border-border bg-muted/10 p-6 sm:p-7">
-              <span className="flex size-10 items-center justify-center rounded-xl border border-border bg-white/[0.04] text-primary">
+              <span className="flex size-10 items-center justify-center rounded-xl border border-border bg-card text-primary">
                 <Icon className="size-5" aria-hidden="true" />
               </span>
               <h3 className="mt-5 text-xl font-semibold">{title}</h3>
