@@ -121,7 +121,7 @@ export default async function ServicosPage() {
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <section
         id="servicos"
-        className="relative overflow-hidden border-y border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-28"
+        className="relative overflow-hidden border-y border-border bg-background py-20 sm:py-24 lg:py-28"
       >
         <div
           aria-hidden="true"
@@ -145,7 +145,7 @@ export default async function ServicosPage() {
 
             <h1 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Serviços para ampliar seus{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 resultados digitais.
               </span>
             </h1>
@@ -164,7 +164,7 @@ export default async function ServicosPage() {
                 <Link
                   key={service.title}
                   href={service.href}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/35 hover:bg-white/[0.045] sm:p-7"
+                  className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 transition duration-300 hover:border-primary/35 hover:bg-white sm:p-7"
                 >
                   <div
                     aria-hidden="true"
@@ -184,7 +184,7 @@ export default async function ServicosPage() {
                           </span>
                         )}
 
-                        <span className="flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-muted-foreground transition duration-300 group-hover:border-primary/30 group-hover:bg-primary/10 group-hover:text-primary">
+                        <span className="flex size-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition duration-300 group-hover:border-primary/30 group-hover:bg-primary/10 group-hover:text-primary">
                           <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                         </span>
                       </div>
@@ -198,7 +198,7 @@ export default async function ServicosPage() {
                       {service.description}
                     </p>
 
-                    <div className="mt-7 border-t border-white/10 pt-5">
+                    <div className="mt-7 border-t border-border pt-5">
                       <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground transition group-hover:text-primary">
                         {service.action}
                         <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />

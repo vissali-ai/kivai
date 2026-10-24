@@ -117,7 +117,7 @@ export default function FerramentasPage() {
                 className="group rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/70"
               >
                 <div className="flex min-h-[152px] flex-col">
-                  <div className="flex h-8 items-center gap-2 text-xs text-emerald-300">
+                  <div className="flex h-8 items-center gap-2 text-xs text-emerald-700">
                     <CheckCircle2 aria-hidden="true" className="size-4" />
                     Documentada
                   </div>

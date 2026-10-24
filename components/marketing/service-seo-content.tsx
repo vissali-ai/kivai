@@ -96,7 +96,7 @@ export function ServiceSeoContent({
   items: ServiceSeoItem[];
 }) {
   return (
-    <section className="relative border-b border-white/5 py-20 sm:py-24 lg:py-28">
+    <section className="relative border-b border-border py-20 sm:py-24 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
@@ -115,7 +115,7 @@ export function ServiceSeoContent({
           {items.map((item) => (
             <article
               key={item.title}
-              className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 sm:p-7"
+              className="rounded-3xl border border-border bg-card p-6 sm:p-7"
             >
               <CheckCircle2 className="size-5 text-primary" />
               <h3 className="mt-5 text-lg font-semibold tracking-tight">
@@ -142,7 +142,7 @@ export function ServiceFaqSection({
   faqs: ServiceFaq[];
 }) {
   return (
-    <section className="relative border-b border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-28">
+    <section className="relative border-b border-border bg-background py-20 sm:py-24 lg:py-28">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
@@ -161,7 +161,7 @@ export function ServiceFaqSection({
           {faqs.map((faq) => (
             <details
               key={faq.question}
-              className="group rounded-2xl border border-white/10 bg-white/[0.025] p-5 open:border-primary/25 open:bg-primary/[0.05] sm:p-6"
+              className="group rounded-2xl border border-border bg-card p-5 open:border-primary/25 open:bg-primary/[0.05] sm:p-6"
             >
               <summary className="cursor-pointer list-none pr-8 text-base font-semibold marker:hidden sm:text-lg">
                 {faq.question}
@@ -183,9 +183,9 @@ export function RelatedServiceArticles({
   articles: RelatedServiceArticle[];
 }) {
   return (
-    <section className="relative border-b border-white/5 py-16 sm:py-20">
+    <section className="relative border-b border-border py-16 sm:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/[0.09] via-white/[0.025] to-cyan-400/[0.04] p-6 sm:p-8">
+        <div className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/[0.09] via-card to-cyan-400/[0.04] p-6 sm:p-8">
           <p className="text-sm font-medium text-primary">Conteúdo relacionado</p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
             Saiba mais antes de contratar
@@ -195,7 +195,7 @@ export function RelatedServiceArticles({
               <Link
                 key={article.slug}
                 href={`/blog/${article.slug}`}
-                className="group rounded-2xl border border-white/10 bg-black/10 p-5 transition hover:border-primary/30 hover:bg-primary/[0.06]"
+                className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/30 hover:bg-primary/[0.06]"
               >
                 <h3 className="font-semibold">{article.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">

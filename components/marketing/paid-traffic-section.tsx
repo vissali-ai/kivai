@@ -39,7 +39,7 @@ export function PaidTrafficSection() {
   return (
    <section
   id="servicos"
-  className="relative overflow-hidden border-t border-white/5 bg-[#07080d] py-20 sm:py-24 lg:py-32"
+  className="relative overflow-hidden border-t border-border bg-background py-20 sm:py-24 lg:py-32"
 >
       <div
         aria-hidden="true"
@@ -59,7 +59,7 @@ export function PaidTrafficSection() {
 
             <h2 className="mt-6 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Gestão de tráfego pago para{" "}
-              <span className="bg-gradient-to-r from-primary via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-primary">
                 transformar investimento em crescimento.
               </span>
             </h2>
@@ -95,7 +95,7 @@ export function PaidTrafficSection() {
 
             <a
               href="#contato"
-              className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_0_35px_rgba(99,102,241,0.18)] transition hover:brightness-110 sm:w-auto"
+              className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110 sm:w-auto"
             >
               Solicitar uma análise
               <ArrowRight className="size-4" />
@@ -109,7 +109,7 @@ export function PaidTrafficSection() {
               return (
                 <article
                   key={benefit.title}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-white/[0.05]"
+                  className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 transition duration-300 hover:border-primary/30 hover:bg-white"
                 >
                   <div
                     aria-hidden="true"

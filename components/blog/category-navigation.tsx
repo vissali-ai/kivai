@@ -9,7 +9,7 @@ const activeClass =
   "shrink-0 border border-primary/35 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary";
 
 const inactiveClass =
-  "shrink-0 border border-white/10 bg-white/[0.025] px-3 py-2 text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground";
+  "shrink-0 border border-border bg-card px-3 py-2 text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground";
 
 export function BlogCategoryNavigation({ categories }: { categories: Category[] }) {
   const pathname = usePathname();
@@ -18,7 +18,7 @@ export function BlogCategoryNavigation({ categories }: { categories: Category[] 
   return (
     <nav
       aria-label="Categorias do blog"
-      className="sticky top-16 z-30 border-y border-white/[0.08] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85"
+      className="sticky top-16 z-30 border-y border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85"
     >
       <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
         <Link
