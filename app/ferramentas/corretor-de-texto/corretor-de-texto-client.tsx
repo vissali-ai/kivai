@@ -65,7 +65,7 @@ export default function CorretorDeTextoClient() {
 
   return <section className="mx-auto max-w-6xl px-4 pb-12 pt-28 sm:px-6 lg:px-8">
     <header className="mb-8 max-w-3xl">
-      <p className="text-sm font-medium uppercase tracking-wider text-primary">Hub Texto</p>
+      
       <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Corretor de Texto com IA</h1>
       <p className="mt-3 text-muted-foreground">Corrija ortografia, gramática, concordância e pontuação com inteligência artificial, preservando o sentido do seu texto.</p>
     </header>
