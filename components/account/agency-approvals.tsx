@@ -8,6 +8,33 @@ import { getStoredSession } from "@/lib/user-auth";
 import type { ApprovalDraft, ApprovalRecord, ApprovalStatus, ApprovalVersion } from "@/lib/agency/approval-schema";
 
 const initial: ApprovalDraft = { clientName: "", title: "", platform: "Instagram", caption: "", mediaDataUrl: "" };
+type SavedSource = { key: string; label: string; clientName: string; title: string; platform: string; caption: string; image: string };
+const platforms = ["Instagram", "Facebook", "TikTok", "YouTube", "LinkedIn", "X", "Threads", "Outra"] as const;
+function normalizePlatform(platform: string): ApprovalDraft["platform"] {
+  return platforms.find(value => value === platform) ?? "Outra";
+}
+function sourcesFromProject(project: { id: string; kind: string; title: string; client_name: string; payload: unknown }): SavedSource[] {
+  const base = { clientName: project.client_name ?? "" };
+  if (project.kind === "calendar" && Array.isArray(project.payload)) {
+    return project.payload.slice(0, 100).flatMap((item: unknown, index: number) => {
+      const p = item as Record<string, unknown>;
+      if (typeof p.title !== "string") return [];
+      const caption = [p.caption, p.cta, p.hashtags].filter(v => typeof v === "string" && v.trim()).join("\n\n");
+      return [{ ...base, key: project.id + ":" + index, label: project.title + " · " + p.title, title: p.title, platform: String(p.network ?? "Instagram"), caption, image: "" }];
+    });
+  }
+  if (!project.payload || typeof project.payload !== "object") return [];
+  const payload = project.payload as Record<string, unknown>;
+  if (project.kind === "post_creator") {
+    return [{ ...base, key: project.id, label: "Criador: " + project.title, title: String(payload.title ?? project.title), platform: String((payload.brief as { platform?: string } | undefined)?.platform ?? "Instagram"), caption: String(payload.caption ?? ""), image: String(payload.image ?? "") }];
+  }
+  if (project.kind === "preview_post") {
+    const settings = payload.settings as Record<string, unknown> | undefined;
+    if (!settings) return [];
+    return [{ ...base, key: project.id, label: "Preview: " + project.title, title: project.title, platform: String(settings.platform ?? "Instagram"), caption: String(settings.caption ?? ""), image: "" }];
+  }
+  return [];
+}
 const statusNames: Record<ApprovalStatus, string> = { pending: "Aguardando aprovação", approved: "Aprovado", changes_requested: "Ajustes solicitados", revoked: "Revogado" };
 
 async function resizeImage(file: File) {
@@ -52,6 +79,8 @@ export function AgencyApprovals() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [versions, setVersions] = useState<Record<string, ApprovalVersion[]>>({});
+  const [sources, setSources] = useState<SavedSource[]>([]);
+  const [loadingSources, setLoadingSources] = useState(false);
   const [versionLoading, setVersionLoading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,6 +127,32 @@ export function AgencyApprovals() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao revogar."); }
     finally { setBusy(false); }
   }
+  async function loadSources() {
+    setLoadingSources(true); setError("");
+    try {
+      const token = getStoredSession()?.access_token;
+      if (!token) throw Error("Faça login novamente.");
+      const response = await fetch("/api/account/projects", { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+      const data = await response.json() as { projects?: Array<{ id: string; kind: string; title: string; client_name: string; payload: unknown }>; error?: string };
+      if (!response.ok) throw Error(data.error ?? "Não foi possível carregar projetos.");
+      setSources((data.projects ?? []).flatMap(sourcesFromProject));
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao carregar projetos."); }
+    finally { setLoadingSources(false); }
+  }
+  async function importSource(key: string) {
+    const source = sources.find(item => item.key === key);
+    if (!source) return;
+    setError("");
+    let image = "";
+    if (source.image && /^data:image\/(?:jpeg|png|webp);base64,/.test(source.image)) {
+      try {
+        const blob = await (await fetch(source.image)).blob();
+        image = await resizeImage(new File([blob], "arte-kivai.png", { type: blob.type }));
+      } catch { setMessage("O texto foi importado. Anexe manualmente a arte, se necessário."); }
+    }
+    setDraft(previous => ({ ...previous, clientName: source.clientName || previous.clientName, title: source.title.slice(0,160), platform: normalizePlatform(source.platform), caption: source.caption.slice(0,8000), mediaDataUrl: image || previous.mediaDataUrl }));
+    setMessage("Conteúdo importado do projeto salvo. Revise os campos antes de enviar.");
+  }
   async function loadVersions(id: string) {
     setVersionLoading(id); setError("");
     try {
@@ -123,6 +178,17 @@ export function AgencyApprovals() {
     </div>
     <form id="agency-approval-editor" onSubmit={save} className="scroll-mt-28 space-y-4 rounded-xl border border-border p-4">
       <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-semibold">{editing ? "Nova versão para aprovação" : "Criar solicitação de aprovação"}</h3>{editing ? <Button type="button" variant="outline" size="sm" onClick={reset}><RotateCcw className="mr-2 size-4" /> Cancelar edição</Button> : null}</div>
+      <div className="space-y-2 rounded-md bg-muted/20 p-3">
+        <p className="text-sm font-medium">Aproveitar um projeto de conteúdo existente</p>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" variant="outline" disabled={loadingSources} onClick={() => void loadSources()}>{loadingSources ? "Carregando..." : "Buscar projetos salvos"}</Button>
+          {sources.length ? <select aria-label="Importar projeto" className="min-h-10 min-w-0 max-w-full flex-1 rounded-md border border-input bg-background px-2 text-sm" defaultValue="" onChange={event => { if (event.target.value) void importSource(event.target.value); }}>
+            <option value="">Escolha uma publicação salva...</option>
+            {sources.map(source => <option key={source.key} value={source.key}>{source.label}</option>)}
+          </select> : null}
+        </div>
+        <p className="text-xs text-muted-foreground">Importe legendas do Criador de Posts, Calendário Editorial ou Preview. Confira a arte antes do envio.</p>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-medium">Cliente<input list="agency-client-options" required minLength={2} maxLength={100} value={draft.clientName} onChange={e => setDraft(prev => ({ ...prev, clientName: e.target.value }))} placeholder="Nome da empresa ou cliente" className="mt-2 min-h-11 w-full rounded-md border border-input bg-background p-3" /><datalist id="agency-client-options">{uniqueClients.map(name => <option key={name} value={name} />)}</datalist></label>
         <label className="text-sm font-medium">Rede social<select value={draft.platform} onChange={e => setDraft(prev => ({ ...prev, platform: e.target.value as ApprovalDraft["platform"] }))} className="mt-2 min-h-11 w-full rounded-md border border-input bg-background p-3">{(["Instagram","Facebook","TikTok","YouTube","LinkedIn","X","Threads","Outra"] as const).map(value => <option key={value}>{value}</option>)}</select></label>
