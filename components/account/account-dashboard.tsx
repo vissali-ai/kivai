@@ -8,7 +8,6 @@ import { getStoredSession, signOut, supabaseUserFetch } from "@/lib/user-auth";
 import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 
 import { useAccountAccess } from "@/lib/billing/access-client";
-import { planBenefits } from "@/lib/billing/plan-benefits";
 import { SavedProjects } from "@/components/account/saved-projects";
 import { MyFavoriteTools } from "@/components/account/my-favorite-tools";
 import { AccountNotifications } from "@/components/account/account-notifications";
@@ -132,7 +131,16 @@ export function AccountDashboard() {
     {userId ? <div id="painel-creditos" tabIndex={-1} className="scroll-mt-28"><AiCreditBalance /></div> : null}
     {userId ? <AccountWelcome userId={userId} firstName={firstName} /> : null}
     <div id="painel-favoritos" tabIndex={-1} className="scroll-mt-28"><MyFavoriteTools /></div>
-    <div id="painel-projetos" tabIndex={-1} className="scroll-mt-28"><SavedProjects showInstagramHighlight /></div>
+    <div id="painel-projetos" tabIndex={-1} className="scroll-mt-28"><SavedProjects /></div>
+    {plan ? <section id="painel-plano" tabIndex={-1} className="scroll-mt-28 rounded-2xl border border-border bg-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">{plan === "agency" ? "Área Agency" : "Área Pro"}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{plan === "free" ? "Conheça os benefícios dos planos Pro e Agency." : "Acesse seus benefícios, histórico e recursos exclusivos do plano."}</p>
+        </div>
+        <Button asChild><Link href={plan === "free" ? "/planos" : "/conta/pro"}>{plan === "free" ? "Conhecer benefícios" : "Abrir benefícios"} <ArrowRight className="size-4" /></Link></Button>
+      </div>
+    </section> : null}
     <section id="painel-historico" tabIndex={-1} className="scroll-mt-28">
       <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-5">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary"><History className="size-5" aria-hidden="true" /></span>
@@ -145,7 +153,6 @@ export function AccountDashboard() {
 
     {snapshots.length ? <section className="overflow-hidden rounded-2xl border border-border bg-card"><div className="flex items-center gap-3 border-b border-border p-5"><History className="size-5 text-primary" /><div><h2 className="font-semibold">Análises recentes</h2><p className="mt-1 text-xs text-muted-foreground">Histórico privado dos seus perfis do Instagram.</p></div></div><div className="divide-y divide-white/5">{snapshots.map((snapshot) => <div key={snapshot.id} className="grid gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center"><div><p className="font-medium">@{snapshot.username || "instagram"}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(snapshot.analyzed_at).toLocaleString("pt-BR")}</p></div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguidores</span>{Number(snapshot.follower_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguindo</span>{Number(snapshot.following_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Novos</span>{snapshot.new_followers_count == null ? "-" : Number(snapshot.new_followers_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Unfollows</span>{snapshot.unfollowers_count == null ? "-" : Number(snapshot.unfollowers_count).toLocaleString("pt-BR")}</div></div>)}</div></section> : null}
 
-    {plan ? <section id="painel-plano" tabIndex={-1} className="scroll-mt-28 rounded-2xl border border-primary/25 bg-card p-5"><h2 className="text-xl font-semibold">Seus benefícios {plan === 'free' ? 'Grátis' : plan === 'pro' ? 'Pro' : 'Agency'}</h2><ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">{planBenefits[plan].map(item => <li key={item} className="flex gap-2"><CheckCircle2 className="size-4 shrink-0 text-primary" />{item}</li>)}</ul>{plan !== 'free' ? <><p className="mt-3 text-sm text-muted-foreground">Válido até {access?.subscription?.current_period_end ? new Date(access.subscription.current_period_end).toLocaleDateString('pt-BR') : '—'}{access?.subscription?.provider?.startsWith('admin_') ? ' · Acesso concedido pelo administrador' : ''}</p><Button asChild className="mt-4"><Link href="/conta/pro">Abrir Área {plan === 'agency' ? 'Agency' : 'Pro'} <ArrowRight /></Link></Button></> : <Button asChild className="mt-4"><Link href="/planos">Conhecer benefícios pagos</Link></Button>}</section> : null}
     <div id="painel-avisos" tabIndex={-1} className="scroll-mt-28"><AccountNotifications /></div>
     <div id="painel-lembretes" tabIndex={-1} className="scroll-mt-28"><RoutineReminderSettings /></div>
     {paymentError ? <p role="alert" className="rounded border border-destructive/40 p-4 text-sm">{paymentError}</p> : null}
