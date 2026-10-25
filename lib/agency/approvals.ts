@@ -105,3 +105,8 @@ export async function getApprovalVersions(userId: string, id: string): Promise<A
   );
   return rows.map(row => ({ version: row.version, title: row.title, platform: row.platform, caption: row.caption, mediaDataUrl: row.media_data_url, statusAtCreation: row.status_at_creation, createdAt: row.created_at }));
 }
+
+export async function deleteOwnerApproval(userId: string, id: string): Promise<boolean> {
+  const rows = await supabaseRest<Row[]>(`agency_content_approvals?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(userId)}`, { method: "DELETE" });
+  return rows.length > 0;
+}
