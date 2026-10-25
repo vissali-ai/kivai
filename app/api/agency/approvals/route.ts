@@ -2,7 +2,7 @@ import { z } from "zod";
 import { authenticateBillingUser } from "@/lib/billing/sumup";
 import { getAccountAccess } from "@/lib/billing/access";
 import { approvalDraft } from "@/lib/agency/approval-schema";
-import { createApproval, listApprovals, changeOwnerApproval } from "@/lib/agency/approvals";
+import { createApproval, listApprovals, changeOwnerApproval, getApprovalVersions } from "@/lib/agency/approvals";
 
 export const runtime = "nodejs";
 const headers = { "Cache-Control": "private, no-store" };
@@ -21,7 +21,15 @@ function accessError(error: unknown) {
   return fail("Não foi possível acessar as aprovações. Tente novamente.", 503);
 }
 export async function GET(request: Request) {
-  try { const userId = await agency(request); return Response.json({ approvals: await listApprovals(userId) }, { headers }); }
+  try {
+    const userId = await agency(request);
+    const versionId = new URL(request.url).searchParams.get("versions");
+    if (versionId) {
+      if (!z.uuid().safeParse(versionId).success) return fail("Solicitação inválida.", 400);
+      return Response.json({ versions: await getApprovalVersions(userId, versionId) }, { headers });
+    }
+    return Response.json({ approvals: await listApprovals(userId) }, { headers });
+  }
   catch (error) { return accessError(error); }
 }
 export async function POST(request: Request) {
