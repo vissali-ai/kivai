@@ -3,7 +3,7 @@ import { test, expect, openTool, expectNoOverflow, imageFile, download, imageDet
 test("manual artwork exports, round-trips and transfers only after confirmation", async ({ page }, testInfo) => {
   await openTool(page, "criador-de-posts-com-ia");
   await expect(page.getByRole("button", { name: "Baixar arte em PNG" })).toBeEnabled();
-  await expect(page.getByRole("button", { name: "Gerar imagem · 5 créditos" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /Gerar imagem/ })).toHaveCount(0);
   await page.getByLabel("Título da arte").fill("Café feito para sua pausa");
   await page.getByLabel("Legenda para publicar").fill("Conheça nossos cafés. #cafe");
   await page.getByRole("combobox", { name: /^Formato/ }).selectOption("story");
@@ -39,7 +39,7 @@ test("AI suggestions remain staged until applied and preserve artwork", async ({
   let calls = 0;
   await page.route("**/api/ai/post-creator", async route => {
     calls++; expect(route.request().postDataJSON().consent).toBe(true);
-    await route.fulfill({ json: { content: { title: "Pausa para café", subtitle: "Seu novo ritual", caption: "Venha conhecer", cta: "Visite", hashtags: ["#cafe"], imagePrompt: "Uma xícara de café sobre mesa", slides: [{ title: "Slide um", body: "Primeiro passo" }] } } });
+    await route.fulfill({ json: { content: { title: "Pausa para café", subtitle: "Seu novo ritual", caption: "Venha conhecer", cta: "Visite", hashtags: ["#cafe"], slides: [{ title: "Slide um", body: "Primeiro passo" }] } } });
   });
   await openTool(page, "criador-de-posts-com-ia");
   await expect(page.getByRole("button", { name: "Baixar arte em PNG" })).toBeEnabled();
