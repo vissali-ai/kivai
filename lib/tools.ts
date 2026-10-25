@@ -915,11 +915,11 @@ export const tools: Tool[] = [
   {
     slug: "criador-de-posts-com-ia",
     name: "Criador de Posts para Redes Sociais com IA",
-    description: "Crie legendas e artes editáveis com IA. Personalize cores, textos e logotipo, salve seu projeto e confira no Preview.",
+    description: "Crie legendas, títulos, CTAs, hashtags e roteiros de carrossel com IA e revise tudo antes de publicar.",
     category: "social", hubFilter: "Criar", badge: "IA", icon: WandSparkles, available: true,
     seoTitle: "Criador de Posts para Redes Sociais com IA | Kivai",
-    seoDescription: "Crie conteúdo e artes para redes sociais com IA, edite textos, cores e logotipo, baixe PNG e visualize seu post antes de publicar.",
-    keywords: ["criador de posts com ia", "gerador de posts", "criar post instagram", "arte para redes sociais"],
+    seoDescription: "Crie conteúdo para redes sociais com IA: legendas, títulos, CTAs, hashtags e roteiros de carrossel para revisar e adaptar antes de publicar.",
+    keywords: ["criador de posts com ia", "gerador de posts", "criar post instagram", "legenda para redes sociais", "conteúdo para redes sociais"],
   },
   {
     slug: "analisador-de-posts",
