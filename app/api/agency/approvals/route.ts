@@ -2,7 +2,7 @@ import { z } from "zod";
 import { authenticateBillingUser } from "@/lib/billing/sumup";
 import { getAccountAccess } from "@/lib/billing/access";
 import { approvalDraft } from "@/lib/agency/approval-schema";
-import { createApproval, listApprovals, changeOwnerApproval, getApprovalVersions } from "@/lib/agency/approvals";
+import { createApproval, listApprovals, changeOwnerApproval, getApprovalVersions, deleteOwnerApproval } from "@/lib/agency/approvals";
 
 export const runtime = "nodejs";
 const headers = { "Cache-Control": "private, no-store" };
@@ -57,5 +57,17 @@ export async function PATCH(request: Request) {
     const approval = await changeOwnerApproval(userId, id, action, action === "resubmit" ? parsed.data.draft : undefined);
     if (!approval) return fail("A solicitação foi alterada ou não está disponível.", 409);
     return Response.json({ approval }, { headers });
+  } catch (error) { if (error instanceof SyntaxError) return fail("Dados inválidos.", 400); return accessError(error); }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const userId = await agency(request);
+    const raw = await request.text();
+    if (Buffer.byteLength(raw) > 1000) return fail("Solicitação inválida.", 400);
+    const parsed = z.object({ id: z.uuid() }).safeParse(JSON.parse(raw));
+    if (!parsed.success) return fail("Solicitação inválida.", 400);
+    if (!(await deleteOwnerApproval(userId, parsed.data.id))) return fail("Solicitação não encontrada.", 404);
+    return Response.json({ ok: true }, { headers });
   } catch (error) { if (error instanceof SyntaxError) return fail("Dados inválidos.", 400); return accessError(error); }
 }
