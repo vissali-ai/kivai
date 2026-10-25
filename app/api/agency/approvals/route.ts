@@ -2,7 +2,7 @@ import { z } from "zod";
 import { authenticateBillingUser } from "@/lib/billing/sumup";
 import { getAccountAccess } from "@/lib/billing/access";
 import { approvalDraft } from "@/lib/agency/approval-schema";
-import { createApproval, listApprovals, changeOwnerApproval, getApprovalVersions, deleteOwnerApproval } from "@/lib/agency/approvals";
+import { createApproval, listApprovals, changeOwnerApproval, getApprovalVersions, deleteOwnerApproval, getApprovalDetails } from "@/lib/agency/approvals";
 
 export const runtime = "nodejs";
 const headers = { "Cache-Control": "private, no-store" };
@@ -23,7 +23,14 @@ function accessError(error: unknown) {
 export async function GET(request: Request) {
   try {
     const userId = await agency(request);
-    const versionId = new URL(request.url).searchParams.get("versions");
+    const params = new URL(request.url).searchParams;
+    const detailId = params.get("item");
+    if (detailId) {
+      if (!z.uuid().safeParse(detailId).success) return fail("Solicitação inválida.", 400);
+      const approval = await getApprovalDetails(userId, detailId);
+      return approval ? Response.json({ approval }, { headers }) : fail("Solicitação não encontrada.", 404);
+    }
+    const versionId = params.get("versions");
     if (versionId) {
       if (!z.uuid().safeParse(versionId).success) return fail("Solicitação inválida.", 400);
       return Response.json({ versions: await getApprovalVersions(userId, versionId) }, { headers });
