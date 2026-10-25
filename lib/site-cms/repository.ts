@@ -198,7 +198,7 @@ export async function listManagedSiteContents(): Promise<ManagedSiteContent[]> {
   const [stored, hubs] = await Promise.all([listStoredSiteContents(), listSiteHubs()]);
   const byExistingSlug = new Map(stored.filter((item) => item.existingToolSlug).map((item) => [item.existingToolSlug, item]));
   const hubBySlug = new Map(hubs.map((hub) => [hub.slug, hub.id]));
-  const categoryHub: Record<string, string> = { imagens: "imagens", pdf: "pdfs", calculadoras: "calculadoras", texto: "texto", social: "social-media", video: "videos", arquivos: "arquivos" };
+  const categoryHub: Record<string, string> = { imagens: "imagens", pdf: "pdfs", calculadoras: "calculadoras", texto: "texto", social: "social-media", video: "videos", arquivos: "arquivos", "smart-tv": "smart-tv-tv-box" };
   const defaultMostUsed = new Map(["removedor-de-fundo", "calculadora-de-porcentagem", "compressor-de-imagens", "gerador-de-qr-code", "pdf-para-imagens", "montar-pdf-para-impressao"].map((slug, index) => [slug, index + 1]));
   const virtual: ManagedSiteContent[] = tools.filter((tool) => !byExistingSlug.has(tool.slug)).map((tool) => ({
     id: `existing:${tool.slug}`, contentType: "tool", slug: tool.slug, path: `/ferramentas/${tool.slug}`,

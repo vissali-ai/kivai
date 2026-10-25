@@ -1,0 +1,30 @@
+Kivai Connect 0.1 beta - Windows - somente leitura
+
+1. Baixe Android SDK Platform Tools para Windows exclusivamente de:
+   https://developer.android.com/tools/releases/platform-tools
+   Leia e aceite os termos do Google. O ADB nao e distribuido neste pacote.
+2. Extraia a pasta platform-tools ao lado de KivaiConnect.exe.
+3. Abra KivaiConnect.exe. Nao requer acesso de administrador.
+4. Na TV Android/Google TV compativel, habilite Depuracao sem fio.
+   Na opcao Parear por codigo, use IP, porta e codigo no auxiliar.
+5. Informe a porta de CONEXAO da tela principal de depuracao sem fio.
+6. Revise a coleta e digite COLETAR para autorizar.
+7. No site https://www.kivai.com.br/ferramentas/kivai-connect cole o codigo
+   de sessao mostrado. Se o navegador bloquear, importe o arquivo
+   %LOCALAPPDATA%\KivaiConnect\kivai-tv.json gerado pelo auxiliar.
+8. Feche o auxiliar e desative a depuracao sem fio ao terminar.
+
+Nunca abra portas do roteador. Nunca compartilhe codigos de pareamento.
+O auxiliar atende somente 127.0.0.1:47831, por ate 10 minutos, e apenas
+entrega o relatorio coletado a uma sessao autorizada do site Kivai.
+Nao recebe nem executa comandos do navegador ou da IA.
+O arquivo local pode conter nomes de pacotes. Exclua-o se nao quiser manter.
+Parear autoriza o computador na TV; revogue-o nas configuracoes da TV.
+
+Este beta nao tem assinatura digital de distribuicao. Se o Windows ou uma
+politica corporativa bloquear, nao desative protecoes; aguarde uma versao
+assinada ou use um computador autorizado. Compativeis dependem do firmware.
+Sem homologacao fisica de modelos nesta versao.
+
+Codigo-fonte incluido em KivaiConnect.cs. Compilacao Windows .NET Framework:
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /r:System.Web.Extensions.dll /out:KivaiConnect.exe KivaiConnect.cs

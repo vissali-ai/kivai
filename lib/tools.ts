@@ -33,6 +33,7 @@ import {
   Unlock,
   Video,
   Music,
+  Tv,
 } from "lucide-react";
 
 export type ToolCategory =
@@ -52,7 +53,8 @@ export type ToolCategory =
   | "ia"
   | "utilitarios"
   | "empresas"
-  | "trafego";
+  | "trafego"
+  | "smart-tv";
 
 export interface ToolCategoryDefinition {
   slug: ToolCategory;
@@ -133,6 +135,11 @@ export const toolCategories: ToolCategoryDefinition[] = [
       "Planeje campanhas, acompanhe metas e analise relatórios Google Ads com ferramentas para gestores.",
     href: "/ferramentas/trafego-pago",
     icon: BarChart3,
+  },
+  {
+    slug: "smart-tv", name: "Smart TV e TV Box",
+    description: "Diagnóstico e orientação para Android TV e Google TV com conexão local autorizada.",
+    href: "/ferramentas/smart-tv-tv-box", icon: Tv,
   },
 ];
 
@@ -240,6 +247,14 @@ export function isToolIndexable(slug: string) {
 }
 
 export const tools: Tool[] = [
+  {
+    slug: "kivai-connect", name: "Kivai Connect",
+    description: "Conheça sua TV com diagnóstico local gratuito e orientações opcionais com IA. Requer auxiliar Windows e pareamento autorizado.",
+    category: "smart-tv", hubFilter: "Diagnóstico", badge: "Beta · Windows", icon: Tv, available: true,
+    seoTitle: "Kivai Connect: diagnóstico de Android TV e Google TV",
+    seoDescription: "Consulte modelo, sistema, armazenamento e aplicativos da sua Android TV com o auxiliar Kivai Connect para Windows. Diagnóstico somente leitura.",
+    keywords: ["diagnóstico Android TV", "Google TV", "TV Box", "Kivai Connect"],
+  },
   {
     slug: "analisador-de-trafego-pago-google-ads",
     name: "Analisador de Tráfego Pago Google Ads",

@@ -1,4 +1,5 @@
 import { duplexEditorial } from "@/lib/duplex-print/catalog";
+import { connectEditorial } from "@/lib/kivai-connect/content";
 import { postCreatorEditorial } from "@/lib/post-creator/editorial";
 import { pdfParaExcelEditorialOverride } from "@/lib/pdf-para-excel-editorial-override";
 import { pdfParaHtmlEditorialOverride } from "@/lib/pdf-para-html-editorial-override";
@@ -63,6 +64,7 @@ function list(items: readonly string[], ordered = false) {
 }
 
 export function inferToolMode(slug: string): ToolImplementationMode {
+  if (slug === "kivai-connect") return "auto";
   if (slug === "criador-de-posts-com-ia") return "server";
   if (serverTools.has(slug)) return "server";
   if (informationalTools.has(slug)) return "informational";
@@ -70,6 +72,7 @@ export function inferToolMode(slug: string): ToolImplementationMode {
 }
 
 export function getExistingToolEditorialHtml(slug: string) {
+  if (slug === "kivai-connect") return connectEditorial;
   if (slug === "imprimir-frente-e-verso") return duplexEditorial;
   const content = sources.find((source) => source[slug])?.[slug];
   if (!content) return "";
