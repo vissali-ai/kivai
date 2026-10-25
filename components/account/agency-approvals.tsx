@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { CheckCircle2, Clipboard, ExternalLink, FilePenLine, MessageSquareText, RotateCcw, ShieldX } from "lucide-react";
+import { CheckCircle2, Clipboard, ExternalLink, FilePenLine, MessageSquareText, RotateCcw, ShieldX, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
 import type { ApprovalDraft, ApprovalRecord, ApprovalStatus, ApprovalVersion } from "@/lib/agency/approval-schema";
@@ -59,7 +59,7 @@ async function resizeImage(file: File) {
     throw Error("Imagem muito detalhada. Selecione uma versão menor.");
   } finally { bitmap.close(); }
 }
-async function api(method: "GET" | "POST" | "PATCH", body?: unknown) {
+async function api(method: "GET" | "POST" | "PATCH" | "DELETE", body?: unknown) {
   const token = getStoredSession()?.access_token;
   if (!token) throw Error("Faça login novamente para gerenciar aprovações.");
   const response = await fetch("/api/agency/approvals", {
@@ -115,6 +115,16 @@ export function AgencyApprovals() {
       setDraft(initial); setEditing(null);
       setMessage("Solicitação salva! Copie o link abaixo e envie ao cliente.");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao salvar."); }
+    finally { setBusy(false); }
+  }
+  async function removeApproval(row: ApprovalRecord) {
+    if (busy || !window.confirm("Excluir definitivamente esta solicitação e seu histórico? O link será invalidado.")) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await api("DELETE", { id: row.id });
+      setItems(previous => previous.filter(item => item.id !== row.id));
+      setMessage("Solicitação e histórico excluídos.");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao excluir."); }
     finally { setBusy(false); }
   }
   async function revoke(row: ApprovalRecord) {
@@ -223,6 +233,7 @@ export function AgencyApprovals() {
           <div className="flex flex-wrap gap-2">
             {live && row.link ? <><Button variant="outline" size="sm" onClick={() => void copy(row.link!)}><Clipboard className="mr-2 size-4" />Copiar link</Button><Button asChild variant="outline" size="sm"><a href={row.link} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-2 size-4" />Visualizar</a></Button><Button asChild variant="outline" size="sm"><a href={`https://wa.me/?text=${encodeURIComponent("Olá! Revise e aprove o conteúdo da publicação: " + row.link)}`} target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a></Button><Button asChild variant="outline" size="sm"><a href={`mailto:?subject=${encodeURIComponent("Aprovação de publicação — " + row.title)}&body=${encodeURIComponent("Olá! Por favor, revise o conteúdo e registre sua aprovação ou ajustes no link: " + row.link)}`}>Enviar por e-mail</a></Button></> : null}
             {row.status !== "revoked" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => loadForRevision(row)}><FilePenLine className="mr-2 size-4" />Nova versão</Button> : null}
+            <Button variant="outline" size="sm" disabled={busy} onClick={() => void removeApproval(row)}><Trash2 className="mr-2 size-4" />Excluir</Button>
             {row.status === "pending" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => void revoke(row)}><ShieldX className="mr-2 size-4" />Revogar</Button> : null}
           </div>
           <div className="space-y-2">
