@@ -71,7 +71,7 @@ const plans: readonly Plan[] = [
     monthly: "R$ 59,90/mês",
     annual: "R$ 599/ano",
     annualNote: "Economize R$ 119,80 no plano anual",
-    description: "Para agências, social medias e profissionais que precisam acompanhar vários clientes em uma operação organizada e recorrente.",
+    description: "Para agências e social medias: organize clientes e envie artes e legendas para aprovação por link privado, sem cadastro do cliente.",
     features: [
       "Até 20 contas ou clientes",
       "Histórico separado por perfil",
@@ -80,6 +80,8 @@ const plans: readonly Plan[] = [
       "Relatórios organizados por cliente",
       "Análise ampliada da exportação oficial da Meta",
       "Estrutura preparada para operações com maior volume",
+      "Kivai Aprova: aprovação de publicações por links privados, sem login do cliente",
+      "Solicitações de ajustes, histórico de versões e revogação de links",
     ],
     highlighted: false,
   },
