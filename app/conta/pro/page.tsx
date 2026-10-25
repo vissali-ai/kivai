@@ -3,7 +3,7 @@ import { ProDashboard } from "@/components/account/pro-dashboard";
 import { noIndexRobots } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Área Pro",
+  title: "Área Pro e Agency",
   robots: noIndexRobots,
 };
 
