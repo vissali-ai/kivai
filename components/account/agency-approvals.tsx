@@ -5,7 +5,7 @@ import Image from "next/image";
 import { CheckCircle2, Clipboard, ExternalLink, FilePenLine, MessageSquareText, RotateCcw, ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
-import type { ApprovalDraft, ApprovalRecord, ApprovalStatus } from "@/lib/agency/approval-schema";
+import type { ApprovalDraft, ApprovalRecord, ApprovalStatus, ApprovalVersion } from "@/lib/agency/approval-schema";
 
 const initial: ApprovalDraft = { clientName: "", title: "", platform: "Instagram", caption: "", mediaDataUrl: "" };
 const statusNames: Record<ApprovalStatus, string> = { pending: "Aguardando aprovação", approved: "Aprovado", changes_requested: "Ajustes solicitados", revoked: "Revogado" };
@@ -51,6 +51,8 @@ export function AgencyApprovals() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [versions, setVersions] = useState<Record<string, ApprovalVersion[]>>({});
+  const [versionLoading, setVersionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -90,6 +92,18 @@ export function AgencyApprovals() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao revogar."); }
     finally { setBusy(false); }
   }
+  async function loadVersions(id: string) {
+    setVersionLoading(id); setError("");
+    try {
+      const token = getStoredSession()?.access_token;
+      if (!token) throw Error("Faça login novamente.");
+      const response = await fetch(`/api/agency/approvals?versions=${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+      const data = await response.json() as { versions?: ApprovalVersion[]; error?: string };
+      if (!response.ok) throw Error(data.error || "Não foi possível carregar as versões.");
+      setVersions(previous => ({ ...previous, [id]: data.versions ?? [] }));
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao carregar versões."); }
+    finally { setVersionLoading(null); }
+  }
   async function copy(link: string) {
     try { await navigator.clipboard.writeText(link); setMessage("Link de aprovação copiado."); }
     catch { setError("Não foi possível copiar. Abra o link para compartilhá-lo manualmente."); }
@@ -112,11 +126,12 @@ export function AgencyApprovals() {
       <div className="space-y-2">
         <label htmlFor="agency-art-upload" className="block text-sm font-medium">Arte da publicação (opcional)</label>
         <input id="agency-art-upload" type="file" accept="image/jpeg,image/png,image/webp" className="block w-full text-sm" onChange={async event => {
-          const file = event.target.files?.[0]; if (!file) return;
+          const input = event.currentTarget;
+          const file = input.files?.[0]; if (!file) return;
           setError("");
           try { const mediaDataUrl = await resizeImage(file); setDraft(prev => ({ ...prev, mediaDataUrl })); }
           catch (cause) { setError(cause instanceof Error ? cause.message : "Imagem inválida."); }
-          event.currentTarget.value = "";
+          input.value = "";
         }} />
         <p className="text-xs text-muted-foreground">Aceita JPG, PNG e WebP (até 10 MB). Uma imagem otimizada é armazenada para revisão; arquivos originais não são enviados.</p>
         {draft.mediaDataUrl ? <div className="space-y-2"><Image src={draft.mediaDataUrl} alt="Prévia da arte" unoptimized width={500} height={500} className="max-h-64 w-auto max-w-full rounded-md border object-contain" /><Button variant="outline" type="button" size="sm" onClick={() => setDraft(prev => ({ ...prev, mediaDataUrl: "" }))}>Remover imagem</Button></div> : null}
@@ -138,7 +153,18 @@ export function AgencyApprovals() {
             {row.status !== "revoked" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => loadForRevision(row)}><FilePenLine className="mr-2 size-4" />Nova versão</Button> : null}
             {row.status === "pending" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => void revoke(row)}><ShieldX className="mr-2 size-4" />Revogar</Button> : null}
           </div>
-          <details className="text-sm"><summary className="cursor-pointer text-muted-foreground">Histórico de versões e decisões</summary><ul className="mt-2 space-y-2">{row.history.map((event,index) => <li key={index} className="rounded-md bg-muted/20 p-2">{new Date(event.at).toLocaleString("pt-BR")} · Versão {event.version} · {event.actor} · {statusNames[event.action as ApprovalStatus] ?? (event.action === "resubmitted" ? "Nova versão" : "Solicitação criada")}{event.comment ? ` — ${event.comment}` : ""}</li>)}</ul></details>
+          <div className="space-y-2">
+            <Button variant="outline" size="sm" type="button" disabled={versionLoading === row.id} onClick={() => void loadVersions(row.id)}>
+              {versionLoading === row.id ? "Carregando versões..." : "Visualizar versões salvas"}
+            </Button>
+            {versions[row.id] ? <div className="space-y-3">{versions[row.id].map(version => <div key={version.version} className="rounded-md bg-muted/20 p-3 text-sm">
+              <p className="font-semibold">Versão {version.version} · {new Date(version.createdAt).toLocaleString("pt-BR")}</p>
+              <p className="mt-1">{version.title} · {version.platform}</p>
+              {version.caption ? <p className="mt-2 whitespace-pre-wrap break-words text-muted-foreground">{version.caption}</p> : null}
+              {version.mediaDataUrl ? <Image src={version.mediaDataUrl} unoptimized width={400} height={400} alt={`Arte da versão ${version.version}`} className="mt-2 max-h-56 w-auto max-w-full rounded-md object-contain" /> : null}
+            </div>)}</div> : null}
+          </div>
+          <details className="text-sm"><summary className="cursor-pointer text-muted-foreground">Histórico de ações e decisões</summary><ul className="mt-2 space-y-2">{row.history.map((event,index) => <li key={index} className="rounded-md bg-muted/20 p-2">{new Date(event.at).toLocaleString("pt-BR")} · Versão {event.version} · {event.actor} · {statusNames[event.action as ApprovalStatus] ?? (event.action === "resubmitted" ? "Nova versão" : "Solicitação criada")}{event.comment ? ` — ${event.comment}` : ""}</li>)}</ul></details>
         </article>;
       })}</div>
     </div>
