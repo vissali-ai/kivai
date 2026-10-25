@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { SITE_URL } from "@/lib/seo";
-import type { ApprovalDraft, ApprovalEvent, ApprovalRecord, ApprovalStatus } from "@/lib/agency/approval-schema";
+import type { ApprovalDraft, ApprovalEvent, ApprovalRecord, ApprovalStatus, ApprovalVersion } from "@/lib/agency/approval-schema";
 
 type Row = {
   id: string; user_id: string; client_name: string; title: string; platform: ApprovalDraft["platform"];
@@ -95,4 +95,13 @@ export async function decideApproval(token: string, reviewerName: string, decisi
     body: JSON.stringify({ status: decision, reviewer_name: reviewerName, feedback, responded_at: now, history, updated_at: now }),
   });
   return updated[0] ? map(updated[0]) : null;
+}
+
+export async function getApprovalVersions(userId: string, id: string): Promise<ApprovalVersion[]> {
+  const owner = await getOwnerApproval(userId, id);
+  if (!owner) return [];
+  const rows = await supabaseRest<Array<{ version: number; title: string; platform: string; caption: string; media_data_url: string; status_at_creation: string; created_at: string }>>(
+    `agency_content_approval_versions?select=version,title,platform,caption,media_data_url,status_at_creation,created_at&approval_id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(userId)}&order=version.desc&limit=100`
+  );
+  return rows.map(row => ({ version: row.version, title: row.title, platform: row.platform, caption: row.caption, mediaDataUrl: row.media_data_url, statusAtCreation: row.status_at_creation, createdAt: row.created_at }));
 }
