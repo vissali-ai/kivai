@@ -26,3 +26,8 @@ export type ApprovalRecord = ApprovalDraft & {
   reviewerName: string; feedback: string; respondedAt: string | null;
   history: ApprovalEvent[]; updatedAt: string; createdAt: string; link?: string;
 };
+
+export type ApprovalVersion = {
+  version: number; title: string; platform: string; caption: string; mediaDataUrl: string;
+  statusAtCreation: string; createdAt: string;
+};
