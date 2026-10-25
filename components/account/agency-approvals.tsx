@@ -98,10 +98,21 @@ export function AgencyApprovals() {
   }, []);
 
   function reset() { setDraft(initial); setEditing(null); setError(""); setMessage(""); }
-  function loadForRevision(row: ApprovalRecord) {
-    setDraft({ clientName: row.clientName, title: row.title, platform: row.platform, caption: row.caption, mediaDataUrl: row.mediaDataUrl });
-    setEditing(row.id); setError(""); setMessage("Edite o conteúdo e envie uma nova versão. O link anterior deixará de funcionar.");
-    document.getElementById("agency-approval-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  async function loadForRevision(row: ApprovalRecord) {
+    setBusy(true); setError("");
+    try {
+      const token = getStoredSession()?.access_token;
+      if (!token) throw Error("Faça login novamente.");
+      const response = await fetch(`/api/agency/approvals?item=${encodeURIComponent(row.id)}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+      const data = await response.json() as { approval?: ApprovalRecord; error?: string };
+      if (!response.ok || !data.approval) throw Error(data.error || "Não foi possível abrir esta versão.");
+      const full = data.approval;
+      setDraft({ clientName: full.clientName, title: full.title, platform: full.platform, caption: full.caption, mediaDataUrl: full.mediaDataUrl });
+      setEditing(full.id);
+      setMessage("Edite o conteúdo e envie uma nova versão. O link anterior deixará de funcionar.");
+      document.getElementById("agency-approval-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao abrir versão."); }
+    finally { setBusy(false); }
   }
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -232,7 +243,7 @@ export function AgencyApprovals() {
           {row.feedback ? <p className="rounded-md bg-muted/30 p-3 text-sm"><MessageSquareText className="mr-2 inline size-4" />{row.reviewerName}: {row.feedback}</p> : row.reviewerName ? <p className="text-sm text-muted-foreground"><CheckCircle2 className="mr-2 inline size-4" />Respondido por: {row.reviewerName}</p> : null}
           <div className="flex flex-wrap gap-2">
             {live && row.link ? <><Button variant="outline" size="sm" onClick={() => void copy(row.link!)}><Clipboard className="mr-2 size-4" />Copiar link</Button><Button asChild variant="outline" size="sm"><a href={row.link} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-2 size-4" />Visualizar</a></Button><Button asChild variant="outline" size="sm"><a href={`https://wa.me/?text=${encodeURIComponent("Olá! Revise e aprove o conteúdo da publicação: " + row.link)}`} target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a></Button><Button asChild variant="outline" size="sm"><a href={`mailto:?subject=${encodeURIComponent("Aprovação de publicação — " + row.title)}&body=${encodeURIComponent("Olá! Por favor, revise o conteúdo e registre sua aprovação ou ajustes no link: " + row.link)}`}>Enviar por e-mail</a></Button></> : null}
-            {row.status !== "revoked" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => loadForRevision(row)}><FilePenLine className="mr-2 size-4" />Nova versão</Button> : null}
+            {row.status !== "revoked" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => void loadForRevision(row)}><FilePenLine className="mr-2 size-4" />Nova versão</Button> : null}
             <Button variant="outline" size="sm" disabled={busy} onClick={() => void removeApproval(row)}><Trash2 className="mr-2 size-4" />Excluir</Button>
             {row.status === "pending" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => void revoke(row)}><ShieldX className="mr-2 size-4" />Revogar</Button> : null}
           </div>
