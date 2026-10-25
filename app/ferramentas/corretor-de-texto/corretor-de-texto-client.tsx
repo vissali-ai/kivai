@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Clipboard, Copy, Eraser, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SavedProjects } from "@/components/account/saved-projects";
 import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 import { getStoredSession } from "@/lib/user-auth";
 import type { ProofreaderOutput } from "@/lib/ai/text-proofreader";
@@ -69,6 +70,11 @@ export default function CorretorDeTextoClient() {
       <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Corretor de Texto com IA</h1>
       <p className="mt-3 text-muted-foreground">Corrija ortografia, gramática, concordância e pontuação com inteligência artificial, preservando o sentido do seu texto.</p>
     </header>
+    <SavedProjects kind="proofreader" payload={{ text, tone, result }} onLoad={value => {
+      const saved = value as { text?: string; tone?: string; result?: ProofreaderOutput | null };
+      if (typeof saved.text !== "string" || !tones.some(option => option.value === saved.tone)) return;
+      edit(saved.text); setTone(saved.tone!); setResult(saved.result ?? null);
+    }} />
     <Card>
       <CardHeader><CardTitle>Revisão inteligente</CardTitle></CardHeader>
       <CardContent>
