@@ -59,7 +59,13 @@ export function AgencyApprovals() {
     void api("GET").then(data => { if (active) setItems(data.approvals ?? []); })
       .catch(cause => { if (active) setError(cause instanceof Error ? cause.message : "Não foi possível carregar."); })
       .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      void api("GET").then(data => { if (active) setItems(data.approvals ?? []); }).catch(() => { /* Manual refresh remains available */ });
+    };
+    const timer = window.setInterval(refresh, 60000);
+    window.addEventListener("focus", refresh);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, []);
 
   function reset() { setDraft(initial); setEditing(null); setError(""); setMessage(""); }
@@ -149,7 +155,7 @@ export function AgencyApprovals() {
           <div className="flex flex-wrap justify-between gap-2"><div><h4 className="font-semibold">{row.title}</h4><p className="mt-1 text-xs text-muted-foreground">{row.clientName} · {row.platform} · Versão {row.version}</p></div><span className="text-xs font-medium text-primary">{row.status === "pending" && !live ? "Link expirado" : statusNames[row.status]}</span></div>
           {row.feedback ? <p className="rounded-md bg-muted/30 p-3 text-sm"><MessageSquareText className="mr-2 inline size-4" />{row.reviewerName}: {row.feedback}</p> : row.reviewerName ? <p className="text-sm text-muted-foreground"><CheckCircle2 className="mr-2 inline size-4" />Respondido por: {row.reviewerName}</p> : null}
           <div className="flex flex-wrap gap-2">
-            {live && row.link ? <><Button variant="outline" size="sm" onClick={() => void copy(row.link!)}><Clipboard className="mr-2 size-4" />Copiar link</Button><Button asChild variant="outline" size="sm"><a href={row.link} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-2 size-4" />Visualizar</a></Button><Button asChild variant="outline" size="sm"><a href={`https://wa.me/?text=${encodeURIComponent("Olá! Revise e aprove o conteúdo da publicação: " + row.link)}`} target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a></Button></> : null}
+            {live && row.link ? <><Button variant="outline" size="sm" onClick={() => void copy(row.link!)}><Clipboard className="mr-2 size-4" />Copiar link</Button><Button asChild variant="outline" size="sm"><a href={row.link} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-2 size-4" />Visualizar</a></Button><Button asChild variant="outline" size="sm"><a href={`https://wa.me/?text=${encodeURIComponent("Olá! Revise e aprove o conteúdo da publicação: " + row.link)}`} target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a></Button><Button asChild variant="outline" size="sm"><a href={`mailto:?subject=${encodeURIComponent("Aprovação de publicação — " + row.title)}&body=${encodeURIComponent("Olá! Por favor, revise o conteúdo e registre sua aprovação ou ajustes no link: " + row.link)}`}>Enviar por e-mail</a></Button></> : null}
             {row.status !== "revoked" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => loadForRevision(row)}><FilePenLine className="mr-2 size-4" />Nova versão</Button> : null}
             {row.status === "pending" ? <Button variant="outline" size="sm" disabled={busy} onClick={() => void revoke(row)}><ShieldX className="mr-2 size-4" />Revogar</Button> : null}
           </div>
