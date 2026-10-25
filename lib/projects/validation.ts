@@ -19,5 +19,6 @@ export const projectInput = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("trend_radar"), payload: z.record(z.string(), z.unknown()) }),
   z.object({ ...common, kind: z.literal("margin"), payload: z.record(z.string(), z.unknown()) }),
   z.object({ ...common, kind: z.literal("markup"), payload: z.record(z.string(), z.unknown()) }),
+  z.object({ ...common, kind: z.literal("proofreader"), payload: z.object({ text: z.string().max(8000), tone: z.enum(["preservar", "formal", "profissional", "casual", "academico"]), result: z.object({ correctedText: z.string().max(12000), summary: z.string().max(700), changes: z.array(z.object({ original: z.string().max(180), replacement: z.string().max(180), explanation: z.string().max(400) })).max(25) }).nullable() }) }),
 ]);
-export type SavedProject = { id: string; kind: "post_creator" | "calendar" | "briefing" | "qr_code" | "watermark" | "social_report" | "preview_post" | "engagement" | "roas" | "roi" | "post_analysis" | "trend_radar" | "margin" | "markup"; title: string; client_name: string; payload: unknown; revision: number; updated_at: string };
+export type SavedProject = { id: string; kind: "post_creator" | "calendar" | "briefing" | "qr_code" | "watermark" | "social_report" | "preview_post" | "engagement" | "roas" | "roi" | "post_analysis" | "trend_radar" | "margin" | "markup" | "proofreader"; title: string; client_name: string; payload: unknown; revision: number; updated_at: string };
