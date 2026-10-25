@@ -24,7 +24,7 @@ export function approvalLink(row: Pick<Row, "id" | "version">) {
 function map(row: Row, includeLink = false): ApprovalRecord {
   return {
     id: row.id, clientName: row.client_name, title: row.title, platform: row.platform,
-    caption: row.caption, mediaDataUrl: row.media_data_url, status: row.status,
+    caption: row.caption, mediaDataUrl: row.media_data_url ?? "", status: row.status,
     version: row.version, expiresAt: row.expires_at, reviewerName: row.reviewer_name,
     feedback: row.feedback, respondedAt: row.responded_at, history: row.history ?? [],
     createdAt: row.created_at, updatedAt: row.updated_at,
@@ -32,12 +32,17 @@ function map(row: Row, includeLink = false): ApprovalRecord {
   };
 }
 export async function listApprovals(userId: string): Promise<ApprovalRecord[]> {
-  const rows = await supabaseRest<Row[]>(`agency_content_approvals?select=${fields}&user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc&limit=200`);
+  const listFields = fields.replace(",media_data_url", "");
+  const rows = await supabaseRest<Row[]>(`agency_content_approvals?select=${listFields}&user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc&limit=200`);
   return rows.map(row => map(row, true));
 }
 export async function getOwnerApproval(userId: string, id: string): Promise<Row | null> {
   const rows = await supabaseRest<Row[]>(`agency_content_approvals?select=${fields}&user_id=eq.${encodeURIComponent(userId)}&id=eq.${encodeURIComponent(id)}&limit=1`);
   return rows[0] ?? null;
+}
+export async function getApprovalDetails(userId: string, id: string): Promise<ApprovalRecord | null> {
+  const row = await getOwnerApproval(userId, id);
+  return row ? map(row, true) : null;
 }
 export async function getApprovalByToken(token: string): Promise<ApprovalRecord | null> {
   const parts = /^([0-9a-f-]{36})\.([A-Za-z0-9_-]{43})$/.exec(token);
