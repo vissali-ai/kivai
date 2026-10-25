@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,12 +13,12 @@ import { sendPostToPreview } from "@/lib/post-creator/handoff";
 
 const inputClass = "mt-1 block min-h-11 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-sm";
 const sectionClass = "space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6";
-export default function CreatorClient({ imageEnabled }: { imageEnabled: boolean }) {
+export default function CreatorClient() {
   const router = useRouter();
   const [project, setProject] = useState<PostProject>(initialPostProject);
-  const [consent, setConsent] = useState(false), [busy, setBusy] = useState<"content" | "image" | "">("");
+  const [consent, setConsent] = useState(false), [busy, setBusy] = useState<"content" | "">("");
   const [error, setError] = useState(""), [notice, setNotice] = useState("");
-  const [content, setContent] = useState<PostContent | null>(null), [generatedImage, setGeneratedImage] = useState("");
+  const [content, setContent] = useState<PostContent | null>(null);
   const [rendered, setRendered] = useState<PostProject | null>(null), [processing, setProcessing] = useState(false);
   const requestLock = useRef(false), canvasRef = useRef<HTMLCanvasElement>(null);
   const update = <K extends keyof PostProject>(key: K, value: PostProject[K]) => setProject(current => ({ ...current, [key]: value }));
@@ -33,21 +32,18 @@ export default function CreatorClient({ imageEnabled }: { imageEnabled: boolean 
     return () => { active = false; window.clearTimeout(timer); };
   }, [project]);
   const exportReady = rendered === project && !processing;
-  async function generate(action: "content" | "image") {
+  async function generate() {
     if (requestLock.current || !consent) return;
     const token = getStoredSession()?.access_token;
     if (!token) { setError("Entre na sua conta para gerar com IA."); return; }
-    if (action === "content" && !postBriefSchema.safeParse(project.brief).success) { setError("Descreva o tema com pelo menos 5 caracteres."); return; }
-    if (action === "image" && (!imageEnabled || project.imagePrompt.trim().length < 5)) { setError("Descreva a imagem desejada com pelo menos 5 caracteres."); return; }
-    requestLock.current = true; setBusy(action); setError(""); setNotice("");
+    if (!postBriefSchema.safeParse(project.brief).success) { setError("Descreva o tema com pelo menos 5 caracteres."); return; }
+    requestLock.current = true; setBusy("content"); setError(""); setNotice("");
     try {
-      const response = await fetch("/api/ai/post-creator", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(65_000), body: JSON.stringify(action === "content" ? { action, consent, brief: project.brief } : { action, consent, prompt: project.imagePrompt, format: project.format }) });
+      const response = await fetch("/api/ai/post-creator", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(65_000), body: JSON.stringify({ action: "content", consent, brief: project.brief }) });
       const result = await response.json();
       if (!response.ok) throw Error(result.error || "Não foi possível gerar. Consulte o saldo e tente novamente.");
-      if (action === "content") setContent(postContentSchema.parse(result.content));
-      else if (typeof result.image === "string" && /^data:image\/jpeg;base64,/.test(result.image)) setGeneratedImage(result.image);
-      else throw Error("Resultado inválido. Consulte o saldo antes de tentar novamente.");
-      setNotice("Resultado pronto. Revise antes de aplicar à sua arte.");
+      setContent(postContentSchema.parse(result.content));
+      setNotice("Conteúdo pronto. Revise antes de aplicar à sua arte.");
     } catch (cause) { setError(cause instanceof Error && cause.name !== "TimeoutError" ? cause.message : "A conexão demorou demais. Consulte o saldo antes de tentar novamente."); }
     finally { requestLock.current = false; setBusy(""); window.dispatchEvent(new Event("kivai:ai-credit-update")); }
   }
@@ -55,12 +51,6 @@ export default function CreatorClient({ imageEnabled }: { imageEnabled: boolean 
     if (!file) return; setProcessing(true); setError("");
     try { update(key, await optimizePostImage(file, key === "logo")); setNotice("Imagem preparada para o editor e para salvar na conta."); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível abrir a imagem."); }
-    finally { setProcessing(false); }
-  }
-  async function applyGeneratedImage() {
-    setProcessing(true); setError("");
-    try { const blob = await (await fetch(generatedImage)).blob(); update("image", await optimizePostImage(blob)); setNotice("Imagem aplicada. Textos e logotipo continuam editáveis."); }
-    catch { setError("Não foi possível aplicar. Baixe a imagem gerada para preservá-la."); }
     finally { setProcessing(false); }
   }
   async function downloadPng() {
@@ -81,7 +71,7 @@ export default function CreatorClient({ imageEnabled }: { imageEnabled: boolean 
     const payload = value && typeof value === "object" && "kind" in value && value.kind === "post_creator" && "payload" in value ? value.payload : value;
     const parsed = postProjectSchema.safeParse(payload);
     if (!parsed.success) { setError("Este arquivo não é um projeto válido do Criador de Posts."); return; }
-    setProject(parsed.data); setContent(null); setGeneratedImage(""); setError(""); setNotice("Projeto aberto. Revise a arte antes de exportar.");
+    setProject(parsed.data); setContent(null); setError(""); setNotice("Projeto aberto. Revise a arte antes de exportar.");
   }
   async function importProject(file: File | undefined) {
     if (!file) return;
@@ -94,7 +84,7 @@ export default function CreatorClient({ imageEnabled }: { imageEnabled: boolean 
     <AiCreditBalance />
     <section id="briefing-post" className={`${sectionClass} scroll-mt-24`} aria-labelledby="brief-title">
       <h2 id="brief-title" className="text-xl font-semibold">1. Conte o que você quer publicar</h2>
-      <p className="text-sm text-muted-foreground">A IA sugere texto e direção visual. Você revisa tudo antes de usar. Também é possível montar a arte manualmente.</p>
+      <p className="text-sm text-muted-foreground">A IA sugere título, legenda, chamada para ação, hashtags e roteiro de carrossel. Você revisa tudo antes de usar. A arte continua sendo montada manualmente no editor.</p>
       <fieldset disabled={Boolean(busy)} className="grid gap-4 sm:grid-cols-2">
         <label className="text-sm sm:col-span-2">Tema ou briefing<textarea rows={3} maxLength={1500} className={inputClass} value={project.brief.theme} onChange={e => update("brief", { ...project.brief, theme: e.target.value })} placeholder="Ex.: divulgar uma cafeteria com opções de café da manhã" /></label>
         <label className="text-sm">Público<input maxLength={300} className={inputClass} value={project.brief.audience} onChange={e => update("brief", { ...project.brief, audience: e.target.value })} placeholder="Quem você quer alcançar?" /></label>
@@ -102,10 +92,10 @@ export default function CreatorClient({ imageEnabled }: { imageEnabled: boolean 
         <label className="text-sm">Rede social<select className={inputClass} value={project.brief.platform} onChange={e => update("brief", { ...project.brief, platform: e.target.value as PostProject["brief"]["platform"] })}>{postPlatforms.map(p => <option key={p}>{p}</option>)}</select></label>
         <label className="text-sm">Tom de voz<input maxLength={100} className={inputClass} value={project.brief.tone} onChange={e => update("brief", { ...project.brief, tone: e.target.value })} /></label>
       </fieldset>
-      <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-5 shrink-0" checked={consent} onChange={e => setConsent(e.target.checked)} />Autorizo enviar o briefing ou a descrição da imagem ao serviço externo de IA. Não incluí informações pessoais ou confidenciais.</label>
-      <p className="text-xs text-muted-foreground">Conteúdo: {POST_CREDIT_COST.content} crédito. Imagem: {POST_CREDIT_COST.image} créditos por geração. Os créditos são reservados durante o pedido e devolvidos se a geração falhar. Editar, salvar, visualizar e baixar não consome créditos. O provedor gratuito pode usar dados para melhorar seus produtos.</p>
-      <div className="flex flex-wrap gap-3"><Button disabled={!consent || Boolean(busy)} onClick={() => void generate("content")}>{busy === "content" ? "Gerando conteúdo…" : "Gerar conteúdo · 1 crédito"}</Button><Link className="inline-flex min-h-11 items-center text-sm underline" href="/conta">Minha conta</Link></div>
-      {content ? <div className="space-y-3 rounded-xl border border-primary/30 p-4"><h3 className="font-semibold">Sugestão da IA</h3><p className="font-medium">{content.title}</p><p className="whitespace-pre-wrap break-words text-sm">{content.caption}</p><p className="break-words text-sm text-muted-foreground">{content.hashtags.join(" ")}</p><Button variant="outline" onClick={() => { setProject(p => ({ ...p, title: content.title, subtitle: content.subtitle, cta: content.cta, caption: [content.caption, content.hashtags.join(" ")].filter(Boolean).join("\n\n").slice(0, 4000), imagePrompt: content.imagePrompt, slides: content.slides })); setNotice("Conteúdo aplicado à arte. Você pode editar todos os textos abaixo."); }}>Aplicar conteúdo à arte</Button><p className="text-xs text-muted-foreground">Aplicar substitui os textos atuais, preservando sua imagem e identidade visual.</p></div> : null}
+      <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-5 shrink-0" checked={consent} onChange={e => setConsent(e.target.checked)} />Autorizo enviar o briefing ao serviço externo de IA. Não incluí informações pessoais ou confidenciais.</label>
+      <p className="text-xs text-muted-foreground">Conteúdo: {POST_CREDIT_COST.content} crédito por geração. Os créditos são reservados durante o pedido e devolvidos se a geração falhar. Editar, salvar, visualizar e baixar não consome créditos. O provedor gratuito pode usar dados para melhorar seus produtos.</p>
+      <div className="flex flex-wrap gap-3"><Button disabled={!consent || Boolean(busy)} onClick={() => void generate()}>{busy === "content" ? "Gerando conteúdo…" : "Gerar conteúdo · 1 crédito"}</Button><Link className="inline-flex min-h-11 items-center text-sm underline" href="/conta">Minha conta</Link></div>
+      {content ? <div className="space-y-3 rounded-xl border border-primary/30 p-4"><h3 className="font-semibold">Sugestão da IA</h3><p className="font-medium">{content.title}</p><p className="whitespace-pre-wrap break-words text-sm">{content.caption}</p><p className="break-words text-sm text-muted-foreground">{content.hashtags.join(" ")}</p><Button variant="outline" onClick={() => { setProject(p => ({ ...p, title: content.title, subtitle: content.subtitle, cta: content.cta, caption: [content.caption, content.hashtags.join(" ")].filter(Boolean).join("\n\n").slice(0, 4000), slides: content.slides })); setNotice("Conteúdo aplicado à arte. Você pode editar todos os textos abaixo."); }}>Aplicar conteúdo à arte</Button><p className="text-xs text-muted-foreground">Aplicar substitui os textos atuais, preservando sua imagem e identidade visual.</p></div> : null}
     </section>
     {error ? <p role="alert" className="rounded-xl border border-destructive/40 p-4 text-sm">{error}</p> : null}
     {notice ? <p role="status" className="rounded-xl border border-primary/30 p-4 text-sm">{notice}</p> : null}
@@ -124,12 +114,6 @@ export default function CreatorClient({ imageEnabled }: { imageEnabled: boolean 
           <p className="text-xs text-muted-foreground">JPG, PNG ou WebP até 12 MB. Imagens são otimizadas localmente para permitir salvar o projeto; arquivos próprios e logotipos não são enviados à IA.</p>
           <div className="flex flex-wrap gap-2">{project.image ? <Button variant="outline" onClick={() => update("image", "")}>Remover imagem</Button> : null}{project.logo ? <Button variant="outline" onClick={() => update("logo", "")}>Remover logotipo</Button> : null}</div>
           {project.image ? <label className="block text-sm">Escurecer fundo: {project.overlay}%<input className="mt-2 w-full" type="range" min={0} max={85} value={project.overlay} onChange={e => update("overlay", Number(e.target.value))} /></label> : null}
-          <div className="space-y-3 border-t pt-4"><h3 className="font-semibold">Imagem com IA</h3><label className="block text-sm">Descreva a imagem<textarea className={inputClass} rows={3} maxLength={1800} value={project.imagePrompt} onChange={e => update("imagePrompt", e.target.value)} placeholder="Descreva o cenário, estilo e cores. Os textos serão aplicados pelo editor." /></label>
-            {!imageEnabled ? <p className="text-sm text-muted-foreground">Geração de imagens com IA em breve. Por enquanto, envie uma imagem própria ou use o fundo colorido. Nenhum crédito será cobrado por essa opção indisponível.</p> : null}
-            <Button disabled={!imageEnabled || !consent || Boolean(busy)} onClick={() => void generate("image")}>{busy === "image" ? "Gerando imagem…" : "Gerar imagem · 5 créditos"}</Button>
-            {imageEnabled && !consent ? <p className="text-xs text-muted-foreground">Autorize o envio no primeiro passo para gerar a imagem.</p> : null}
-            {generatedImage ? <div className="space-y-3"><p className="text-sm">Imagem gerada. Aplicar substituirá o fundo atual.</p><Image unoptimized width={1024} height={1024} src={generatedImage} alt="Imagem gerada pela IA para revisão" className="max-h-72 w-full rounded-lg object-contain" /><div className="flex flex-wrap gap-2"><Button disabled={processing} onClick={() => void applyGeneratedImage()}>Usar imagem gerada</Button><a href={generatedImage} download="imagem-ia-kivai.jpg" className="inline-flex min-h-11 items-center underline">Baixar imagem original</a></div></div> : null}
-          </div>
         </div>
         <div className="space-y-4 lg:sticky lg:top-24"><div className="overflow-hidden rounded-xl border bg-muted"><canvas ref={canvasRef} aria-label="Prévia da arte do post" className="mx-auto h-auto w-full" style={{ aspectRatio: `${postFormats[project.format].width}/${postFormats[project.format].height}` }} /></div><p className="text-xs text-muted-foreground">Confira contraste e legibilidade. O PNG inclui somente a arte; a legenda é copiada separadamente. Imagens são enquadradas ao centro.</p><Button disabled={!exportReady} onClick={() => void downloadPng()}>Baixar arte em PNG</Button></div>
       </div>
