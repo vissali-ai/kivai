@@ -1,4 +1,5 @@
 import { AdSlot } from "@/components/ads/AdSlot";
+import { ContextualPlanCallout } from "@/components/marketing/contextual-plan-callout";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
 import {
   generalToolEditorialContent,
@@ -205,6 +206,11 @@ export function SocialToolEditorialV2({ slug }: { slug: SocialToolEditorialSlug 
         relatedTools={relatedTools}
         afterFaq={<AdSlot placement="tool-bottom" />}
       />
+      <section className="border-t border-border bg-muted/10 pb-12 sm:pb-16" aria-label="Planos relacionados">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+          <ContextualPlanCallout location="social-tool" />
+        </div>
+      </section>
     </>
   );
 }
