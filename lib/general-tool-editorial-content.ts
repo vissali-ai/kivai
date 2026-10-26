@@ -36,7 +36,7 @@ function calculator(input: Omit<EditorialContent, "categoryName" | "categoryHref
     categoryName: "Calculadoras",
     categoryHref: "/ferramentas/calculadoras",
     applicationCategory: "FinanceApplication",
-    privacy: "Os valores são calculados localmente no navegador e não são enviados ao Kivai. Limpar a página ou fechar a aba remove os dados preenchidos nesta sessão.",
+    privacy: "Os cálculos acontecem localmente no navegador. Nas calculadoras que oferecem Salvar na conta, somente os dados que você escolher salvar serão enviados ao Kivai para recuperação posterior. Sem usar esse recurso, o cálculo não exige envio dos valores.",
     related: calculatorRelated,
     ...input,
   };
