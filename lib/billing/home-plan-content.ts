@@ -8,6 +8,13 @@ export const homePlanFields: SiteOriginalField[] = [
   { key: "home-free-features", label: "Home: destaques do Grátis (um por linha)", type: "textarea", value: "Ferramentas gratuitas sem assinatura\n10 créditos de IA por mês para contas cadastradas\nAté 5 projetos salvos na conta" },
   { key: "home-pro-features", label: "Home: destaques do Pro (um por linha)", type: "textarea", value: "100 créditos de IA por mês\nAté 30 projetos salvos na conta\nHistórico e comparações do Instagram" },
   { key: "home-agency-features", label: "Home: destaques do Agency (um por linha)", type: "textarea", value: "300 créditos de IA por mês\nAté 200 projetos salvos na conta\nKivai Aprova: clientes aprovam posts por link" },
+  { key: "context-plans-enabled", label: "Divulgação contextual: exibir chamadas nas ferramentas e hubs", type: "boolean", value: true },
+  { key: "context-plans-title", label: "Divulgação contextual: título", type: "text", value: "O Kivai acompanha a evolução do seu trabalho" },
+  { key: "context-plans-hub-text", label: "Divulgação contextual: texto no Hub Social Media", type: "textarea", value: "Use as ferramentas gratuitas para criar e planejar. Com Pro, acompanhe análises do Instagram e amplie seu espaço de projetos; com Agency, organize clientes e envie posts para aprovação." },
+  { key: "context-plans-tool-text", label: "Divulgação contextual: texto ao final das ferramentas Social Media", type: "textarea", value: "As ferramentas gratuitas continuam disponíveis. Conheça o Pro para histórico e mais projetos salvos, e o Agency para gerenciar aprovações por cliente." },
+  { key: "context-plans-cta", label: "Divulgação contextual: texto do link para planos", type: "text", value: "Conhecer Grátis, Pro e Agency" },
+  { key: "context-ai-cta", label: "Créditos de IA: texto do link de planos", type: "text", value: "Comparar planos e créditos mensais" },
+  { key: "context-project-cta", label: "Projetos salvos: texto do link de planos", type: "text", value: "Ver limites e benefícios dos planos" },
 ];
 
 export function withHomePlanFields(fields: SiteOriginalField[] = []): SiteOriginalField[] {
