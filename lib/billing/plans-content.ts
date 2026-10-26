@@ -1,4 +1,5 @@
 import { planBenefits } from "@/lib/billing/plan-benefits";
+import { homePlanFields } from "@/lib/billing/home-plan-content";
 import type { ManagedSiteContent } from "@/lib/site-cms/types";
 export const plansContent: ManagedSiteContent = {
  id: "existing:planos", contentType: "page", slug: "planos", path: "/planos",
@@ -13,6 +14,7 @@ export const plansContent: ManagedSiteContent = {
      { key: `${code}-description`, label: `Resumo ${code}`, type: "textarea" as const, value: code === "free" ? "Ferramentas gratuitas para uso pontual, com rascunhos no navegador." : code === "pro" ? "Projetos pessoais salvos na conta e acompanhamento do Instagram." : "Organização de projetos e aprovações de publicações por cliente, com links privados sem cadastro." },
      { key: `${code}-features`, label: `Benefícios ${code} (um por linha)`, type: "textarea" as const, value: planBenefits[code].join("\n") },
    ]),
+   ...homePlanFields,
    { key: "tutorial-url", label: "Link de tutorial dos planos", type: "url", value: "" },
  ] },
 };
