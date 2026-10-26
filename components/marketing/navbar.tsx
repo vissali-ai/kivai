@@ -12,6 +12,7 @@ import { getCurrentUser, getStoredSession } from "@/lib/user-auth";
 
 const navItems = [
   { label: "Ferramentas", href: "/ferramentas" },
+  { label: "Planos", href: "/planos" },
   { label: "Serviços", href: "/servicos" },
   { label: "Blog", href: "/blog" },
   { label: "Sobre", href: "/sobre" },
