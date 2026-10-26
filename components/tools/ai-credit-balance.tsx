@@ -75,9 +75,13 @@ export function AiCreditBalance() {
           ) : <p className="text-xs text-muted-foreground">{message || "Consultando seu saldo..."}</p>}
         </div>
       </div>
-      <Link href="/creditos" className="inline-flex min-h-10 items-center justify-center border border-primary px-4 text-sm font-semibold text-primary hover:bg-primary/5">
-        Comprar créditos
-      </Link>
+      <div className="flex flex-col items-start gap-2 sm:items-end">
+        <Link href="/creditos" className="inline-flex min-h-10 items-center justify-center border border-primary px-4 text-sm font-semibold text-primary hover:bg-primary/5">
+          Comprar créditos
+        </Link>
+        {info?.wallet.plan_code === "free" ? <Link href="/planos" className="text-xs font-medium text-primary underline-offset-4 hover:underline">Mais créditos por mês? Conheça Pro e Agency</Link> : null}
+        {info?.wallet.plan_code === "pro" ? <Link href="/planos#plano-agency" className="text-xs font-medium text-primary underline-offset-4 hover:underline">Precisa gerenciar clientes? Conheça o Agency</Link> : null}
+      </div>
     </div>
   );
 }
