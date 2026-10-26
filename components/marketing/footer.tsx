@@ -6,6 +6,7 @@ import { CookieSettingsButton } from "@/components/privacy/cookie-settings-butto
 
 const productLinks = [
   { label: "Ferramentas", href: "/ferramentas" },
+  { label: "Planos e benefícios", href: "/planos" },
   { label: "Serviços", href: "/servicos" },
   { label: "Blog", href: "/blog" },
 ];
