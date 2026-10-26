@@ -11,6 +11,7 @@ import { useAccountAccess } from "@/lib/billing/access-client";
 import type { SiteOriginalField } from "@/lib/site-cms/types";
 import { plansContent } from "@/lib/billing/plans-content";
 import { planBenefits } from "@/lib/billing/plan-benefits";
+import { planPriceDisplay } from "@/lib/billing/home-plan-content";
 
 type PlanCode = "free" | "pro" | "agency";
 type PaidPlanCode = Exclude<PlanCode, "free">;
@@ -31,7 +32,7 @@ const plans: readonly Plan[] = [
   {
     code: "free",
     name: "Grátis",
-    monthly: "R$ 0",
+    monthly: planPriceDisplay.free.monthly,
     annual: "Grátis",
     description: "Para fazer análises pontuais do seu Instagram sem precisar acompanhar histórico entre períodos.",
     features: [
@@ -48,8 +49,8 @@ const plans: readonly Plan[] = [
   {
     code: "pro",
     name: "Pro",
-    monthly: "R$ 19,90/mês",
-    annual: "R$ 199/ano",
+    monthly: `${planPriceDisplay.pro.monthly}/mês`,
+    annual: planPriceDisplay.pro.annual,
     annualNote: "Economize R$ 39,80 no plano anual",
     description: "Para transformar análises isoladas em acompanhamento contínuo, comparando períodos e monitorando a evolução de até 5 perfis.",
     features: [
@@ -68,8 +69,8 @@ const plans: readonly Plan[] = [
   {
     code: "agency",
     name: "Agency",
-    monthly: "R$ 59,90/mês",
-    annual: "R$ 599/ano",
+    monthly: `${planPriceDisplay.agency.monthly}/mês`,
+    annual: planPriceDisplay.agency.annual,
     annualNote: "Economize R$ 119,80 no plano anual",
     description: "Para agências e social medias: organize clientes e envie artes e legendas para aprovação por link privado, sem cadastro do cliente.",
     features: [
@@ -147,7 +148,7 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
         {displayPlans.map((plan) => {
           const isCurrent = checkedSession && currentPlan === plan.code;
           return (
-            <article key={plan.code} className={`relative flex flex-col border p-6 ${isCurrent ? "border-primary bg-primary/[0.08] ring-1 ring-primary/30" : plan.highlighted ? "border-primary/40 bg-primary/[0.05]" : "border-border bg-card"}`}>
+            <article id={`plano-${plan.code}`} key={plan.code} className={`relative scroll-mt-24 flex flex-col border p-6 ${isCurrent ? "border-primary bg-primary/[0.08] ring-1 ring-primary/30" : plan.highlighted ? "border-primary/40 bg-primary/[0.05]" : "border-border bg-card"}`}>
               <div className="flex items-center justify-between gap-3"><h2 className="text-2xl font-semibold">{plan.name}</h2>{isCurrent ? <span className="inline-flex items-center gap-1.5 border border-primary/40 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary"><Crown className="size-3.5" /> Plano atual</span> : plan.highlighted ? <span className="border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Mais escolhido</span> : null}</div>
               <p className="mt-3 min-h-16 text-sm leading-6 text-muted-foreground">{plan.description}</p>
               <div className="mt-5 border-y border-border py-5"><p className="text-2xl font-semibold">{plan.monthly}</p><p className="mt-2 text-sm font-medium text-primary">{plan.annual}</p>{plan.annualNote ? <p className="mt-1 text-xs text-muted-foreground">{plan.annualNote}</p> : null}</div>
