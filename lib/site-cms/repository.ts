@@ -1,6 +1,7 @@
 import "server-only";
 import { defaultPrinters, printersSchema } from "@/lib/duplex-print/catalog";
 import { plansContent } from "@/lib/billing/plans-content";
+import { withHomePlanFields } from "@/lib/billing/home-plan-content";
 import { creditsContent } from "@/lib/billing/credits-content";
 import { withAssistantFields, assistantFields } from "@/lib/ai/content-assistant-copy";
 
@@ -59,7 +60,7 @@ function contentFromRow(row: ContentRow): SiteContent {
     existingToolSlug: row.existing_tool_slug, status: row.status, indexable: row.indexable,
     toolMode: row.tool_mode, technicalStatus: row.technical_status,
     displayLocation: row.display_location, showInMostUsed: row.show_in_most_used, displayOrder: row.display_order,
-    includeInSitemap: row.include_in_sitemap, customData: { ...row.custom_data, originalFields: withAssistantFields(row.existing_tool_slug ?? row.slug, row.custom_data?.originalFields) }, publishedAt: row.published_at,
+    includeInSitemap: row.include_in_sitemap, customData: { ...row.custom_data, originalFields: row.path === "/planos" ? withHomePlanFields(withAssistantFields(row.existing_tool_slug ?? row.slug, row.custom_data?.originalFields)) : withAssistantFields(row.existing_tool_slug ?? row.slug, row.custom_data?.originalFields) }, publishedAt: row.published_at,
     createdAt: row.created_at, updatedAt: row.updated_at };
 }
 
