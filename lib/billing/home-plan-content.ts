@@ -13,8 +13,6 @@ export const homePlanFields: SiteOriginalField[] = [
   { key: "context-plans-hub-text", label: "Divulgação contextual: texto no Hub Social Media", type: "textarea", value: "Use as ferramentas gratuitas para criar e planejar. Com Pro, acompanhe análises do Instagram e amplie seu espaço de projetos; com Agency, organize clientes e envie posts para aprovação." },
   { key: "context-plans-tool-text", label: "Divulgação contextual: texto ao final das ferramentas Social Media", type: "textarea", value: "As ferramentas gratuitas continuam disponíveis. Conheça o Pro para histórico e mais projetos salvos, e o Agency para gerenciar aprovações por cliente." },
   { key: "context-plans-cta", label: "Divulgação contextual: texto do link para planos", type: "text", value: "Conhecer Grátis, Pro e Agency" },
-  { key: "context-ai-cta", label: "Créditos de IA: texto do link de planos", type: "text", value: "Comparar planos e créditos mensais" },
-  { key: "context-project-cta", label: "Projetos salvos: texto do link de planos", type: "text", value: "Ver limites e benefícios dos planos" },
 ];
 
 export function withHomePlanFields(fields: SiteOriginalField[] = []): SiteOriginalField[] {
