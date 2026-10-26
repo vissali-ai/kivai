@@ -99,7 +99,7 @@ export const toolCategories: ToolCategoryDefinition[] = [
     slug: "social",
     name: "Social Media",
     description:
-      "Revise legendas, hashtags e formatação para publicar conteúdos em redes sociais.",
+      "Planeje conteúdos, organize calendários, visualize posts, acompanhe métricas, analise seguidores e pesquise tendências para redes sociais.",
     href: "/ferramentas/social-media",
     icon: Tags,
   },
@@ -938,7 +938,7 @@ export const tools: Tool[] = [
   {
     slug: "analisador-de-posts",
     name: "Analisador de Posts",
-    description: "Analise publicações com IA a partir do link e de arquivos opcionais. Receba melhorias de legendas, ganchos e edições.",
+    description: "Analise publicações com IA usando dados acessíveis do link e, quando necessário, legenda, imagens ou quadros de vídeo. Receba sugestões de melhorias.",
     category: "social",
     hubFilter: "Analisar",
     badge: "IA",
