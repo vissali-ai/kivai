@@ -7,7 +7,7 @@ import AnalisadorDePostsClient from "./analisador-de-posts-client";
 
 const slug = "analisador-de-posts";
 const faqs = [
-  { question: "O Kivai consegue analisar um post apenas pelo link?", answer: "Sim, quando o serviço disponibiliza dados suficientes. O YouTube pode permitir até análise audiovisual por IA. Instagram, TikTok, Facebook e LinkedIn têm restrições variáveis. Quando faltam dados, o Kivai solicita material complementar." },
+  { question: "O Kivai consegue analisar um post apenas pelo link?", answer: "Sim, quando o serviço disponibiliza dados suficientes. O YouTube pode oferecer título, descrição e, em condições compatíveis, análise audiovisual; o TikTok pode fornecer informações públicas limitadas. Para Instagram, Facebook, LinkedIn, X, Threads e Pinterest, o link identifica a plataforma, mas não recupera automaticamente o conteúdo nesta versão. Informe a legenda ou envie mídia para analisar esses posts." },
   { question: "Sou obrigado a enviar o arquivo?", answer: "Não. Você pode selecionar Não quero enviar o arquivo e continuar com as informações disponíveis. Caso nada possa ser acessado pelo link, será necessário fornecer ao menos o conteúdo textual ou a mídia." },
   { question: "É possível analisar rascunhos?", answer: "Sim. Escolha Rascunho e envie uma imagem, vídeo ou texto. O link é opcional para uma publicação ainda não realizada." },
   { question: "A ferramenta assiste a todos os vídeos?", answer: "Não. Quando o acesso audiovisual pelo link não funciona, podem ser analisados apenas metadados ou quadros visuais extraídos de arquivo enviado. O relatório informa quais elementos foram examinados." },
@@ -60,7 +60,7 @@ export default function AnalisadorDePostsPage() {
       ]}
       specificationsTitle="Recursos e condições de análise"
       specifications={[
-        { label: "Redes", value: "Reconhece links de YouTube, Instagram, TikTok, Facebook, LinkedIn, X, Threads e Pinterest. A leitura automática varia por plataforma." },
+        { label: "Redes", value: "Reconhece links de YouTube, Instagram, TikTok, Facebook, LinkedIn, X, Threads e Pinterest. Apenas YouTube e TikTok tentam consultar metadados públicos; nas demais redes, forneça legenda ou mídia para análise." },
         { label: "Arquivos", value: "Até 8 imagens ou 1 vídeo por análise, limite de 40 MB por arquivo na leitura local." },
         { label: "Vídeos enviados", value: "Nesta versão são extraídos três quadros no navegador. O áudio e o movimento contínuo não são enviados, portanto não são examinados." },
         { label: "YouTube", value: "Tenta análise audiovisual de vídeos públicos de até 3 minutos quando a duração puder ser confirmada, ou Shorts. Nos demais casos, utiliza metadados acessíveis." },
