@@ -13,6 +13,8 @@ import { MyFavoriteTools } from "@/components/account/my-favorite-tools";
 import { AccountNotifications } from "@/components/account/account-notifications";
 import { RoutineReminderSettings } from "@/components/account/routine-reminder-settings";
 import { AccountWelcome } from "@/components/account/account-welcome";
+import { SupportBell } from "@/components/account/support-bell";
+import { Headset } from "lucide-react";
 
 type Profile = { full_name: string | null; avatar_url: string | null; plan_code: "free" | "pro" | "agency" };
 type Snapshot = { id: string; analyzed_at: string; follower_count: number; following_count: number; new_followers_count: number | null; unfollowers_count: number | null; social_account_id: string };
@@ -111,6 +113,7 @@ export function AccountDashboard() {
         <div className="min-w-0 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary"><LayoutDashboard className="size-4" /> Meu Kivai</span>
+            <SupportBell />
             <Button asChild variant="ghost" size="sm"><Link href="/conta/dados" title="Configurações da conta"><Settings className="size-4" /> Configurações</Link></Button>
             <Button variant="ghost" size="sm" onClick={handleLogout}><LogOut className="size-4" /> Sair da conta</Button>
           </div>
@@ -143,6 +146,9 @@ export function AccountDashboard() {
     </section> : null}
     {snapshots.length ? <section className="overflow-hidden rounded-2xl border border-border bg-card"><div className="flex items-center gap-3 border-b border-border p-5"><History className="size-5 text-primary" /><div><h2 className="font-semibold">Análises recentes</h2><p className="mt-1 text-xs text-muted-foreground">Histórico privado dos seus perfis do Instagram.</p></div></div><div className="divide-y divide-white/5">{snapshots.map((snapshot) => <div key={snapshot.id} className="grid gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center"><div><p className="font-medium">@{snapshot.username || "instagram"}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(snapshot.analyzed_at).toLocaleString("pt-BR")}</p></div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguidores</span>{Number(snapshot.follower_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguindo</span>{Number(snapshot.following_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Novos</span>{snapshot.new_followers_count == null ? "-" : Number(snapshot.new_followers_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Unfollows</span>{snapshot.unfollowers_count == null ? "-" : Number(snapshot.unfollowers_count).toLocaleString("pt-BR")}</div></div>)}</div></section> : null}
 
+    <section id="painel-atendimento" className="scroll-mt-28 rounded-2xl border border-border bg-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-start gap-3"><Headset className="mt-1 size-5 text-primary"/><div><h2 className="text-xl font-semibold">Central de Atendimento</h2><p className="mt-1 text-sm text-muted-foreground">Abra chamados, reporte erros e acompanhe as respostas da equipe Kivai.</p></div></div><Button asChild><Link href="/conta/atendimento">Meus protocolos <ArrowRight className="size-4"/></Link></Button></div>
+    </section>
     <div id="painel-avisos" tabIndex={-1} className="scroll-mt-28"><AccountNotifications /></div>
     <div id="painel-lembretes" tabIndex={-1} className="scroll-mt-28"><RoutineReminderSettings /></div>
     {paymentError ? <p role="alert" className="rounded border border-destructive/40 p-4 text-sm">{paymentError}</p> : null}
