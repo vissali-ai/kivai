@@ -23,11 +23,11 @@ export async function POST(request:Request) {
    user_id:user.id,user_email:user.email??"",user_name:name,category,title,source_url:source,browser_info:browser
   })});
   const ticket=rows[0];if(!ticket)throw new Error("TICKET_CREATE_FAILED");
-  try {await logMessage(ticket.id,"usuario",message,user.id)}
+  let firstMessage; try {firstMessage=await logMessage(ticket.id,"usuario",message,user.id)}
   catch(e){await supabaseRest(`support_tickets?id=eq.${ticket.id}&user_id=eq.${user.id}`,{method:"DELETE"});throw e;}
   void 0;
   await notifyEmail("contato@kivai.com.br",`[Kivai] Novo chamado ${ticket.protocol}`,
    `Novo chamado: ${ticket.title}\nDe: ${ticket.user_email}\nProtocolo: ${ticket.protocol}\n\n${message}\n\nhttps://kivai.com.br/admin/atendimento?ticket=${ticket.id}`);
-  return Response.json({ticket:userTicket(ticket)},{status:201,headers:privateHeaders});
+  return Response.json({ticket:userTicket(ticket),message:firstMessage},{status:201,headers:privateHeaders});
  }catch(e){return supportError(e)}
 }
