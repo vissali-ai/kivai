@@ -28,7 +28,7 @@ export function cleanText(input:unknown,min=2,max=3000) {
 }
 export function supportError(err:unknown) {
  const e=err instanceof Error?err.message:"";
- const unauthorized=e==="UNAUTHORIZED", missing=e==="TICKET_NOT_FOUND",invalid=e==="INVALID_INPUT",
+ const unauthorized=e==="UNAUTHORIZED"||e==="Não autorizado.", missing=e==="TICKET_NOT_FOUND",invalid=e==="INVALID_INPUT",
    limited=e==="RATE_LIMITED",locked=e==="TICKET_CLOSED";
  if(!unauthorized&&!missing&&!invalid&&!limited&&!locked) console.error("[support] Error",err);
  return Response.json({error:unauthorized?"Faça login para continuar.":missing?"Protocolo não encontrado.":invalid?"Verifique os dados informados.":limited?"Limite de solicitações atingido. Tente novamente mais tarde.":locked?"Este protocolo está encerrado. Reabra para responder.":"Não foi possível concluir a operação."},
