@@ -913,8 +913,8 @@ export const tools: Tool[] = [
     badge: "Matemática",
     icon: Calculator,
     available: true,
-    seoTitle: "Calculadora de Porcentagem Online Grátis | Kivai",
-    seoDescription: "Use a calculadora de porcentagem online grátis para calcular X% de um valor, percentual entre valores, aumento, desconto, redução e variação percentual.",
+    seoTitle: "Calculadora de Porcentagem: Calcule X% Online | Kivai",
+    seoDescription: "Calcule porcentagem online: X% de um valor, percentual entre valores, aumento, desconto, redução e valor original. Resultado na hora.",
     keywords: ["calculadora de porcentagem", "porcentagem calculadora", "calculadora porcentagem", "calculadora de porcentagem online", "calcular porcentagem", "cálculo de porcentagem", "porcentagem online"],
   },
   {
