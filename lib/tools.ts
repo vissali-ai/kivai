@@ -1201,6 +1201,9 @@ export const tools: Tool[] = [
     badge: "Vídeo",
     icon: FileImage,
     available: true,
+    seoTitle: "Capturar Frame de Vídeo Online e Salvar como Imagem | Kivai",
+    seoDescription: "Capture um frame de vídeo online e salve o quadro como PNG, JPG ou WebP. Escolha o momento exato e extraia a imagem direto no navegador.",
+    keywords: ["capturar frame de vídeo", "capturar frame de video", "extrair frame de vídeo", "salvar frame como imagem", "tirar imagem de vídeo"],
   },
   {
     slug: "dividir-video",
