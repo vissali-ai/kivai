@@ -273,9 +273,9 @@ export const tools: Tool[] = [
     name: "Imprimir Frente e Verso",
     description: "Prepare PDFs para impressão frente e verso automática ou manual, com testes de orientação e ordem das folhas.",
     category: "pdf", hubFilter: "Editar", badge: "PDF", icon: FileText, available: true,
-    seoTitle: "Imprimir Frente e Verso PDF Online | Kivai",
-    seoDescription: "Aprenda como imprimir frente e verso manualmente, teste a orientação do papel e prepare seu PDF em duas etapas.",
-    keywords: ["imprimir frente e verso", "imprimir frente e verso PDF", "como virar a folha", "impressora sem duplex"],
+    seoTitle: "Como Imprimir PDF Frente e Verso Online | Kivai",
+    seoDescription: "Prepare seu PDF para imprimir frente e verso, com orientação para impressão automática ou manual e ordem correta das páginas.",
+    keywords: ["imprimir frente e verso", "imprimir frente e verso PDF", "imprimir pdf frente e verso", "como imprimir frente e verso em pdf", "como virar a folha", "impressora sem duplex"],
   },
   {
     slug: "descompactar-zip",
@@ -652,8 +652,8 @@ export const tools: Tool[] = [
     badge: "PDF",
     icon: Scaling,
     available: true,
-    seoTitle: "Redimensionar PDF para A4, A3, A5 e outros | Kivai",
-    seoDescription: "Redimensione páginas de PDF para A6, A5, A4, A3, A2 ou A1. Ajuste orientação, margens e proporção de maneira simples com o Kivai.",
+    seoTitle: "Redimensionar PDF para A4, A6, A5 e outros | Kivai",
+    seoDescription: "Redimensione páginas de PDF para A4, A6, A5, A3, A2 ou A1. Ajuste tamanho da página, orientação, margens e proporção online.",
     keywords: ["redimensionar pdf", "mudar tamanho do pdf", "pdf para a4", "pdf para a3", "pdf para a5", "alterar tamanho de página pdf", "converter pdf para a4"],
   },
   {
