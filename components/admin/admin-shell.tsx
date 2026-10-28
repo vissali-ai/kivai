@@ -39,6 +39,10 @@ function isAdminSaveRequest(input: RequestInfo | URL, init?: RequestInit) {
     const url = new URL(rawUrl, window.location.origin);
     if (url.origin !== window.location.origin || !url.pathname.startsWith("/api/admin/")) return false;
     if (url.pathname.startsWith("/api/admin/media")) return false;
+    // Ações auxiliares dentro do editor não são salvamentos de navegação.
+    // Se forem classificadas como save, o AdminShell volta ao painel de origem
+    // assim que a IA responde com sucesso e interrompe o fluxo editorial.
+    if (/^\/api\/admin\/posts\/[^/]+\/editorial-ai$/.test(url.pathname)) return false;
     return ["/api/admin/posts", "/api/admin/site-content", "/api/admin/site-services", "/api/admin/site-hubs", "/api/admin/categories", "/api/admin/instagram-follow-analyzer-config"].some((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`));
   } catch { return false; }
 }
