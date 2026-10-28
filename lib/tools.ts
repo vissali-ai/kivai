@@ -1129,8 +1129,8 @@ export const tools: Tool[] = [
     badge: "Vídeo",
     icon: Video,
     available: true,
-    seoTitle: "MP4 para HEVC: converta vídeo para H.265 online | Kivai",
-    seoDescription: "Converta vídeos MP4 para HEVC/H.265 online. Reduza o tamanho do arquivo mantendo a resolução e boa qualidade visual.",
+    seoTitle: "Converter MP4 para HEVC (H.265) Online | Kivai",
+    seoDescription: "Converta MP4 para HEVC/H.265 online e reduza o tamanho do vídeo mantendo boa qualidade visual e a resolução sempre que possível.",
     keywords: ["mp4 para hevc", "converter mp4 para hevc", "mp4 para h265", "mp4 para h.265", "converter vídeo para hevc", "compactar mp4 com hevc"],
   },
   {
@@ -1214,9 +1214,9 @@ export const tools: Tool[] = [
     badge: "Vídeo",
     icon: Scissors,
     available: true,
-    seoTitle: "Dividir Vídeo Online Grátis: Corte em Partes | Kivai",
-    seoDescription: "Divida vídeo online grátis escolhendo o ponto de corte e gere partes separadas diretamente no navegador, sem instalar programas.",
-    keywords: ["dividir vídeo", "vídeo dividir", "dividir vídeo online", "cortar vídeo em partes", "separar vídeo", "dividir mp4"],
+    seoTitle: "Dividir Vídeo em Partes Online | Kivai",
+    seoDescription: "Divida um vídeo em partes online, escolha o ponto de corte e gere arquivos separados diretamente no navegador, sem instalar programas.",
+    keywords: ["dividir vídeo", "dividir vídeo em partes", "dividir vídeos em partes", "dividir vídeo online", "cortar vídeo em partes", "separar vídeo", "dividir mp4"],
   },
   {
     slug: "espelhar-video",
