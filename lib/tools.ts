@@ -227,6 +227,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "powerpoint-para-pdf",
   "preview-de-post-redes-sociais",
   "radar-de-tendencias",
+  "tendencias-em-alta",
   "recortar-imagem",
   "recortar-video",
   "redimensionar-imagem",
@@ -247,6 +248,20 @@ export function isToolIndexable(slug: string) {
 }
 
 export const tools: Tool[] = [
+  {
+    slug: "tendencias-em-alta",
+    name: "Tendências em Alta",
+    description: "Confira as pesquisas em alta no Brasil, volumes aproximados e notícias relacionadas pelo feed público do Google Trends.",
+    category: "social",
+    hubFilter: "Pesquisar",
+    badge: "Google Trends",
+    icon: TrendingUp,
+    available: true,
+    seoTitle: "Tendências em Alta no Brasil Hoje | Google Trends | Kivai",
+    seoDescription: "Veja assuntos e pesquisas em alta no Google Trends Brasil, volumes aproximados, notícias relacionadas e tendências para ideias de conteúdo.",
+    keywords: ["tendências em alta", "google trends brasil", "assuntos em alta hoje", "pesquisas em alta", "tendências para redes sociais"],
+  },
+
   {
     slug: "kivai-connect", name: "Kivai Connect",
     description: "Conheça sua TV com diagnóstico local gratuito e orientações opcionais com IA. Requer auxiliar Windows e pareamento autorizado.",
