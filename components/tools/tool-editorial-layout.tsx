@@ -78,7 +78,6 @@ export async function ToolEditorialLayout({
 </ToolSeoDisclosure>
 
         <ToolSeoDisclosure title="Como usar e quando utilizar">
-        <ToolSeoDisclosure title="Privacidade e limitações">
                 <div className="grid gap-6 lg:grid-cols-2">
           <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Como usar</h2>
@@ -124,6 +123,7 @@ export async function ToolEditorialLayout({
 
 </ToolSeoDisclosure>
 
+        <ToolSeoDisclosure title="Privacidade e limitações">
                 <div className="grid gap-6 lg:grid-cols-2">
           <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Privacidade e processamento</h2>
