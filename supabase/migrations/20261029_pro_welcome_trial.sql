@@ -15,7 +15,7 @@ grant select,insert on public.pro_welcome_trial_claims to service_role;
 
 create or replace function public.kivai_welcome_trial(p_user_id uuid, p_redeem boolean default false)
 returns jsonb
-language plpgsql security invoker set search_path = ''
+language plpgsql security definer set search_path = ''
 as $$
 declare
   v_email text;
@@ -45,6 +45,8 @@ begin
   end if;
   v_canonical := v_local || '@' || v_domain;
   v_fingerprint := md5(v_canonical);
+  -- Serialize competing claims across different accounts using the same canonical email.
+  perform pg_advisory_xact_lock(hashtextextended(v_fingerprint,1));
   
   select * into v_claim from public.pro_welcome_trial_claims
   where user_id=p_user_id or email_fingerprint=v_fingerprint
