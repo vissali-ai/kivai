@@ -37,6 +37,7 @@ export function buildToolPageSchema({
   const graph: Record<string, unknown>[] = [
     {
       "@type": "SoftwareApplication",
+      "@id": `${url}#software`,
       name,
       applicationCategory,
       operatingSystem: "Qualquer sistema com navegador moderno",
