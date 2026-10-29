@@ -143,6 +143,10 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
 
   return (
     <>
+      <section className="mt-8 flex flex-col gap-4 rounded-xl border border-primary/20 bg-primary/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div><p className="text-xs font-semibold uppercase tracking-wider text-primary">Benefício de boas-vindas</p><h2 className="mt-1 text-xl font-semibold">Conheça o Pro por 7 dias grátis</h2><p className="mt-2 text-sm text-muted-foreground">Teste único para contas elegíveis. Sem cartão, sem cobrança automática e sem necessidade de avaliar ferramentas.</p></div>
+        <Link href={loggedIn ? "/conta" : "/conta/cadastro?next=%2Fconta"} className="inline-flex shrink-0 items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">{loggedIn ? "Ver benefício na conta" : "Criar conta grátis"} <ArrowRight className="ml-2 size-4" /></Link>
+      </section>
       {error || accessError ? <div className="mx-auto mt-8 max-w-2xl border border-red-500/30 bg-red-500/10 p-4 text-center text-sm text-red-200">{error || accessError}</div> : null}
       <div className="mt-12 grid gap-5 lg:grid-cols-3">
         {displayPlans.map((plan) => {
