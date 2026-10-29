@@ -12,3 +12,12 @@ create index if not exists tool_ratings_slug_idx on public.tool_ratings(tool_slu
 alter table public.tool_ratings enable row level security;
 revoke all on public.tool_ratings from anon, authenticated;
 -- O servidor usa a role de serviço para validação, leitura agregada e gravações.
+
+-- Agregação no banco: contagem exata, sem transferir votos individuais.
+create or replace function public.kivai_tool_rating_summary(p_slug text)
+returns table(rating_value numeric, rating_count bigint)
+language sql stable security invoker set search_path=public as $$
+  select round(avg(rating)::numeric,1), count(*) from public.tool_ratings where tool_slug=p_slug;
+$$;
+revoke all on function public.kivai_tool_rating_summary(text) from public, anon, authenticated;
+grant execute on function public.kivai_tool_rating_summary(text) to service_role;
