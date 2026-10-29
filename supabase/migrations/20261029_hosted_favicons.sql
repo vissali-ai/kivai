@@ -1,5 +1,5 @@
 -- Executar no Supabase antes de habilitar a hospedagem de favicons.
--- Criar bucket público 'hosted-favicons' no Supabase Storage, com MIME image/x-icon e limite 512000 bytes.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values ('hosted-favicons', 'hosted-favicons', true, 512000, array['image/x-icon', 'image/vnd.microsoft.icon']) on conflict (id) do nothing;
 -- Objetos só são gravados por chamadas autenticadas no servidor (service role).
 create table if not exists public.hosted_favicons (
   id uuid primary key default gen_random_uuid(),
