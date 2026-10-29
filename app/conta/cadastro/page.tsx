@@ -18,6 +18,7 @@ export default async function UserSignupPage({ searchParams }: { searchParams: P
       <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-[0_12px_32px_rgba(32,41,56,0.07)] sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Conta Kivai</p>
         <h1 className="mt-2 text-2xl font-semibold">Criar conta</h1>
+        <div className="mt-5 rounded-lg border border-primary/20 bg-primary/[0.04] px-4 py-3"><p className="text-sm font-semibold">7 dias de Kivai Pro grátis</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Benefício de boas-vindas, disponível uma única vez para contas elegíveis. Ative após entrar, sem cartão ou cobrança automática.</p></div>
         <div className="mt-6"><UserSignupForm next={next} /></div>
       </section>
     </main>

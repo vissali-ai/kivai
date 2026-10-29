@@ -13,6 +13,7 @@ import { MyFavoriteTools } from "@/components/account/my-favorite-tools";
 import { AccountNotifications } from "@/components/account/account-notifications";
 import { RoutineReminderSettings } from "@/components/account/routine-reminder-settings";
 import { AccountWelcome } from "@/components/account/account-welcome";
+import { ProWelcomeTrialCard } from "@/components/account/pro-welcome-trial-card";
 import { SupportBell } from "@/components/account/support-bell";
 import { Headset } from "lucide-react";
 
@@ -131,6 +132,7 @@ export function AccountDashboard() {
 
 
 
+    {userId ? <ProWelcomeTrialCard /> : null}
     {userId ? <div id="painel-creditos" tabIndex={-1} className="scroll-mt-28"><AiCreditBalance /></div> : null}
     {userId ? <AccountWelcome userId={userId} firstName={firstName} /> : null}
     <div id="painel-favoritos" tabIndex={-1} className="scroll-mt-28"><MyFavoriteTools /></div>
