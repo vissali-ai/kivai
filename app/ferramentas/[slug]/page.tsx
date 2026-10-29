@@ -1,4 +1,5 @@
 import { ToolFavoriteSlot } from "@/components/tools/tool-favorite-slot";
+import { ToolRatingSection } from "@/components/tools/tool-rating-section";
 import { notFound } from "next/navigation";
 import { SocialMediaToolClient } from "@/components/tools/social-media-tool-client";
 import { PublicContentPage, PublicHubPage } from "@/components/site-cms/public-content-page";
@@ -28,7 +29,7 @@ export default async function SocialMediaToolPage({ params }: Props) {
     const content = await getPublishedSiteContentByPath(`/ferramentas/${slug}`);
     if (content?.contentType === "tool") {
       const hub = content.hubId ? (await listSiteHubs()).find((item) => item.id === content.hubId) : null;
-      return <PublicContentPage content={content} hub={hub} />;
+      return <><PublicContentPage content={content} hub={hub} /><div className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:px-8"><ToolRatingSection slug={slug}/></div></>;
     }
     const hub = await getSiteHubBySlug(slug, true);
     if (hub) return <PublicHubPage hub={hub} contents={await listPublishedSiteContentsByHub(hub.id)} />;
@@ -48,5 +49,5 @@ export default async function SocialMediaToolPage({ params }: Props) {
       { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Ferramentas", item: "https://www.kivai.com.br/ferramentas" }, { "@type": "ListItem", position: 2, name: "Social Media", item: "https://www.kivai.com.br/ferramentas/social-media" }, { "@type": "ListItem", position: 3, name: tool.name }] },
     ],
   };
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><SocialMediaToolClient slug={slug} /><ToolFavoriteSlot className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8" /></>;
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} /><SocialMediaToolClient slug={slug} /><ToolFavoriteSlot className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8" /><div className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:px-8"><ToolRatingSection slug={slug}/></div></>;
 }
