@@ -9,7 +9,7 @@ export default function GeradorDeFaviconPage() {
     <>
       <FaviconGeneratorClient
         title="Gerador de Favicon"
-        description="Crie um pacote de favicons para seu site."
+        description="Crie favicons, baixe os arquivos ou gere um link público para usar no seu site."
         showAll
         names={{
           16: "favicon-16x16.png",
