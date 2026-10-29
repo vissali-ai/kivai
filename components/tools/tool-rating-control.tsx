@@ -31,6 +31,5 @@ export function ToolRatingControl({slug,initial}: {slug:string;initial:Summary|n
       <button type="button" disabled={!selected || busy} onClick={submit} className="ml-2 rounded bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{busy?"Salvando...":"Enviar avaliação"}</button>
     </div>
     {message && <p className="mt-3 text-sm" role="status">{message} {message.startsWith("Entre") && <Link href={`/conta/login?next=${encodeURIComponent(`/ferramentas/${slug}`)}`} className="underline">Fazer login</Link>}</p>}
-    <p className="mt-3 text-xs text-muted-foreground">Uma avaliação por conta para cada ferramenta. A nota pode ser atualizada. As estrelas nos resultados do Google dependem dos critérios do buscador.</p>
   </section>;
 }
