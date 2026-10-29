@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const publicUrl = `${baseUrl}/storage/v1/object/public/${FAVICON_BUCKET}/${path}`;
     const reservedId = await supabaseRest<string>("rpc/kivai_reserve_favicon", {method:"POST",body:JSON.stringify({p_user_id:user.id,p_path:path,p_url:publicUrl,p_bytes:file.size})});
     try {
-      await supabaseStorage(`object/${FAVICON_BUCKET}/${path}`, {method:"POST",headers:{"Content-Type":"image/x-icon","Cache-Control":"public, max-age=31536000, immutable", "x-upsert":"false"},body:bytes});
+      await supabaseStorage(`object/${FAVICON_BUCKET}/${path}`, {method:"POST",headers:{"Content-Type":"image/x-icon","Cache-Control":"public, max-age=31536000, immutable", "x-upsert":"false"},body:new Blob([bytes], {type:"image/x-icon"})});
     } catch {
       await supabaseRest(`hosted_favicons?id=eq.${encodeURIComponent(reservedId)}&user_id=eq.${encodeURIComponent(user.id)}`,{method:"DELETE"}).catch(()=>{});
       return bad("Não foi possível hospedar o arquivo. Tente novamente.",503);
@@ -48,4 +48,18 @@ export async function POST(req: Request) {
     if (message.includes("FAVICON_TOO_LARGE")) return bad("Arquivo acima do limite do seu plano.",413);
     return bad("Hospedagem ainda não configurada ou indisponível.",503);
   }
+}
+
+export async function DELETE(req: Request) {
+  let user: Awaited<ReturnType<typeof authenticateBillingUser>>;
+  try { user = await authenticateBillingUser(req); } catch { return bad("Entre na sua conta.",401); }
+  const id = new URL(req.url).searchParams.get("id") ?? "";
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return bad("Identificador inválido.",400);
+  try {
+    const rows = await supabaseRest<HostedRow[]>(`hosted_favicons?select=id,storage_path,public_url,byte_size,created_at&id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(user.id)}&limit=1`);
+    if (!rows[0]) return bad("Favicon não encontrado.",404);
+    await supabaseStorage(`object/${FAVICON_BUCKET}`, {method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({prefixes:[rows[0].storage_path]})});
+    await supabaseRest(`hosted_favicons?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(user.id)}`,{method:"DELETE"});
+    return Response.json({ok:true}, {headers:noStore});
+  } catch { return bad("Não foi possível excluir o favicon.",503); }
 }
