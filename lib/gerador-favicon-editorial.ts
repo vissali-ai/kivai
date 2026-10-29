@@ -2,6 +2,7 @@ export const geradorFaviconEditorial = {
   overview: [
     "O Gerador de Favicon cria um conjunto de ícones quadrados a partir de uma imagem PNG, JPG ou WebP de até 20 MB. A ferramenta gera arquivos PNG em vários tamanhos, um arquivo favicon.ico e um pacote ZIP com todos os resultados para facilitar a implementação no site.",
     "Os PNGs gerados usam os tamanhos 16×16, 32×32, 48×48, 64×64, 180×180, 192×192 e 512×512 pixels. O arquivo favicon.ico reúne as versões de 16×16, 32×32 e 48×48 pixels. Também são criados arquivos com nomes usuais para Apple Touch e Android Chrome.",
+    "Opcionalmente, usuários cadastrados podem hospedar o favicon.ico e copiar uma URL pública e o código HTML pronto. Limites: Grátis até 5 arquivos de 100 KB; Pro até 100 arquivos de 500 KB; Agency sem limite numérico de arquivos, com até 500 KB por arquivo e política de uso justo.",
     "A imagem enviada é redimensionada mantendo sua proporção e centralizada dentro de uma área quadrada. Se o arquivo original não for quadrado, a ferramenta não corta as bordas para preencher o espaço; por isso, podem surgir áreas transparentes ao redor do conteúdo.",
   ],
   useCases: [
@@ -15,7 +16,8 @@ export const geradorFaviconEditorial = {
     "Confira a prévia e clique em “Gerar favicons”.",
     "Revise as versões geradas nos tamanhos disponíveis.",
     "Baixe o favicon.ico, um PNG específico ou o pacote completo em ZIP.",
-    "Depois do download, publique e referencie os arquivos na configuração do seu site ou aplicação.",
+    "Para usar um link externo, entre na sua conta e clique em Gerar link para site; depois copie a URL ou o código HTML.",
+    "Se preferir download, publique e referencie os arquivos na configuração do seu site ou aplicação.",
   ],
   specifications: [
     { label: "Entrada", value: "Imagem PNG, JPG ou WebP com até 20 MB." },
@@ -23,11 +25,13 @@ export const geradorFaviconEditorial = {
     { label: "favicon.ico", value: "Arquivo ICO contendo versões de 16×16, 32×32 e 48×48 pixels." },
     { label: "Arquivos nomeados", value: "Inclui apple-touch-icon.png, android-chrome-192x192.png e android-chrome-512x512.png, além dos tamanhos para navegador." },
     { label: "Enquadramento", value: "A imagem mantém a proporção e é centralizada dentro do quadrado, sem recorte automático para preencher toda a área." },
+    { label: "Hospedagem", value: "Opcional mediante login. Grátis: 5 ICOs de até 100 KB. Pro: 100 ICOs de até 500 KB. Agency: quantidade sem limite numérico, até 500 KB por ICO, sujeito a uso justo." },
     { label: "Downloads", value: "favicon.ico, PNGs individuais e pacote favicons.zip com todos os arquivos gerados." },
   ],
-  privacy: "A imagem é aberta, redimensionada e transformada nos arquivos de favicon dentro do navegador. O arquivo enviado não precisa ser transferido para um serviço externo para gerar as versões disponíveis. Os downloads só são salvos quando o usuário escolhe baixar um arquivo ou o ZIP.",
+  privacy: "A imagem é aberta, redimensionada e transformada nos arquivos de favicon dentro do navegador. O arquivo enviado não precisa ser transferido para um serviço externo para gerar as versões disponíveis. Somente ao solicitar hospedagem o favicon.ico gerado é enviado ao armazenamento externo e passa a ter uma URL pública. Os downloads só são salvos quando o usuário escolhe baixar um arquivo ou o ZIP.",
   limitations: [
-    "A ferramenta gera os arquivos, mas não instala o favicon nem altera automaticamente o HTML, o manifest ou a configuração do site.",
+    "A ferramenta gera os arquivos e pode fornecer link hospedado, mas não instala o favicon nem altera automaticamente o HTML, o manifest ou a configuração do site.",
+    "Links hospedados dependem da disponibilidade do serviço de armazenamento e dos limites de uso do plano.",
     "Imagens retangulares mantêm a proporção e podem ficar com áreas transparentes ao redor, pois a ferramenta não faz recorte automático para preencher o quadrado.",
     "Textos pequenos, detalhes finos e elementos muito próximos das bordas podem perder legibilidade em tamanhos como 16×16 e 32×32 pixels.",
     "Gerar tamanhos maiores não adiciona detalhes que não existiam na imagem original; uma fonte pequena ou desfocada continuará limitada pela qualidade de origem.",
@@ -39,6 +43,9 @@ export const geradorFaviconEditorial = {
     { question: "A ferramenta recorta minha imagem para deixá-la quadrada?", answer: "Não. Ela mantém a proporção da imagem e a centraliza em uma área quadrada. Se a imagem for retangular, podem permanecer espaços transparentes ao redor." },
     { question: "O favicon é aplicado automaticamente no meu site?", answer: "Não. Depois do download, os arquivos precisam ser publicados e referenciados no HTML, no framework ou na configuração da aplicação." },
     { question: "Qual imagem costuma funcionar melhor?", answer: "Símbolos simples, centralizados e com bom contraste costumam permanecer mais reconhecíveis em tamanhos pequenos. Evite textos longos e detalhes muito finos." },
+    { question: "Posso usar um link direto no meu site?", answer: "Sim. Após gerar o favicon, entre na sua conta e escolha Gerar link para site. Copie a URL pública ou o código HTML indicado e insira no head do site." },
+    { question: "Qual é o limite de hospedagem em cada plano?", answer: "Grátis: 5 favicons de 100 KB cada. Pro: 100 favicons de até 500 KB cada. Agency: quantidade sem limite numérico, com até 500 KB por arquivo e sujeita à política de uso justo. Os limites de hospedagem não afetam os downloads locais." },
+    { question: "A hospedagem é obrigatória?", answer: "Não. Você pode gerar e baixar todos os arquivos sem solicitar link público. A hospedagem só ocorre quando você escolhe essa opção." },
     { question: "Posso baixar tudo de uma vez?", answer: "Sim. O botão de ZIP reúne o favicon.ico e todos os PNGs gerados em um único arquivo favicons.zip." },
   ],
   related: [
