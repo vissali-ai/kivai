@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getPageMetadata, noIndexRobots } from "@/lib/seo";
 import GoogleAdsTrafficAnalyzerClient from "./analisador-client";
+import { ToolSeoDisclosure } from "@/components/tools/tool-seo-disclosure";
 import { GoogleAdsAnalyzerEditorial } from "@/components/tools/google-ads-analyzer-editorial";
 
 const base = getPageMetadata({
@@ -13,5 +14,5 @@ const base = getPageMetadata({
 export const metadata: Metadata = { ...base, robots: noIndexRobots };
 
 export default function AnalisadorDeTrafegoPagoGoogleAdsPage() {
-  return <><GoogleAdsTrafficAnalyzerClient /><GoogleAdsAnalyzerEditorial /></>;
+  return <><GoogleAdsTrafficAnalyzerClient /><div className="mx-auto max-w-6xl px-4 pb-10 sm:px-6 lg:px-8"><ToolSeoDisclosure title="Guia e informações da ferramenta"><GoogleAdsAnalyzerEditorial /></ToolSeoDisclosure></div></>;
 }

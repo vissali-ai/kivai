@@ -2,6 +2,7 @@ import { ToolRatingSection } from "@/components/tools/tool-rating-section";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { ToolSeoDisclosure } from "@/components/tools/tool-seo-disclosure";
 import { getPublishedToolOverride } from "@/lib/site-cms/repository";
 import { ToolFavoriteSlot } from "@/components/tools/tool-favorite-slot";
 
@@ -57,14 +58,15 @@ export async function ToolEditorialLayout({
   const override = await getPublishedToolOverride(slug);
 
   if (override?.contentHtml) {
-    return <section className="border-t border-border bg-muted/10 py-10 sm:py-12"><ToolFavoriteSlot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" /><ToolRatingSection slug={slug} /><article className="cms-public-content mx-auto w-full max-w-6xl px-4 leading-7 sm:px-6 lg:px-8" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></section>;
+    return <section className="border-t border-border bg-muted/10 py-10 sm:py-12"><ToolFavoriteSlot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" /><div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8"><ToolRatingSection slug={slug} /><div className="mt-6"><ToolSeoDisclosure title="Informações sobre esta ferramenta"><article className="cms-public-content leading-7" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></ToolSeoDisclosure></div></div></section>;
   }
 
   return (
     <section className="border-t border-border bg-muted/10 py-12 sm:py-16">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
         <ToolFavoriteSlot />
-        <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
+<ToolSeoDisclosure title="Sobre esta ferramenta">
+                <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-2xl font-semibold">Sobre esta ferramenta</h2>
           <div className="mt-4 space-y-4 leading-7 text-muted-foreground">
             {overview.map((item) => (
@@ -73,7 +75,10 @@ export async function ToolEditorialLayout({
           </div>
         </article>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+</ToolSeoDisclosure>
+
+        <ToolSeoDisclosure title="Como usar e quando utilizar">
+                <div className="grid gap-6 lg:grid-cols-2">
           <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Como usar</h2>
             <ol className="mt-5 list-none space-y-3">
@@ -101,7 +106,10 @@ export async function ToolEditorialLayout({
           </article>
         </div>
 
-        <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
+</ToolSeoDisclosure>
+
+        <ToolSeoDisclosure title="Especificações e formatos">
+                <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-2xl font-semibold">{specificationsTitle}</h2>
           <dl className="mt-5 grid gap-4 sm:grid-cols-2">
             {specifications.map((item) => (
@@ -113,7 +121,10 @@ export async function ToolEditorialLayout({
           </dl>
         </article>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+</ToolSeoDisclosure>
+
+        <ToolSeoDisclosure title="Privacidade e limitações">
+                <div className="grid gap-6 lg:grid-cols-2">
           <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Privacidade e processamento</h2>
             <p className="mt-4 leading-7 text-muted-foreground">{privacy}</p>
@@ -132,9 +143,12 @@ export async function ToolEditorialLayout({
           </article>
         </div>
 
-        <ToolRatingSection slug={slug} />
+</ToolSeoDisclosure>
 
-        <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
+                <ToolRatingSection slug={slug} />
+
+<ToolSeoDisclosure title="Perguntas frequentes">
+                <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-2xl font-semibold">Perguntas frequentes</h2>
           <div className="mt-5 space-y-3">
             {faqs.map((item) => (
@@ -146,9 +160,12 @@ export async function ToolEditorialLayout({
           </div>
         </article>
 
-        {afterFaq ? <div className="py-2">{afterFaq}</div> : null}
+</ToolSeoDisclosure>
 
-        <div className={relatedArticles.length ? "grid gap-6 lg:grid-cols-2" : undefined}>
+                {afterFaq ? <div className="py-2">{afterFaq}</div> : null}
+
+<ToolSeoDisclosure title="Ferramentas e conteúdos relacionados">
+                <div className={relatedArticles.length ? "grid gap-6 lg:grid-cols-2" : undefined}>
           <nav aria-label="Ferramentas relacionadas" className="rounded-lg border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2>
             <div className="mt-4 flex flex-wrap gap-3">
@@ -173,7 +190,9 @@ export async function ToolEditorialLayout({
             </nav>
           ) : null}
         </div>
-      </div>
+</ToolSeoDisclosure>
+
+              </div>
     </section>
   );
 }
