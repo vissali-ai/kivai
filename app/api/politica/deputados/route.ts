@@ -56,7 +56,7 @@ export async function GET(request: Request) {
     const cleanName = nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
     const dados = normalize(response).map(mapAlternative).filter((d): d is Deputy => d !== null).filter(d => {
       const normalized = d.nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
-      return normalized.includes(cleanName) && (!uf || d.siglaUf.toUpperCase() === uf);
+      return normalized.includes(cleanName) && (!uf || (d.siglaUf ?? "").toUpperCase() === uf);
     });
     if (dados.length) return NextResponse.json({ dados, fonte: "Fiscalize o Poder (dados derivados de fontes públicas)", aviso: "A API oficial não respondeu; resultados obtidos de fonte pública auxiliar." }, { headers: { "Cache-Control": "public, s-maxage=300" } });
   } catch (error) {
