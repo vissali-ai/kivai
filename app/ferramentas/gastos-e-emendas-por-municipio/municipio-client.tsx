@@ -9,6 +9,7 @@ const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO R
 const GOV = "https://portaldatransparencia.gov.br";
 export function EmendasMunicipioClient() {
   const [uf,setUf] = useState("");
+  const [ano,setAno] = useState(String(new Date().getFullYear()));
   const [municipios,setMunicipios] = useState<Municipality[]>([]);
   const [id,setId] = useState("");
   const [loading,setLoading] = useState(false);
@@ -40,12 +41,13 @@ export function EmendasMunicipioClient() {
         <label className="space-y-2 text-sm font-medium">Município
           <select required disabled={!uf||loading||!municipios.length} value={id} onChange={e=>{setId(e.target.value);setReady(false)}} className="block w-full rounded-md border bg-background px-3 py-3 font-normal"><option value="">{loading?"Carregando municípios...":"Selecione o município"}</option>{municipios.map(m=><option key={m.id} value={m.id}>{m.nome}</option>)}</select>
         </label>
-        <button className="rounded-md bg-primary px-5 py-3 font-medium text-primary-foreground disabled:opacity-50 sm:col-span-2" disabled={!id||loading}>Consultar fontes oficiais</button>
+        <label className="space-y-2 text-sm font-medium">Ano de referência<select className="block w-full rounded-md border bg-background px-3 py-3 font-normal" value={ano} onChange={e=>{setAno(e.target.value);setReady(false)}}>{Array.from({length:12},(_,i)=>String(new Date().getFullYear()-i)).map(y=><option key={y} value={y}>{y}</option>)}</select></label>
+        <button className="rounded-md bg-primary px-5 py-3 font-medium text-primary-foreground disabled:opacity-50 sm:self-end" disabled={!id||loading}>Consultar fontes oficiais</button>
       </form>
       {error&&<p role="alert" className="rounded-lg border border-destructive/40 p-4 text-sm text-destructive">{error}</p>}
       {ready&&municipality&&<section className="space-y-4" aria-live="polite">
         <h2 className="text-2xl font-semibold">{municipality.nome}, {uf}</h2>
-        <p className="text-sm text-muted-foreground">Código IBGE: {municipality.id}. As fontes abaixo exigem a seleção dos filtros municipais na própria consulta oficial; não interpretamos dados de outro local como dados deste município.</p>
+        <p className="text-sm text-muted-foreground">Código IBGE: {municipality.id}. Ano selecionado: {ano}. As fontes abaixo exigem selecionar também o município e o ano nos filtros do portal oficial. Esta versão não calcula totais financeiros por município.</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <a target="_blank" rel="noopener noreferrer" href={GOV+"/emendas/consulta-por-favorecido"} className="rounded-lg border bg-card p-5 hover:border-primary/40"><h3 className="font-semibold">Emendas por favorecido <ExternalLink className="inline size-4"/></h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Confira valores efetivamente pagos a prefeituras, fundos, entidades e outros favorecidos da localidade. Aplique filtros de UF e município no Portal.</p></a>
           <a target="_blank" rel="noopener noreferrer" href={GOV+"/emendas/consulta-por-documento"} className="rounded-lg border bg-card p-5 hover:border-primary/40"><h3 className="font-semibold">Documentos de despesas <ExternalLink className="inline size-4"/></h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Consulte empenhos, liquidações e pagamentos de emendas e filtre a localidade de aplicação.</p></a>
@@ -56,7 +58,7 @@ export function EmendasMunicipioClient() {
       <AdSlot placement="tool-inline"/>
       <section className="grid gap-6 border-t pt-8 sm:grid-cols-2">
         <article><h2 className="text-xl font-semibold">Emenda destinada não é pagamento realizado</h2><p className="mt-3 text-sm leading-7 text-muted-foreground">Valores previstos, empenhados, liquidados e pagos representam etapas diferentes. Não devem ser somados ou apresentados como se fossem gastos já realizados.</p></article>
-        <article><h2 className="text-xl font-semibold">O que está disponível nesta versão?</h2><p className="mt-3 text-sm leading-7 text-muted-foreground">A seleção municipal utiliza a API oficial de Localidades do IBGE. Os dados financeiros continuam nos portais governamentais; ainda não há consolidação automática de valores no Kivai.</p></article>
+        <article><h2 className="text-xl font-semibold">O que está disponível nesta versão?</h2><p className="mt-3 text-sm leading-7 text-muted-foreground">A seleção municipal utiliza a API oficial de Localidades do IBGE. A integração autenticada à API da CGU está sendo preparada, mas ainda não está conectada ao filtro municipal. Não exibimos totais sem verificar localidade, abrangência e período.</p></article>
       </section><AdSlot placement="tool-bottom"/>
     </section>
   </main>;
