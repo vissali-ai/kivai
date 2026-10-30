@@ -34,6 +34,7 @@ import {
   Video,
   Music,
   Tv,
+  Landmark,
 } from "lucide-react";
 
 export type ToolCategory =
@@ -54,7 +55,8 @@ export type ToolCategory =
   | "utilitarios"
   | "empresas"
   | "trafego"
-  | "smart-tv";
+  | "smart-tv"
+  | "politica";
 
 export interface ToolCategoryDefinition {
   slug: ToolCategory;
@@ -65,6 +67,7 @@ export interface ToolCategoryDefinition {
 }
 
 export const toolCategories: ToolCategoryDefinition[] = [
+  { slug: "politica", name: "Política e Dados Públicos", description: "Consulte votações parlamentares e informações públicas de fontes oficiais.", href: "/ferramentas/politica-e-dados-publicos", icon: Landmark },
   {
     slug: "imagens",
     name: "Imagens",
@@ -159,6 +162,7 @@ export interface Tool {
 }
 
 export const INDEXABLE_TOOL_SLUGS = [
+  "como-votou-meu-deputado",
   "imprimir-frente-e-verso",
   "descompactar-zip",
   "descompactar-rar",
@@ -247,6 +251,7 @@ export function isToolIndexable(slug: string) {
 }
 
 export const tools: Tool[] = [
+  { slug: "como-votou-meu-deputado", name: "Como Votou Meu Deputado?", description: "Pesquise deputados federais e consulte seus votos nominais registrados na Câmara, com links para a fonte oficial.", category: "politica", hubFilter: "Votações", badge: "Câmara", icon: Landmark, available: true, seoTitle: "Como Votou Meu Deputado? Consulte Votações na Câmara", seoDescription: "Veja como deputados federais votaram em votações nominais da Câmara dos Deputados. Consulte registros oficiais por nome e ano, gratuitamente.", keywords: ["como votou meu deputado", "votação deputado federal", "votos deputados câmara", "consultar voto deputado"] },
   {
     slug: "kivai-connect", name: "Kivai Connect",
     description: "Conheça sua TV com diagnóstico local gratuito e orientações opcionais com IA. Requer auxiliar Windows e pareamento autorizado.",
