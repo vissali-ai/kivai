@@ -16,15 +16,16 @@ export default function ComoVotouClient() {
   const [selected, setSelected] = useState<Deputy | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
+  const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
   async function find(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setError(""); setResult(null); setSelected(null); setDeputies([]);
+    e.preventDefault(); setBusy(true); setSearched(false); setError(""); setResult(null); setSelected(null); setDeputies([]);
     try {
       const params = new URLSearchParams({ nome: nome.trim() }); if (uf) params.set("uf", uf);
       const response = await fetch(`/api/politica/deputados?${params}`);
       const data = await response.json();
       if (!response.ok) throw Error(data.error ?? "Falha ao consultar deputados.");
-      setDeputies(data.dados ?? []);
+      setDeputies(data.dados ?? []); setSearched(true);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Erro na consulta."); }
     finally { setBusy(false); }
   }
@@ -44,7 +45,7 @@ export default function ComoVotouClient() {
       <div className="max-w-3xl space-y-3">
         <p className="text-sm font-medium uppercase tracking-wider text-primary">Dados oficiais da Câmara dos Deputados</p>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">Como Votou Meu Deputado?</h1>
-        <p className="leading-7 text-muted-foreground">Pesquise deputados federais e consulte seus votos nominais registrados nas votações recentes da Câmara. Dados públicos, sem avaliação partidária.</p>
+        <p className="leading-7 text-muted-foreground">Pesquise deputados federais da legislatura atual e consulte seus votos nominais registrados nas votações recentes da Câmara. Dados públicos, sem avaliação partidária. Histórico de ex-deputados ainda não disponível nesta versão.</p>
       </div>
       <form onSubmit={find} className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-[1fr_150px_auto] sm:p-6">
         <label className="space-y-1.5 text-sm font-medium">Nome do deputado<input value={nome} onChange={e => setNome(e.target.value)} minLength={2} required maxLength={100} placeholder="Digite pelo menos 2 letras" className="w-full rounded-md border bg-background px-3 py-3 font-normal"/></label>
@@ -54,7 +55,7 @@ export default function ComoVotouClient() {
       {error && <p role="alert" className="rounded-lg border border-destructive/40 p-4 text-sm text-destructive">{error}</p>}
       {busy && <p role="status" className="text-sm text-muted-foreground">Consultando dados oficiais...</p>}
       {!selected && deputies.length > 0 && <div className="space-y-3"><h2 className="text-xl font-semibold">Selecione um parlamentar</h2><div className="grid gap-2 sm:grid-cols-2">{deputies.map(d=><button key={d.id} type="button" onClick={()=>votes(d)} className="rounded-lg border bg-card p-4 text-left transition-colors hover:bg-muted/40"><span className="font-semibold">{d.nome}</span><span className="mt-1 block text-sm text-muted-foreground">{d.siglaPartido} · {d.siglaUf}</span><span className="mt-2 block text-xs text-primary">Consultar votos</span></button>)}</div></div>}
-      {!selected && !busy && deputies.length === 0 && nome.trim().length>=2 && !error && <p className="text-sm text-muted-foreground">Pesquise um nome para consultar os parlamentares.</p>}
+      {searched && !selected && !busy && deputies.length === 0 && !error && <p role="status" className="rounded-lg border p-4 text-sm text-muted-foreground">Nenhum deputado encontrado na consulta atual. Se você pesquisou um ex-deputado, o histórico de legislaturas anteriores ainda não está disponível. Experimente pesquisar um deputado federal em exercício.</p>}
       {selected && <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border bg-card p-4">
           <div><h2 className="text-xl font-semibold">{selected.nome}</h2><p className="text-sm text-muted-foreground">{selected.siglaPartido} · {selected.siglaUf}</p><button type="button" onClick={()=>{setSelected(null);setResult(null)}} className="mt-2 text-sm text-primary hover:underline">Trocar deputado</button></div>
