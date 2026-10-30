@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 export const maxDuration = 60;
 const BASE = "https://dadosabertos.camara.leg.br/api/v2";
+const FALLBACK = "https://fiscalizeopoder.com.br/api/v1";
 type Vote = { idDeputado?: number; tipoVoto?: string; dataRegistroVoto?: string };
 type VotePage = { dados?: Vote[] };
 type Ballot = { id: string; data?: string; dataHoraRegistro?: string; descricao?: string; aprovacao?: number; siglaOrgao?: string };
@@ -43,7 +44,34 @@ export async function GET(request: Request) {
       limite: "Amostra das 8 votações mais recentes retornadas pela Câmara no ano escolhido. Não representa o histórico completo. Apenas votos nominais registrados são exibidos.",
       fonte: "https://dadosabertos.camara.leg.br/swagger/api.html",
     });
-  } catch {
-    return NextResponse.json({ error: "Não foi possível consultar as votações na Câmara. Tente novamente." }, { status: 503 });
+  } catch (error) {
+    console.warn("[politica/votos] Falha da Câmara:", error instanceof Error ? error.name : "unknown");
+    try {
+      const response = await fetch(FALLBACK + "/parlamentares/" + id + "/votos", {
+        next: { revalidate: 1800 }, signal: AbortSignal.timeout(8500), headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw Error("FALLBACK_HTTP_" + response.status);
+      const payload: unknown = await response.json();
+      const root = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
+      const data = Array.isArray(payload) ? payload : [root.dados, root.votos, root.items, root.results, root.data].find(Array.isArray) ?? [];
+      const rows = (data as unknown[]).filter((item): item is Record<string, unknown> => !!item && typeof item === "object");
+      const matches = rows.flatMap(row => {
+        const nested = row.votacao && typeof row.votacao === "object" ? row.votacao as Record<string, unknown> : {};
+        const voteId = row.idVotacao ?? row.id_votacao ?? nested.id;
+        const date = String(row.data ?? row.dataVotacao ?? nested.data ?? "");
+        const voto = String(row.voto ?? row.tipoVoto ?? row.tipo_voto ?? "");
+        if (!voteId || !voto || Number(date.slice(0,4)) !== year) return [];
+        return [{ votacao: { id: String(voteId), data: date, descricao: String(row.descricao ?? nested.descricao ?? row.ementa ?? "") }, voto }];
+      }).slice(0,30);
+      if (matches.length) return NextResponse.json({
+        dados: matches, totalVotacoesAmostradas: matches.length, consultasIndisponiveis: 0,
+        limite: "Registros retornados pela API pública auxiliar para o ano escolhido. Não representam o histórico completo.",
+        fonte: "https://fiscalizeopoder.com.br/dados",
+      }, { headers: { "Cache-Control": "public, s-maxage=900" } });
+      console.warn("[politica/votos] Sem registros compatíveis da API auxiliar para o ano", year);
+    } catch (secondary) {
+      console.warn("[politica/votos] Falha da API auxiliar:", secondary instanceof Error ? secondary.message : "unknown");
+    }
+    return NextResponse.json({ error: "As APIs de votações não retornaram registros verificáveis. Tente novamente mais tarde." }, { status: 503 });
   }
 }
