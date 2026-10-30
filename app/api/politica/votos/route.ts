@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 export const maxDuration = 60;
 const BASE = "https://dadosabertos.camara.leg.br/api/v2";
 type Vote = { idDeputado?: number; tipoVoto?: string; dataRegistroVoto?: string };
+type VotePage = { dados?: Vote[]; links?: Array<{ rel?: string; href?: string }> };
 type Ballot = { id: string; data?: string; dataHoraRegistro?: string; descricao?: string; aprovacao?: number; siglaOrgao?: string };
 type RecordVote = { votacao: Ballot; voto: string; dataRegistroVoto?: string };
 async function fromCamara<T>(path: string): Promise<T> {
@@ -20,15 +21,19 @@ export async function GET(request: Request) {
   try {
     const params = new URLSearchParams({ dataInicio: `${year}-01-01`, dataFim: `${year}-12-31`, itens: "30", ordem: "DESC", ordenarPor: "dataHoraRegistro" });
     const listing = await fromCamara<{ dados?: Ballot[] }>(`/votacoes?${params}`);
-    const ballots = Array.isArray(listing.dados) ? listing.dados.slice(0, 30) : [];
-    // Parallel batches are intentionally bounded. The UI discloses that this is a recent sample, not complete history.
+    const ballots = Array.isArray(listing.dados) ? listing.dados.slice(0, 15) : [];
+    // Amostra limitada para evitar centenas de chamadas por visitante; votos são paginados por deputado.
     const matches: RecordVote[] = [];
     const failures: string[] = [];
     for (let start = 0; start < ballots.length; start += 5) {
       const batch = await Promise.allSettled(ballots.slice(start, start + 5).map(async votacao => {
-        const response = await fromCamara<{ dados?: Vote[] }>(`/votacoes/${encodeURIComponent(votacao.id)}/votos?itens=1000`);
-        const found = (response.dados ?? []).find(v => Number(v.idDeputado) === id);
-        return found ? { votacao, voto: found.tipoVoto ?? "Não informado", dataRegistroVoto: found.dataRegistroVoto } : null;
+        for (let page = 1; page <= 8; page++) {
+          const response = await fromCamara<VotePage>(`/votacoes/${encodeURIComponent(votacao.id)}/votos?itens=100&pagina=${page}`);
+          const found = (response.dados ?? []).find(v => Number(v.idDeputado) === id);
+          if (found) return { votacao, voto: found.tipoVoto ?? "Não informado", dataRegistroVoto: found.dataRegistroVoto };
+          if (!response.links?.some(link => link.rel === "next")) return null;
+        }
+        throw Error("VOTE_PAGINATION_LIMIT");
       }));
       batch.forEach((result, index) => {
         if (result.status === "fulfilled" && result.value) matches.push(result.value);
@@ -38,7 +43,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       dados: matches.sort((a,b) => (b.votacao.dataHoraRegistro ?? b.votacao.data ?? "").localeCompare(a.votacao.dataHoraRegistro ?? a.votacao.data ?? "")),
       totalVotacoesAmostradas: ballots.length, consultasIndisponiveis: failures.length,
-      limite: "Amostra das 30 votações mais recentes retornadas pela Câmara no ano escolhido. Não representa o histórico completo. Apenas votos nominais registrados são exibidos.",
+      limite: "Amostra das 15 votações mais recentes retornadas pela Câmara no ano escolhido. Não representa o histórico completo. Apenas votos nominais registrados são exibidos.",
       fonte: "https://dadosabertos.camara.leg.br/swagger/api.html",
     });
   } catch {
