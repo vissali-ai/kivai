@@ -182,13 +182,13 @@ export default function UnirPdfsClient() {
       categoryHref="/ferramentas/pdfs"
       breadcrumbRootName="Início"
       breadcrumbRootHref="/"
-      privacyMessage="A leitura e a união dos PDFs acontecem localmente no navegador. Os documentos não são enviados ao Kivai."
+      showPrivacyNotice={false}
     >
       <Card className="mx-auto max-w-5xl">
         <CardHeader>
           <CardTitle>Monte a sequência dos documentos</CardTitle>
           <CardDescription>
-            Adicione pelo menos dois PDFs e organize a ordem em que eles aparecerão no arquivo final.
+            Selecione pelo menos dois arquivos PDF.
           </CardDescription>
         </CardHeader>
 
