@@ -17,28 +17,27 @@ export default function TextoPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <section className="relative overflow-hidden bg-background pb-12 pt-24 sm:pb-14 lg:pb-16">
+      <section className="bg-background pb-12 pt-24 sm:pb-14 lg:pb-16">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
+          <div className="mb-6 border-l-2 border-sky-500/70 pl-4">
             <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary">
               <ArrowLeft className="size-4" aria-hidden="true" />
               Voltar para o início
             </Link>
 
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">Análise e revisão de conteúdo</p>
             <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Texto</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
               Analise palavras, caracteres, frases, parágrafos, linhas e tempos estimados com ferramentas online para revisão de textos.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-2" aria-label="Filtrar ferramentas de texto">
+            <div className="mt-5 flex flex-wrap gap-2" aria-label="Filtrar ferramentas de texto">
               {filters.map((item) => (
                 <button
                   key={item}
                   type="button"
                   onClick={() => setFilter(item)}
                   aria-pressed={filter === item}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                  className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
                     filter === item
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border bg-background hover:border-primary hover:text-primary"
@@ -56,7 +55,7 @@ export default function TextoPage() {
               const content = (
                 <div className="flex min-h-[152px] flex-col">
                   <div className="flex items-start justify-between">
-                    <span className="flex size-8 items-center justify-center text-amber-700">
+                    <span className="flex size-8 items-center justify-center text-sky-700">
                       <Icon className="size-4" aria-hidden="true" />
                     </span>
                     <span className="rounded-full border border-border bg-muted/70 px-2 py-0.5 text-[10px] text-muted-foreground">
