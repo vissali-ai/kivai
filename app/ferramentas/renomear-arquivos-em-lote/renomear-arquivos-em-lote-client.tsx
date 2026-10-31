@@ -8,7 +8,7 @@ import {
   Download,
   File,
   Loader2,
-  RotateCcw
+  RotateCcw,
   Trash2,
   Upload,
 } from "lucide-react";
