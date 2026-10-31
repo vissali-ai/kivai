@@ -145,7 +145,7 @@ export async function ToolEditorialLayout({
 
 </ToolSeoDisclosure>
 
-                <ToolRatingSection slug={slug} />
+                {slug !== "removedor-de-metadados-e-rotulos-de-ia" ? <ToolRatingSection slug={slug} /> : null}
 
 <ToolSeoDisclosure title="Perguntas frequentes">
                 <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
