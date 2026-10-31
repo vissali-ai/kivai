@@ -7,7 +7,7 @@ import CompactarArquivosZipClient from "./compactar-arquivos-zip-client";
 
 const title = "Compactar Arquivos em ZIP Online Grátis | Kivai";
 const description =
-  "Compacte vários arquivos em um único ZIP online, escolha o nível de compactação e faça o download diretamente no navegador, sem enviar seus arquivos ao servidor do Kivai.";
+  "Compacte vários arquivos em um único ZIP online, escolha o nível de compactação e faça o download de maneira simples.";
 const url = `${SITE_URL}/ferramentas/compactar-arquivos-zip`;
 
 const baseMetadata: Metadata = {
