@@ -9,7 +9,7 @@ import RenomearArquivosEmLoteClient from "./renomear-arquivos-em-lote-client";
 const baseMetadata: Metadata = getPageMetadata({
   title: "Renomear Arquivos em Lote Online",
   description:
-    "Renomeie vários arquivos de uma vez, aplique nome base e numeração automática e baixe as cópias organizadas em ZIP diretamente no navegador.",
+    "Renomeie vários arquivos de uma vez, aplique nome base e numeração automática e baixe as cópias organizadas em ZIP .",
   pathname: "/ferramentas/renomear-arquivos-em-lote",
 });
 
