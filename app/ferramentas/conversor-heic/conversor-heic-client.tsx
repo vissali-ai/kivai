@@ -246,8 +246,7 @@ return (
           </h1>
 
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Converta fotos HEIC e HEIF do iPhone para JPG gratuitamente,
-            diretamente no navegador e sem enviar seus arquivos para um servidor.
+            Converta fotos HEIC e HEIF do iPhone para JPG gratuitamente.
           </p>
         </div>
       </div>
