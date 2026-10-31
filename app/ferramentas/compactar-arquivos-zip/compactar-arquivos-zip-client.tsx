@@ -216,7 +216,7 @@ export default function CompactarArquivosZipClient() {
           <CardHeader>
             <CardTitle>Selecione os arquivos</CardTitle>
             <CardDescription>
-              A compactação acontece localmente no navegador. Seus arquivos não são enviados para nossos servidores.
+              Selecione os arquivos que deseja reunir em um ZIP.
             </CardDescription>
           </CardHeader>
           <CardContent>
