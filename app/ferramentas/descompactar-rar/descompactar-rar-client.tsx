@@ -380,7 +380,7 @@ export default function DescompactarRarClient() {
             Descompactar RAR
           </h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Abra um arquivo RAR, veja o conteúdo e baixe os arquivos extraídos diretamente no navegador.
+            Abra um arquivo RAR, veja o conteúdo e baixe os arquivos extraídos com facilidade.
           </p>
         </div>
 
@@ -464,10 +464,6 @@ export default function DescompactarRarClient() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {fileCount} arquivo{fileCount === 1 ? "" : "s"}, {folderCount} pasta{folderCount === 1 ? "" : "s"} · {formatBytes(estimatedSize)} descompactados
                 </p>
-              </div>
-              <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                <ShieldCheck className="size-4 text-primary" />
-                Extração local no navegador
               </div>
             </div>
 
