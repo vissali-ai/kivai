@@ -322,7 +322,7 @@ export default function MontarPdfParaImpressaoClient() {
     <Card className="mx-auto max-w-7xl overflow-hidden">
       <CardHeader className="border-b">
         <CardTitle>Montar PDF para Impressão</CardTitle>
-        <CardDescription>Adicione seus PDFs e monte a folha com mouse ou toque. Arraste para mover, use as alças para redimensionar e exclua páginas pelo ícone de lixeira na miniatura selecionada.</CardDescription>
+        <CardDescription>Adicione os arquivos PDF que deseja organizar na folha.</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <input ref={inputRef} type="file" accept="application/pdf,.pdf" multiple className="sr-only" onChange={(event) => { void addFiles(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
