@@ -404,17 +404,13 @@ export default function RemovedorDeMetadadosClient() {
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Remova metadados e credenciais de procedência que podem gerar rótulos de IA ao publicar imagens em redes sociais.
           </p>
-          <p className="mt-3 flex max-w-xl items-start gap-2 text-sm leading-6 text-muted-foreground sm:items-center">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary sm:mt-0" aria-hidden="true" />
-            Processamento local no navegador para JPG, PNG e WebP.
-          </p>
         </div>
 
         <Card className="mx-auto max-w-5xl">
           <CardHeader className="p-5 sm:p-6">
             <CardTitle>Selecione uma imagem</CardTitle>
             <CardDescription>
-              Compatível com JPG, PNG e WebP. A imagem é processada diretamente no navegador.
+              Compatível com JPG, PNG e WebP.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-5 pt-0 sm:p-6 sm:pt-0" aria-busy={processing}>
