@@ -118,7 +118,6 @@ export default function AnalisadorDePostsClient() {
   const [showCaption, setShowCaption] = useState(false);
   const [skipFile, setSkipFile] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
-  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [report, setReport] = useState<Report | null>(null);
@@ -129,7 +128,7 @@ export default function AnalisadorDePostsClient() {
 
   function reset() {
     setUrl(""); setFiles([]); setCaption(""); setShowCaption(false); setError(""); setReport(null);
-    setSkipFile(false); setConsent(false); setAudience(""); setFeedback("");
+    setSkipFile(false); setAudience(""); setFeedback("");
   }
   function pickFiles(selected: FileList | null) {
     if (!selected) return;
@@ -164,7 +163,7 @@ export default function AnalisadorDePostsClient() {
       const response = await fetch("/api/ai/post-analyzer", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
-        body: JSON.stringify({ status, url: url.trim(), objective, audience: audience.trim(), caption: caption.trim(), images, videoFrames, consent }),
+        body: JSON.stringify({ status, url: url.trim(), objective, audience: audience.trim(), caption: caption.trim(), images, videoFrames, consent: true }),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -186,7 +185,6 @@ export default function AnalisadorDePostsClient() {
   const cost = files.length && !skipFile ? 2 : 1;
 
   return <div className="space-y-6">
-    <SavedProjects kind="post_analysis" payload={{ report }} onLoad={value => { const p=value as { report?: Report }; if(p?.report?.result) setReport(p.report); }} />
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Sparkles className="size-5 text-primary" /> Nova análise</CardTitle>
@@ -236,9 +234,9 @@ export default function AnalisadorDePostsClient() {
             <textarea id="post-caption" rows={4} maxLength={8000} value={caption} onChange={e => setCaption(e.target.value)} className="w-full rounded-md border border-input bg-background p-3 text-sm" />
           </div>}
           <AiCreditBalance />
-          <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-1" /><span>Autorizo o envio dos dados selecionados ao serviço externo de IA. Não incluí informações pessoais ou confidenciais.</span></label>
+          <p className="text-sm text-muted-foreground">Ao clicar em Analisar Publicação, os dados selecionados serão enviados a um serviço externo de IA. Não inclua informações pessoais ou confidenciais.</p>
           <p className="text-xs leading-5 text-muted-foreground">Cada análise usa aproximadamente {cost} crédito(s). Somente imagens otimizadas ou quadros extraídos do vídeo serão enviados; arquivos originais não são enviados nesta versão. Um provedor gratuito de IA pode usar os dados para melhorar seus produtos. A IA pode errar.</p>
-          <Button type="submit" size="lg" disabled={loading || !consent} className="w-full sm:w-auto"><Sparkles className="mr-2 size-4" />{loading ? "Analisando publicação..." : "Analisar Publicação"}</Button>
+          <Button type="submit" size="lg" disabled={loading} className="w-full sm:w-auto"><Sparkles className="mr-2 size-4" />{loading ? "Analisando publicação..." : "Analisar Publicação"}</Button>
           {error && <p role="alert" className="text-sm text-destructive">{error} {error.startsWith("Entre") && <Link href="/conta/login?next=%2Fferramentas%2Fanalisador-de-posts" className="underline">Fazer login</Link>}</p>}
         </form>
       </CardContent>
@@ -260,5 +258,6 @@ export default function AnalisadorDePostsClient() {
         {feedback && <p role="status" className="text-sm text-muted-foreground">{feedback}</p>}
       </CardContent></Card>
     </section>}
+    <SavedProjects kind="post_analysis" payload={{ report }} onLoad={value => { const p=value as { report?: Report }; if(p?.report?.result) setReport(p.report); }} />
   </div>;
 }
