@@ -177,7 +177,7 @@ export default function DescompactarZipClient() {
             Descompactar ZIP
           </h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Abra um arquivo ZIP, confira o conteúdo e baixe os arquivos que precisa diretamente no navegador.
+            Abra um arquivo ZIP, confira o conteúdo e baixe os arquivos que precisa com facilidade.
           </p>
         </div>
 
@@ -185,7 +185,7 @@ export default function DescompactarZipClient() {
           <CardHeader>
             <CardTitle>Selecione um arquivo ZIP</CardTitle>
             <CardDescription>
-              O arquivo é processado localmente. Limite de 200 MB e até 3.000 itens por ZIP nesta versão.
+              Limite de 200 MB e até 3.000 itens por ZIP nesta versão.
             </CardDescription>
           </CardHeader>
 
@@ -253,10 +253,6 @@ export default function DescompactarZipClient() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {fileEntries.length} arquivo{fileEntries.length === 1 ? "" : "s"} disponível{fileEntries.length === 1 ? "" : "is"} para download.
                 </p>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
-                <ShieldCheck className="size-3.5 text-primary" />
-                Processamento local
               </div>
             </div>
 
