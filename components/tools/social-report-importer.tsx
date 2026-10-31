@@ -202,12 +202,6 @@ export function SocialReportImporter({ currentMetrics, currentNetwork, currentSt
       </div>
       {files.length > 0 && <p className="text-xs text-muted-foreground">Selecionados: {files.map(file => file.name).join(", ")}</p>}
       <AiCreditBalance />
-      <p className="text-xs leading-5 text-muted-foreground">
-        Ao clicar em Identificar indicadores, você solicita o envio dos arquivos selecionados a um serviço externo de IA.
-        No nível gratuito, o provedor pode utilizar esses dados para melhorar seus produtos.
-        Oculte informações pessoais ou confidenciais antes de enviar. O Kivai não armazena os arquivos desta importação.
-      </p>
-
       <div className="flex justify-end">
         <Button type="button" className="w-full sm:w-auto" onClick={extract} disabled={loading || !files.length}>
           {loading ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Sparkles className="size-4" aria-hidden="true" />}
