@@ -94,7 +94,7 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
   const currentPlan = access?.plan;
   const loggedIn = !!access?.userId;
   const checkedSession = !loading;
-  const displayPlans = plans.map(plan => { const features = String(fields.find(f => f.key === `${plan.code}-features`)?.value ?? planBenefits[plan.code].join("\n")).split("\n").filter(Boolean); const faviconBenefit = planBenefits[plan.code].find(feature => feature.includes("Hospedagem de")); if (faviconBenefit && !features.some(feature => feature.includes("Hospedagem de"))) features.push(faviconBenefit); return { ...plan, description: String(fields.find(f => f.key === `${plan.code}-description`)?.value ?? plan.description), features }; });
+  const displayPlans = plans.map(plan => { const features = String(fields.find(f => f.key === `${plan.code}-features`)?.value ?? planBenefits[plan.code].join("\n")).split("\n").filter(Boolean); const hostingBenefit = planBenefits[plan.code].find(feature => feature.includes("Hospedagem de")); if (hostingBenefit) { const existingIndex = features.findIndex(feature => feature.includes("Hospedagem de")); if (existingIndex >= 0) features[existingIndex] = hostingBenefit; else features.push(hostingBenefit); } return { ...plan, description: String(fields.find(f => f.key === `${plan.code}-description`)?.value ?? plan.description), features }; });
   const [starting, setStarting] = useState<string | null>(null);
   const [error, setError] = useState("");
 
