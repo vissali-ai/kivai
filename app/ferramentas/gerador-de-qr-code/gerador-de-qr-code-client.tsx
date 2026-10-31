@@ -102,8 +102,7 @@ export default function GeradorDeQrCodeClient() {
 
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Crie QR Codes para links, textos, Wi-Fi, e-mail,
-            telefone e WhatsApp. Nos números brasileiros, o +55
-            é aplicado automaticamente. Personalize a aparência
+            telefone e WhatsApp. Personalize a aparência
             ou transforme o código em uma peça visual com texto,
             marca e logo.
           </p>
