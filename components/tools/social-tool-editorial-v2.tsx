@@ -193,6 +193,11 @@ export function SocialToolEditorialV2({ slug }: { slug: SocialToolEditorialSlug 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
       />
+      <section className="border-t border-border bg-muted/10 pb-12 sm:pb-16" aria-label="Planos relacionados">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+          <ContextualPlanCallout location="social-tool" />
+        </div>
+      </section>
       <ToolEditorialLayout
         slug={slug}
         overview={content.overview}
@@ -206,11 +211,7 @@ export function SocialToolEditorialV2({ slug }: { slug: SocialToolEditorialSlug 
         relatedTools={relatedTools}
         afterFaq={<AdSlot placement="tool-bottom" />}
       />
-      <section className="border-t border-border bg-muted/10 pb-12 sm:pb-16" aria-label="Planos relacionados">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
-          <ContextualPlanCallout location="social-tool" />
-        </div>
-      </section>
+
     </>
   );
 }
