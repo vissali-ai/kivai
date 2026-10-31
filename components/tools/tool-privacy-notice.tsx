@@ -8,5 +8,7 @@ const messages: Record<ProcessingMode, string> = {
 };
 
 export function ToolPrivacyNotice({ processingMode = "local", message }: { processingMode?: ProcessingMode; message?: string }) {
+  if (processingMode === "local" && !message) return null;
+
   return <aside className="flex gap-3 rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" /><p className="leading-6">{message ?? messages[processingMode]}</p></aside>;
 }
