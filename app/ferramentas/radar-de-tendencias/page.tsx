@@ -14,8 +14,7 @@ export default function RadarDeTendenciasPage() {
         description="Acompanhe notícias recentes de marketing, inteligência artificial e e-commerce em uma seleção de fontes especializadas."
         categoryName="Social Media"
         categoryHref="/ferramentas/social-media"
-        processingMode="server"
-        privacyMessage="A coleta acontece no servidor. Registramos métricas agregadas por categoria e dia. Para limitar abuso, o IP vira um identificador irreversível e temporário; o endereço não é salvo em texto."
+        showPrivacyNotice={false}
       >
         <ToolAiContent slug="radar-de-tendencias"><RadarDeTendenciasClient /></ToolAiContent>
       </ToolPageShell>
