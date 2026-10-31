@@ -9,7 +9,7 @@ export function ToolSeoDisclosure({ title, children }: { title: string; children
   if (title === "Ferramentas e conteúdos relacionados") {
     return (
       <section aria-label={title} className="rounded-lg border border-border/70 bg-card/60 px-4 py-4 sm:px-5">
-        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">{title}</h2>
+        
         <div className="[&_nav]:border-0 [&_nav]:bg-transparent [&_nav]:p-0 [&_nav]:shadow-none [&_nav_h2]:text-sm [&_nav_h2]:font-medium [&_nav_h2]:text-muted-foreground [&_nav_a]:text-sm">
           {children}
         </div>
