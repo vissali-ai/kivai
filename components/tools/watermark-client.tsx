@@ -280,7 +280,7 @@ export function WatermarkClient() {
           {error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}
         </CardContent>
       </Card>
-      <p className="mx-auto max-w-6xl text-sm text-muted-foreground">A imagem principal permanece neste dispositivo. Ao salvar na conta, somente texto, posição, opacidade e logos de até 200 KB são armazenados.</p>
+      <p className="mx-auto max-w-6xl text-sm text-muted-foreground">Faça login para armazenar seu arquivo personalizado na sua conta.</p>
       <SavedProjects kind="watermark" payload={project} onLoad={loadProject} />
     </ImageToolPageShell>
   );
