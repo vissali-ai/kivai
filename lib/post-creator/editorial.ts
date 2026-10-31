@@ -1,10 +1,40 @@
 export const postCreatorEditorial = {
-  overview: ["Crie conteúdo para redes sociais a partir de um briefing. A IA sugere legenda, título, chamada para ação, hashtags e roteiro de carrossel; você revisa e aplica somente o que desejar.", "Se quiser montar a peça visual depois, o editor manual continua disponível para usar imagem própria ou fundo colorido, ajustar textos, fonte, cores e logotipo e baixar o PNG."],
-  useCases: [{ title: "Criar uma publicação", description: "Transforme um briefing em conteúdo pronto para revisar e adaptar." }, { title: "Preparar um carrossel", description: "Use o roteiro sugerido como base para organizar os slides." }, { title: "Montar a arte manualmente", description: "Aplique o conteúdo no editor, use sua própria imagem e confira a composição antes de baixar." }],
-  steps: ["Informe tema, público, objetivo, rede e tom de voz.", "Autorize o envio e gere o conteúdo com IA.", "Revise título, legenda, CTA, hashtags e roteiro de carrossel.", "Clique em Aplicar conteúdo à arte apenas se quiser levar a sugestão ao editor manual.", "No editor, use imagem própria ou fundo colorido e ajuste textos, cores, fonte e logotipo.", "Baixe o PNG, copie a legenda e salve o projeto. Use Visualizar no Preview para conferir a publicação."],
-  specifications: [{ label: "Custo da IA", value: "Gerar conteúdo: 1 crédito por geração. Editar, aplicar, baixar, salvar e visualizar não consome créditos. Reservas são devolvidas quando a geração falha." }, { label: "Formatos da arte", value: "Quadrado 1080 × 1080, retrato 1080 × 1350 e story 1080 × 1920. Exportação em PNG." }, { label: "Imagens e logotipo", value: "JPG, PNG e WebP até 12 MB. Imagens próprias são otimizadas localmente para caber no projeto. O enquadramento é centralizado." }, { label: "Projetos", value: "Arquivo JSON editável ou salvamento autenticado na conta, dentro da franquia de projetos do plano. Inclui imagens próprias otimizadas quando utilizadas." }, { label: "IA", value: "A ferramenta utiliza IA somente para criação de conteúdo. A composição visual permanece manual no editor." }],
-  privacy: "O briefing é enviado ao servidor Kivai e ao serviço externo de IA apenas com autorização. Imagens próprias e logotipos são processados localmente; ao salvar na conta, o projeto e suas imagens otimizadas são armazenados no Kivai. A transferência para o Preview usa armazenamento temporário na mesma aba. Não envie dados confidenciais. O provedor gratuito pode usar dados para melhorar seus produtos.",
-  limitations: ["A IA pode cometer erros; revise informações antes de publicar.", "O Kivai não publica automaticamente nas redes sociais.", "O roteiro de carrossel reutiliza a mesma composição quando aplicado ao editor. Cada PNG corresponde ao slide aplicado.", "Projetos guardam imagens próprias otimizadas e não substituem um backup dos arquivos originais.", "O Preview é uma simulação, não uma reprodução exata de todos os formatos de publicação."],
-  faqs: [{ question: "A ferramenta ainda gera imagens com IA?", answer: "Não. A IA é usada somente para criar conteúdo. Para a arte, você pode usar imagem própria ou fundo colorido no editor manual." }, { question: "Quando os créditos são consumidos?", answer: "Um crédito é reservado ao iniciar a geração de conteúdo e confirmado após o servidor validar o resultado. Em falhas de geração, a reserva é devolvida." }, { question: "Preciso pagar para editar ou baixar?", answer: "Não. Edição, download, aplicação de sugestões e Preview não geram nova cobrança de créditos." }, { question: "O projeto continua editável?", answer: "Sim. Salve o arquivo de projeto ou use o salvamento na conta para reabrir textos, cores, imagens próprias otimizadas e logotipo." }],
-  related: [{ href: "/ferramentas/preview-de-post-redes-sociais", label: "Preview de Post para Redes Sociais" }, { href: "/ferramentas/planejador-de-conteudo-social-media", label: "Planejador de Conteúdo" }, { href: "/ferramentas/analisador-de-posts", label: "Analisador de Posts" }],
+  overview: [
+    "Crie conteúdo para redes sociais a partir de um briefing. A IA sugere títulos, legendas, chamadas para ação, hashtags e roteiros de carrossel para você revisar.",
+    "Edite os textos gerados, copie o material para publicar nas redes sociais e salve seus projetos na conta Kivai para continuar depois."
+  ],
+  useCases: [
+    { title: "Criar uma publicação", description: "Transforme um briefing em texto para revisar e adaptar." },
+    { title: "Planejar um carrossel", description: "Organize títulos e conteúdos de cada slide antes de produzir suas peças visuais." },
+    { title: "Preparar legendas", description: "Copie legendas, hashtags e chamadas para utilizar nas redes sociais." }
+  ],
+  steps: [
+    "Informe tema, público, objetivo, rede social e tom de voz.",
+    "Clique em Gerar conteúdo para solicitar a sugestão à IA.",
+    "Revise título, texto de apoio, legenda, CTA, hashtags e roteiro de carrossel.",
+    "Copie os textos ou salve o projeto em sua conta para utilizar posteriormente."
+  ],
+  specifications: [
+    { label: "Custo da IA", value: "1 crédito por geração de conteúdo. Revisar, copiar e salvar não gera créditos adicionais." },
+    { label: "Saída", value: "Título, texto de apoio, CTA, legenda, hashtags e roteiro textual de carrossel." },
+    { label: "Projetos", value: "Salvamento autenticado na conta Kivai, conforme a franquia do plano." },
+    { label: "IA", value: "A ferramenta gera textos e sugestões, não cria nem exporta artes." }
+  ],
+  privacy: "Ao clicar em Gerar conteúdo, o briefing é enviado ao Kivai e ao serviço externo de IA. Evite informações pessoais ou confidenciais. Projetos salvos na conta ficam armazenados no Kivai. O provedor gratuito pode utilizar dados para melhorar seus produtos.",
+  limitations: [
+    "A IA pode cometer erros; revise os textos antes de publicar.",
+    "A ferramenta não cria imagens nem composições visuais e não publica automaticamente nas redes sociais.",
+    "O roteiro de carrossel é textual e não gera arquivos de imagens."
+  ],
+  faqs: [
+    { question: "A ferramenta cria artes ou imagens?", answer: "Não. O Criador de Posts com IA gera apenas conteúdo textual, incluindo legendas, títulos, hashtags e roteiros." },
+    { question: "Quando os créditos são consumidos?", answer: "Um crédito é reservado na geração e confirmado após o servidor validar o resultado. Em caso de falha, a reserva é devolvida." },
+    { question: "Preciso pagar para editar ou copiar o texto?", answer: "Não. A edição e a cópia dos textos gerados não consomem créditos adicionais." },
+    { question: "Posso salvar os textos gerados?", answer: "Sim. Entre na conta e use Meus projetos para salvar e recuperar seus textos." }
+  ],
+  related: [
+    { href: "/ferramentas/preview-de-post-redes-sociais", label: "Preview de Post para Redes Sociais" },
+    { href: "/ferramentas/planejador-de-conteudo-social-media", label: "Planejador de Conteúdo" },
+    { href: "/ferramentas/analisador-de-posts", label: "Analisador de Posts" }
+  ],
 };
