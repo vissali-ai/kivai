@@ -63,10 +63,10 @@ export function ContentAiFrame({ copy, consent, onConsent, loading, error, disab
     <p className="text-sm leading-6 text-muted-foreground">{copy.description}</p>
     <AiCreditBalance />
     {children}
-    <label className="flex items-start gap-3 text-sm leading-6"><input type="checkbox" checked={consent} onChange={event => onConsent(event.target.checked)} className="mt-1 size-4 shrink-0" />Autorizo enviar o briefing preenchido ao serviço externo de IA para gerar sugestões. Não inclua dados pessoais ou informações confidenciais de clientes.</label>
+    <p className="text-sm leading-6 text-muted-foreground">Ao clicar em Gerar sugestões, o briefing será enviado a um provedor externo de IA. Não inclua dados pessoais ou informações confidenciais de clientes.</p>
     <p className="text-xs leading-5 text-muted-foreground">Na modalidade gratuita do provedor, os dados podem ser usados para melhorar seus produtos. Revise os rascunhos: a IA pode errar. Gerar custa 1 crédito da sua franquia ou saldo avulso; editar e aplicar o resultado não consome novos créditos. Limites de solicitações também se aplicam.</p>
     <div className="flex flex-wrap items-center gap-3">
-      <Button type="button" onClick={onGenerate} disabled={disabled || !consent || loading}>{loading ? <LoaderCircle className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{loading ? "Gerando sugestões…" : "Gerar sugestões · 1 crédito"}</Button>
+      <Button type="button" onClick={onGenerate} disabled={disabled || loading}>{loading ? <LoaderCircle className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{loading ? "Gerando sugestões…" : "Gerar sugestões · 1 crédito"}</Button>
       {authenticated === false && <Link className="text-sm text-primary underline" href="/conta/login">Entrar na conta</Link>}
       {/^https:\/\//.test(copy.tutorialUrl) && <a className="text-sm text-primary underline" href={copy.tutorialUrl} target="_blank" rel="noopener noreferrer">Ver tutorial</a>}
     </div>
