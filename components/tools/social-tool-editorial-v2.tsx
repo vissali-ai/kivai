@@ -47,7 +47,7 @@ const instagramContent: GeneralEditorialContent = {
     { label: "Processamento", value: "O texto é processado localmente no navegador." },
     { label: "Ações", value: "É possível copiar o texto e limpar o campo para iniciar uma nova contagem." },
   ],
-  privacy: "O texto digitado é processado localmente no navegador. A ferramenta não envia a legenda para servidores nem exige conexão com uma conta do Instagram.",
+  privacy: "A contagem de caracteres, palavras e hashtags acontece no navegador, sem enviar o texto ao Kivai. Se o usuário optar por Gerar com IA, a legenda será enviada ao Kivai e a um provedor externo para revisão. Evite incluir informações pessoais ou confidenciais. O provedor gratuito pode utilizar os dados para melhorar seus produtos. As sugestões da IA devem ser revisadas antes de aplicar.",
   limitations: [
     "A contagem é uma referência para revisão e não deve ser tratada como confirmação de um limite oficial da plataforma.",
     "Caracteres, palavras e hashtags são contados segundo a lógica desta ferramenta e podem não corresponder a contadores de terceiros com metodologias diferentes.",
