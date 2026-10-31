@@ -115,13 +115,13 @@ export default function CompactarPdfClient() {
       categoryHref="/ferramentas/pdfs"
       breadcrumbRootName="Início"
       breadcrumbRootHref="/"
-      privacyMessage="A leitura e a compactação do PDF acontecem localmente no navegador. Seus arquivos não são enviados ao Kivai."
+      showPrivacyNotice={false}
     >
       <Card className="mx-auto max-w-5xl">
         <CardHeader>
           <CardTitle>Selecione um PDF</CardTitle>
           <CardDescription>
-            Escolha um arquivo PDF e defina o nível de compactação antes de gerar a nova versão.
+            Selecione o arquivo que deseja compactar.
           </CardDescription>
         </CardHeader>
 
