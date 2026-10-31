@@ -540,21 +540,13 @@ export default function RemovedorDeMetadadosClient() {
           </CardContent>
         </Card>
 
-        <div className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-border bg-muted/10 p-4">
-            <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
-            <p className="mt-3 text-sm font-medium">Processamento local</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">A imagem permanece no dispositivo durante a operação.</p>
-          </div>
-          <div className="rounded-xl border border-border bg-muted/10 p-4">
-            <ShieldOff className="size-5 text-primary" aria-hidden="true" />
-            <p className="mt-3 text-sm font-medium">Sem dados herdados</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">A cópia final é recriada e verificada antes do download para evitar dados estruturais herdados.</p>
-          </div>
-          <div className="rounded-xl border border-border bg-muted/10 p-4">
-            <FileImage className="size-5 text-primary" aria-hidden="true" />
-            <p className="mt-3 text-sm font-medium">Formato preservado</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">JPG continua JPG, PNG continua PNG e WebP continua WebP em navegadores compatíveis.</p>
+        <div className="mx-auto mt-8 max-w-5xl rounded-xl border border-border bg-muted/10 p-4">
+          <div className="flex items-start gap-3">
+            <FileImage className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+            <div>
+              <p className="text-sm font-medium">Formato preservado</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">JPG continua JPG, PNG continua PNG e WebP continua WebP em navegadores compatíveis.</p>
+            </div>
           </div>
         </div>
 
