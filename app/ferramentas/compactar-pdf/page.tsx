@@ -6,7 +6,7 @@ import { getToolMetadataAsync } from "@/lib/seo";
 import CompactarPdfClient from "./compactar-pdf-client";
 
 const accurateDescription =
-  "Reduza o tamanho de arquivos PDF com otimização estrutural ou compactação por rasterização das páginas, diretamente no navegador.";
+  "Reduza o tamanho de arquivos PDF com otimização estrutural ou compactação por rasterização das páginas.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = await getToolMetadataAsync("compactar-pdf");
