@@ -4,7 +4,7 @@ import { getToolMetadataAsync } from "@/lib/seo";
 import DividirPdfClient from "./dividir-pdf-client";
 
 const SEO_DESCRIPTION =
-  "Separe todas as páginas de um PDF em arquivos individuais e baixe o resultado em um único ZIP, diretamente no navegador.";
+  "Separe todas as páginas de um PDF em arquivos individuais e baixe o resultado em um único ZIP.";
 
 export async function generateMetadata() {
   const metadata = await getToolMetadataAsync("dividir-pdf");
