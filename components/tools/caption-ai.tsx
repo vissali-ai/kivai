@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { ToolAiPanel, imageForAi } from "./tool-ai-panel";
 import { Button } from "@/components/ui/button";
-export function CaptionAi({text,onApply,image=""}:{text:string;onApply:(text:string)=>void;image?:string}){
+export function CaptionAi({text,onApply,image="",compactNotice=false}:{text:string;onApply:(text:string)=>void;image?:string;compactNotice?:boolean}){
  const [action,setAction]=useState('Revisar português e clareza'),[limit,setLimit]=useState(2200),[feedback,setFeedback]=useState('');
  const fingerprint=JSON.stringify({text,action,limit,image});
- return <ToolAiPanel fingerprint={fingerprint} cost={image?2:1} disabled={!text.trim()||text.length>12000} prepare={async()=>({kind:'caption',consent:true,text,instruction:action,limit,...(image?{image:await imageForAi(image)}:{})})} render={result=>result.kind==='caption'&&<>
+ return <ToolAiPanel fingerprint={fingerprint} cost={image?2:1} compactNotice={compactNotice} disabled={!text.trim()||text.length>12000} prepare={async()=>({kind:'caption',consent:true,text,instruction:action,limit,...(image?{image:await imageForAi(image)}:{})})} render={result=>result.kind==='caption'&&<>
   <p className="text-sm">{result.feedback}</p>
   {result.variants.map((variant,i)=><div key={i} className="space-y-2 border p-3"><p className="whitespace-pre-wrap break-words">{variant}</p><p className="text-xs">{variant.length} caracteres</p><Button variant="outline" onClick={()=>onApply(variant)}>Usar legenda {i+1}</Button></div>)}
   {result.alt&&<div><h3 className="font-semibold">Descrição acessível da imagem</h3><p>{result.alt}</p><Button variant="outline" onClick={async()=>{try{await navigator.clipboard.writeText(result.alt);setFeedback('Descrição copiada.');}catch{setFeedback('Selecione a descrição e copie manualmente.');}}}>Copiar descrição</Button></div>}{feedback&&<p role="status">{feedback}</p>}
