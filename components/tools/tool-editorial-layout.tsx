@@ -58,7 +58,31 @@ export async function ToolEditorialLayout({
   const override = await getPublishedToolOverride(slug);
 
   if (override?.contentHtml) {
-    return <section className="border-t border-border bg-muted/10 py-10 sm:py-12"><ToolFavoriteSlot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" /><div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8"><ToolRatingSection slug={slug} /><div className="mt-6"><ToolSeoDisclosure title="Informações sobre esta ferramenta"><article className="cms-public-content leading-7" dangerouslySetInnerHTML={{ __html: override.contentHtml }} /></ToolSeoDisclosure></div></div></section>;
+    return (
+      <section className="border-t border-border bg-muted/10 py-10 sm:py-12">
+        <ToolFavoriteSlot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" />
+        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
+          <ToolRatingSection slug={slug} />
+          <ToolSeoDisclosure title="Informações sobre esta ferramenta">
+            <article className="cms-public-content leading-7" dangerouslySetInnerHTML={{ __html: override.contentHtml }} />
+          </ToolSeoDisclosure>
+          {relatedTools.length > 0 && (
+            <ToolSeoDisclosure title="Ferramentas e conteúdos relacionados">
+              <nav aria-label="Ferramentas relacionadas" className="rounded-lg border border-border bg-card p-5 sm:p-6">
+                <h2 className="text-2xl font-semibold">Ferramentas relacionadas</h2>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {relatedTools.map((item) => (
+                    <Link key={item.href} href={item.href} className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-primary hover:text-primary">
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </nav>
+            </ToolSeoDisclosure>
+          )}
+        </div>
+      </section>
+    );
   }
 
   return (
