@@ -58,8 +58,8 @@ export default function PlanejadorClient({ aiCopy = assistantCopy(assistantSlugs
   function download() { const blob = new Blob([planText(plan, true)], { type: "text/plain;charset=utf-8" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "briefing-conteudo-social-media.txt"; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 0); }
   function clear() { setPlan(emptyPlan); setGenerated(false); setMissionGenerated(false); setErrors({}); setConfirmClear(false); localStorage.removeItem(STORAGE_KEY); }
 
-  return <ToolPageShell title="Planejador de Conteúdo Social Media" description="Transforme uma ideia em um plano estruturado com objetivo, público, mensagem, formato, abordagem e briefing para produção." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O rascunho fica neste navegador. Ao salvar na conta, o briefing é enviado ao Kivai. Ao autorizar a geração com IA, tema, público, objetivo, redes, formato, tom e mensagem são enviados ao provedor externo.">
-    <SavedProjects kind="briefing" payload={plan} onLoad={value => { if (isPlan(value)) { setPlan(value); setGenerated(true); } }} />
+  return <ToolPageShell title="Planejador de Conteúdo Social Media" description="Transforme uma ideia em um plano estruturado com objetivo, público, mensagem, formato, abordagem e briefing para produção." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" showPrivacyNotice={false}>
+    
     <PlannerAi plan={plan} copy={aiCopy} onApply={(suggestion, replace) => {
       setPlan(current => ({ ...current,
         message: replace || !current.message.trim() ? suggestion.message : current.message,
@@ -83,6 +83,7 @@ export default function PlanejadorClient({ aiCopy = assistantCopy(assistantSlugs
     {generated && <div ref={resultRef} className="scroll-mt-24"><PlanResult plan={plan} topics={validTopics} actions onCopy={copy} onDownload={download} feedback={feedback} />{missionGenerated && generated ? <FirstMissionResult /> : null}</div>}
     <section data-print-hide className="border border-primary/20 bg-primary/5 p-5"><h2 className="text-lg font-semibold">Organize também suas datas de publicação</h2><p className="mt-2 text-sm text-muted-foreground">Depois de estruturar cada pauta, distribua os conteúdos no mês e acompanhe a produção.</p><Button asChild variant="outline" className="mt-4"><Link href="/ferramentas/calendario-editorial-redes-sociais">Abrir Calendário Editorial</Link></Button></section>
     {confirmClear && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmClear(false); }}><div role="dialog" aria-modal="true" aria-labelledby="clear-title" className="w-full max-w-md border border-border bg-background p-6"><h2 id="clear-title" className="text-xl font-semibold">Começar novo planejamento?</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Os dados preenchidos atualmente serão apagados deste navegador.</p><div className="mt-6 flex justify-end gap-2"><Button variant="outline" onClick={() => setConfirmClear(false)}>Cancelar</Button><Button variant="destructive" onClick={clear}>Limpar planejamento</Button></div></div></div>}
+    <SavedProjects kind="briefing" payload={plan} onLoad={value => { if (isPlan(value)) { setPlan(value); setGenerated(true); } }} />
   </ToolPageShell>;
 }
 
