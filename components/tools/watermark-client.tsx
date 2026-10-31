@@ -193,7 +193,7 @@ export function WatermarkClient() {
   }
 
   return (
-    <ImageToolPageShell title="Adicionar Marca d'Água" description="Posicione texto ou logo diretamente sobre a imagem e baixe o resultado pronto.">
+    <ImageToolPageShell title="Adicionar Marca d'Água" description="Posicione texto ou logo diretamente sobre a imagem e baixe o resultado pronto." showCategoryEyebrow={false}>
       <Card className="mx-auto max-w-6xl overflow-hidden">
         <CardHeader>
           <CardTitle>Editor de marca d&apos;água</CardTitle>
