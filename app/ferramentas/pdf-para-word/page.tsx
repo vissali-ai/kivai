@@ -7,7 +7,7 @@ import { getToolMetadataAsync } from "@/lib/seo";
 import PdfParaWordClient from "./pdf-para-word-client";
 
 const SEO_DESCRIPTION =
-  "Converta o texto de PDFs digitais em DOCX editável, reconstruindo títulos, parágrafos, listas e quebras de página. Processamento local no navegador.";
+  "Converta o texto de PDFs digitais em DOCX editável, reconstruindo títulos, parágrafos, listas e quebras de página.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const metadata = await getToolMetadataAsync("pdf-para-word");
