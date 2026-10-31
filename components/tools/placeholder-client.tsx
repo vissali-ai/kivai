@@ -4,7 +4,11 @@
 
 import { openFilePicker } from "@/lib/browser/file-picker";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
-import { Copy, Download, Upload } from "lucide-react";
+import { Copy, Download, Link2, LoaderCircle, Upload } from "lucide-react";
+import Link from "next/link";
+import { getStoredSession } from "@/lib/user-auth";
+import { useAccountAccess } from "@/lib/billing/access-client";
+import { hostingLimit } from "@/lib/favicon/hosting";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageToolPageShell } from "@/components/tools/image-tool-page-shell";
@@ -27,6 +31,53 @@ export function PlaceholderClient() {
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const { access } = useAccountAccess();
+  const [hosting, setHosting] = useState(false);
+  const [hostingError, setHostingError] = useState("");
+  const [hostedUrl, setHostedUrl] = useState("");
+  const [hostedFiles, setHostedFiles] = useState<Array<{id:string;public_url:string;byte_size:number}>>([]);
+  const [refreshingFiles, setRefreshingFiles] = useState(false);
+  async function refreshHosted() {
+    const token = getStoredSession()?.access_token;
+    if (!token) return;
+    setRefreshingFiles(true);
+    try {
+      const res = await fetch("/api/placeholder/hosting",{headers:{Authorization:`Bearer ${token}`},cache:"no-store"});
+      const data = await res.json() as {files?:Array<{id:string;public_url:string;byte_size:number}>;error?:string};
+      if (!res.ok) throw new Error(data.error || "Não foi possível carregar suas hospedagens.");
+      setHostedFiles(data.files ?? []);
+    } catch(e) { setHostingError(e instanceof Error ? e.message : "Não foi possível carregar suas hospedagens."); }
+    finally { setRefreshingFiles(false); }
+  }
+  async function host() {
+    if (!result || generating || hosting) return;
+    setHostingError("");
+    const token = getStoredSession()?.access_token;
+    if (!token) { setHostingError("Entre na sua conta para hospedar o placeholder."); return; }
+    const maxBytes = hostingLimit(access?.plan ?? "free").maxBytes;
+    if (result.blob.size > maxBytes) { setHostingError("Arquivo acima do limite de hospedagem do seu plano."); return; }
+    setHosting(true);
+    try {
+      const form = new FormData();
+      form.set("placeholder",result.blob,"placeholder-lqip.jpg");
+      const res = await fetch("/api/placeholder/hosting",{method:"POST",headers:{Authorization:`Bearer ${token}`},body:form});
+      const data = await res.json() as {url?:string;error?:string};
+      if (!res.ok || !data.url) throw new Error(data.error || "Não foi possível hospedar o placeholder.");
+      setHostedUrl(data.url);
+      await refreshHosted();
+    } catch(e) { setHostingError(e instanceof Error ? e.message : "Não foi possível hospedar o placeholder."); }
+    finally { setHosting(false); }
+  }
+  async function removeHosted(id:string) {
+    if (!window.confirm("Excluir este placeholder? O link público deixará de funcionar.")) return;
+    const token = getStoredSession()?.access_token;
+    if (!token) return;
+    try {
+      const res = await fetch(`/api/placeholder/hosting?id=${encodeURIComponent(id)}`,{method:"DELETE",headers:{Authorization:`Bearer ${token}`}});
+      if (!res.ok) throw new Error("Não foi possível excluir o placeholder.");
+      setHostedFiles(items=>items.filter(item=>item.id!==id));
+    } catch(e) { setHostingError(e instanceof Error ? e.message : "Não foi possível excluir."); }
+  }
 
   async function updatePlaceholder(source: HTMLImageElement, nextWidth: number, nextQuality: number) {
     const currentGeneration = ++generation.current;
@@ -41,6 +92,7 @@ export function PlaceholderClient() {
       if (resultUrl.current) URL.revokeObjectURL(resultUrl.current);
       resultUrl.current = next.url;
       setResult(next);
+      setHostedUrl("");
       setGenerating(false);
     } catch {
       if (currentGeneration !== generation.current) return;
@@ -72,6 +124,8 @@ export function PlaceholderClient() {
       imageUrl.current = nextImage.src;
       setImage(nextImage);
       setFile(nextFile);
+      setHostedUrl("");
+      setHostingError("");
       setError("");
       void updatePlaceholder(nextImage, width, quality);
     } catch {
@@ -88,7 +142,7 @@ export function PlaceholderClient() {
   }
 
   return (
-    <ImageToolPageShell title="Gerador de Placeholder (LQIP)" description="Envie a imagem e veja o placeholder ser gerado e atualizado automaticamente.">
+    <ImageToolPageShell title="Gerador de Placeholder (LQIP)" description="Gere placeholders LQIP, baixe em JPEG, copie o Data URL ou crie um link público para usar no seu site.">
       <Card className="mx-auto max-w-6xl">
         <CardHeader>
           <CardTitle>Placeholder em tempo real</CardTitle>
@@ -119,6 +173,7 @@ export function PlaceholderClient() {
 
                 <Button type="button" size="lg" className="mt-5 w-full" disabled={!result || generating} onClick={() => result && downloadBlob(result.blob, "placeholder-lqip.jpg")}><Download />Baixar placeholder</Button>
                 <Button type="button" variant="outline" className="mt-2 w-full" disabled={!result} onClick={copyDataUrl}><Copy />{copied ? "Data URL copiado" : "Copiar Data URL"}</Button>
+                <Button type="button" variant="outline" className="mt-2 w-full" disabled={!result || generating || hosting} onClick={host}>{hosting ? <LoaderCircle className="animate-spin" /> : <Link2 />}Gerar link para site</Button>
                 <Button type="button" variant="ghost" className="mt-2 w-full" onClick={() => openFilePicker(input.current)}>Trocar imagem</Button>
               </aside>
 
@@ -142,6 +197,10 @@ export function PlaceholderClient() {
               </section>
             </div>
           )}
+          <p className="mt-4 text-xs leading-5 text-muted-foreground">Hospedagem mediante login: Grátis até 5 placeholders de 100 KB; Pro até 100 placeholders de 500 KB; Agency sem limite de quantidade e até 500 KB por arquivo, sujeito à política de uso justo. Downloads e Data URL continuam gratuitos. As cotas de placeholders e favicons são independentes.</p>
+          {hostingError && <p className="mt-3 text-sm text-destructive" role="alert">{hostingError} {hostingError.startsWith("Entre na sua conta") ? <Link className="underline" href="/conta/login?next=%2Fferramentas%2Fgerador-de-placeholder">Entrar na conta</Link> : <Link className="underline" href="/planos">Ver planos</Link>}</p>}
+          {hostedUrl && <div className="mt-4 border border-border bg-muted/20 p-4"><p className="text-sm font-medium">Placeholder hospedado. Copie o link para usar no seu site.</p><p className="mt-2 break-all text-xs">{hostedUrl}</p><Button size="sm" variant="outline" className="mt-3" onClick={() => navigator.clipboard.writeText(hostedUrl)}><Copy />Copiar URL</Button></div>}
+          {access?.userId && <div className="mt-5 space-y-3"><Button size="sm" variant="outline" disabled={refreshingFiles} onClick={refreshHosted}>Ver minhas hospedagens</Button>{hostedFiles.length > 0 && <ul className="space-y-2">{hostedFiles.map(item=><li key={item.id} className="flex flex-wrap items-center justify-between gap-2 border border-border p-3 text-xs"><a href={item.public_url} rel="noopener noreferrer" target="_blank" className="max-w-[75%] break-all underline">{item.public_url}</a><Button size="xs" variant="outline" onClick={() => removeHosted(item.id)}>Excluir</Button></li>)}</ul>}</div>}
           {error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}
         </CardContent>
       </Card>
