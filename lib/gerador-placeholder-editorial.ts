@@ -2,7 +2,7 @@ export const geradorPlaceholderEditorial = {
   overview: [
     "O Gerador de Placeholder (LQIP) cria uma versão muito pequena de uma imagem para ser usada como prévia temporária enquanto o arquivo principal é carregado. A ferramenta aceita PNG, JPG e WebP e gera uma nova cópia em JPEG, mantendo a proporção da imagem original.",
     "Depois que a imagem é selecionada, o placeholder é criado automaticamente. A largura pode ser ajustada entre 8 e 128 pixels e a qualidade JPEG entre 10% e 90%. Cada alteração nesses controles gera novamente a prévia e atualiza o tamanho do arquivo resultante.",
-    "Além do arquivo JPEG para download, a ferramenta fornece o Data URL correspondente ao mesmo placeholder. Esse texto pode ser incorporado diretamente em HTML, CSS ou componentes que aceitem imagens codificadas, mas a implementação da troca entre o LQIP e a imagem final precisa ser feita no site ou aplicação onde ele será utilizado.",
+    "Além do arquivo JPEG para download, a ferramenta fornece o Data URL e permite hospedar o placeholder na conta Kivai para gerar um link público, conforme os limites dos planos. Esse texto pode ser incorporado diretamente em HTML, CSS ou componentes que aceitem imagens codificadas, mas a implementação da troca entre o LQIP e a imagem final precisa ser feita no site ou aplicação onde ele será utilizado.",
   ],
   useCases: [
     { title: "Carregamento progressivo", description: "Crie uma prévia pequena para ocupar o espaço da imagem enquanto o arquivo principal ainda está sendo carregado pela página." },
@@ -16,17 +16,19 @@ export const geradorPlaceholderEditorial = {
     "Ajuste a largura entre 8 e 128 px e a qualidade entre 10% e 90%. A altura é calculada proporcionalmente.",
     "Confira a prévia ampliada, o tamanho real em pixels e o peso aproximado do arquivo gerado.",
     "Baixe o placeholder em JPEG ou copie o Data URL para usar na sua implementação.",
+    "Para gerar um link público, entre na sua conta, clique em Gerar link para site e copie a URL hospedada. Você também pode consultar e excluir suas hospedagens.",
   ],
   specifications: [
     { label: "Entrada", value: "PNG, JPG/JPEG ou WebP com até 20 MB." },
-    { label: "Saída", value: "Arquivo JPEG chamado placeholder-lqip.jpg e Data URL equivalente." },
+    { label: "Saída", value: "JPEG, Data URL e link público opcional mediante login." },
+    { label: "Hospedagem", value: "Grátis: 5 arquivos de até 100 KB. Pro: 100 de até 500 KB. Agency: quantidade ilimitada até 500 KB por arquivo, sujeito à política de uso justo. Cotas independentes dos favicons." },
     { label: "Largura", value: "Ajustável de 8 a 128 pixels; valor inicial de 32 px." },
     { label: "Altura", value: "Calculada automaticamente para manter a proporção da imagem de origem." },
     { label: "Qualidade", value: "JPEG de 10% a 90%; valor inicial de 55%." },
     { label: "Atualização", value: "A prévia e o arquivo são recriados automaticamente quando largura ou qualidade são alteradas." },
     { label: "Prévia", value: "Exibe uma visualização ampliada do JPEG gerado e também uma reprodução no tamanho real." },
   ],
-  privacy: "A imagem é aberta, redimensionada e codificada em JPEG no navegador. O Data URL também é criado a partir desse arquivo local. O arquivo original não precisa ser enviado a um serviço externo para gerar o placeholder.",
+  privacy: "A imagem é aberta, redimensionada e codificada em JPEG no navegador. O Data URL também é criado a partir desse arquivo local. O arquivo original não precisa ser enviado a um serviço externo para gerar o placeholder. Quando você opta por hospedar, apenas o JPEG gerado é enviado ao armazenamento público do Kivai. Qualquer pessoa que possua o link pode acessá-lo.",
   limitations: [
     "O LQIP é uma imagem de baixa resolução e não foi projetado para substituir o arquivo final em tamanho normal.",
     "A saída é sempre JPEG. Se a imagem original tiver transparência, essa transparência não é preservada no placeholder gerado.",
@@ -34,8 +36,11 @@ export const geradorPlaceholderEditorial = {
     "Usar um Data URL maior do que o necessário pode aumentar o tamanho do HTML, CSS ou JavaScript em que ele for incorporado.",
     "A prévia ampliada apenas aumenta visualmente o mesmo JPEG pequeno para facilitar a inspeção; ela não acrescenta detalhes nem aplica um efeito de blur ao arquivo.",
     "Metadados e outras informações presentes na imagem original não fazem parte do JPEG reduzido gerado como placeholder.",
+    "Ao excluir um arquivo hospedado, seu link deixa de funcionar; o conteúdo pode permanecer temporariamente em caches externos.",
   ],
   faqs: [
+    { question: "Posso gerar um link público para o placeholder?", answer: "Sim. Entre na conta Kivai para hospedar o JPEG gerado. O plano Grátis permite 5 arquivos de até 100 KB; Pro permite 100 de até 500 KB; Agency não limita a quantidade, com até 500 KB cada e política de uso justo." },
+    { question: "Posso excluir um placeholder hospedado?", answer: "Sim. Em Ver minhas hospedagens, exclua o arquivo para desativar seu link. O JPEG hospedado é público para quem conhece a URL." },
     { question: "O que significa LQIP?", answer: "LQIP é a sigla para Low Quality Image Placeholder. É uma imagem pequena e de baixa resolução usada temporariamente enquanto uma versão maior é carregada." },
     { question: "A ferramenta adiciona blur ao placeholder?", answer: "Não. O arquivo gerado é um JPEG pequeno e comprimido. A prévia ampliada mostra esse mesmo arquivo sem aplicar desfoque artificial. Se o projeto quiser um efeito blur, ele deve ser configurado na interface onde o LQIP será utilizado." },
     { question: "Qual a diferença entre baixar o JPEG e copiar o Data URL?", answer: "Os dois representam o mesmo placeholder. O JPEG é um arquivo separado; o Data URL contém os dados da imagem codificados em texto para uso direto em ambientes compatíveis." },
