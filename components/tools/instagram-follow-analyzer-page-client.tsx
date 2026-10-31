@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ToolFavoriteSlot } from "@/components/tools/tool-favorite-slot";
 import { useEffect, useState } from "react";
-import { Check, LockKeyhole, ShieldCheck, UsersRound, Zap } from "lucide-react";
+import { Check, LockKeyhole, ShieldCheck, UsersRound, Zap, ChevronDown } from "lucide-react";
 import { InstagramFollowAnalyzer } from "@/components/tools/instagram-follow-analyzer";
 import { useAccountAccess } from "@/lib/billing/access-client";
 import { getStoredSession } from "@/lib/user-auth";
@@ -63,7 +63,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
       <div className={show("hero") ? "mt-10" : "mt-8"}><InstagramFollowAnalyzer config={config} /></div>
       <ToolFavoriteSlot className="mt-5" />
 
-      {show("summaryPlans") ? <section className="mt-12 grid gap-4 md:grid-cols-3">
+      {false && show("summaryPlans") ? <section className="mt-12 grid gap-4 md:grid-cols-3">
         <div className="border border-border bg-card p-5"><h2 className="font-semibold">{config.freeTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.freeDescription}</p></div>
         <div className="border border-primary/25 bg-primary/[0.04] p-5"><h2 className="font-semibold">{config.proTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.proDescription}</p></div>
         <div className="border border-border bg-card p-5"><h2 className="font-semibold">{config.agencyTitle}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{config.agencyDescription}</p></div>
@@ -76,7 +76,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
         </div>
       </section> : null}
 
-      {show("plans") ? <section className="mt-12">
+      {show("plans") ? <details className="group mt-8 rounded-lg border border-border bg-card">\n        <summary className="flex cursor-pointer items-center justify-between gap-3 p-4 text-sm font-semibold">Entenda os planos e benefícios<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary>\n        <div className="border-t border-border p-4">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.plansTitle}</h2>
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
           {plans.map((item) => <article key={item.title} className={`border p-5 sm:p-6 ${item.highlight ? "border-primary/30 bg-primary/[0.04]" : "border-border bg-card"}`}>
@@ -108,7 +108,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
         </div>
       </section> : null}
 
-      {show("privacy") ? <section className="mt-14 border border-primary/20 bg-primary/[0.025] p-6 sm:p-8">
+      {show("privacy") ? <details className="group mt-6 rounded-lg border border-border bg-card">\n        <summary className="flex cursor-pointer items-center justify-between gap-3 p-4 text-sm font-semibold">Privacidade e uso dos dados<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary>\n        <div className="border-t border-border p-4 sm:p-6">
         <div className="flex items-start gap-4">
           <div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><LockKeyhole className="size-5" /></div>
           <div className="max-w-4xl">
