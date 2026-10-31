@@ -7,7 +7,7 @@ import DescompactarZipClient from "./descompactar-zip-client";
 
 const title = "Descompactar ZIP Online Grátis | Kivai";
 const description =
-  "Descompacte arquivos ZIP online, visualize o conteúdo e baixe os arquivos diretamente no navegador, sem enviar o ZIP para o servidor do Kivai.";
+  "Descompacte arquivos ZIP online, visualize o conteúdo e baixe os arquivos sem precisar instalar programas.";
 const url = `${SITE_URL}/ferramentas/descompactar-zip`;
 
 const baseMetadata: Metadata = {
