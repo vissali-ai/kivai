@@ -76,7 +76,9 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
         </div>
       </section> : null}
 
-      {show("plans") ? <details className="group mt-8 rounded-lg border border-border bg-card">\n        <summary className="flex cursor-pointer items-center justify-between gap-3 p-4 text-sm font-semibold">Entenda os planos e benefícios<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary>\n        <div className="border-t border-border p-4">
+      {show("plans") ? <details className="group mt-8 rounded-lg border border-border bg-card">
+        <summary className="flex cursor-pointer items-center justify-between gap-3 p-4 text-sm font-semibold">Entenda os planos e benefícios<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary>
+        <div className="border-t border-border p-4">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.plansTitle}</h2>
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
           {plans.map((item) => <article key={item.title} className={`border p-5 sm:p-6 ${item.highlight ? "border-primary/30 bg-primary/[0.04]" : "border-border bg-card"}`}>
@@ -96,7 +98,8 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
             {plan === "free" ? "Ver planos e assinar" : "Abrir meu painel"}
           </Link>
         </div>
-      </section> : null}
+        </div>
+      </details> : null}
 
       {show("faq") ? <section className="mt-14">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.faqTitle}</h2>
@@ -108,7 +111,9 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
         </div>
       </section> : null}
 
-      {show("privacy") ? <details className="group mt-6 rounded-lg border border-border bg-card">\n        <summary className="flex cursor-pointer items-center justify-between gap-3 p-4 text-sm font-semibold">Privacidade e uso dos dados<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary>\n        <div className="border-t border-border p-4 sm:p-6">
+      {show("privacy") ? <details className="group mt-6 rounded-lg border border-border bg-card">
+        <summary className="flex cursor-pointer items-center justify-between gap-3 p-4 text-sm font-semibold">Privacidade e uso dos dados<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary>
+        <div className="border-t border-border p-4 sm:p-6">
         <div className="flex items-start gap-4">
           <div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><LockKeyhole className="size-5" /></div>
           <div className="max-w-4xl">
@@ -120,7 +125,8 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
           {config.privacyItems.map((item) => <li key={item} className="flex gap-3 border border-border bg-card/60 p-4 text-sm leading-6 text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" /><span>{item}</span></li>)}
         </ul>
         <Link href="/privacidade" className="mt-6 inline-flex text-sm font-medium text-primary hover:underline">{config.privacyLinkLabel}</Link>
-      </section> : null}
+        </div>
+      </details> : null}
     </main>
   );
 }
