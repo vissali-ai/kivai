@@ -8,8 +8,7 @@ import {
   Download,
   File,
   Loader2,
-  RotateCcw,
-  ShieldCheck,
+  RotateCcw
   Trash2,
   Upload,
 } from "lucide-react";
@@ -355,12 +354,8 @@ export default function CompactarArquivosZipClient() {
           </CardContent>
         </Card>
 
-        <div className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-border bg-muted/10 p-4">
-            <ShieldCheck className="size-5 text-primary" />
-            <p className="mt-3 text-sm font-medium">Processamento local</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">Os arquivos permanecem no seu dispositivo durante a compactação.</p>
-          </div>
+        <div className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-2">
+
           <div className="rounded-xl border border-border bg-muted/10 p-4">
             <Archive className="size-5 text-primary" />
             <p className="mt-3 text-sm font-medium">Formato ZIP</p>
