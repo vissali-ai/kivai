@@ -225,7 +225,7 @@ export default function ContadorDePalavrasClient() {
                 />
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                  <span>Processamento local e atualização em tempo real.</span>
+                  <span>Atualização em tempo real.</span>
                   <span>{metricas.caracteresComEspacos.toLocaleString("pt-BR")} caracteres</span>
                 </div>
               </div>
