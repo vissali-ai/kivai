@@ -40,7 +40,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [opening, setOpening] = useState<SavedProject | null>(null);
   const plan = access?.plan ?? "free";
   const userId = access?.userId;
-  const loginHref = `/conta/login?next=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/conta")}`;
+  const loginHref = "/conta/login?next=%2Fconta";
   const shortcutClass = showInstagramHighlight
     ? "inline-flex min-h-11 items-center rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-medium text-primary transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     : "text-primary underline";
