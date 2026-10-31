@@ -112,13 +112,13 @@ export default function GirarPdfClient() {
       categoryHref="/ferramentas/pdfs"
       breadcrumbRootName="Início"
       breadcrumbRootHref="/"
-      privacyMessage="A leitura e a rotação do PDF acontecem localmente no navegador. Seus arquivos não são enviados ao Kivai."
+      showPrivacyNotice={false}
     >
       <Card className="mx-auto max-w-5xl">
         <CardHeader>
           <CardTitle>Selecione um PDF</CardTitle>
           <CardDescription>
-            Escolha um arquivo PDF, defina o ângulo e aplique a mesma rotação a todas as páginas.
+            Selecione o arquivo que deseja girar.
           </CardDescription>
         </CardHeader>
 
