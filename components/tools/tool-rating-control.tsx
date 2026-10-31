@@ -1,11 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { getStoredSession } from "@/lib/user-auth";
 type Summary = {ratingValue:number;ratingCount:number};
 export function ToolRatingControl({slug,initial}: {slug:string;initial:Summary|null}) {
   const [summary,setSummary] = useState(initial);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+    const selector = `[data-tool-rating-slug="${CSS.escape(slug)}"]`;
+    const matches = Array.from(document.querySelectorAll<HTMLElement>(selector));
+    setIsDuplicate(matches[0] !== node);
+  }, [slug]);
   const [selected,setSelected] = useState(0);
   const [busy,setBusy] = useState(false);
   const [message,setMessage] = useState("");
@@ -23,7 +33,8 @@ export function ToolRatingControl({slug,initial}: {slug:string;initial:Summary|n
     } catch(e) {setMessage(e instanceof Error ? e.message : "Não foi possível avaliar.");}
     finally {setBusy(false);}
   }
-  return <section className="rounded-lg border border-border bg-card p-5 sm:p-6" aria-label="Avaliações da ferramenta">
+  if (isDuplicate) return null;
+  return <section ref={sectionRef} data-tool-rating-slug={slug} className="rounded-lg border border-border bg-card p-5 sm:p-6" aria-label="Avaliações da ferramenta">
     <h2 className="text-xl font-semibold">Avalie esta ferramenta</h2>
     <p className="mt-2 text-sm text-muted-foreground">{summary ? <>Nota média <strong>{summary.ratingValue.toLocaleString("pt-BR",{minimumFractionDigits:1})}/5</strong> em {summary.ratingCount} {summary.ratingCount===1?"avaliação real":"avaliações reais"}.</> : "Esta ferramenta ainda não recebeu avaliações. Seja o primeiro a avaliar."}</p>
     <div className="mt-4 flex flex-wrap items-center gap-2">
