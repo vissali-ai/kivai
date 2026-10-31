@@ -146,13 +146,13 @@ export default function ImagensParaPdfClient() {
       categoryHref="/ferramentas/pdfs"
       breadcrumbRootName="Início"
       breadcrumbRootHref="/"
-      privacyMessage="As imagens são abertas e inseridas no PDF localmente no navegador. Os arquivos não são enviados ao Kivai."
+      showPrivacyNotice={false}
     >
       <Card className="mx-auto max-w-5xl">
         <CardHeader>
           <CardTitle>Monte seu PDF com imagens</CardTitle>
           <CardDescription>
-            Selecione arquivos JPG, PNG ou WebP. Cada imagem ocupará uma página A4 na ordem em que foi adicionada.
+            Selecione imagens JPG, PNG ou WebP para começar.
           </CardDescription>
         </CardHeader>
 
