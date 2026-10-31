@@ -25,7 +25,7 @@ export type EditorialResearchResponse = {
 };
 
 const MAX_SOURCES = 32;
-const MAX_RESULTS = 24;
+const MAX_RESULTS = 30;
 const STOPWORDS = new Set([
   "para", "com", "das", "dos", "sobre", "pelas", "pelos", "novas", "novos",
   "seus", "suas", "como", "mais", "melhores", "principais", "brasil", "online",
