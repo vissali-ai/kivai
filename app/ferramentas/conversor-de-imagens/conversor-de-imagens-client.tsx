@@ -193,7 +193,7 @@ function baixarResultado() {
             </h1>
 
             <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">
-              Converta imagens entre PNG, JPG e WebP diretamente no navegador.
+              Converta imagens entre PNG, JPG e WebP.
             </p>
           </div>
         </div>
