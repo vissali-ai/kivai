@@ -10,7 +10,6 @@ export function CalendarAi({ copy, startDate, onApply, existingCount }: {
   copy: AssistantCopy; startDate: string; existingCount: number; onApply: (items: CalendarSuggestion[]) => void;
 }) {
   const [briefing, setBriefing] = useState({ theme: "", audience: "", network: "Instagram", objective: "Engajamento", tone: "Profissional", startDate, count: 5, intervalDays: 2 });
-  const [consent, setConsent] = useState(false);
   const [result, setResult] = useState<{ fingerprint: string; items: CalendarSuggestion[] } | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
   const [applied, setApplied] = useState<number[]>([]);
@@ -21,14 +20,14 @@ export function CalendarAi({ copy, startDate, onApply, existingCount }: {
   const input = contentAssistantInput.safeParse({ ...briefing, kind: "calendar", consent: true });
   function update(key: keyof typeof briefing, value: string | number) { setBriefing(current => ({ ...current, [key]: value })); }
   async function generate() {
-    if (!input.success || !consent) return;
+    if (!input.success) return;
     setFeedback("");
     const output = await ai.generate(input.data);
     if (output?.kind === "calendar") { setResult({ fingerprint, items: output.items }); setSelected(output.items.map((_, index) => index)); setApplied([]); }
   }
   const pending = selected.filter(index => !applied.includes(index));
   return <div className="space-y-4">
-    <ContentAiFrame copy={copy} consent={consent} onConsent={setConsent} loading={ai.loading} error={ai.error} disabled={!input.success} onGenerate={() => void generate()}>
+    <ContentAiFrame copy={copy} consent={true} onConsent={() => {}} loading={ai.loading} error={ai.error} disabled={!input.success} onGenerate={() => void generate()}>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Tema, negócio ou campanha"><textarea value={briefing.theme} maxLength={600} rows={3} onChange={event => update("theme", event.target.value)} placeholder="Ex.: cafeteria de bairro, divulgar cafés especiais" className="border border-border bg-background p-3" /></Field>
         <Field label="Público do calendário"><textarea value={briefing.audience} maxLength={400} rows={3} onChange={event => update("audience", event.target.value)} placeholder="Ex.: pessoas que trabalham perto da cafeteria" className="border border-border bg-background p-3" /></Field>
