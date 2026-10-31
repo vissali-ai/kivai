@@ -4,7 +4,7 @@ import { getToolMetadataAsync } from "@/lib/seo";
 import GirarPdfClient from "./girar-pdf-client";
 
 const SEO_DESCRIPTION =
-  "Gire todas as páginas de um PDF em 90°, 180° ou 270° e baixe uma nova cópia com a orientação ajustada, diretamente no navegador.";
+  "Gire todas as páginas de um PDF em 90°, 180° ou 270° e baixe uma nova cópia com a orientação ajustada.";
 
 export async function generateMetadata() {
   const metadata = await getToolMetadataAsync("girar-pdf");
