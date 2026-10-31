@@ -61,7 +61,6 @@ export default function CalculadoraEngajamentoClient() {
         {displayTotal > 0 && <Distribution values={mode === "single" ? [single] : posts.filter((post) => num(post.base) > 0)} />}
       </aside>
     </div>
-    <p className="border border-primary/20 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">A interpretação da taxa depende da plataforma, formato, tamanho da audiência, segmento, período analisado e método de cálculo. Não existe uma classificação universal válida para todos os contextos.</p>
     <SavedProjects kind="engagement" payload={{ mode, method, single, posts, network, contentType }} onLoad={value => { const p=value as { mode?: Mode; method?: Method; single?: Values; posts?: Values[]; network?: string; contentType?: string }; if(p?.single && Array.isArray(p.posts)) { setMode(p.mode === "average" ? "average" : "single"); setMethod(p.method === "reach" || p.method === "impressions" ? p.method : "followers"); setSingle(p.single); setPosts(p.posts); setNetwork(p.network ?? ""); setContentType(p.contentType ?? ""); } }} />
   </ToolPageShell>;
 }
