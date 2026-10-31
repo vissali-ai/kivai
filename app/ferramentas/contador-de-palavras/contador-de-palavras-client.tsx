@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 
 import { ToolErrorMessage } from "@/components/tools/tool-error-message";
-import { ToolPrivacyNotice } from "@/components/tools/tool-privacy-notice";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { Button } from "@/components/ui/button";
 import {
@@ -191,7 +190,6 @@ export default function ContadorDePalavrasClient() {
           </CardHeader>
 
           <CardContent>
-            <div className="mb-5"><ToolPrivacyNotice message="O texto é analisado no navegador e não é enviado ao Kivai." /></div>
             <ToolErrorMessage message={erro} className="mb-4" />
             {copiado && <p role="status" className="mb-3 text-sm text-primary">Texto copiado.</p>}
             <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
