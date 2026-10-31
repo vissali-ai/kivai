@@ -8,7 +8,7 @@ import DescompactarRarClient from "./descompactar-rar-client";
 const baseMetadata: Metadata = getPageMetadata({
   title: "Descompactar RAR Online",
   description:
-    "Abra e descompacte arquivos RAR online no navegador. Veja o conteúdo do RAR e baixe os arquivos extraídos sem enviar o documento para nossos servidores.",
+    "Abra e descompacte arquivos RAR online. Veja o conteúdo do RAR e baixe os arquivos extraídos.",
   pathname: "/ferramentas/descompactar-rar",
 });
 
