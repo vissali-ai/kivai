@@ -213,7 +213,7 @@ export default function RenomearArquivosEmLoteClient() {
           <CardHeader>
             <CardTitle>Selecione os arquivos</CardTitle>
             <CardDescription>
-              Os arquivos são processados localmente. O navegador gera um ZIP com as cópias renomeadas.
+              Gere um ZIP com as cópias renomeadas dos seus arquivos.
             </CardDescription>
           </CardHeader>
           <CardContent>
