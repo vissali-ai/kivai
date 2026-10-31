@@ -166,13 +166,13 @@ export function VideoFrameCaptureClient() {
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramenta de vídeo</p>
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Gerador de Thumbnail para Vídeo</h1>
-          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Escolha o momento exato de um vídeo e crie uma thumbnail em PNG, JPG ou WebP. O processamento acontece no seu navegador.</p>
+          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Escolha o momento exato de um vídeo e crie uma thumbnail em PNG, JPG ou WebP.</p>
         </div>
 
         <div className="mx-auto max-w-4xl"><Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Área de processamento</CardTitle>
-            <CardDescription>Envie ou arraste um vídeo e gere a thumbnail localmente no navegador.</CardDescription>
+            <CardDescription>Envie ou arraste um vídeo e gere a thumbnail.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <input ref={inputRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
