@@ -112,8 +112,8 @@ export default function CalendarioEditorialClient({ aiCopy = assistantCopy(assis
     const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = "calendario-editorial-kivai.csv"; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
-  return <ToolPageShell title="Calendário Editorial para Redes Sociais" description="Planeje, organize e acompanhe publicações de diferentes redes sociais em um calendário mensal simples e completo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" privacyMessage="O rascunho fica neste navegador. Ao salvar na conta, o projeto é enviado ao Kivai. Ao autorizar a geração com IA, somente o briefing do assistente é enviado ao provedor externo; o calendário existente não é enviado.">
-    <SavedProjects kind="calendar" payload={items} onLoad={value => { if (Array.isArray(value)) setItems(value.filter(validPublication)); }} />
+  return <ToolPageShell title="Calendário Editorial para Redes Sociais" description="Planeje, organize e acompanhe publicações de diferentes redes sociais em um calendário mensal simples e completo." categoryName="Social Media" categoryHref="/ferramentas/social-media" breadcrumbRootName="Início" breadcrumbRootHref="/" showPrivacyNotice={false}>
+    
     {ready && <CalendarAi copy={aiCopy} startDate={selectedDate} existingCount={items.length} onApply={suggestions => {
       const now = new Date().toISOString();
       setItems(current => [...current, ...suggestions.map(item => ({ ...item, id: uid(), status: "Ideia", hashtags: "", createdAt: now, updatedAt: now }))]);
@@ -145,6 +145,7 @@ export default function CalendarioEditorialClient({ aiCopy = assistantCopy(assis
       </CardContent>
     </Card>
     {modal && <PublicationModal modal={modal} selectedDate={selectedDate} onClose={() => setModal(null)} onSave={save} onDelete={(item) => setModal({ kind: "delete", item })} onRemove={remove} onEdit={(item) => setModal({ kind: "form", mode: "edit", item })} onDuplicate={(item) => setModal({ kind: "form", mode: "duplicate", item })} onMoveOpen={(item) => setModal({ kind: "move", item })} onMove={move} />}
+    <SavedProjects kind="calendar" payload={items} onLoad={value => { if (Array.isArray(value)) setItems(value.filter(validPublication)); }} />
   </ToolPageShell>;
 }
 
