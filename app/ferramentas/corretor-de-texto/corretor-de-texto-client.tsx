@@ -22,7 +22,6 @@ const tones = [
 export default function CorretorDeTextoClient() {
   const [text, setText] = useState(() => { if (typeof window === "undefined") return ""; try { return sessionStorage.getItem(KEY) || ""; } catch { return ""; } });
   const [tone, setTone] = useState("preservar");
-  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<ProofreaderOutput | null>(null);
@@ -45,7 +44,7 @@ export default function CorretorDeTextoClient() {
       const response = await fetch("/api/ai/corretor-de-texto", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
-        body: JSON.stringify({ text, tone, consent }),
+        body: JSON.stringify({ text, tone, consent: true }),
       });
       const payload = await response.json();
       if (!response.ok) throw Error(payload.error || "Não foi possível corrigir o texto.");
@@ -70,11 +69,6 @@ export default function CorretorDeTextoClient() {
       <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Corretor de Texto com IA</h1>
       <p className="mt-3 text-muted-foreground">Corrija ortografia, gramática, concordância e pontuação com inteligência artificial, preservando o sentido do seu texto.</p>
     </header>
-    <SavedProjects kind="proofreader" payload={{ text, tone, result }} onLoad={value => {
-      const saved = value as { text?: string; tone?: string; result?: ProofreaderOutput | null };
-      if (typeof saved.text !== "string" || !tones.some(option => option.value === saved.tone)) return;
-      edit(saved.text); setTone(saved.tone!); setResult(saved.result ?? null);
-    }} />
     <Card>
       <CardHeader><CardTitle>Revisão inteligente</CardTitle></CardHeader>
       <CardContent>
@@ -92,9 +86,9 @@ export default function CorretorDeTextoClient() {
             <label className="flex items-center gap-2">Tom da revisão <select aria-label="Tom da revisão" value={tone} onChange={e => {setTone(e.target.value);setResult(null);}} className="rounded-md border border-input bg-background p-2 text-foreground">{tones.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select></label>
           </div>
           <AiCreditBalance />
-          <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={consent} onChange={e => setConsent(e.target.checked)} /><span>Autorizo enviar meu texto ao serviço externo de IA. Não incluí informações pessoais ou confidenciais.</span></label>
-          <p className="text-xs text-muted-foreground">A revisão custa 1 crédito, inclusive para usuários com créditos gratuitos. O texto é enviado somente após seu consentimento. A IA pode cometer erros; revise o resultado antes de utilizar.</p>
-          <Button type="submit" size="lg" disabled={loading || !consent || text.trim().length < 10}><Sparkles className="mr-2 size-4" />{loading ? "Corrigindo..." : "Corrigir texto com IA · 1 crédito"}</Button>
+          <p className="text-sm text-muted-foreground">Ao clicar em Corrigir texto com IA, seu texto será enviado a um provedor externo. Não inclua informações pessoais ou confidenciais.</p>
+          <p className="text-xs text-muted-foreground">A revisão custa 1 crédito, inclusive para usuários com créditos gratuitos. O envio ocorre ao clicar no botão de correção. A IA pode cometer erros; revise o resultado antes de utilizar.</p>
+          <Button type="submit" size="lg" disabled={loading || text.trim().length < 10}><Sparkles className="mr-2 size-4" />{loading ? "Corrigindo..." : "Corrigir texto com IA · 1 crédito"}</Button>
           {error && <p role="alert" className="text-sm text-destructive">{error} {error.includes("login") && <Link className="underline" href="/conta/login?next=%2Fferramentas%2Fcorretor-de-texto">Entrar ou cadastrar</Link>}</p>}
         </form>
       </CardContent>
@@ -111,5 +105,10 @@ export default function CorretorDeTextoClient() {
         {result.changes.length > 0 && <div><h2 className="mb-3 font-semibold">Principais alterações explicadas</h2><div className="space-y-3">{result.changes.map((change,index) => <div className="rounded-lg border p-3 text-sm" key={index}><p><span className="text-muted-foreground line-through">{change.original}</span> → <strong>{change.replacement}</strong></p><p className="mt-1 text-muted-foreground">{change.explanation}</p></div>)}</div></div>}
       </CardContent>
     </Card>}
+    <SavedProjects kind="proofreader" payload={{ text, tone, result }} onLoad={value => {
+      const saved = value as { text?: string; tone?: string; result?: ProofreaderOutput | null };
+      if (typeof saved.text !== "string" || !tones.some(option => option.value === saved.tone)) return;
+      edit(saved.text); setTone(saved.tone!); setResult(saved.result ?? null);
+    }} />
   </section>;
 }
