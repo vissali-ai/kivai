@@ -11,7 +11,7 @@ const faqs = [
   { question: "Sou obrigado a enviar o arquivo?", answer: "Não. Você pode selecionar Não quero enviar o arquivo e continuar com as informações disponíveis. Caso nada possa ser acessado pelo link, será necessário fornecer ao menos o conteúdo textual ou a mídia." },
   { question: "É possível analisar rascunhos?", answer: "Sim. Escolha Rascunho e envie uma imagem, vídeo ou texto. O link é opcional para uma publicação ainda não realizada." },
   { question: "A ferramenta assiste a todos os vídeos?", answer: "Não. Quando o acesso audiovisual pelo link não funciona, podem ser analisados apenas metadados ou quadros visuais extraídos de arquivo enviado. O relatório informa quais elementos foram examinados." },
-  { question: "Preciso entrar na minha conta?", answer: "Sim. A análise por IA utiliza o sistema de créditos do Kivai e exige login e consentimento para o processamento externo." },
+  { question: "Preciso entrar na minha conta?", answer: "Sim. A análise por IA utiliza o sistema de créditos do Kivai e exige login. O envio dos dados ocorre ao clicar em Analisar Publicação." },
 ];
 const description = "Analise publicações de redes sociais com IA, receba sugestões para legendas, ganchos, CTAs e edições, usando link e arquivo opcional.";
 
@@ -35,8 +35,7 @@ export default function AnalisadorDePostsPage() {
       description="Descubra o que melhorar em uma publicação e receba recomendações práticas com inteligência artificial."
       categoryName="Social Media"
       categoryHref="/ferramentas/social-media"
-      processingMode="server"
-      privacyMessage="As informações disponíveis da URL e as imagens otimizadas ou quadros extraídos localmente são enviados ao servidor Kivai e ao serviço externo de IA somente após consentimento. O arquivo original não é enviado nesta versão. Não inclua dados sensíveis."
+      showPrivacyNotice={false}
     ><AnalisadorDePostsClient /></ToolPageShell>
     <ToolEditorialLayout
       slug={slug}
@@ -55,7 +54,7 @@ export default function AnalisadorDePostsPage() {
         "Cole o link público da publicação, quando disponível.",
         "Se desejar, envie imagens, carrossel ou vídeo, ou assinale que não quer enviar arquivo.",
         "Escolha o objetivo e informe opcionalmente seu público-alvo.",
-        "Autorize o processamento com IA e clique em Analisar Publicação.",
+        "Clique em Analisar Publicação para enviar os dados selecionados à análise com IA.",
         "Revise o relatório e copie as melhorias desejadas.",
       ]}
       specificationsTitle="Recursos e condições de análise"
