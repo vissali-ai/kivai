@@ -186,7 +186,7 @@ export async function ToolEditorialLayout({
 
                 {afterFaq ? <div className="py-2">{afterFaq}</div> : null}
 
-                {slug !== "removedor-de-metadados-e-rotulos-de-ia" ? <ToolRatingSection slug={slug} /> : null}
+                <ToolRatingSection slug={slug} />
 
 <ToolSeoDisclosure title="Ferramentas e conteúdos relacionados">
                 <div className={relatedArticles.length ? "grid gap-6 lg:grid-cols-2" : undefined}>
