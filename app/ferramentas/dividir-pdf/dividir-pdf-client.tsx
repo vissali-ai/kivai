@@ -111,13 +111,13 @@ export default function DividirPdfClient() {
       categoryHref="/ferramentas/pdfs"
       breadcrumbRootName="Início"
       breadcrumbRootHref="/"
-      privacyMessage="A leitura e a divisão do PDF acontecem localmente no navegador. Seus arquivos não são enviados ao Kivai."
+      showPrivacyNotice={false}
     >
       <Card className="mx-auto max-w-5xl">
         <CardHeader>
           <CardTitle>Selecione um PDF</CardTitle>
           <CardDescription>
-            Cada página será criada como um PDF independente e reunida em um arquivo ZIP para download.
+            Selecione o arquivo que deseja dividir.
           </CardDescription>
         </CardHeader>
 
