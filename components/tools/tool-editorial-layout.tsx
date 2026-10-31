@@ -62,10 +62,10 @@ export async function ToolEditorialLayout({
       <section className="border-t border-border bg-muted/10 py-10 sm:py-12">
         <ToolFavoriteSlot className="mx-auto mb-5 w-full max-w-6xl px-4 sm:px-6 lg:px-8" />
         <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-          <ToolRatingSection slug={slug} />
           <ToolSeoDisclosure title="Informações sobre esta ferramenta">
             <article className="cms-public-content leading-7" dangerouslySetInnerHTML={{ __html: override.contentHtml }} />
           </ToolSeoDisclosure>
+          <ToolRatingSection slug={slug} />
           {relatedTools.length > 0 && (
             <ToolSeoDisclosure title="Ferramentas e conteúdos relacionados">
               <nav aria-label="Ferramentas relacionadas" className="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -169,8 +169,6 @@ export async function ToolEditorialLayout({
 
 </ToolSeoDisclosure>
 
-                {slug !== "removedor-de-metadados-e-rotulos-de-ia" ? <ToolRatingSection slug={slug} /> : null}
-
 <ToolSeoDisclosure title="Perguntas frequentes">
                 <article className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-2xl font-semibold">Perguntas frequentes</h2>
@@ -187,6 +185,8 @@ export async function ToolEditorialLayout({
 </ToolSeoDisclosure>
 
                 {afterFaq ? <div className="py-2">{afterFaq}</div> : null}
+
+                {slug !== "removedor-de-metadados-e-rotulos-de-ia" ? <ToolRatingSection slug={slug} /> : null}
 
 <ToolSeoDisclosure title="Ferramentas e conteúdos relacionados">
                 <div className={relatedArticles.length ? "grid gap-6 lg:grid-cols-2" : undefined}>
