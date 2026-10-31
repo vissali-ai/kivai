@@ -6,7 +6,7 @@ import { useToolAiCopy } from "./tool-ai-provider";
 import { getStoredSession } from "@/lib/user-auth";
 import type { ToolAssistantInput, ToolAssistantResult } from "@/lib/ai/tool-assistant";
 
-export function ToolAiPanel({fingerprint,cost,disabled,prepare,children,render}:{fingerprint:string;cost:1|2;disabled?:boolean;prepare:()=>Promise<ToolAssistantInput>;children?:React.ReactNode;render:(result:ToolAssistantResult)=>React.ReactNode}) {
+export function ToolAiPanel({fingerprint,cost,disabled,compactNotice=false,prepare,children,render}:{fingerprint:string;cost:1|2;disabled?:boolean;compactNotice?:boolean;prepare:()=>Promise<ToolAssistantInput>;children?:React.ReactNode;render:(result:ToolAssistantResult)=>React.ReactNode}) {
  const copy=useToolAiCopy(); const lock=useRef(false);
  const [loading,setLoading]=useState(false),[error,setError]=useState("");
  const [result,setResult]=useState<{fingerprint:string;data:ToolAssistantResult}|null>(null);
@@ -21,8 +21,7 @@ export function ToolAiPanel({fingerprint,cost,disabled,prepare,children,render}:
  return <section aria-label={copy.title} className="my-6 space-y-4 border border-primary/30 bg-card p-4 sm:p-6" data-print-hide>
   <h2 className="text-lg font-semibold">{copy.title}</h2><p className="text-sm text-muted-foreground">{copy.description}</p>
   {children}<AiCreditBalance/>
-  <p className="text-sm text-muted-foreground">Ao clicar em Gerar com IA, os dados selecionados serão enviados a um provedor externo. Não envie informações pessoais ou confidenciais. O provedor gratuito pode utilizar os dados para melhorar seus produtos.</p>
-  <p className="text-xs text-muted-foreground">A IA pode errar: confira os resultados. Cada geração custa {cost} crédito(s); revisar, aplicar e baixar não cobra novamente.</p>
+  {compactNotice ? <p className="text-sm text-muted-foreground">A revisão com IA custa {cost} {cost === 1 ? "crédito" : "créditos"}. Confira as sugestões antes de aplicar.</p> : <><p className="text-sm text-muted-foreground">Ao clicar em Gerar com IA, os dados selecionados serão enviados a um provedor externo. Não envie informações pessoais ou confidenciais. O provedor gratuito pode utilizar os dados para melhorar seus produtos.</p><p className="text-xs text-muted-foreground">A IA pode errar: confira os resultados. Cada geração custa {cost} crédito(s); revisar, aplicar e baixar não cobra novamente.</p></>}
   <Button onClick={generate} disabled={loading||disabled}>{loading?'Gerando…':`Gerar com IA · ${cost} crédito(s)`}</Button>
   {/^https:\/\//.test(copy.tutorialUrl)&&<a href={copy.tutorialUrl} target="_blank" rel="noopener noreferrer" className="ml-3 underline">Ver tutorial</a>}
   {error&&<p role="alert" className="text-sm text-destructive">{error}{error.startsWith('Entre')&&<> <a href="/conta/login" className="underline">Entrar na conta</a></>}</p>}
