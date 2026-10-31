@@ -193,11 +193,7 @@ function fazerOutraImagem() {
       </div>
 
       <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-            Ferramenta de imagem
-          </span>
-
-          <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
             Removedor de Fundo
           </h1>
 
