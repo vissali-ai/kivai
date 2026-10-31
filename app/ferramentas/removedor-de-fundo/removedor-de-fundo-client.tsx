@@ -198,8 +198,7 @@ function fazerOutraImagem() {
           </h1>
 
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-            Envie sua imagem e gere uma versão com fundo transparente
-            diretamente no seu navegador.
+            Envie sua imagem e gere uma versão com fundo transparente.
           </p>
         </div>
 
