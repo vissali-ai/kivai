@@ -5,8 +5,9 @@ type ImageToolPageShellProps = {
   title: string;
   description: string;
   children: ReactNode;
+  showPrivacyNotice?: boolean;
 };
 
-export function ImageToolPageShell({ title, description, children }: ImageToolPageShellProps) {
-  return <ToolPageShell title={title} description={description} categoryName="Ferramentas de imagem" categoryHref="/ferramentas/imagens">{children}</ToolPageShell>;
+export function ImageToolPageShell({ title, description, children, showPrivacyNotice }: ImageToolPageShellProps) {
+  return <ToolPageShell title={title} description={description} categoryName="Ferramentas de imagem" categoryHref="/ferramentas/imagens" showPrivacyNotice={showPrivacyNotice}>{children}</ToolPageShell>;
 }
