@@ -8,6 +8,7 @@ from backend.instagram_downloader import (
     MAX_VIDEO_BYTES,
     RemoteMedia,
     _og_media_result_from_html,
+    _story_media_result_from_html,
     create_media_token,
     instagram_download_error,
     normalize_instagram_url,
@@ -28,10 +29,20 @@ class InstagramDownloaderTests(unittest.TestCase):
         self.assertEqual(url, "https://www.instagram.com/reel/ABC_123/")
         self.assertEqual(shortcode, "ABC_123")
 
+    def test_normalizes_specific_story_url(self):
+        url, story_id = normalize_instagram_url(
+            "https://www.instagram.com/stories/perfil.teste/4015891499522208385/?utm_source=ig_story_item_share"
+        )
+        self.assertEqual(
+            url,
+            "https://www.instagram.com/stories/perfil.teste/4015891499522208385/",
+        )
+        self.assertEqual(story_id, "4015891499522208385")
+
     def test_rejects_private_profiles_and_unrelated_hosts(self):
         invalid = [
             "https://instagram.com/conta-privada/",
-            "https://instagram.com/stories/perfil/123/",
+            "https://instagram.com/stories/perfil/",
             "https://instagram.com.example/reel/ABC123/",
             "http://instagram.com/reel/ABC123/",
             "https://user:password@instagram.com/reel/ABC123/",
@@ -59,6 +70,39 @@ class InstagramDownloaderTests(unittest.TestCase):
         media = read_media_token(result["items"][0]["downloadToken"])
         self.assertEqual(media.kind, "image")
         self.assertEqual(media.filename, "instagram-PHOTO123.jpg")
+
+    def test_builds_download_for_story_html_metadata(self):
+        payload = {
+            "reels_media": [{
+                "items": [{
+                    "pk": "4015891499522208385",
+                    "video_duration": 8.5,
+                    "user": {"username": "perfil.teste"},
+                    "video_versions": [{
+                        "url": "https://cdn.example.com/story.mp4",
+                        "width": 1080,
+                        "height": 1920,
+                    }],
+                    "image_versions2": {"candidates": []},
+                }],
+            }],
+        }
+        html = (
+            '<script type="application/json">'
+            + '{"xdt_api__v1__feed__reels_media":'
+            + __import__("json").dumps(payload)
+            + "}</script>"
+        )
+        result = _story_media_result_from_html(
+            html,
+            "perfil.teste",
+            "4015891499522208385",
+        )
+        self.assertEqual(result["contentType"], "story")
+        self.assertEqual(result["items"][0]["format"], "MP4")
+        media = read_media_token(result["items"][0]["downloadToken"])
+        self.assertEqual(media.kind, "video")
+        self.assertIn("instagram-story-", media.filename)
 
     def test_signed_media_token_rejects_tampering(self):
         token = create_media_token(
