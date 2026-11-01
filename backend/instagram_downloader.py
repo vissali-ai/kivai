@@ -620,7 +620,17 @@ def _select_story_video(info: dict[str, Any]) -> dict[str, Any] | None:
     ]
     if not candidates:
         return None
-    return max(candidates, key=lambda item: (item.get("height") or 0, item.get("tbr") or 0))
+
+    # O Instagram expõe video_versions diretas e pode expor DASH separado.
+    # Para Stories, prefira a URL direta: ela é a opção mais segura para
+    # preservar áudio + vídeo em um único arquivo no download do Kivai.
+    direct_candidates = [
+        item for item in candidates
+        if not str(item.get("format_id") or "").lower().startswith("dash")
+        and item.get("protocol") not in {"http_dash_segments", "m3u8", "m3u8_native"}
+    ]
+    pool = direct_candidates or candidates
+    return max(pool, key=lambda item: (item.get("height") or 0, item.get("tbr") or 0))
 
 
 def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
