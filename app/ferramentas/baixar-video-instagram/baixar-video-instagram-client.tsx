@@ -27,6 +27,7 @@ type InstagramItem = {
 
 type InstagramResult = {
   source: "instagram";
+  contentType?: "publication" | "story";
   shortcode: string;
   title: string;
   author?: string | null;
@@ -165,8 +166,8 @@ export default function BaixarVideoInstagramClient() {
 
   return (
     <ToolPageShell
-      title="Baixar Vídeo e Foto do Instagram"
-      description="Cole o link de um Reel ou de uma publicação pública e salve ou compartilhe o vídeo ou a foto disponível, sem conectar sua conta."
+      title="Baixar Vídeo, Foto e Story do Instagram"
+      description="Cole o link de um Reel, de uma publicação ou de um Story público e salve ou compartilhe a mídia disponível, sem conectar sua conta."
       categoryName="Vídeos"
       categoryHref="/ferramentas/videos"
       breadcrumbRootName="Início"
@@ -177,11 +178,13 @@ export default function BaixarVideoInstagramClient() {
       <Card className="mx-auto max-w-4xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Images className="size-4 text-primary" />Link público do Instagram</CardTitle>
-          <CardDescription>Compatível com Reels, vídeos e fotos de publicações públicas. Stories e contas privadas não são suportados.</CardDescription>
+          <CardDescription>
+            Compatível com Reels, vídeos, fotos e Stories públicos. Para Story, cole o link específico do item. Contas privadas não são suportadas e alguns Stories podem exigir autenticação do próprio Instagram.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <form onSubmit={(event) => void analyze(event)} className="space-y-4">
-            <label className="block text-sm font-medium" htmlFor="instagram-url">Link do Reel ou da publicação</label>
+            <label className="block text-sm font-medium" htmlFor="instagram-url">Link do Reel, publicação ou Story</label>
             <div className="flex flex-col gap-2 sm:flex-row">
               <div className="relative flex-1">
                 <Link2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -194,7 +197,7 @@ export default function BaixarVideoInstagramClient() {
                   maxLength={2048}
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
-                  placeholder="https://www.instagram.com/reel/..."
+                  placeholder="https://www.instagram.com/reel/... ou /stories/perfil/..."
                   className="h-11 pl-10 text-sm"
                   disabled={status === "processing"}
                 />
@@ -205,14 +208,16 @@ export default function BaixarVideoInstagramClient() {
             </div>
           </form>
 
-          <ToolProcessingStatus status={status} message="Localizando a foto ou o vídeo público no Instagram..." />
+          <ToolProcessingStatus status={status} message="Localizando a mídia pública no Instagram..." />
           <ToolErrorMessage message={error} />
 
           {result && (
             <ToolResultCard
-              title={result.items.length > 1
-                ? `${result.items.length} arquivos encontrados`
-                : result.items[0]?.kind === "image" ? "Foto encontrada" : "Vídeo encontrado"}
+              title={result.contentType === "story"
+                ? result.items.length > 1 ? `${result.items.length} itens do Story encontrados` : "Story encontrado"
+                : result.items.length > 1
+                  ? `${result.items.length} arquivos encontrados`
+                  : result.items[0]?.kind === "image" ? "Foto encontrada" : "Vídeo encontrado"}
               description={[result.author ? `@${result.author.replace(/^@/, "")}` : null, result.title].filter(Boolean).join(" · ")}
               details={(
                 <div className="space-y-3">
