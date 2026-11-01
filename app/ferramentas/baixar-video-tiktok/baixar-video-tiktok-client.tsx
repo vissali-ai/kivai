@@ -67,7 +67,6 @@ function isMobileDevice() {
 export default function BaixarVideoTikTokClient() {
   const requestRef = useRef<AbortController | null>(null);
   const [url, setUrl] = useState("");
-  const [authorized, setAuthorized] = useState(false);
   const [status, setStatus] = useState<ToolStatus>("idle");
   const [error, setError] = useState("");
   const [result, setResult] = useState<TikTokResult | null>(null);
@@ -77,7 +76,7 @@ export default function BaixarVideoTikTokClient() {
 
   async function analyze(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!url.trim() || !authorized || status === "processing") return;
+    if (!url.trim() || status === "processing") return;
     requestRef.current?.abort();
     const controller = new AbortController();
     requestRef.current = controller;
@@ -88,7 +87,7 @@ export default function BaixarVideoTikTokClient() {
       const response = await fetch(`${backendUrl()}/tiktok/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), authorized }),
+        body: JSON.stringify({ url: url.trim(), authorized: true }),
         cache: "no-store",
         signal: controller.signal,
       });
@@ -159,7 +158,6 @@ export default function BaixarVideoTikTokClient() {
   function reset() {
     requestRef.current?.abort();
     setUrl("");
-    setAuthorized(false);
     setResult(null);
     setError("");
     setStatus("idle");
@@ -206,16 +204,6 @@ export default function BaixarVideoTikTokClient() {
                 <Search className="size-4" />Analisar link
               </Button>
             </div>
-            <label className="flex cursor-pointer items-start gap-3 border border-border bg-muted/20 p-4 text-sm leading-6">
-              <input
-                type="checkbox"
-                checked={authorized}
-                onChange={(event) => setAuthorized(event.target.checked)}
-                className="mt-1 accent-primary"
-                disabled={status === "processing"}
-              />
-              <span>Confirmo que este conteúdo é meu ou que possuo autorização para baixá-lo e utilizá-lo.</span>
-            </label>
           </form>
 
           <ToolProcessingStatus status={status} message="Localizando o vídeo público no TikTok..." />
