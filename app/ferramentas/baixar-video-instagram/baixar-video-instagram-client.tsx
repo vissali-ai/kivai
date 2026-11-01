@@ -72,7 +72,6 @@ function getShareFileType(blob: Blob, kind: InstagramItem["kind"]) {
 export default function BaixarVideoInstagramClient() {
   const requestRef = useRef<AbortController | null>(null);
   const [url, setUrl] = useState("");
-  const [authorized, setAuthorized] = useState(false);
   const [status, setStatus] = useState<ToolStatus>("idle");
   const [error, setError] = useState("");
   const [result, setResult] = useState<InstagramResult | null>(null);
@@ -82,7 +81,7 @@ export default function BaixarVideoInstagramClient() {
 
   async function analyze(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!url.trim() || !authorized || status === "processing") return;
+    if (!url.trim() || status === "processing") return;
     requestRef.current?.abort();
     const controller = new AbortController();
     requestRef.current = controller;
@@ -93,7 +92,7 @@ export default function BaixarVideoInstagramClient() {
       const response = await fetch(`${backendUrl()}/instagram/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), authorized }),
+        body: JSON.stringify({ url: url.trim(), authorized: true }),
         cache: "no-store",
         signal: controller.signal,
       });
@@ -158,7 +157,6 @@ export default function BaixarVideoInstagramClient() {
   function reset() {
     requestRef.current?.abort();
     setUrl("");
-    setAuthorized(false);
     setResult(null);
     setError("");
     setStatus("idle");
@@ -205,16 +203,6 @@ export default function BaixarVideoInstagramClient() {
                 <Search className="size-4" />Analisar link
               </Button>
             </div>
-            <label className="flex cursor-pointer items-start gap-3 border border-border bg-muted/20 p-4 text-sm leading-6">
-              <input
-                type="checkbox"
-                checked={authorized}
-                onChange={(event) => setAuthorized(event.target.checked)}
-                className="mt-1 accent-primary"
-                disabled={status === "processing"}
-              />
-              <span>Confirmo que este conteúdo é meu ou que possuo autorização para baixá-lo e utilizá-lo.</span>
-            </label>
           </form>
 
           <ToolProcessingStatus status={status} message="Localizando a foto ou o vídeo público no Instagram..." />
