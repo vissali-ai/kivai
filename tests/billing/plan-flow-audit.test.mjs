@@ -11,11 +11,11 @@ function action({ denied=false, deliveryFails=false }={}) {
   '@/lib/blog/supabase': {supabaseRest:async(path,opts)=>{calls.push({path,body:JSON.parse(opts.body)});return {communicationId:'email-1'}}},
   '@/lib/marketing/email-delivery': {deliverCustomerEmail:async()=>{if(deliveryFails)throw Error('provider unavailable')}},
  };
- const module={exports:{}};
+ const loadedModule ={exports:{}};
  const output=ts.transpileModule(fs.readFileSync(new URL('../../app/admin/assinaturas/actions.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- new Function('require','module','exports',output)(name=>{assert.ok(name in mocks,name);return mocks[name]},module,module.exports);
+ new Function('require','module','exports',output)(name=>{assert.ok(name in mocks,name);return mocks[name]},loadedModule,loadedModule.exports);
  const form=new FormData();form.set('requestId','request-1');
- return {calls,invalidated,form,...module.exports};
+ return {calls,invalidated,form,...loadedModule.exports};
 }
 test('confirmation delegates to one atomic RPC',async()=>{const x=action();await x.confirmSubscriptionPayment(x.form);assert.deepEqual(x.calls,[{path:'rpc/kivai_confirm_payment',body:{p_request_id:'request-1'}}]);assert.ok(x.invalidated.includes('/conta/pro'));});
 test('email provider failure does not fail completed activation',async()=>{const x=action({deliveryFails:true});await x.confirmSubscriptionPayment(x.form);assert.ok(x.invalidated.includes('/admin/assinaturas'));});

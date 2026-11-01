@@ -407,11 +407,14 @@ return (
               </div>
 
               <div className="mt-5 flex min-h-64 items-center justify-center border border-border bg-muted/20 p-4">
-                <img
+                {(
+// eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
+<img
                   src={resultadoUrl}
                   alt="Imagem convertida"
                   className="max-h-96 w-full object-contain"
                 />
+)}
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

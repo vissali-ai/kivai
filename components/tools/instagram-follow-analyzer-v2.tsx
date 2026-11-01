@@ -135,7 +135,9 @@ function SpriteSlice({ index, large = false }: { index: number; large?: boolean 
 
   return (
     <span className="relative block aspect-[9/16] w-full overflow-hidden bg-black">
-      <img
+      {(
+// eslint-disable-next-line @next/next/no-img-element -- CMS/tutorial media has editor-controlled URLs and intrinsic dimensions; preserve the original source and layout.
+<img
         src={TUTORIAL_SPRITE_URL}
         alt=""
         aria-hidden="true"
@@ -145,6 +147,7 @@ function SpriteSlice({ index, large = false }: { index: number; large?: boolean 
         style={{ top: `-${index * 100}%` }}
         draggable={false}
       />
+)}
     </span>
   );
 }
@@ -159,11 +162,11 @@ export function InstagramFollowAnalyzerV2() {
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [expandedScreenshot, setExpandedScreenshot] = useState<number | null>(null);
 
-  const currentList = result?.[activeTab] ?? [];
   const filtered = useMemo(() => {
+    const currentList = result?.[activeTab] ?? [];
     const term = search.trim().toLowerCase().replace(/^@/, "");
     return term ? currentList.filter((username) => username.includes(term)) : currentList;
-  }, [currentList, search]);
+  }, [result, activeTab, search]);
 
   async function handleFile(file?: File) {
     if (!file) return;

@@ -420,11 +420,14 @@ export default function GeradorDeQrCodeClient() {
                   ) : qrDataUrl ? (
                     <>
                       <div className="flex w-full max-w-sm items-center justify-center border border-border bg-background p-5">
-                        <img
+                        {(
+// eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
+<img
                           src={arteDataUrl}
                           alt="Pré-visualização da arte com QR Code"
                           className="h-auto max-h-80 w-full object-contain"
                         />
+)}
                       </div>
 
                       <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">

@@ -4,9 +4,9 @@ import fs from "node:fs";
 import ts from "typescript";
 import { createRequire } from "node:module";
 import { PDFDocument, PDFName, PDFNumber } from "pdf-lib";
-const module = { exports: {} };
-new Function("require", "module", "exports", ts.transpileModule(fs.readFileSync("lib/duplex-print/pdf.ts", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(createRequire(import.meta.url), module, module.exports);
-const { prepareManual, loadPrintPdf, testPdf } = module.exports;
+const loadedModule = { exports: {} };
+new Function("require", "module", "exports", ts.transpileModule(fs.readFileSync("lib/duplex-print/pdf.ts", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(createRequire(import.meta.url), loadedModule, loadedModule.exports);
+const { prepareManual, loadPrintPdf, testPdf } = loadedModule.exports;
 async function fixture(count, mixed = false) {
   const doc = await PDFDocument.create();
   for (let n = 1; n <= count; n++) { const p = doc.addPage([mixed && n === 2 ? 500 : 595, 842]); p.node.set(PDFName.of("TestPage"), PDFNumber.of(n)); }

@@ -216,11 +216,14 @@ function baixarResultado() {
                   </p>
 
                   <div className="flex min-h-64 items-center justify-center border border-border bg-background p-4">
-                    <img
+                    {(
+// eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
+<img
                       src={previewUrl}
                       alt="Pré-visualização da imagem selecionada"
                       className="max-h-96 w-full object-contain"
                     />
+)}
                   </div>
 
 {arquivo && (
@@ -337,7 +340,10 @@ function baixarResultado() {
                 title="Imagem convertida pronta"
                 className="mt-6"
                 description={extensaoResultado.toUpperCase() + " · " + formatFileSize(resultadoBlob.size)}
-                preview={<img src={resultadoUrl} alt="Pré-visualização da imagem convertida" className="mx-auto max-h-96 w-full object-contain" />}
+                preview={(
+// eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
+<img src={resultadoUrl} alt="Pré-visualização da imagem convertida" className="mx-auto max-h-96 w-full object-contain" />
+)}
                 details={<dl className="grid gap-4 text-sm sm:grid-cols-2">
                   <div><dt className="text-muted-foreground">Arquivo original</dt><dd>{formatFileSize(arquivo.size)}</dd></div>
                   <div><dt className="text-muted-foreground">Arquivo convertido</dt><dd>{formatFileSize(resultadoBlob.size)}</dd></div>

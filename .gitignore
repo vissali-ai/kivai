@@ -26,6 +26,7 @@ backend/__pycache__/
 # Relatórios locais dos testes de navegador
 playwright-report/
 test-results/
+.work/
 
 # Sistema
 .DS_Store

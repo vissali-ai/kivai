@@ -289,11 +289,14 @@ export default function PdfParaImagensClient() {
                   <h4 className="mb-3 text-sm font-semibold">
                     Página {index + 1} de {images.length}
                   </h4>
-                  <img
+                  {(
+// eslint-disable-next-line @next/next/no-img-element -- CMS/tutorial media has editor-controlled URLs and intrinsic dimensions; preserve the original source and layout.
+<img
                     src={image}
                     alt={`Página ${index + 1}`}
                     className="h-80 w-full rounded border bg-white object-contain"
                   />
+)}
                   <Button asChild className="mt-3 w-full">
                     <a href={image} download={`pagina-${index + 1}.${format}`}>
                       Baixar {format.toUpperCase()}

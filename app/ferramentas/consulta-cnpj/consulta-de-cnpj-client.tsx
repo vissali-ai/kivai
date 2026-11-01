@@ -120,10 +120,6 @@ function display(value?: string | number | null) {
   return String(value);
 }
 
-function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="text-xl font-semibold tracking-tight">{children}</h2>;
-}
-
 function InfoGrid({ children }: { children: ReactNode }) {
   return <dl className="mt-5 grid gap-4 sm:grid-cols-2">{children}</dl>;
 }

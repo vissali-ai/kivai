@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { MailCheck, Monitor, RotateCcw, Save, Send, Smartphone } from "lucide-react";
 import { EmailRichTextEditor } from "./email-rich-text-editor";
 import { sendCustomEmailCampaign, sendCustomEmailTest, type CampaignActionState } from "./actions";
@@ -45,8 +45,29 @@ function normalizeStoredMessage(value: unknown) {
   return text.split(/\n{2,}/).filter(Boolean).map((part) => `<p>${part.replaceAll("\n", "<br>")}</p>`).join("");
 }
 
+const subscribeToHydration = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
+
+function readStoredDraft(): Draft {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<Draft>;
+      return { ...EMPTY_DRAFT, ...parsed, message: normalizeStoredMessage(parsed.message) };
+    }
+  } catch {}
+  return EMPTY_DRAFT;
+}
+
 export function EmailMarketingEditor({ counts }: { counts: Counts }) {
-  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  const hydrated = useSyncExternalStore(subscribeToHydration, clientSnapshot, serverSnapshot);
+  // Keep SSR and hydration identical, then initialize the editable draft once from storage.
+  return <EmailMarketingForm key={hydrated ? "stored" : "server"} counts={counts} restoreDraft={hydrated} />;
+}
+
+function EmailMarketingForm({ counts, restoreDraft }: { counts: Counts; restoreDraft: boolean }) {
+  const [draft, setDraft] = useState<Draft>(() => restoreDraft ? readStoredDraft() : EMPTY_DRAFT);
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [saved, setSaved] = useState(false);
   const initialState: CampaignActionState = { ok: false, message: "" };
@@ -54,23 +75,14 @@ export function EmailMarketingEditor({ counts }: { counts: Counts }) {
   const [testState, testFormAction, testPending] = useActionState(sendCustomEmailTest, initialState);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<Draft>;
-        setDraft({ ...EMPTY_DRAFT, ...parsed, message: normalizeStoredMessage(parsed.message) });
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
+    if (!restoreDraft) return;
     const timer = window.setTimeout(() => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
       setSaved(true);
       window.setTimeout(() => setSaved(false), 1200);
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [draft]);
+  }, [draft, restoreDraft]);
 
   const audienceCount = useMemo(() => counts[draft.audience as keyof Counts] ?? counts.all, [counts, draft.audience]);
 

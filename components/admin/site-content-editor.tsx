@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { PrinterCatalogEditor } from "@/components/admin/printer-catalog-editor";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AlertTriangle, ArrowLeft, Check, Copy, ExternalLink, Save, Trash2 } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { Button } from "@/components/ui/button";
@@ -54,10 +54,10 @@ export function SiteContentEditor({ initialContent, hubs }: { initialContent: Ma
     setMessage(`Bloco “${label}” marcado para exclusão definitiva. Clique em Salvar para concluir.`);
   }
 
-  const completeness = useMemo(() => [
+  const completeness = [
     [Boolean(draft.title), "Título"], [isDeleted("summary") || Boolean(draft.shortDescription), "Resumo"], [isDeleted("content") || draft.contentHtml.length > 300, "Conteúdo editorial"],
     [Boolean(draft.seoTitle), "Título SEO"], [Boolean(draft.seoDescription), "Descrição SEO"], [draft.contentType !== "tool" || Boolean(draft.hubId), "Hub"],
-  ] as Array<[boolean, string]>, [draft, visibility]);
+  ] as Array<[boolean, string]>;
 
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setMessage("Salvando...");

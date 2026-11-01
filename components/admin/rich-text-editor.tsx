@@ -14,7 +14,7 @@ import type { Media } from "@/lib/blog/types";
 export function RichTextEditor({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit.configure({ heading: { levels: [2, 3] } }), LinkExtension.configure({ openOnClick: false }), ImageExtension, Youtube.configure({ controls: true, nocookie: true })],
+    extensions: [StarterKit.configure({ heading: { levels: [2, 3] }, link: false }), LinkExtension.configure({ openOnClick: false }), ImageExtension, Youtube.configure({ controls: true, nocookie: true })],
     content: value,
     editorProps: { attributes: { class: "cms-editor min-h-[420px] px-5 py-4 outline-none" } },
     onUpdate: ({ editor: current }) => onChange(current.getHTML()),

@@ -454,11 +454,14 @@ export default function RemovedorDeMetadadosClient() {
               <div className="mt-6 space-y-6">
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
                   <div className="overflow-hidden rounded-xl border border-border bg-muted/10 p-2 sm:p-3">
-                    <img
+                    {(
+// eslint-disable-next-line @next/next/no-img-element -- CMS/tutorial media has editor-controlled URLs and intrinsic dimensions; preserve the original source and layout.
+<img
                       src={sourceUrl}
                       alt="Prévia da imagem selecionada"
                       className="mx-auto max-h-[360px] w-auto max-w-full rounded-lg object-contain sm:max-h-[520px]"
                     />
+)}
                   </div>
 
                   <dl className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-muted/10 p-4 sm:grid-cols-4 lg:grid-cols-1">

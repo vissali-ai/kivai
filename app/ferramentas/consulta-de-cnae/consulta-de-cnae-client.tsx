@@ -23,10 +23,6 @@ function display(value?: string | null) {
   return value ? value : "Não informado";
 }
 
-function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="text-xl font-semibold tracking-tight">{children}</h2>;
-}
-
 function InfoItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="border border-border bg-muted/10 p-4">

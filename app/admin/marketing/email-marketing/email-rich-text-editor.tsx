@@ -42,7 +42,7 @@ export function EmailRichTextEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ heading: { levels: [2, 3] } }),
+      StarterKit.configure({ heading: { levels: [2, 3] }, link: false }),
       LinkExtension.configure({ openOnClick: false }),
       ImageExtension,
     ],

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
- testDir: "./tests/billing", testMatch: "flow.spec.ts", workers: 1, timeout: 90_000,
+ testDir: "./tests/billing", testMatch: "*.spec.ts", workers: 1, timeout: 90_000,
  use: { ...devices["Desktop Chrome"], baseURL: "http://127.0.0.1:3103", screenshot: "only-on-failure", trace: "retain-on-failure" },
  webServer: [
   { command: "node tests/billing/local-supabase.mjs", url: "http://127.0.0.1:3197", reuseExistingServer: true },

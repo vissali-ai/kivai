@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ function validWhatsapp(value: string) {
 }
 
 export function UserSignupForm({ next }: { next?: string }) {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -40,7 +42,7 @@ export function UserSignupForm({ next }: { next?: string }) {
     setPending(true);
     try {
       const result = await signUpWithPassword(name, email, password, phone);
-      if (result.access_token) { window.location.assign(resolveAuthReturnPath(next)); return; }
+      if (result.access_token) { router.push(resolveAuthReturnPath(next)); return; }
       setMessage("Conta criada. Confira seu e-mail para confirmar o cadastro e depois faça login pelo link abaixo.");
     } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível criar sua conta."); }
     finally { setPending(false); }

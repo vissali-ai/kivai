@@ -206,7 +206,10 @@ export function CropImageClient() {
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
               <section className="min-w-0 rounded-lg border border-border bg-black/90 p-3 sm:p-5" aria-label="Editor visual de recorte">
                 <div ref={stageRef} className="relative mx-auto w-fit max-w-full overflow-hidden">
-                  <img src={image.src} alt="Imagem para recortar" className="block max-h-[68vh] max-w-full select-none object-contain" draggable={false} />
+                  {(
+// eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
+<img src={image.src} alt="Imagem para recortar" className="block max-h-[68vh] max-w-full select-none object-contain" draggable={false} />
+)}
                   <div
                     className="absolute touch-none cursor-move border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.62)]"
                     style={{ left: `${cropBox.x / imageWidth * 100}%`, top: `${cropBox.y / imageHeight * 100}%`, width: `${cropBox.width / imageWidth * 100}%`, height: `${cropBox.height / imageHeight * 100}%` }}
@@ -257,7 +260,10 @@ export function CropImageClient() {
             </div>
           )}
 
-          {result && <ToolResultCard title="Imagem recortada pronta" className="mt-6" description={`Resultado: ${cropBox.width} × ${cropBox.height}px`} preview={<img src={result.url} alt="Imagem recortada" className="mx-auto max-h-96 max-w-full object-contain" />} actions={<><Button onClick={() => downloadBlob(result.blob, `${name}-recortada.png`)}><Download />Baixar PNG</Button><Button variant="outline" onClick={reset}><RotateCcw />Começar novamente</Button></>} />}
+          {result && <ToolResultCard title="Imagem recortada pronta" className="mt-6" description={`Resultado: ${cropBox.width} × ${cropBox.height}px`} preview={(
+// eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
+<img src={result.url} alt="Imagem recortada" className="mx-auto max-h-96 max-w-full object-contain" />
+)} actions={<><Button onClick={() => downloadBlob(result.blob, `${name}-recortada.png`)}><Download />Baixar PNG</Button><Button variant="outline" onClick={reset}><RotateCcw />Começar novamente</Button></>} />}
           <ToolErrorMessage message={error} className="mt-4" />
         </CardContent>
       </Card>

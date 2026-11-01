@@ -261,7 +261,10 @@ export default function RedimensionarImagemClient() {
               <CardContent className="grid gap-3 sm:grid-cols-2">
                 {itens.map((item, indice) => (
                   <article key={item.id} className="grid grid-cols-[88px_minmax(0,1fr)_auto] items-center gap-3 border border-border bg-background p-3">
-                    <img src={item.previewUrl} alt="" className="size-[88px] bg-muted/20 object-contain" />
+                    {(
+// eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
+<img src={item.previewUrl} alt="" className="size-[88px] bg-muted/20 object-contain" />
+)}
                     <div className="min-w-0"><p className="truncate text-sm font-medium">{item.arquivo.name}</p><p className="mt-1 text-xs text-muted-foreground">{item.original.largura} × {item.original.altura}px · {formatarTamanho(item.arquivo.size)}</p>{dimensoesPrevistas[indice] && <p className="mt-1 text-xs font-medium text-primary">Resultado: {dimensoesPrevistas[indice]?.largura} × {dimensoesPrevistas[indice]?.altura}px</p>}</div>
                     <Button type="button" variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label={`Remover ${item.arquivo.name}`} onClick={() => removerItem(item.id)}><Trash2 /></Button>
                   </article>
@@ -299,7 +302,10 @@ export default function RedimensionarImagemClient() {
         {!!resultados.length && <ToolResultCard
           title={resultados.length + (resultados.length === 1 ? " imagem pronta" : " imagens prontas")}
           className="mt-8"
-          preview={<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{resultados.map((resultado) => <article key={resultado.id} className="border border-border bg-background p-3"><img src={resultado.url} alt={"Resultado de " + resultado.arquivo.name} className="aspect-video w-full bg-muted/20 object-contain" /><p className="mt-3 truncate text-sm font-medium">{resultado.nome}</p><p className="mt-1 text-xs text-muted-foreground">{resultado.largura} × {resultado.altura}px · {formatarTamanho(resultado.blob.size)}</p><Button type="button" variant="outline" className="mt-3 min-h-11 w-full" disabled={processando} onClick={() => baixar(resultado)}><Download />Baixar</Button></article>)}</div>}
+          preview={<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{resultados.map((resultado) => <article key={resultado.id} className="border border-border bg-background p-3">{(
+// eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
+<img src={resultado.url} alt={"Resultado de " + resultado.arquivo.name} className="aspect-video w-full bg-muted/20 object-contain" />
+)}<p className="mt-3 truncate text-sm font-medium">{resultado.nome}</p><p className="mt-1 text-xs text-muted-foreground">{resultado.largura} × {resultado.altura}px · {formatarTamanho(resultado.blob.size)}</p><Button type="button" variant="outline" className="mt-3 min-h-11 w-full" disabled={processando} onClick={() => baixar(resultado)}><Download />Baixar</Button></article>)}</div>}
           actions={<>
             <Button size="lg" disabled={processando} onClick={() => void baixarTudo()}><Download />{resultados.length === 1 ? "Baixar imagem" : "Baixar tudo em ZIP"}</Button>
             <Button size="lg" variant="outline" disabled={processando} onClick={limparTudo}>Começar novamente</Button>
