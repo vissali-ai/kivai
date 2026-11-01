@@ -20,7 +20,7 @@ export type VideoServerEditorialContent = {
 };
 
 const related = [
-  { href: "/ferramentas/baixar-video-instagram", label: "Baixar Vídeo e Foto do Instagram" },
+  { href: "/ferramentas/baixar-video-instagram", label: "Baixar Vídeo, Foto e Story do Instagram" },
   { href: "/ferramentas/baixar-video-tiktok", label: "Baixar Vídeo do TikTok" },
   { href: "/ferramentas/hevc-para-mp4", label: "HEVC para MP4" },
   { href: "/ferramentas/mp4-para-hevc", label: "MP4 para HEVC" },
@@ -44,32 +44,32 @@ function withRelated(
 export const videoServerToolEditorialContent: Record<VideoServerToolEditorialSlug, VideoServerEditorialContent> = {
   "baixar-video-instagram": withRelated("baixar-video-instagram", {
     overview: [
-      "A ferramenta localiza o vídeo ou a foto disponível em um Reel ou publicação pública a partir do link colado pelo usuário. Ela não exige conexão com uma conta do Instagram e não tenta acessar perfis privados.",
+      "A ferramenta localiza a mídia disponível em um Reel, publicação ou Story público a partir do link colado pelo usuário. Ela não exige conexão com uma conta do Instagram e não tenta acessar perfis privados.",
       "A disponibilidade depende da página pública e dos endereços temporários fornecidos pela plataforma. Use a ferramenta somente para conteúdo próprio, licenciado ou cuja utilização tenha sido autorizada pelo titular.",
     ],
     useCases: [
-      { title: "Guardar conteúdo próprio", description: "Salve no dispositivo uma cópia de um Reel, vídeo ou foto publicado por você em uma conta pública." },
+      { title: "Guardar conteúdo próprio", description: "Salve no dispositivo uma cópia de um Reel, vídeo, foto ou Story publicado por você em uma conta pública." },
       { title: "Material autorizado", description: "Baixe uma mídia pública quando o criador ou titular concedeu permissão para o uso pretendido." },
       { title: "Fluxo de edição", description: "Obtenha uma cópia autorizada para arquivamento, revisão ou edição em outro programa." },
     ],
     steps: [
-      "Abra o Reel ou a publicação pública no Instagram e copie o link.",
+      "Abra o Reel, a publicação ou o Story específico no Instagram e copie o link.",
       "Cole o endereço no campo da ferramenta.",
       "Confirme que o conteúdo é seu ou que você possui autorização para baixá-lo.",
-      "Analise o link e aguarde a identificação do vídeo ou da foto.",
+      "Analise o link e aguarde a identificação da mídia.",
       "Confira os dados disponíveis e baixe o arquivo antes de o link temporário expirar.",
     ],
     specifications: [
-      { label: "Links aceitos", value: "Reels e publicações públicas do Instagram que contenham vídeo ou foto." },
-      { label: "Saída", value: "Vídeo ou imagem no formato disponibilizado pela publicação, normalmente MP4 ou JPG." },
+      { label: "Links aceitos", value: "Reels, publicações públicas e links de Stories específicos que estejam acessíveis pelo Instagram." },
+      { label: "Saída", value: "Vídeo ou imagem no formato disponibilizado pelo Instagram, normalmente MP4 ou JPG." },
       { label: "Limite", value: "Até 200 MB por vídeo e 25 MB por foto nesta primeira versão." },
       { label: "Privacidade", value: "Não solicita usuário, senha nem acesso à sua conta do Instagram." },
       { label: "Disponibilidade", value: "O botão de download fica disponível por alguns minutos após a análise." },
     ],
     privacy: "Usamos o link apenas para encontrar o arquivo. Você não precisa informar login ou senha, e o conteúdo não fica salvo no Kivai.",
     limitations: [
-      "Contas privadas, Stories, conteúdos removidos, restritos por idade ou região e páginas que exigem login não são compatíveis.",
-      "Mudanças técnicas ou bloqueios temporários do Instagram podem interromper a localização de vídeos públicos.",
+      "Contas privadas, conteúdos removidos, restritos por idade ou região e páginas que exigem login não são compatíveis. Alguns Stories públicos também podem ser bloqueados pelo próprio Instagram e exigir autenticação.",
+      "Mudanças técnicas ou bloqueios temporários do Instagram podem interromper a localização de Reels, publicações ou Stories públicos.",
       "A ferramenta não concede direitos sobre o conteúdo; autorização, finalidade e cumprimento das regras aplicáveis são responsabilidade do usuário.",
       "Alguns vídeos que exigem juntar imagem e áudio separadamente podem não estar disponíveis nesta primeira versão.",
       "Em publicações com várias fotos, esta primeira versão pode encontrar somente a imagem principal.",
@@ -80,8 +80,8 @@ export const videoServerToolEditorialContent: Record<VideoServerToolEditorialSlu
       { question: "Posso baixar qualquer vídeo público?", answer: "Use somente conteúdo próprio ou material para o qual você tenha autorização e respeite direitos autorais, de imagem e as regras aplicáveis." },
       { question: "O Kivai guarda o vídeo?", answer: "Não. O Kivai usa o link apenas para encontrar o arquivo e enviá-lo ao seu navegador durante o download." },
       { question: "A ferramenta baixa fotos?", answer: "Sim. Ela baixa a imagem disponível em publicações públicas. Em carrosséis, esta primeira versão pode encontrar somente a foto principal." },
-      { question: "Por que um link público pode não funcionar?", answer: "A publicação pode estar removida, restrita, exigir login ou ter sido afetada por uma mudança do Instagram." },
-      { question: "A ferramenta baixa Stories?", answer: "Não nesta primeira versão. O suporte inicial é para Reels e publicações públicas com vídeo ou foto." },
+      { question: "Por que um link público pode não funcionar?", answer: "A publicação ou o Story pode estar removido, expirado, restrito, exigir login ou ter sido afetado por uma mudança do Instagram." },
+      { question: "A ferramenta baixa Stories?", answer: "Sim, quando você cola o link de um Story específico e o Instagram disponibiliza essa mídia publicamente. Stories expirados, privados ou que exijam autenticação não podem ser acessados." },
     ],
   }),
   "baixar-video-tiktok": withRelated("baixar-video-tiktok", {
