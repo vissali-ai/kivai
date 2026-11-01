@@ -199,7 +199,7 @@ export default function BaixarVideoInstagramClient() {
                   disabled={status === "processing"}
                 />
               </div>
-              <Button type="submit" size="lg" disabled={!url.trim() || !authorized || status === "processing"}>
+              <Button type="submit" size="lg" disabled={!url.trim() || status === "processing"}>
                 <Search className="size-4" />Analisar link
               </Button>
             </div>
