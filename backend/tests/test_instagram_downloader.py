@@ -9,6 +9,8 @@ from backend.instagram_downloader import (
     RemoteMedia,
     _og_media_result_from_html,
     _story_media_result_from_html,
+    _extract_instagram_sync,
+    _largest_image_candidate,
     create_media_token,
     instagram_download_error,
     normalize_instagram_url,
@@ -18,6 +20,52 @@ from backend.main import app
 
 
 class InstagramDownloaderTests(unittest.TestCase):
+    @patch("yt_dlp.YoutubeDL")
+    def test_photo_and_mixed_carousel_preserve_every_item(self, downloader_class):
+        downloader = downloader_class.return_value.__enter__.return_value
+        photo = {"formats": [], "thumbnails": [
+            {"url": "https://cdn.example.com/small.jpg", "width": 150, "height": 150},
+            {"url": "https://cdn.example.com/original.jpg", "width": 1080, "height": 1350},
+        ]}
+        video = {"formats": [{"url": "https://cdn.example.com/movie.mp4", "height": 1080}]}
+        downloader.sanitize_info.side_effect = lambda value: value
+        for entries in ([photo], [photo, video] * 10):
+            with self.subTest(count=len(entries)):
+                downloader.extract_info.return_value = entries[0] if len(entries) == 1 else {"entries": entries}
+                result = _extract_instagram_sync("https://www.instagram.com/p/PHOTO123/", "PHOTO123")
+                self.assertEqual(len(result["items"]), len(entries))
+                self.assertEqual(result["items"][0]["kind"], "image")
+                self.assertEqual(read_media_token(result["items"][0]["downloadToken"]).url,
+                                 "https://cdn.example.com/original.jpg")
+        self.assertTrue(downloader_class.call_args.args[0]["ignore_no_formats_error"])
+        self.assertFalse(downloader.extract_info.call_args.kwargs["process"])
+
+    @patch("yt_dlp.YoutubeDL")
+    def test_video_with_only_dash_does_not_download_cover_as_photo(self, downloader_class):
+        downloader = downloader_class.return_value.__enter__.return_value
+        downloader.extract_info.return_value = {"formats": [{
+            "url": "https://cdn.example.com/segment.mp4", "protocol": "http_dash_segments",
+            "format_id": "dash-video", "vcodec": "avc1", "acodec": "none",
+        }], "thumbnail": "https://cdn.example.com/cover.jpg"}
+        downloader.sanitize_info.side_effect = lambda value: value
+        with self.assertRaises(InstagramResolveError):
+            _extract_instagram_sync("https://www.instagram.com/p/VIDEO123/", "VIDEO123")
+
+    def test_thumbnail_without_dimensions_uses_extractor_preference(self):
+        self.assertEqual(_largest_image_candidate({"thumbnails": [
+            {"url": "https://cdn.example.com/small.jpg"},
+            {"url": "https://cdn.example.com/original.jpg"},
+        ]})["url"], "https://cdn.example.com/original.jpg")
+
+    def test_story_never_returns_an_unrelated_single_item(self):
+        import json
+        payload = {"reels_media": [{"items": [{"pk": "123456", "image_versions2": {
+            "candidates": [{"url": "https://cdn.example.com/unrelated.jpg"}]
+        }}]}]}
+        with self.assertRaises(InstagramResolveError) as raised:
+            _story_media_result_from_html(json.dumps({"xdt_api__v1__feed__reels_media": payload}), "perfil", "999999")
+        self.assertEqual(raised.exception.status_code, 410)
+
     @classmethod
     def setUpClass(cls):
         cls.client = TestClient(app)

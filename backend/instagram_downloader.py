@@ -195,7 +195,7 @@ def _select_progressive_video(info: dict[str, Any]) -> dict[str, Any] | None:
 def _video_entries(info: dict[str, Any]) -> list[dict[str, Any]]:
     entries = info.get("entries")
     if isinstance(entries, list):
-        return [entry for entry in entries if isinstance(entry, dict)][:10]
+        return [entry for entry in entries if isinstance(entry, dict)][:20]
     return [info]
 
 
@@ -266,7 +266,9 @@ def _largest_image_candidate(info: dict[str, Any]) -> dict[str, Any] | None:
     if not usable:
         return None
     return max(
-        usable,
+        # yt-dlp orders thumbnails from lowest to highest preference. Prefer
+        # the last candidate when Instagram omits dimensions.
+        reversed(usable),
         key=lambda item: ((item.get("width") or 0) * (item.get("height") or 0), item.get("width") or 0),
     )
 
@@ -297,12 +299,10 @@ def _story_media_result_from_html(html: str, username: str, story_id: str) -> di
     selected = next(
         (
             item for item in all_items
-            if str(item.get("pk") or item.get("id") or "") == story_id
+            if str(item.get("pk") or item.get("id") or "").split("_", 1)[0] == story_id
         ),
         None,
     )
-    if selected is None and len(all_items) == 1:
-        selected = all_items[0]
     if selected is None:
         raise InstagramResolveError(
             "Este Story pode ter expirado ou o Instagram não disponibilizou o item solicitado.",
@@ -629,8 +629,9 @@ def _select_story_video(info: dict[str, Any]) -> dict[str, Any] | None:
         if not str(item.get("format_id") or "").lower().startswith("dash")
         and item.get("protocol") not in {"http_dash_segments", "m3u8", "m3u8_native"}
     ]
-    pool = direct_candidates or candidates
-    return max(pool, key=lambda item: (item.get("height") or 0, item.get("tbr") or 0))
+    if not direct_candidates:
+        return None
+    return max(direct_candidates, key=lambda item: (item.get("height") or 0, item.get("tbr") or 0))
 
 
 def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
@@ -645,6 +646,9 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
         "quiet": True,
         "no_warnings": True,
         "skip_download": True,
+        # Photos have no video formats. Keep their original image candidates,
+        # including photo entries inside mixed carousels.
+        "ignore_no_formats_error": True,
         "noplaylist": True,
         "format": "best[ext=mp4]/best",
         "http_headers": {
@@ -658,7 +662,7 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
     }
     try:
         with yt_dlp.YoutubeDL(options) as downloader:
-            raw_info = downloader.extract_info(url, download=False)
+            raw_info = downloader.extract_info(url, download=False, process=False)
             info = downloader.sanitize_info(raw_info)
     except yt_dlp.utils.DownloadError as exc:
         error_text = str(exc)
@@ -683,7 +687,7 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
     entries = _video_entries(info)
     items: list[dict[str, Any]] = []
     for index, entry in enumerate(entries, start=1):
-        selected = _select_story_video(entry) if is_story else _select_progressive_video(entry)
+        selected = _select_story_video(entry)
 
         if selected:
             known_size = selected.get("filesize") or selected.get("filesize_approx")
@@ -718,13 +722,14 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
             )
             continue
 
-        if is_story:
+        # A video without a downloadable format must not become its cover photo.
+        if not entry.get("formats") and not entry.get("url"):
             image = _largest_image_candidate(entry)
             if image:
                 headers = filter_remote_headers(entry.get("http_headers") or info.get("http_headers") or {})
                 media = RemoteMedia(
                     url=str(image["url"]),
-                    filename=f"instagram-story-{shortcode}-{index}.jpg",
+                    filename=f"{'instagram-story' if is_story else 'instagram'}-{shortcode}-{index}.jpg",
                     media_type="image/jpeg",
                     kind="image",
                     headers=headers,
