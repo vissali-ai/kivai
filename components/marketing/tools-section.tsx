@@ -8,13 +8,13 @@ const categories = [...toolCategories, ...plannedToolCategories];
 // Cores suaves para identificar cada hub sem preencher os cards por completo.
 const categoryAccents = [
   { color: "#585EAF", soft: "#EEEFFC" },
-  { color: "#AF5A64", soft: "#FBEFF0" },
+  { color: "#A6535D", soft: "#FBEFF0" },
   { color: "#157C82", soft: "#E9F5F5" },
   { color: "#95632B", soft: "#FBF2E6" },
   { color: "#8060A8", soft: "#F4EFFA" },
   { color: "#356EAB", soft: "#ECF3FB" },
-  { color: "#308360", soft: "#EAF5EE" },
-  { color: "#AB6748", soft: "#FAEFE9" },
+  { color: "#2B7958", soft: "#EAF5EE" },
+  { color: "#9C5C40", soft: "#FAEFE9" },
   { color: "#6A60A5", soft: "#F0EFF9" },
   { color: "#447B83", soft: "#EDF6F6" },
 ] as const;

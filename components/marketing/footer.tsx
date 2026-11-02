@@ -64,7 +64,7 @@ export function Footer() {
               href="https://www.instagram.com/kivai_br"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram oficial do Kivai, abre em nova aba"
+              aria-label="@kivai_br — Instagram oficial do Kivai, abre em nova aba"
               className="group mt-4 flex w-fit items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               <InstagramIcon />

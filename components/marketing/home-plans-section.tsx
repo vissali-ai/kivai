@@ -49,7 +49,7 @@ export async function HomePlansSection() {
           })}
         </div>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-2xl text-xs leading-5 text-[#657286]">A assinatura amplia os recursos da conta. As ferramentas gratuitas continuam disponíveis. O uso de IA segue os créditos de cada plano.</p>
+          <p className="max-w-2xl text-xs leading-5 text-[#566375]">A assinatura amplia os recursos da conta. As ferramentas gratuitas continuam disponíveis. O uso de IA segue os créditos de cada plano.</p>
           <Link href="/planos" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-sm font-semibold text-[#5847AD] hover:underline">Comparar todos os benefícios <ArrowRight className="size-4" aria-hidden="true" /></Link>
         </div>
       </div>

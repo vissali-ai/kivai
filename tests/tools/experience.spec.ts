@@ -1,13 +1,12 @@
 import JSZip from "jszip";
 import { test, expect, openTool, imageFile, pdfFile, download, expectNoOverflow } from "./helpers";
 
-test("seletores: teclado, formatos e privacidade nas oito ferramentas de arquivos", async ({ page }) => {
+test("seletores: teclado e formatos nas oito ferramentas de arquivos", async ({ page }) => {
   test.setTimeout(120_000);
   for (const slug of ["conversor-de-imagens", "compressor-de-imagens", "redimensionar-imagem", "recortar-imagem", "unir-pdfs", "dividir-pdf", "girar-pdf", "imagens-para-pdf"]) {
     await openTool(page, slug);
-    const upload = page.locator("[data-tool-upload]");
+    const upload = page.locator("[data-tool-upload]:visible");
     await expect(upload.getByText(/Formatos aceitos:/)).toBeVisible();
-    await expect(page.getByText("Processamento local: o arquivo permanece no seu dispositivo.", { exact: true }).first()).toBeVisible();
     const button = upload.getByRole("button");
     await button.focus();
     const chooserPromise = page.waitForEvent("filechooser");

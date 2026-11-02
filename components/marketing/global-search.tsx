@@ -238,6 +238,7 @@ export function GlobalSearch({ prominent = false }: { prominent?: boolean }) {
 
   const hasQuery = query.trim().length > 0;
   const showResults = focused && hasQuery;
+  const hasOptions = showResults && orderedResults.length > 0;
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -258,8 +259,11 @@ export function GlobalSearch({ prominent = false }: { prominent?: boolean }) {
           onKeyDown={handleKeyDown}
           placeholder="Busque uma ferramenta"
           aria-label="Buscar ferramentas e artigos do Kivai"
+          role="combobox"
+          aria-expanded={hasOptions}
           aria-autocomplete="list"
-          aria-controls={resultsId}
+          aria-controls={hasOptions ? resultsId : undefined}
+          aria-activedescendant={hasOptions ? `${resultsId}-option-${Math.min(selectedIndex, orderedResults.length - 1)}` : undefined}
           className={`min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 ${prominent ? "h-11 text-sm sm:text-base" : "h-8 text-xs sm:text-sm"}`}
         />
 
@@ -286,7 +290,8 @@ export function GlobalSearch({ prominent = false }: { prominent?: boolean }) {
       {showResults ? (
         <div
           id={resultsId}
-          role="listbox"
+          role={orderedResults.length ? "listbox" : "status"}
+          aria-label="Buscar ferramentas e artigos do Kivai"
           className={`absolute top-[calc(100%+8px)] z-[80] max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-card p-1.5 shadow-lg shadow-black/10 ${prominent ? "left-0 w-full" : "right-0 w-[min(92vw,430px)]"}`}
         >
           {orderedResults.length ? (
@@ -294,6 +299,7 @@ export function GlobalSearch({ prominent = false }: { prominent?: boolean }) {
               {orderedResults.map((item, index) => (
                 <Link
                   key={item.id}
+                  id={`${resultsId}-option-${index}`}
                   href={item.href}
                   role="option"
                   aria-selected={selectedIndex === index}
