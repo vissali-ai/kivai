@@ -17,13 +17,18 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
 
+if __package__:
+    from . import instagram_stories_provider
+else:
+    import instagram_stories_provider
+
 
 INSTAGRAM_HOSTS = {"instagram.com", "www.instagram.com", "m.instagram.com"}
 INSTAGRAM_POST_PATH = re.compile(r"^/(?:p|reel|reels|tv)/([A-Za-z0-9_-]{5,})/?$")
 INSTAGRAM_STORY_PATH = re.compile(
     r"^/stories/(?P<username>[A-Za-z0-9._]{1,30})/(?P<story_id>\d{5,})/?$"
 )
-INSTAGRAM_STORY_PROFILE_PATH = re.compile(r"^/stories/[A-Za-z0-9._]{1,30}/?$")
+INSTAGRAM_STORY_PROFILE_PATH = re.compile(r"^/stories/(?P<username>[A-Za-z0-9._]{1,30})/?$")
 MAX_VIDEO_BYTES = 200 * 1024 * 1024
 MAX_IMAGE_BYTES = 25 * 1024 * 1024
 MAX_THUMBNAIL_BYTES = 10 * 1024 * 1024
@@ -74,9 +79,7 @@ def normalize_instagram_url(value: str) -> tuple[str, str]:
     elif story_match:
         media_id = story_match.group("story_id")
     elif INSTAGRAM_STORY_PROFILE_PATH.fullmatch(path):
-        raise InstagramResolveError(
-            "Abra o Story específico no Instagram e copie o link dele. O link apenas do perfil não identifica qual Story deve ser baixado."
-        )
+        media_id = INSTAGRAM_STORY_PROFILE_PATH.fullmatch(path).group("username").lower()
     else:
         raise InstagramResolveError(
             "Use o link de um Reel, de uma publicação pública ou de um Story específico do Instagram."
@@ -87,11 +90,16 @@ def normalize_instagram_url(value: str) -> tuple[str, str]:
 
 
 def _is_instagram_story_url(url: str) -> bool:
-    return INSTAGRAM_STORY_PATH.fullmatch(urlsplit(url).path) is not None
+    path = urlsplit(url).path
+    return bool(INSTAGRAM_STORY_PATH.fullmatch(path) or INSTAGRAM_STORY_PROFILE_PATH.fullmatch(path))
 
 
-def _story_url_parts(url: str) -> tuple[str, str]:
-    match = INSTAGRAM_STORY_PATH.fullmatch(urlsplit(url).path)
+def _story_url_parts(url: str) -> tuple[str, str | None]:
+    path = urlsplit(url).path
+    profile = INSTAGRAM_STORY_PROFILE_PATH.fullmatch(path)
+    if profile:
+        return profile.group("username").lower(), None
+    match = INSTAGRAM_STORY_PATH.fullmatch(path)
     if not match:
         raise InstagramResolveError("Cole o link de um Story específico do Instagram.")
     return match.group("username"), match.group("story_id")
@@ -273,7 +281,7 @@ def _largest_image_candidate(info: dict[str, Any]) -> dict[str, Any] | None:
     )
 
 
-def _story_media_result_from_html(html: str, username: str, story_id: str) -> dict[str, Any]:
+def _story_media_result_from_html(html: str, username: str, story_id: str | None) -> dict[str, Any]:
     payload = _json_value_after_key(html, "xdt_api__v1__feed__reels_media")
     if not isinstance(payload, dict):
         raise InstagramResolveError(
@@ -292,9 +300,29 @@ def _story_media_result_from_html(html: str, username: str, story_id: str) -> di
     for reel in reels_media:
         if not isinstance(reel, dict):
             continue
+        owner = reel.get("user")
+        if isinstance(owner, dict) and owner.get("username") and str(owner["username"]).lower() != username.lower():
+            continue
         items = reel.get("items")
         if isinstance(items, list):
             all_items.extend(item for item in items if isinstance(item, dict))
+
+    if story_id is None:
+        results = []
+        seen = set()
+        for entry in all_items:
+            item_id = str(entry.get("pk") or entry.get("id") or "").split("_", 1)[0]
+            if not item_id.isdigit() or item_id in seen:
+                continue
+            seen.add(item_id)
+            results.extend(_story_item_result(entry, username, item_id)["items"])
+        if not results:
+            raise InstagramResolveError("Este perfil não possui Stories públicos disponíveis agora.", 404)
+        return {
+            "source": "instagram", "contentType": "story", "shortcode": username,
+            "title": f"Stories de @{username}", "author": username,
+            "thumbnailToken": None, "items": results, "expiresIn": TOKEN_TTL_SECONDS,
+        }
 
     selected = next(
         (
@@ -309,6 +337,10 @@ def _story_media_result_from_html(html: str, username: str, story_id: str) -> di
             410,
         )
 
+    return _story_item_result(selected, username, story_id)
+
+
+def _story_item_result(selected: dict[str, Any], username: str, story_id: str) -> dict[str, Any]:
     user = selected.get("user") if isinstance(selected.get("user"), dict) else {}
     author = str(user.get("username") or username).strip().lstrip("@")[:100]
     headers = {
@@ -389,7 +421,7 @@ def _story_media_result_from_html(html: str, username: str, story_id: str) -> di
 
 def _extract_instagram_story_html_sync(url: str, story_id: str) -> dict[str, Any]:
     username, normalized_story_id = _story_url_parts(url)
-    if normalized_story_id != story_id:
+    if (normalized_story_id or username) != story_id:
         raise InstagramResolveError("O link do Story não corresponde ao item solicitado.", 422)
 
     headers = {
@@ -430,7 +462,7 @@ def _extract_instagram_story_html_sync(url: str, story_id: str) -> dict[str, Any
                 encoding = response.encoding or "utf-8"
 
         html = b"".join(chunks).decode(encoding, errors="replace")
-        return _story_media_result_from_html(html, username, story_id)
+        return _story_media_result_from_html(html, username, normalized_story_id)
     except httpx.HTTPError as exc:
         raise InstagramResolveError(
             "Não foi possível consultar este Story agora. Tente novamente em alguns instantes.",
@@ -603,7 +635,7 @@ def instagram_download_error(message: str, *, is_story: bool = False) -> Instagr
         502,
     )
 
-def _select_story_video(info: dict[str, Any]) -> dict[str, Any] | None:
+def _select_instagram_video(info: dict[str, Any]) -> dict[str, Any] | None:
     selected = _select_progressive_video(info)
     if selected:
         return selected
@@ -622,7 +654,7 @@ def _select_story_video(info: dict[str, Any]) -> dict[str, Any] | None:
         return None
 
     # O Instagram expõe video_versions diretas e pode expor DASH separado.
-    # Para Stories, prefira a URL direta: ela é a opção mais segura para
+    # Prefira a URL direta: ela é a opção mais segura para
     # preservar áudio + vídeo em um único arquivo no download do Kivai.
     direct_candidates = [
         item for item in candidates
@@ -634,8 +666,48 @@ def _select_story_video(info: dict[str, Any]) -> dict[str, Any] | None:
     return max(direct_candidates, key=lambda item: (item.get("height") or 0, item.get("tbr") or 0))
 
 
+def _extract_instagram_stories_sync(url: str, shortcode: str) -> dict[str, Any]:
+    if not instagram_stories_provider.configured():
+        return _extract_instagram_story_html_sync(url, shortcode)
+    username, _ = _story_url_parts(url)
+    try:
+        medias = instagram_stories_provider.fetch_stories(url)
+    except instagram_stories_provider.StoriesProviderError as exc:
+        raise InstagramResolveError(exc.detail, exc.status_code) from exc
+    items = []
+    for index, raw in enumerate(medias, start=1):
+        kind = raw["type"]
+        extension = str(raw.get("ext") or ("mp4" if kind == "video" else "jpg")).lower()
+        allowed = {"mp4": "video/mp4", "webm": "video/webm", "m4v": "video/mp4"} if kind == "video" else {
+            "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp", "heic": "image/heic",
+        }
+        if extension not in allowed:
+            raise InstagramResolveError("O formato deste Story não é compatível com o download.", 422)
+        media = RemoteMedia(
+            url=raw["url"], filename=f"instagram-story-{username}-{index}.{extension}",
+            media_type=allowed[extension], kind=kind,
+            headers={"Referer": "https://www.instagram.com/"},
+            max_bytes=MAX_VIDEO_BYTES if kind == "video" else MAX_IMAGE_BYTES,
+        )
+        size_mb = raw.get("size_mb")
+        size = int(size_mb * 1024 * 1024) if isinstance(size_mb, (int, float)) and 0 < size_mb < 1e6 else None
+        if size and size > media.max_bytes:
+            raise InstagramResolveError("Um dos Stories ultrapassa o limite de download permitido.", 413)
+        items.append({
+            "id": f"{username}-{index}", "kind": kind, "filename": media.filename,
+            "format": extension.upper(), "width": raw.get("width"), "height": raw.get("height"),
+            "duration": None, "size": size, "downloadToken": create_media_token(media),
+        })
+    return {
+        "source": "instagram", "contentType": "story", "shortcode": shortcode,
+        "title": f"Stories de @{username}", "author": username,
+        "thumbnailToken": None, "items": items, "expiresIn": TOKEN_TTL_SECONDS,
+    }
+
+
 def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
-    is_story = _is_instagram_story_url(url)
+    if _is_instagram_story_url(url):
+        return _extract_instagram_stories_sync(url, shortcode)
 
     try:
         import yt_dlp
@@ -666,14 +738,6 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
             info = downloader.sanitize_info(raw_info)
     except yt_dlp.utils.DownloadError as exc:
         error_text = str(exc)
-        if is_story:
-            try:
-                return _extract_instagram_story_html_sync(url, shortcode)
-            except InstagramResolveError as story_exc:
-                if story_exc.status_code in {403, 410}:
-                    raise story_exc from exc
-                raise instagram_download_error(error_text, is_story=True) from exc
-
         # O HTML público às vezes ainda expõe og:video/og:image quando o
         # extrator principal encontra bloqueio temporário ou login.
         try:
@@ -687,7 +751,7 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
     entries = _video_entries(info)
     items: list[dict[str, Any]] = []
     for index, entry in enumerate(entries, start=1):
-        selected = _select_story_video(entry)
+        selected = _select_instagram_video(entry)
 
         if selected:
             known_size = selected.get("filesize") or selected.get("filesize_approx")
@@ -697,7 +761,7 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
             if extension not in {"mp4", "m4v", "webm"}:
                 extension = "mp4"
             suffix = f"-{index}" if len(entries) > 1 else ""
-            prefix = "instagram-story" if is_story else "instagram"
+            prefix = "instagram"
             headers = filter_remote_headers(selected.get("http_headers") or entry.get("http_headers") or {})
             media = RemoteMedia(
                 url=str(selected["url"]),
@@ -729,7 +793,7 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
                 headers = filter_remote_headers(entry.get("http_headers") or info.get("http_headers") or {})
                 media = RemoteMedia(
                     url=str(image["url"]),
-                    filename=f"{'instagram-story' if is_story else 'instagram'}-{shortcode}-{index}.jpg",
+                    filename=f"instagram-{shortcode}-{index}.jpg",
                     media_type="image/jpeg",
                     kind="image",
                     headers=headers,
@@ -750,8 +814,6 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
                 )
 
     if not items:
-        if is_story:
-            return _extract_instagram_story_html_sync(url, shortcode)
         raise InstagramResolveError(
             "Esta publicação pública não possui uma mídia progressiva compatível com o download nesta versão.",
             422,
@@ -771,11 +833,11 @@ def _extract_instagram_sync(url: str, shortcode: str) -> dict[str, Any]:
             )
         )
 
-    default_title = "Story público do Instagram" if is_story else "Conteúdo público do Instagram"
+    default_title = "Conteúdo público do Instagram"
     title = str(info.get("title") or info.get("description") or default_title).strip()
     return {
         "source": "instagram",
-        "contentType": "story" if is_story else "publication",
+        "contentType": "publication",
         "shortcode": shortcode,
         "title": title[:240],
         "author": str(info.get("uploader") or info.get("channel") or "").strip()[:100] or None,

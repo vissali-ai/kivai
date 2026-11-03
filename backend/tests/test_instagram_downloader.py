@@ -90,7 +90,6 @@ class InstagramDownloaderTests(unittest.TestCase):
     def test_rejects_private_profiles_and_unrelated_hosts(self):
         invalid = [
             "https://instagram.com/conta-privada/",
-            "https://instagram.com/stories/perfil/",
             "https://instagram.com.example/reel/ABC123/",
             "http://instagram.com/reel/ABC123/",
             "https://user:password@instagram.com/reel/ABC123/",

@@ -179,7 +179,7 @@ export default function BaixarVideoInstagramClient() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Images className="size-4 text-primary" />Link público do Instagram</CardTitle>
           <CardDescription>
-            Compatível com Reels, vídeos, fotos e Stories públicos. Para Story, cole o link específico do item. Contas privadas não são suportadas e alguns Stories podem exigir autenticação do próprio Instagram.
+            Cole o link de Stories de um perfil para ver todos os itens disponíveis, ou o link de um Story específico. Também aceita Reels, vídeos e fotos de publicações públicas.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -197,7 +197,7 @@ export default function BaixarVideoInstagramClient() {
                   maxLength={2048}
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
-                  placeholder="https://www.instagram.com/reel/... ou /stories/perfil/..."
+                  placeholder="https://www.instagram.com/stories/perfil/"
                   className="h-11 pl-10 text-sm"
                   disabled={status === "processing"}
                 />
@@ -214,13 +214,14 @@ export default function BaixarVideoInstagramClient() {
           {result && (
             <ToolResultCard
               title={result.contentType === "story"
-                ? result.items.length > 1 ? `${result.items.length} itens do Story encontrados` : "Story encontrado"
+                ? result.items.length > 1 ? `${result.items.length} Stories encontrados` : "Story encontrado"
                 : result.items.length > 1
                   ? `${result.items.length} arquivos encontrados`
                   : result.items[0]?.kind === "image" ? "Foto encontrada" : "Vídeo encontrado"}
               description={[result.author ? `@${result.author.replace(/^@/, "")}` : null, result.title].filter(Boolean).join(" · ")}
               details={(
                 <div className="space-y-3">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {result.items.map((item, index) => {
                     const duration = formatDuration(item.duration);
                     const details = [
@@ -231,27 +232,46 @@ export default function BaixarVideoInstagramClient() {
                     ].filter(Boolean).join(" · ");
                     const actionLabel = item.kind === "image" ? "Salvar ou compartilhar foto" : "Salvar ou compartilhar vídeo";
                     return (
-                      <div key={item.id} className="flex flex-col gap-3 border border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <article key={item.id} className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-border">
+                        <div className="flex aspect-[9/16] items-center justify-center bg-black/90">
+                          {item.kind === "image" ? (
+                            // Signed, temporary media is served by the backend, without image caching.
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={`${backendUrl()}/instagram/media/${encodeURIComponent(item.downloadToken)}`} alt={`Foto ${index + 1}${result.author ? ` de @${result.author}` : ""}`} loading="lazy" className="size-full object-contain" />
+                          ) : (
+                            <video src={`${backendUrl()}/instagram/media/${encodeURIComponent(item.downloadToken)}`} controls playsInline preload="metadata" aria-label={`Vídeo ${index + 1}`} className="size-full object-contain" />
+                          )}
+                        </div>
+                        <div className="flex flex-1 flex-col gap-3 p-3">
                         <div className="min-w-0">
                           <p className="break-all font-medium">{result.items.length > 1 ? `${item.kind === "image" ? "Foto" : "Vídeo"} ${index + 1}` : item.filename}</p>
                           <p className="mt-1 text-sm text-muted-foreground">{details || "Arquivo disponível"}</p>
                         </div>
-                        <div className="flex flex-col gap-2 sm:shrink-0">
+                        <div className="mt-auto flex flex-col gap-2">
+                          <Button asChild>
+                            <a href={`${backendUrl()}/instagram/media/${encodeURIComponent(item.downloadToken)}?download=true`}>
+                              <Download className="size-4" />Baixar {item.kind === "image" ? "foto" : "vídeo"} · {item.format}
+                            </a>
+                          </Button>
+                          {isMobileDevice() && <>
                           <Button type="button" onClick={() => void saveOrShare(item)} disabled={sharingId === item.id}>
                             {sharingId === item.id ? <Share2 className="size-4 animate-pulse" /> : isMobileDevice() ? <Share2 className="size-4" /> : <Download className="size-4" />}
                             <span>{sharingId === item.id ? "Preparando..." : isMobileDevice() ? actionLabel : `Baixar ${item.format}`}</span>
                           </Button>
+                          </>}
                           {isMobileDevice() && (
                             <p className="text-center text-xs text-muted-foreground">
-                              No menu do aparelho, use "Ver Mais" para encontrar outros aplicativos compatíveis.
+                              No menu do aparelho, use “Ver Mais” para encontrar outros aplicativos compatíveis.
                             </p>
                           )}
                         </div>
-                      </div>
+                        </div>
+                      </article>
                     );
                   })}
+                  </div>
                   <p className="text-xs leading-5 text-muted-foreground">
-                    No celular, o botão abre o menu nativo do aparelho. Nele você pode salvar o arquivo ou abrir/enviar para aplicativos compatíveis, como WhatsApp, Mensagens e outros. Se o aplicativo desejado não aparecer de imediato, use "Ver Mais". No computador, o arquivo continua sendo baixado diretamente. Os arquivos ficam disponíveis por aproximadamente {Math.max(1, Math.round(result.expiresIn / 60))} minutos; depois disso, analise a publicação novamente.
+                    Use Baixar para salvar cada arquivo. No celular, Salvar ou compartilhar também permite enviar para aplicativos compatíveis. Os links de download ficam disponíveis por aproximadamente {Math.max(1, Math.round(result.expiresIn / 60))} minutos; depois disso, analise a publicação novamente. Stories expirados ou removidos deixam de estar disponíveis.
                   </p>
                 </div>
               )}
