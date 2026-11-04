@@ -668,7 +668,12 @@ def _select_instagram_video(info: dict[str, Any]) -> dict[str, Any] | None:
 
 def _extract_instagram_stories_sync(url: str, shortcode: str) -> dict[str, Any]:
     if not instagram_stories_provider.configured():
-        return _extract_instagram_story_html_sync(url, shortcode)
+        # Instagram Stories normally require authenticated access. The HTML
+        # fallback cannot reliably resolve them and must not pretend to work.
+        raise InstagramResolveError(
+            "O download de Stories está temporariamente indisponível. Tente novamente mais tarde.",
+            503,
+        )
     username, _ = _story_url_parts(url)
     try:
         medias = instagram_stories_provider.fetch_stories(url)
