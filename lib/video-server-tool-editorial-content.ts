@@ -1,4 +1,5 @@
 export type VideoServerToolEditorialSlug =
+  | "baixar-video-facebook"
   | "baixar-video-instagram"
   | "baixar-video-tiktok"
   | "hevc-para-mp4"
@@ -20,6 +21,7 @@ export type VideoServerEditorialContent = {
 };
 
 const related = [
+  { href: "/ferramentas/baixar-video-facebook", label: "Baixar Vídeos do Facebook" },
   { href: "/ferramentas/baixar-video-instagram", label: "Baixar Vídeo, Foto e Story do Instagram" },
   { href: "/ferramentas/baixar-video-tiktok", label: "Baixar Vídeo do TikTok" },
   { href: "/ferramentas/hevc-para-mp4", label: "HEVC para MP4" },
@@ -42,6 +44,28 @@ function withRelated(
 }
 
 export const videoServerToolEditorialContent: Record<VideoServerToolEditorialSlug, VideoServerEditorialContent> = {
+  "baixar-video-facebook": withRelated("baixar-video-facebook", {
+    overview: ["Baixe vídeos e Reels públicos do Facebook pelo link da publicação, incluindo endereços curtos fb.watch. Confira a prévia e salve o arquivo no navegador, sem conectar sua conta.", "A ferramenta consulta a mídia disponível na publicação. Use conteúdo próprio ou autorizado pelo titular."],
+    useCases: [
+      { title: "Guardar seus vídeos", description: "Salve uma cópia de vídeos publicados por você." },
+      { title: "Editar material autorizado", description: "Obtenha o arquivo para edição ou revisão com a autorização do criador." },
+    ],
+    steps: ["No Facebook, use Compartilhar para copiar o link do vídeo ou Reel público.", "Cole o link no campo e clique em Analisar link.", "Confira a prévia e clique em Baixar para salvar o vídeo."],
+    specifications: [
+      { label: "Links aceitos", value: "Vídeos públicos, Reels, Watch e links curtos fb.watch." },
+      { label: "Formato", value: "Formato disponibilizado pela publicação, normalmente MP4." },
+      { label: "Limite", value: "Até 200 MB por vídeo." },
+      { label: "Acesso", value: "Não solicita login ou senha do Facebook." },
+    ],
+    privacy: "O link é enviado ao serviço de consulta de mídia para localizar o vídeo. O Kivai encaminha o arquivo ao navegador sem manter uma cópia permanente e não solicita acesso à sua conta.",
+    limitations: ["Vídeos privados, removidos ou restritos não são compatíveis.", "A disponibilidade depende do Facebook e do serviço de consulta. Não há garantia de uma resolução específica.", "Os links de download expiram. Se necessário, analise a publicação novamente."],
+    faqs: [
+      { question: "Preciso fazer login no Facebook?", answer: "Não. Basta fornecer o link de um vídeo público." },
+      { question: "Posso baixar Reels e links fb.watch?", answer: "Sim, desde que o conteúdo seja público e esteja disponível no serviço de consulta." },
+      { question: "Funciona no celular?", answer: "Sim. Abra a ferramenta no navegador, cole o link e use o botão Baixar. O destino do arquivo depende do navegador e das configurações do aparelho." },
+      { question: "É possível baixar vídeos privados?", answer: "Não. Conteúdos privados ou que exigem acesso restrito não são compatíveis." },
+    ],
+  }),
   "baixar-video-instagram": withRelated("baixar-video-instagram", {
     overview: [
       "A ferramenta localiza a mídia disponível em um Reel, publicação ou Story público a partir do link colado pelo usuário. Ela não exige conexão com uma conta do Instagram e não tenta acessar perfis privados.",

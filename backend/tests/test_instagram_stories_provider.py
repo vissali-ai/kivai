@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import httpx
 
-from backend import instagram_stories_provider as provider
+from backend import saveapi_provider as provider
 from backend.instagram_downloader import (
     _extract_instagram_sync, _story_media_result_from_html,
     normalize_instagram_url, read_media_token,
@@ -30,7 +30,7 @@ class StoriesTests(unittest.TestCase):
         self.assertEqual(single["items"][0]["kind"], "video")
 
     @patch.dict(os.environ, {"KIVAI_STORIES_API_KEY": "test-secret"})
-    @patch("backend.instagram_stories_provider.httpx.Client")
+    @patch("backend.saveapi_provider.httpx.Client")
     def test_provider_preserves_all_stories_and_single_url(self, client_class):
         client = client_class.return_value.__enter__.return_value
         medias = [{"type": "image", "ext": "jpg", "url": f"https://cdn.example.com/{i}.jpg"} for i in range(25)]
@@ -51,27 +51,27 @@ class StoriesTests(unittest.TestCase):
         self.assertEqual(client.get.call_args.kwargs["params"], {"url": single})
 
     @patch.dict(os.environ, {"KIVAI_STORIES_API_KEY": "test-secret"})
-    @patch("backend.instagram_stories_provider.httpx.Client")
+    @patch("backend.saveapi_provider.httpx.Client")
     def test_errors_do_not_leak_provider_response(self, client_class):
         client = client_class.return_value.__enter__.return_value
         for code, expected in [("PRIVATE_CONTENT", 403), ("MEDIA_NOT_FOUND", 404),
                                ("QUOTA_EXCEEDED", 503), ("INVALID_API_KEY", 503), ("RATE_LIMITED", 429)]:
             with self.subTest(code=code):
                 client.get.return_value = httpx.Response(400, json={"success": False, "error": {"code": code, "message": "test-secret"}})
-                with self.assertRaises(provider.StoriesProviderError) as raised:
+                with self.assertRaises(provider.MediaProviderError) as raised:
                     provider.fetch_stories("https://www.instagram.com/stories/ivetesangalo/")
                 self.assertEqual(raised.exception.status_code, expected)
                 self.assertNotIn("test-secret", str(raised.exception))
 
     @patch.dict(os.environ, {"KIVAI_STORIES_API_KEY": "test-secret"})
-    @patch("backend.instagram_stories_provider.httpx.Client")
+    @patch("backend.saveapi_provider.httpx.Client")
     def test_rejects_bad_media_and_empty_results(self, client_class):
         client = client_class.return_value.__enter__.return_value
         for medias in ([], [{"type": "audio", "url": "https://cdn.example.com/audio.mp3"}],
                        [{"type": "image", "url": "http://cdn.example.com/image.jpg"}]):
             with self.subTest(medias=medias):
                 client.get.return_value = httpx.Response(200, json={"success": True, "medias": medias})
-                with self.assertRaises(provider.StoriesProviderError):
+                with self.assertRaises(provider.MediaProviderError):
                     provider.fetch_stories("https://www.instagram.com/stories/ivetesangalo/")
 
 

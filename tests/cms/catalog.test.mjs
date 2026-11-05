@@ -16,7 +16,7 @@ function createCms({ realTransport = false } = {}) {
   const cache = new Map();
   const rows = [];
   const revalidated = [];
-  const hubs = ["arquivos", "imagens"].map((slug) => ({ id: slug, slug, name: slug, path: `/ferramentas/${slug}` }));
+  const hubs = ["arquivos", "imagens", "videos"].map((slug) => ({ id: slug, slug, name: slug, path: `/ferramentas/${slug}` }));
   const mocks = {
     "server-only": {},
     "next/headers": { headers: async () => new Headers({ host: "www.kivai.com.br" }) },
@@ -241,4 +241,19 @@ test("duplex public page consumes Admin edits and hides draft content", async ()
   assert.deepEqual(result.props.children.props.printers, []);
   await repo.updateSiteContent(saved.id, { ...saved, status: "draft" });
   await assert.rejects(page(), /NEXT_HTTP_ERROR_FALLBACK;404/);
+});
+
+
+test("Facebook downloader is editable in Admin with public editorial and SEO", async () => {
+  const { load } = createCms();
+  const repo = load("@/lib/site-cms/repository");
+  const entry = await repo.getSiteContentById("existing:baixar-video-facebook");
+  assert.equal(entry.path, "/ferramentas/baixar-video-facebook");
+  assert.equal(entry.hubId, "videos");
+  assert.match(entry.contentHtml, /fb.watch/);
+  await repo.updateSiteContent(entry.id, { ...entry, title: "Facebook editado", summary: "Resumo editado", seoTitle: "SEO editado", contentHtml: "<p>Tutorial editado</p>" });
+  const published = await repo.getPublishedToolOverride("baixar-video-facebook");
+  assert.equal(published.title, "Facebook editado");
+  assert.equal(published.seoTitle, "SEO editado");
+  assert.match(published.contentHtml, /Tutorial editado/);
 });

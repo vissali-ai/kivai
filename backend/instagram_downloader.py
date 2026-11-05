@@ -18,9 +18,9 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 import httpx
 
 if __package__:
-    from . import instagram_stories_provider
+    from . import saveapi_provider
 else:
-    import instagram_stories_provider
+    import saveapi_provider
 
 
 INSTAGRAM_HOSTS = {"instagram.com", "www.instagram.com", "m.instagram.com"}
@@ -667,7 +667,7 @@ def _select_instagram_video(info: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def _extract_instagram_stories_sync(url: str, shortcode: str) -> dict[str, Any]:
-    if not instagram_stories_provider.configured():
+    if not saveapi_provider.configured():
         # Instagram Stories normally require authenticated access. The HTML
         # fallback cannot reliably resolve them and must not pretend to work.
         raise InstagramResolveError(
@@ -676,8 +676,8 @@ def _extract_instagram_stories_sync(url: str, shortcode: str) -> dict[str, Any]:
         )
     username, _ = _story_url_parts(url)
     try:
-        medias = instagram_stories_provider.fetch_stories(url)
-    except instagram_stories_provider.StoriesProviderError as exc:
+        medias = saveapi_provider.fetch_stories(url)
+    except saveapi_provider.MediaProviderError as exc:
         raise InstagramResolveError(exc.detail, exc.status_code) from exc
     items = []
     for index, raw in enumerate(medias, start=1):
