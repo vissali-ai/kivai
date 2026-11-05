@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { linkAsaasSubscription } from "./actions";
+import { linkAsaasSubscription, reconcileAsaasPayment } from "./actions";
 import { isAsaasSyncConfigured } from "@/lib/billing/asaas";
 import { supabaseRest } from "@/lib/blog/supabase";
 
 export const dynamic = "force-dynamic";
 type LinkRow = { user_id: string; provider_subscription_id: string; plan_code: string; billing_cycle: string; state: string; created_at: string };
-type InboxRow = { provider_event_id: string; event_type: string; provider_subscription_id: string | null; processing_status: string; last_error: string | null; created_at: string };
+type InboxRow = { provider_event_id: string; event_type: string; provider_payment_id: string | null; provider_subscription_id: string | null; processing_status: string; last_error: string | null; created_at: string };
 
 export default async function RecurringSubscriptionsAdmin({
   searchParams,
@@ -23,9 +23,11 @@ export default async function RecurringSubscriptionsAdmin({
   }
   const [bindings, events] = await Promise.all([
     supabaseRest<LinkRow[]>("kivai_recurring_provider_links?select=user_id,provider_subscription_id,plan_code,billing_cycle,state,created_at&order=created_at.desc&limit=50"),
-    supabaseRest<InboxRow[]>("kivai_recurring_webhook_inbox?select=provider_event_id,event_type,provider_subscription_id,processing_status,last_error,created_at&processing_status=in.(pending,manual_review)&order=created_at.desc&limit=40"),
+    supabaseRest<InboxRow[]>("kivai_recurring_webhook_inbox?select=provider_event_id,event_type,provider_payment_id,provider_subscription_id,processing_status,last_error,created_at&processing_status=in.(pending,manual_review)&order=created_at.desc&limit=40"),
   ]);
-  const linked = (await searchParams).linked === "1";
+  const query = await searchParams;
+  const linked = query.linked === "1";
+  const reconciled = query.reconciled === "1";
 
   return (
     <div className="space-y-6">
@@ -44,6 +46,7 @@ export default async function RecurringSubscriptionsAdmin({
         </p>
       </div>
       {linked ? <p role="status" className="rounded-lg border border-border p-3 text-sm">Assinatura vinculada para verificação de pagamentos futuros.</p> : null}
+      {reconciled ? <p role="status" className="rounded-lg border border-border p-3 text-sm">Cobrança conciliada com a API Asaas.</p> : null}
       <section className="rounded-xl border border-border bg-card p-5">
         <h2 className="text-lg font-semibold">Vincular assinatura existente no Asaas</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -92,6 +95,15 @@ export default async function RecurringSubscriptionsAdmin({
               <strong>{row.event_type}</strong>
               <p className="mt-1 break-all text-xs text-muted-foreground">{row.provider_event_id} · {row.processing_status}</p>
               {row.last_error ? <p className="mt-1 text-xs text-muted-foreground">{row.last_error}</p> : null}
+              {row.provider_payment_id && ["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"].includes(row.event_type) ? (
+                <form action={reconcileAsaasPayment} className="mt-2">
+                  <input type="hidden" name="eventId" value={row.provider_event_id} />
+                  <input type="hidden" name="paymentId" value={row.provider_payment_id} />
+                  <button type="submit" className="min-h-9 rounded-md border border-border px-3 py-2 text-xs font-medium text-primary">
+                    Conferir novamente na API
+                  </button>
+                </form>
+              ) : null}
             </div>
           )) : <p className="text-sm text-muted-foreground">Nenhum evento pendente de conferência.</p>}
         </div>
