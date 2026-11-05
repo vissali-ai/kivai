@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { listRegisteredEmailUsers } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
@@ -70,5 +71,5 @@ export async function linkAsaasSubscription(formData: FormData) {
   });
   // Vincular não significa que houve pagamento; somente webhook conciliado ativa acesso.
   revalidatePath("/admin/assinaturas/recorrencia");
-  return { ok: true };
+  redirect("/admin/assinaturas/recorrencia?linked=1");
 }
