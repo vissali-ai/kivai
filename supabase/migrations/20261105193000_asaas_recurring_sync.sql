@@ -32,12 +32,29 @@ create table if not exists public.kivai_recurring_paid_charges (
 create index if not exists kivai_recurring_paid_charges_owner
   on public.kivai_recurring_paid_charges(user_id, created_at desc);
 
+create table if not exists public.kivai_recurring_webhook_inbox (
+  provider_event_id text primary key,
+  event_type text not null,
+  provider_payment_id text,
+  provider_subscription_id text,
+  processing_status text not null default 'pending'
+    check (processing_status in ('pending','applied','duplicate','manual_review','ignored')),
+  last_error text,
+  created_at timestamptz not null default now(),
+  processed_at timestamptz
+);
+create index if not exists kivai_recurring_webhook_pending_idx
+  on public.kivai_recurring_webhook_inbox(created_at) where processing_status in ('pending','manual_review');
+
 alter table public.kivai_recurring_provider_links enable row level security;
 alter table public.kivai_recurring_paid_charges enable row level security;
+alter table public.kivai_recurring_webhook_inbox enable row level security;
 revoke all on public.kivai_recurring_provider_links from public, anon, authenticated;
 revoke all on public.kivai_recurring_paid_charges from public, anon, authenticated;
+revoke all on public.kivai_recurring_webhook_inbox from public, anon, authenticated;
 grant select, insert, update, delete on public.kivai_recurring_provider_links to service_role;
 grant select, insert, update, delete on public.kivai_recurring_paid_charges to service_role;
+grant select, insert, update, delete on public.kivai_recurring_webhook_inbox to service_role;
 
 -- Chamado APENAS após consultar o pagamento autenticado na API oficial do provedor.
 -- A restrição UNIQUE de provider_payment_id impede estender dois períodos por um mesmo pagamento.
