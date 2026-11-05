@@ -8,6 +8,7 @@ export type AsaasPayment = {
   status: string;
   billingType?: string;
 };
+export type AsaasCustomer = { id: string; email?: string; cpfCnpj?: string };
 export type AsaasSubscription = {
   id: string;
   customer: string;
@@ -43,7 +44,7 @@ export function matchesAsaasWebhookToken(received: string | null) {
 export async function asaasGet<T>(route: string): Promise<T> {
   const settings = getSettings();
   if (!isAsaasSyncConfigured()) throw Error("ASAAS_NOT_CONFIGURED");
-  if (!/^\/(payments|subscriptions)\/[a-zA-Z0-9_-]{4,120}$/.test(route)) throw Error("ASAAS_INVALID_RESOURCE");
+  if (!/^\/(payments|subscriptions|customers)\/[a-zA-Z0-9_-]{4,120}$/.test(route)) throw Error("ASAAS_INVALID_RESOURCE");
   const response = await fetch(settings.base + route, {
     headers: {
       access_token: settings.key,
