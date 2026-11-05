@@ -15,6 +15,7 @@ import { RoutineReminderSettings } from "@/components/account/routine-reminder-s
 import { AccountWelcome } from "@/components/account/account-welcome";
 import { PaidQuickStart } from "@/components/account/paid-quick-start";
 import { SubscriptionFeedback } from "@/components/account/subscription-feedback";
+import { SubscriptionRenewalNotice } from "@/components/account/subscription-renewal-notice";
 import { ProWelcomeTrialCard } from "@/components/account/pro-welcome-trial-card";
 import { SupportBell } from "@/components/account/support-bell";
 import { Headset } from "lucide-react";
@@ -138,6 +139,7 @@ export function AccountDashboard() {
     {userId ? <div id="painel-creditos" tabIndex={-1} className="scroll-mt-28"><AiCreditBalance /></div> : null}
     {userId ? <AccountWelcome userId={userId} firstName={firstName} /> : null}
     {userId && (plan === "pro" || plan === "agency") ? <PaidQuickStart plan={plan} /> : null}
+    {userId ? <SubscriptionRenewalNotice /> : null}
     {userId ? <SubscriptionFeedback /> : null}
     <div id="painel-favoritos" tabIndex={-1} className="scroll-mt-28"><MyFavoriteTools /></div>
     <div id="painel-projetos" tabIndex={-1} className="scroll-mt-28"><SavedProjects /></div>
