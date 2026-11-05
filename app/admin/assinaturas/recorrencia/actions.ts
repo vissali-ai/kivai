@@ -73,3 +73,41 @@ export async function linkAsaasSubscription(formData: FormData) {
   revalidatePath("/admin/assinaturas/recorrencia");
   redirect("/admin/assinaturas/recorrencia?linked=1");
 }
+
+export async function reconcileAsaasPayment(formData: FormData) {
+  await assertAdminApi();
+  const eventId = String(formData.get("eventId") || "").trim();
+  const paymentId = String(formData.get("paymentId") || "").trim();
+  if (!/^pay_[a-zA-Z0-9_-]{4,120}$/.test(paymentId) || eventId.length < 5 || eventId.length > 160) {
+    throw Error("Cobrança e evento inválidos.");
+  }
+  const events = await supabaseRest<Array<{ event_type: string; provider_payment_id: string | null; processing_status: string }>>(
+    `kivai_recurring_webhook_inbox?select=event_type,provider_payment_id,processing_status&provider_event_id=eq.${encodeURIComponent(eventId)}&limit=1`
+  );
+  if (!events[0] || !["PAYMENT_CONFIRMED","PAYMENT_RECEIVED"].includes(events[0].event_type)
+    || events[0].provider_payment_id !== paymentId) throw Error("Evento não pode ser reconciliado.");
+  const charge = await asaasGet<import("@/lib/billing/asaas").AsaasPayment>(`/payments/${paymentId}`);
+  if (charge.id !== paymentId || !charge.subscription ||
+    !["CONFIRMED","RECEIVED"].includes(charge.status)) throw Error("Pagamento não confirmado pelo Asaas.");
+  const link = await supabaseRest<Array<{ expected_amount_brl: string | number }>>(
+    `kivai_recurring_provider_links?select=expected_amount_brl&provider_subscription_id=eq.${encodeURIComponent(charge.subscription)}&state=eq.active&limit=1`
+  );
+  if (!link[0] || Number(link[0].expected_amount_brl).toFixed(2) !== Number(charge.value).toFixed(2)) {
+    throw Error("Vínculo ou valor divergente.");
+  }
+  await supabaseRest("rpc/kivai_apply_asaas_paid_charge", {
+    method: "POST",
+    body: JSON.stringify({
+      p_payment_id: paymentId,
+      p_subscription_id: charge.subscription,
+      p_amount_brl: Number(charge.value),
+      p_event_id: eventId,
+    }),
+  });
+  await supabaseRest(`kivai_recurring_webhook_inbox?provider_event_id=eq.${encodeURIComponent(eventId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ processing_status: "applied", last_error: null, processed_at: new Date().toISOString() }),
+  });
+  revalidatePath("/admin/assinaturas/recorrencia");
+  redirect("/admin/assinaturas/recorrencia?reconciled=1");
+}
