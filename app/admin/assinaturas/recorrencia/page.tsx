@@ -9,7 +9,7 @@ type InboxRow = { provider_event_id: string; event_type: string; provider_paymen
 
 export default async function RecurringSubscriptionsAdmin({
   searchParams,
-}: { searchParams: Promise<{ linked?: string }> }) {
+}: { searchParams: Promise<{ linked?: string; reconciled?: string }> }) {
   const configured = isAsaasSyncConfigured();
   if (!configured) {
     return <div className="space-y-4">
