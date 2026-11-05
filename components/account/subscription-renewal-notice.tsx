@@ -33,7 +33,7 @@ export function SubscriptionRenewalNotice() {
         <Link href="/planos" className="inline-flex min-h-10 items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Ver planos e renovação</Link>
         <Link href="/conta/atendimento" className="inline-flex min-h-10 items-center rounded-md border border-border px-4 py-2 text-sm font-medium">Falar com o atendimento</Link>
       </div>
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">O Kivai ainda não confirma automaticamente as renovações dos planos da InfinitePay. Uma cobrança autorizada no provedor deve ser conferida antes de alterar o acesso.</p>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">O acesso é atualizado após a confirmação do pagamento. Se você autorizou cobranças recorrentes na InfinitePay, confira o pagamento antes de iniciar uma nova contratação.</p>
     </section>
   );
 }
