@@ -37,6 +37,7 @@ export async function HomePlansSection() {
                 {card.code === "pro" ? <span className="rounded-full bg-[#EBE9F7] px-2.5 py-1 text-xs font-medium text-[#5847AD]">Para evoluir</span> : null}
               </div>
               <p className="mt-1 text-sm text-[#566375]">{card.caption}</p>
+              <p className="mt-3 text-sm font-medium leading-6 text-[#202938]">{String(field(`plans-${card.code}-outcome`) ?? "").trim()}</p>
               <p className="mt-5 text-3xl font-semibold tracking-tight text-[#202938]">{price.monthly}{card.code !== "free" ? <span className="ml-1 text-sm font-normal text-[#566375]">/mês</span> : null}</p>
               {card.code !== "free" ? <p className="mt-1 text-xs text-[#657286]">Ou {price.annual}</p> : <p className="mt-1 text-xs text-[#657286]">Sem mensalidade</p>}
               <ul className="my-6 flex-1 space-y-3" aria-label={`Benefícios do plano ${card.name}`}>

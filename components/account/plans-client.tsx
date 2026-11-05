@@ -11,7 +11,7 @@ import { useAccountAccess } from "@/lib/billing/access-client";
 import type { SiteOriginalField } from "@/lib/site-cms/types";
 import { plansContent } from "@/lib/billing/plans-content";
 import { planBenefits } from "@/lib/billing/plan-benefits";
-import { planPriceDisplay } from "@/lib/billing/home-plan-content";
+import { planPriceDisplay, withHomePlanFields } from "@/lib/billing/home-plan-content";
 
 type PlanCode = "free" | "pro" | "agency";
 type PaidPlanCode = Exclude<PlanCode, "free">;
@@ -94,6 +94,8 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
   const currentPlan = access?.plan;
   const loggedIn = !!access?.userId;
   const checkedSession = !loading;
+  const marketingFields = withHomePlanFields(fields);
+  const outcomeFor = (code: PlanCode) => String(marketingFields.find(field => field.key === `plans-${code}-outcome`)?.value ?? "").trim();
   const displayPlans = plans.map(plan => { const features = String(fields.find(f => f.key === `${plan.code}-features`)?.value ?? planBenefits[plan.code].join("\n")).split("\n").filter(Boolean); const hostingBenefit = planBenefits[plan.code].find(feature => feature.includes("Hospedagem de")); if (hostingBenefit) { const existingIndex = features.findIndex(feature => feature.includes("Hospedagem de")); if (existingIndex >= 0) features[existingIndex] = hostingBenefit; else features.push(hostingBenefit); } return { ...plan, description: String(fields.find(f => f.key === `${plan.code}-description`)?.value ?? plan.description), features }; });
   const [starting, setStarting] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -153,8 +155,8 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
           const isCurrent = checkedSession && currentPlan === plan.code;
           return (
             <article id={`plano-${plan.code}`} key={plan.code} className={`relative scroll-mt-24 flex flex-col border p-6 ${isCurrent ? "border-primary bg-primary/[0.08] ring-1 ring-primary/30" : plan.highlighted ? "border-primary/40 bg-primary/[0.05]" : "border-border bg-card"}`}>
-              <div className="flex items-center justify-between gap-3"><h2 className="text-2xl font-semibold">{plan.name}</h2>{isCurrent ? <span className="inline-flex items-center gap-1.5 border border-primary/40 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary"><Crown className="size-3.5" /> Plano atual</span> : plan.highlighted ? <span className="border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Mais escolhido</span> : null}</div>
-              <p className="mt-3 min-h-16 text-sm leading-6 text-muted-foreground">{plan.description}</p>
+              <div className="flex items-center justify-between gap-3"><h2 className="text-2xl font-semibold">{plan.name}</h2>{isCurrent ? <span className="inline-flex items-center gap-1.5 border border-primary/40 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary"><Crown className="size-3.5" /> Plano atual</span> : plan.highlighted ? <span className="border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Para trabalho recorrente</span> : null}</div>
+              <p className="mt-3 text-sm font-medium leading-6 text-foreground">{outcomeFor(plan.code)}</p><p className="mt-2 min-h-16 text-sm leading-6 text-muted-foreground">{plan.description}</p>
               <div className="mt-5 border-y border-border py-5"><p className="text-2xl font-semibold">{plan.monthly}</p><p className="mt-2 text-sm font-medium text-primary">{plan.annual}</p>{plan.annualNote ? <p className="mt-1 text-xs text-muted-foreground">{plan.annualNote}</p> : null}</div>
               <ul className="mt-5 flex-1 space-y-3">{plan.features.map((feature) => <li key={feature} className="flex gap-3 text-sm leading-6 text-muted-foreground"><Check className="mt-1 size-4 shrink-0 text-primary" /><span>{feature}</span></li>)}</ul>
               <div className="mt-6 space-y-2">
