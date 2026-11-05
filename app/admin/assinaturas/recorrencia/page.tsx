@@ -10,11 +10,21 @@ type InboxRow = { provider_event_id: string; event_type: string; provider_subscr
 export default async function RecurringSubscriptionsAdmin({
   searchParams,
 }: { searchParams: Promise<{ linked?: string }> }) {
+  const configured = isAsaasSyncConfigured();
+  if (!configured) {
+    return <div className="space-y-4">
+      <Link href="/admin/assinaturas" className="text-sm text-primary hover:underline">Voltar para assinaturas</Link>
+      <h1 className="text-3xl font-semibold">Sincronização de recorrências</h1>
+      <p className="rounded-xl border border-border bg-card p-5 text-sm leading-6 text-muted-foreground">
+        Integração ainda desativada. Configure o Asaas e aplique a migração de banco somente em ambiente de teste.
+        Nenhuma assinatura atual da InfinitePay é modificada.
+      </p>
+    </div>;
+  }
   const [bindings, events] = await Promise.all([
     supabaseRest<LinkRow[]>("kivai_recurring_provider_links?select=user_id,provider_subscription_id,plan_code,billing_cycle,state,created_at&order=created_at.desc&limit=50"),
     supabaseRest<InboxRow[]>("kivai_recurring_webhook_inbox?select=provider_event_id,event_type,provider_subscription_id,processing_status,last_error,created_at&processing_status=in.(pending,manual_review)&order=created_at.desc&limit=40"),
   ]);
-  const configured = isAsaasSyncConfigured();
   const linked = (await searchParams).linked === "1";
 
   return (
