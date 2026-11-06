@@ -115,3 +115,77 @@ test("unauthorized roles cannot execute recurring charge RPC", async () => {
     assert.equal(rows[0].allowed, false);
   } finally { await db.close(); }
 });
+
+
+test("HTTP Asaas webhook to isolated real SQL: authentic payment activates once; duplicate is idempotent", async () => {
+  const ts = await import("typescript");
+  const source = await readFile(new URL("../../app/api/billing/asaas/webhook/route.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const db = await createDatabase();
+  const payload = (eventId, paymentId) => JSON.stringify({
+    id: eventId, event: "PAYMENT_CONFIRMED",
+    payment: { id: paymentId, subscription: subscriptionId },
+  });
+  const mockRest = async (path, opts = {}) => {
+    const method = opts.method || "GET";
+    if (path.startsWith("kivai_recurring_webhook_inbox?on_conflict=") && method === "POST") {
+      const body = JSON.parse(opts.body);
+      return (await db.query(`INSERT INTO public.kivai_recurring_webhook_inbox
+        (provider_event_id,event_type,provider_payment_id,provider_subscription_id)
+        VALUES ($1,$2,$3,$4) ON CONFLICT(provider_event_id) DO NOTHING RETURNING provider_event_id,processing_status`,
+        [body.provider_event_id,body.event_type,body.provider_payment_id,body.provider_subscription_id])).rows;
+    }
+    if (path.startsWith("kivai_recurring_webhook_inbox?") && method === "GET") {
+      const eventId = decodeURIComponent(path.match(/provider_event_id=eq\\.([^&]+)/)?.[1] || "");
+      return (await db.query("SELECT provider_event_id,processing_status FROM public.kivai_recurring_webhook_inbox WHERE provider_event_id=$1",[eventId])).rows;
+    }
+    if (path.startsWith("kivai_recurring_webhook_inbox?") && method === "PATCH") {
+      const eventId = decodeURIComponent(path.match(/provider_event_id=eq\\.([^&]+)/)?.[1] || "");
+      const body = JSON.parse(opts.body);
+      return (await db.query("UPDATE public.kivai_recurring_webhook_inbox SET processing_status=$1,last_error=$2,processed_at=$3 WHERE provider_event_id=$4 RETURNING provider_event_id",
+        [body.processing_status,body.last_error,body.processed_at,eventId])).rows;
+    }
+    if (path.startsWith("kivai_recurring_provider_links?")) {
+      return (await db.query("SELECT provider_subscription_id,state,expected_amount_brl,plan_code,billing_cycle FROM public.kivai_recurring_provider_links WHERE provider_subscription_id=$1 AND state='active'",[subscriptionId])).rows;
+    }
+    if (path === "rpc/kivai_apply_asaas_paid_charge") {
+      const v = JSON.parse(opts.body);
+      return (await db.query("SELECT public.kivai_apply_asaas_paid_charge($1,$2,$3,$4) AS result",
+        [v.p_payment_id,v.p_subscription_id,v.p_amount_brl,v.p_event_id])).rows[0].result;
+    }
+    throw Error("Unmocked REST path: " + path);
+  };
+  const mocked = {
+    "@/lib/billing/asaas": {
+      isAsaasSyncConfigured: () => true,
+      matchesAsaasWebhookToken: token => token === "sandbox_token_private",
+      asaasGet: async path => ({ id:path.split("/").pop(),subscription:subscriptionId,value:19.9,status:"CONFIRMED" }),
+    },
+    "@/lib/blog/supabase": { supabaseRest: mockRest },
+  };
+  const module = { exports: {} };
+  new Function("require","module","exports",js)(key => {
+    assert.ok(Object.hasOwn(mocked,key),"Unexpected import: "+key);
+    return mocked[key];
+  },module,module.exports);
+  const send = (eventId,paymentId,token="sandbox_token_private") =>
+    module.exports.POST(new Request("https://sandbox.example.test/api/billing/asaas/webhook",{
+      method:"POST",headers:{"asaas-access-token":token},body:payload(eventId,paymentId)
+    }));
+  try {
+    const unauthorized = await send("evt_noauth_123456","pay_sandbox_00001","wrong");
+    assert.equal(unauthorized.status,401);
+    const first = await send("evt_sandbox_00001","pay_sandbox_00001");
+    assert.equal(first.status,200);
+    const duplicate = await send("evt_sandbox_00001","pay_sandbox_00001");
+    assert.equal(duplicate.status,200);
+    const newEventSamePayment = await send("evt_sandbox_00002","pay_sandbox_00001");
+    assert.equal(newEventSamePayment.status,200);
+    const counts = (await db.query("SELECT count(*)::int AS n FROM public.kivai_recurring_paid_charges")).rows[0];
+    assert.equal(counts.n,1);
+    const events = (await db.query("SELECT provider_event_id,processing_status FROM public.kivai_recurring_webhook_inbox ORDER BY provider_event_id")).rows;
+    assert.deepEqual(events.map(v => v.processing_status),["applied","duplicate"]);
+    const profile = (await db.query("SELECT plan_code FROM public.user_profiles WHERE user_id=$1",[userId])).rows[0];
+    assert.equal(profile.plan_code,"pro");
+  } finally { await db.close(); }
+});
