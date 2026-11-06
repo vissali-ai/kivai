@@ -101,7 +101,7 @@ test("incorrect amount and active other-provider subscription never create a pai
     await db.query(`INSERT INTO public.user_subscriptions
       (user_id, plan_code, status, provider, current_period_end)
       VALUES ($1, 'pro', 'active', 'external_recurring', now() + interval '30 days')`, [userId]);
-    await assert.rejects(() => apply(db, "pay_other_00001"), /outro provedor/);
+    await assert.rejects(() => apply(db, "pay_other_00001"), /plano ativo de outra origem/);
     assert.equal((await db.query("SELECT count(*)::int AS n FROM public.kivai_recurring_paid_charges")).rows[0].n, 0);
   } finally { await db.close(); }
 });
