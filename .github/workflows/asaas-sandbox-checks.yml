@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - feature/asaas-recorrencia-segura-20261105
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
