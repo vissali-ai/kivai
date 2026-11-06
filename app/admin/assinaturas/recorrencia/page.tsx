@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { linkAsaasSubscription, reconcileAsaasPayment } from "./actions";
-import { isAsaasSyncConfigured } from "@/lib/billing/asaas";
+import { asaasConfigurationIssue } from "@/lib/billing/asaas";
 import { supabaseRest } from "@/lib/blog/supabase";
 
 export const dynamic = "force-dynamic";
@@ -10,14 +10,16 @@ type InboxRow = { provider_event_id: string; event_type: string; provider_paymen
 export default async function RecurringSubscriptionsAdmin({
   searchParams,
 }: { searchParams: Promise<{ linked?: string; reconciled?: string }> }) {
-  const configured = isAsaasSyncConfigured();
-  if (!configured) {
+  const configurationIssue = asaasConfigurationIssue();
+  const configured = configurationIssue === null;
+  if (configurationIssue) {
     return <div className="space-y-4">
       <Link href="/admin/assinaturas" className="text-sm text-primary hover:underline">Voltar para assinaturas</Link>
       <h1 className="text-3xl font-semibold">Sincronização de recorrências</h1>
       <p className="rounded-xl border border-border bg-card p-5 text-sm leading-6 text-muted-foreground">
         Integração ainda desativada. Configure o Asaas e aplique a migração de banco somente em ambiente de teste.
         Nenhuma assinatura atual da InfinitePay é modificada.
+        <span className="mt-3 block font-medium">{configurationIssue}</span>
       </p>
     </div>;
   }
