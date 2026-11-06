@@ -136,11 +136,11 @@ test("HTTP Asaas webhook to isolated real SQL: authentic payment activates once;
         [body.provider_event_id,body.event_type,body.provider_payment_id,body.provider_subscription_id])).rows;
     }
     if (path.startsWith("kivai_recurring_webhook_inbox?") && method === "GET") {
-      const eventId = decodeURIComponent(path.match(/provider_event_id=eq\\.([^&]+)/)?.[1] || "");
+      const eventId = new URLSearchParams(path.split("?")[1]).get("provider_event_id")?.replace(/^eq[.]/,"") || "";
       return (await db.query("SELECT provider_event_id,processing_status FROM public.kivai_recurring_webhook_inbox WHERE provider_event_id=$1",[eventId])).rows;
     }
     if (path.startsWith("kivai_recurring_webhook_inbox?") && method === "PATCH") {
-      const eventId = decodeURIComponent(path.match(/provider_event_id=eq\\.([^&]+)/)?.[1] || "");
+      const eventId = new URLSearchParams(path.split("?")[1]).get("provider_event_id")?.replace(/^eq[.]/,"") || "";
       const body = JSON.parse(opts.body);
       return (await db.query("UPDATE public.kivai_recurring_webhook_inbox SET processing_status=$1,last_error=$2,processed_at=$3 WHERE provider_event_id=$4 RETURNING provider_event_id",
         [body.processing_status,body.last_error,body.processed_at,eventId])).rows;
