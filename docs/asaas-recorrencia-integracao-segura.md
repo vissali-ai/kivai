@@ -4,7 +4,15 @@
 - O site mantém **InfinitePay como checkout público**. Os quatro links atuais Pro/Agency (mensal/anual) não foram alterados.
 - A InfinitePay cobra assinaturas pelo produto Planos e Recorrências, mas a API pública de Checkout Integrado não administra os planos e não expõe notificações de cada renovação desses links. Portanto, **não é seguro autorizar automaticamente o Pro ou Agency com base no link existente**.
 - O Asaas suporta criação de assinaturas, cobrança no cartão em ciclos futuros e webhook para cada pagamento. Esta implementação é uma **base opt-in** para sincronizar pagamentos Asaas previamente vinculados ao usuário. Ainda **não substitui o checkout do Kivai** nem implanta a contratação automática ponta a ponta.
-- Não há conta Asaas configurada nas variáveis do projeto Vercel consultadas no dia 05/11/2026.
+- Consulta de 06/11/2026: chave e token de webhook Asaas já estão cadastrados no Preview Vercel, com variáveis específicas da branch `feature/asaas-recorrencia-segura-20261105`. A ativação ainda está desabilitada. Os valores secretos não foram expostos.
+
+## Continuação verificada em 06/11/2026
+- A base deste documento foi integrada à `main` pelo PR #82. Usar essa implementação canônica, sem instalar um segundo ledger de pagamentos.
+- Preview e Production compartilham os registros de `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` no Vercel. Não habilitar pagamentos sandbox com essa configuração.
+- No banco `Kivai Blog`, as três tabelas desta integração ainda não existem. Nenhuma migração foi aplicada no banco remoto durante a consulta.
+- A criação de uma branch Supabase foi recusada: `Branching is supported only on the Pro plan or above`. Nenhuma branch foi criada. Alternativa: projeto gratuito separado, se houver cota, na organização escolhida pelo usuário.
+- O código exige agora `ASAAS_ENVIRONMENT` explícito. Em Preview, somente `sandbox` é permitido. Para sandbox, `KIVAI_ASAAS_SANDBOX_SUPABASE_REF` deve identificar um projeto diferente de produção, e as URLs do servidor e do navegador devem apontar para esse projeto. As chaves públicas e privadas correspondentes devem ser configuradas juntas.
+- O Admin explica o requisito que está faltando antes de consultar as tabelas financeiras. A sincronização permanece desativada quando a configuração não está completa.
 
 ## O que foi desenvolvido neste PR
 1. Nova migração aditiva com mapeamento `kivai_recurring_provider_links`, ledger de cobranças pagas `kivai_recurring_paid_charges` e caixa de entrada dos webhooks `kivai_recurring_webhook_inbox`.
@@ -23,6 +31,8 @@
    - `ASAAS_ENVIRONMENT=sandbox`
    - `ASAAS_API_KEY` (segredo, acesso somente servidor)
    - `ASAAS_WEBHOOK_TOKEN` (segredo diferente da chave de API, 32 ou mais caracteres)
+   - `KIVAI_ASAAS_SANDBOX_SUPABASE_REF` (referência do projeto Supabase de testes)
+   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, todos do projeto de testes, com escopo restrito à branch de Preview. Não substituir os valores compartilhados de produção.
 4. Configurar no Asaas Sandbox um webhook apontando para `https://<host-da-previa>/api/billing/asaas/webhook` com `authToken` e eventos `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`, `PAYMENT_REFUNDED`, `PAYMENT_CHARGEBACK_REQUESTED`, `PAYMENT_OVERDUE`, `SUBSCRIPTION_INACTIVATED` e `SUBSCRIPTION_DELETED`.
 5. Criar manualmente uma assinatura de teste com cartão e vincular no Admin a uma **conta de teste Kivai** sem contrato vigente. Os e-mails do pagador e da conta devem coincidir, bem como preço e ciclo.
 6. Simular pagamento confirmado, evento duplicado, pagamento com valor diferente, assinatura desconhecida, estorno e cobranças repetidas. Inspecionar `kivai_recurring_paid_charges`, o status de acesso e a fila de revisão.
