@@ -102,3 +102,28 @@ test("untrusted CHECKOUT_PAID cannot mutate checkout lifecycle",async()=>{
     assert.equal(s.calls.length,0);
   }finally{restore();}
 });
+
+test("authenticated checkout canceled and expired events persist terminal state, without granting a plan",async()=>{
+  try {
+    settings();
+    for(const kind of ["CHECKOUT_CANCELED","CHECKOUT_EXPIRED"]){
+      const s=setup();
+      assert.equal((await s.send(kind,process.env.ASAAS_WEBHOOK_TOKEN,{id:"chk_12345678",status:"UNKNOWN"})).status,200);
+      assert.deepEqual(s.calls.map(c=>c[1]),["rpc/kivai_record_asaas_checkout_lifecycle"]);
+      const args=JSON.parse(s.calls[0][2].body);
+      assert.equal(args.p_event_type,kind);
+      assert.equal(args.p_checkout_id,"chk_12345678");
+      assert.equal(s.calls.some(c=>String(c[1]).includes("paid_charge")),false);
+    }
+  }finally{restore();}
+});
+test("an unknown or malformed checkout terminal event cannot mutate database",async()=>{
+  try {
+    settings();
+    for(const kind of ["CHECKOUT_CANCELED","CHECKOUT_EXPIRED"]){
+      const s=setup();
+      assert.equal((await s.send(kind,process.env.ASAAS_WEBHOOK_TOKEN,{id:"BAD"})).status,400);
+      assert.equal(s.calls.length,0);
+    }
+  }finally{restore();}
+});
