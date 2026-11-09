@@ -38,16 +38,39 @@ function recurringProcessingConfigured(): boolean {
     (process.env.ASAAS_WEBHOOK_TOKEN ?? "").length >= 32;
 }
 
+function testMode() {
+  return process.env.KIVAI_ASAAS_TEST_ONLY === "true";
+}
+
+function allowlistedForTest(userId: string) {
+  const allowed = process.env.KIVAI_ASAAS_TEST_USER_ID ?? "";
+  return UUID.test(allowed) && userId === allowed;
+}
+function rolloutReady() {
+  // Explicit and mutually exclusive switches. A test cannot silently open
+  // the recurring checkout to every free-tier account.
+  if (testMode()) return UUID.test(process.env.KIVAI_ASAAS_TEST_USER_ID ?? "");
+  return process.env.KIVAI_ASAAS_PUBLIC_SALES === "true";
+}
 function checkoutReady() {
   return productionCheckoutConfigured() &&
     process.env.KIVAI_ASAAS_PRODUCTION_ROUTE === "true" &&
-    recurringProcessingConfigured();
+    recurringProcessingConfigured() &&
+    rolloutReady();
 }
 
-// Public readiness exposes no configuration values or API credentials.
-// The checkout remains inaccessible until all reconciliation gates pass.
-export async function GET() {
-  return Response.json({ enabled: checkoutReady() }, { headers });
+// In test mode, only the authenticated test account can see that the
+// recurring checkout is ready. No credentials or test IDs are exposed.
+export async function GET(request: Request) {
+  if (!checkoutReady()) return Response.json({ enabled: false }, { headers });
+  if (!testMode()) return Response.json({ enabled: true }, { headers });
+  try {
+    const user = await authenticateBillingUser(request);
+    const allowed = allowlistedForTest(user.id);
+    return Response.json({ enabled: allowed, pilotOnly: allowed }, { headers });
+  } catch {
+    return Response.json({ enabled: false }, { headers });
+  }
 }
 
 export async function POST(request: Request) {
@@ -65,6 +88,11 @@ export async function POST(request: Request) {
     return respond(401, "Faça login para continuar.");
   }
 
+  // Defence in depth: POST never trusts the public readiness response.
+  if (testMode() && !allowlistedForTest(user.id)) {
+    return respond(403, "Checkout de validação restrito.");
+  }
+
   if (Number(request.headers.get("content-length") || 0) > 4096) return respond(413, "Solicitação muito grande.");
   const raw = await request.text();
   if (Buffer.byteLength(raw, "utf8") > 4096) return respond(413, "Solicitação muito grande.");
@@ -74,6 +102,11 @@ export async function POST(request: Request) {
   const { plan, billing } = input as Record<string, unknown>;
   if ((plan !== "pro" && plan !== "agency") || (billing !== "monthly" && billing !== "annual")) {
     return respond(400, "Plano ou periodicidade inválidos.");
+  }
+  // A controlled real-money pilot must never create a higher-priced or
+  // annual recurring commitment by clicking a different button.
+  if (testMode() && (plan !== "pro" || billing !== "monthly")) {
+    return respond(403, "Piloto autorizado apenas para o plano Pro mensal.");
   }
 
   try {
