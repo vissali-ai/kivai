@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/communication-retention",
       "schedule": "41 6 * * *"
+    },
+    {
+      "path": "/api/cron/asaas-reconcile",
+      "schedule": "53 7 * * *"
     }
   ]
 }

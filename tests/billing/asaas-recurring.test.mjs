@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = fs.readFileSync(new URL("../../app/api/billing/asaas/webhook/route.ts", import.meta.url), "utf8");
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }}).outputText;
 
-function setup({ configured = true, token = "valid", providerStatus = "CONFIRMED", value = 19.90, link = true, repeated = false } = {}) {
+function setup({ configured = true, token = "valid", providerStatus = "CONFIRMED", value = 19.90, link = true, repeated = false, existingEventStatus = null } = {}) {
   const calls = [];
   const payments = [];
   const inbox = [];
@@ -27,7 +27,8 @@ function setup({ configured = true, token = "valid", providerStatus = "CONFIRMED
         if (path.startsWith("kivai_recurring_provider_links?")) {
           return link ? [{ provider_subscription_id: "sub_12345678", expected_amount_brl: 19.90 }] : [];
         }
-        if (path.startsWith("kivai_recurring_webhook_inbox?") && opts.method === "POST") return [{ provider_event_id: "evt_unique" }];
+        if (path.startsWith("kivai_recurring_webhook_inbox?") && opts.method === "POST") return existingEventStatus ? [] : [{ provider_event_id: "evt_unique" }];
+        if (path.startsWith("kivai_recurring_webhook_inbox?") && opts.method !== "PATCH") return existingEventStatus ? [{ provider_event_id: "evt_unique", processing_status: existingEventStatus }] : [];
         if (path.startsWith("kivai_recurring_webhook_inbox?") && opts.method === "PATCH") {
           inbox.push(JSON.parse(opts.body));
           return [];
@@ -104,4 +105,34 @@ test("database migration enforces per-charge deduplication and service-only RPC"
   assert.match(sql, /on conflict\(provider_payment_id\) do nothing/);
   assert.match(sql, /grant execute on function public.kivai_apply_asaas_paid_charge.* to service_role/i);
   assert.match(sql, /revoke all on public.kivai_recurring_paid_charges from public, anon, authenticated/);
+});
+
+test("refund, chargeback and overdue events go to manual review without granting or revoking access", async () => {
+  for (const event of [
+    "PAYMENT_REFUNDED", "PAYMENT_PARTIALLY_REFUNDED",
+    "PAYMENT_CHARGEBACK_REQUESTED", "PAYMENT_CHARGEBACK_DISPUTE",
+    "PAYMENT_OVERDUE", "SUBSCRIPTION_INACTIVATED", "SUBSCRIPTION_DELETED"
+  ]) {
+    const ctx = setup();
+    assert.equal((await ctx.send(event)).status, 200, event);
+    assert.equal(ctx.payments.length, 0, event);
+    assert.equal(ctx.inbox[0].processing_status, "manual_review", event);
+    assert.equal(ctx.calls.some(c => c.path === "rpc/kivai_apply_asaas_paid_charge"), false, event);
+  }
+});
+
+test("re-delivered event that was already processed does not reapply any payment", async () => {
+  for (const status of ["applied", "duplicate", "manual_review"]) {
+    const ctx = setup({ existingEventStatus: status });
+    assert.equal((await ctx.send()).status, 200, status);
+    assert.equal(ctx.payments.length, 0, status);
+    assert.equal(ctx.calls.some(c => c.path.startsWith("kivai_recurring_provider_links?")), false, status);
+  }
+});
+
+test("a previously refunded payment must not be regranted based on a new paid webhook", async () => {
+  const ctx = setup({providerStatus:"REFUNDED"});
+  assert.equal((await ctx.send("PAYMENT_CONFIRMED")).status, 200);
+  assert.equal(ctx.payments.length, 0);
+  assert.equal(ctx.inbox[0].processing_status, "manual_review");
 });
