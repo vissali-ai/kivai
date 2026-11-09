@@ -66,7 +66,8 @@ export async function GET(request: Request) {
   if (!testMode()) return Response.json({ enabled: true }, { headers });
   try {
     const user = await authenticateBillingUser(request);
-    return Response.json({ enabled: allowlistedForTest(user.id) }, { headers });
+    const allowed = allowlistedForTest(user.id);
+    return Response.json({ enabled: allowed, pilotOnly: allowed }, { headers });
   } catch {
     return Response.json({ enabled: false }, { headers });
   }
@@ -101,6 +102,11 @@ export async function POST(request: Request) {
   const { plan, billing } = input as Record<string, unknown>;
   if ((plan !== "pro" && plan !== "agency") || (billing !== "monthly" && billing !== "annual")) {
     return respond(400, "Plano ou periodicidade inválidos.");
+  }
+  // A controlled real-money pilot must never create a higher-priced or
+  // annual recurring commitment by clicking a different button.
+  if (testMode() && (plan !== "pro" || billing !== "monthly")) {
+    return respond(403, "Piloto autorizado apenas para o plano Pro mensal.");
   }
 
   try {
