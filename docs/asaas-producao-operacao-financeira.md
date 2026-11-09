@@ -106,3 +106,7 @@ Antes de iniciar uma cobrança real, ativar o piloto de uma conta:
 - O usuário deve concluir o checkout e digitar dados do cartão **somente no ambiente hospedado pelo Asaas**. Não receber dados financeiros por chat. Acompanhar logs e entidades no Asaas e Supabase; não recriar checkout após timeout.
 - Após verificação: cancelar renovação da assinatura piloto no Asaas **apenas com autorização explícita**, sem presumir que cancelamento produz estorno da cobrança já confirmada; observar política de custos e reembolsos.
 - Depois do piloto: desabilitar `KIVAI_ASAAS_TEST_ONLY` apenas como parte de uma liberação pública auditada e que exija `KIVAI_ASAAS_PUBLIC_SALES=true`. Não misturar os dois controles.
+
+### Limite técnico adicional do piloto
+- Durante `KIVAI_ASAAS_TEST_ONLY=true`, o checkout aceita **somente Pro mensal**, recusando Agency e ciclos anuais diretamente no endpoint, antes de qualquer escrita ou chamada ao Asaas. Na interface, o piloto disponibiliza somente essa opção para a conta autorizada. O preço é verificado por RPC, não por conteúdo enviado do navegador.
+- A conta de teste deve ter login próprio e nenhuma solicitação de pagamento pendente. Uma compra verdadeira pode iniciar renovações mensais; definir o cancelamento com o pagador após os testes e verificar eventuais taxas cobradas pelo Asaas.
