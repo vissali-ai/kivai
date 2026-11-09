@@ -1,0 +1,74 @@
+name: Kivai - backup manual criptografado do Supabase
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kivai-database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Exportar PostgreSQL 17 e criptografar antes de armazenar
+        shell: bash
+        env:
+          KIVAI_BACKUP_DB_URL: ${{ secrets.KIVAI_BACKUP_DB_URL }}
+          KIVAI_BACKUP_PASSPHRASE: ${{ secrets.KIVAI_BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          set +x
+          if [[ -z "${KIVAI_BACKUP_DB_URL:-}" ]]; then
+            echo "::error::Configure o secret KIVAI_BACKUP_DB_URL antes de executar."
+            exit 1
+          fi
+          if [[ ${#KIVAI_BACKUP_PASSPHRASE} -lt 32 ]]; then
+            echo "::error::Configure KIVAI_BACKUP_PASSPHRASE com pelo menos 32 caracteres."
+            exit 1
+          fi
+          if [[ "$KIVAI_BACKUP_DB_URL" != postgresql://* && "$KIVAI_BACKUP_DB_URL" != postgres://* ]]; then
+            echo "::error::O secret de conexao deve ser uma URI PostgreSQL."
+            exit 1
+          fi
+          umask 077
+          TEMP_BACKUP_DIR="$(mktemp -d)"
+          trap 'rm -rf "$TEMP_BACKUP_DIR"' EXIT
+          mkdir -p encrypted
+          docker run --rm --network host \
+            --mount "type=bind,source=$TEMP_BACKUP_DIR,target=/backup" \
+            --env KIVAI_BACKUP_DB_URL \
+            --env PGSSLMODE=require \
+            --env PGCONNECT_TIMEOUT=20 \
+            postgres:17 \
+            sh -ec 'pg_dump --dbname="$KIVAI_BACKUP_DB_URL" --format=custom --no-owner --file=/backup/kivai.dump'
+          test -s "$TEMP_BACKUP_DIR/kivai.dump"
+          docker run --rm \
+            --mount "type=bind,source=$TEMP_BACKUP_DIR,target=/backup,readonly" \
+            postgres:17 pg_restore --list /backup/kivai.dump > /dev/null
+          ENCRYPTED="encrypted/kivai-postgres-$(date -u +%Y%m%dT%H%M%SZ).dump.gpg"
+          printf '%s\n' "$KIVAI_BACKUP_PASSPHRASE" | \
+            gpg --batch --yes --quiet --pinentry-mode loopback --passphrase-fd 0 \
+              --symmetric --cipher-algo AES256 --s2k-digest-algo SHA512 \
+              --compress-algo none --output "$ENCRYPTED" "$TEMP_BACKUP_DIR/kivai.dump"
+          rm -f "$TEMP_BACKUP_DIR/kivai.dump"
+          test -s "$ENCRYPTED"
+          printf '%s\n' "$KIVAI_BACKUP_PASSPHRASE" | \
+            gpg --batch --yes --quiet --pinentry-mode loopback --passphrase-fd 0 \
+              --decrypt "$ENCRYPTED" > /dev/null
+          sha256sum "$ENCRYPTED" > "$ENCRYPTED.sha256"
+          echo "Backup exportado, formato Postgres validado e arquivo criptografado verificado."
+
+      - name: Disponibilizar somente backup criptografado por 1 dia
+        uses: actions/upload-artifact@v4
+        with:
+          name: kivai-supabase-backup-criptografado
+          path: encrypted/
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
