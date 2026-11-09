@@ -22,7 +22,7 @@ function enable(){
 }
 function restore(){for(const k of keys){previous[k]===undefined?delete process.env[k]:process.env[k]=previous[k];}}
 const reference="kivai_asaas_11111111-1111-4111-8111-111111111111";
-function setup({status="CONFIRMED",value=19.9,linked=true,paid=true,entries=1}={}){
+function setup({status="CONFIRMED",value=19.9,linked=true,paid=true,entries=1,disputed=false}={}){
   const calls=[],applied=[];
   const modules={
     "server-only":{},
@@ -44,6 +44,7 @@ function setup({status="CONFIRMED",value=19.9,linked=true,paid=true,entries=1}={
     "@/lib/blog/supabase":{
       supabaseRest:async(path,opts={})=>{
         calls.push(path);
+        if(path.startsWith("kivai_recurring_webhook_inbox?")&&path.includes("PAYMENT_REFUNDED"))return disputed?[{provider_event_id:"evt_refund"}]:[];
         if(path.startsWith("kivai_recurring_webhook_inbox?")&& !opts.method)
           return entries?[{provider_event_id:"evt_12345678",event_type:"PAYMENT_CONFIRMED",
             provider_payment_id:"pay_12345678",provider_subscription_id:"sub_12345678"}]:[];
@@ -115,4 +116,19 @@ test("Empty manual review queue never calls Asaas",async()=>{
     assert.deepEqual(await (await x.send()).json(),{checked:0,applied:0,duplicate:0,unresolved:0});
     assert.equal(x.calls.some(v=>v.startsWith("/payments/")),false);
   }finally{restore();}
+});
+
+test("A known refund or chargeback blocks reconciliation even if payment is still CONFIRMED",async()=>{
+  try{
+    enable();const x=setup({disputed:true});const r=await x.send();
+    assert.equal(r.status,200);
+    assert.equal((await r.json()).unresolved,1);
+    assert.equal(x.applied.length,0);
+  }finally{restore();}
+});
+test("Vercel cron runs daily and only the reconciler is new",()=>{
+  const config=JSON.parse(fs.readFileSync(new URL("../../vercel.json",import.meta.url),"utf8"));
+  assert.deepEqual(config.crons.find(x=>x.path==="/api/cron/asaas-reconcile"),{
+    path:"/api/cron/asaas-reconcile",schedule:"53 7 * * *"
+  });
 });
