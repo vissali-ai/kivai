@@ -1,4 +1,4 @@
-import {authenticateBillingUser} from "@/lib/billing/sumup";
+import {authenticateBillingUser} from "@/lib/auth/authenticated-billing-user";
 import {supabaseRest} from "@/lib/blog/supabase";
 import {isUuid,privateHeaders,readBody,sameOrigin,supportError,type SupportNotification} from "@/lib/support/service";
 export async function GET(req:Request){
