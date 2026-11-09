@@ -96,7 +96,10 @@ export async function POST(request: Request) {
       // Sem externalReference não é possível ligar com segurança ao usuário.
       // Não associar pela coincidência de preço, e-mail ou momento da compra.
       if (!verified.externalReference || !/^kivai_asaas_[0-9a-f-]{36}$/.test(verified.externalReference)) {
-        return reply(202,"Assinatura sem referência verificável. Conciliação manual necessária.");
+        await supabaseRest("rpc/kivai_record_asaas_unmatched_subscription",{
+          method:"POST",body:JSON.stringify({p_event_id:eventId,p_subscription_id:verified.id}),
+        });
+        return reply(200,"Assinatura sem referência verificável. Conciliação manual necessária.");
       }
       const result = await supabaseRest<{ recorded:boolean; linked?:boolean }>(
         "rpc/kivai_record_asaas_subscription_candidate",{
