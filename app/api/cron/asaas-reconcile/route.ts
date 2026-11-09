@@ -98,6 +98,18 @@ export async function GET(request: Request) {
           unresolved++;
           continue;
         }
+        // A payment with any known refund/chargeback notification must remain
+        // for human review even if the provider still reports CONFIRMED.
+        const disputes = await supabaseRest<Array<{ provider_event_id: string }>>(
+          "kivai_recurring_webhook_inbox?select=provider_event_id" +
+          "&provider_payment_id=eq." + encodeURIComponent(paymentId) +
+          "&event_type=in.(PAYMENT_REFUNDED,PAYMENT_PARTIALLY_REFUNDED,PAYMENT_CHARGEBACK_REQUESTED,PAYMENT_CHARGEBACK_DISPUTE)" +
+          "&limit=1",
+        );
+        if (disputes.length) {
+          unresolved++;
+          continue;
+        }
         // Promotion requires a paid checkout and verified SUBSCRIPTION_CREATED
         // stored in the database; it never trusts event order or user input.
         const promotion = await supabaseRest<{ linked: boolean }>(
