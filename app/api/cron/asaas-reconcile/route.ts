@@ -55,7 +55,7 @@ function sameAmount(a: unknown, b: unknown) {
 
 export async function GET(request: Request) {
   // Never run outside an explicitly authorized production cron.
-  if (!configured()) return reply(503, { error: "Conciliação indisponível." });
+  if (!configured()) return reply(200, { enabled: false, checked: 0 });
   if (!authorized(request.headers.get("authorization"))) {
     return reply(401, { error: "Não autorizado." });
   }
