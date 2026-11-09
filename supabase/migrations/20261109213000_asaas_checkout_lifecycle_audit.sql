@@ -102,3 +102,24 @@ revoke all on function public.kivai_record_asaas_subscription_candidate(text,tex
  from public,anon,authenticated;
 grant execute on function public.kivai_record_asaas_subscription_candidate(text,text,text,text,numeric,text)
  to service_role;
+
+-- A safe inbox for subscription events whose external reference is absent.
+create or replace function public.kivai_record_asaas_unmatched_subscription(
+ p_event_id text,p_subscription_id text
+) returns jsonb
+language plpgsql security invoker set search_path='' as $$
+begin
+ if p_event_id is null or length(p_event_id)<5 or length(p_event_id)>160
+   or p_subscription_id is null or length(p_subscription_id)<4 or length(p_subscription_id)>120
+ then raise exception 'Evento inválido'; end if;
+ insert into public.kivai_asaas_lifecycle_events
+  (provider_event_id,event_type,provider_resource_id,processing_status)
+ values(p_event_id,'SUBSCRIPTION_CREATED',p_subscription_id,'manual_review')
+ on conflict(provider_event_id) do nothing;
+ return jsonb_build_object('recorded',true,'linked',false);
+end;
+$$;
+revoke all on function public.kivai_record_asaas_unmatched_subscription(text,text)
+ from public,anon,authenticated;
+grant execute on function public.kivai_record_asaas_unmatched_subscription(text,text)
+ to service_role;
