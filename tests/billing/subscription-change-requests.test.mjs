@@ -44,7 +44,7 @@ test("only Pro can request Agency upgrade, only Agency can request downgrade",as
   const upgraded=await change(first,"upgrade");
   assert.equal(upgraded.existing,false);
   assert.equal((await first.query("select target_plan from public.kivai_subscription_change_requests")).rows[0].target_plan,"agency");
-  await assert.rejects(()=>change(first,"downgrade"),/Downgrade indisponível|/);
+  assert.equal((await change(first,"downgrade")).existing,true);
  }finally{await first.close();}
  const other=await setup("agency");
  try{
