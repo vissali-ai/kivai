@@ -29,9 +29,9 @@ function payload() {
     billingTypes: ["CREDIT_CARD"], chargeTypes: ["RECURRENT"], minutesToExpire: 60,
     externalReference: "kivai_asaas_11111111-1111-4111-8111-111111111111",
     callback: {
-      successUrl: "https://kivai.com.br/conta?pagamento=pendente",
-      cancelUrl: "https://kivai.com.br/planos?pagamento=cancelado",
-      expiredUrl: "https://kivai.com.br/planos?pagamento=expirado"
+      successUrl: "https://www.kivai.com.br/conta?pagamento=pendente",
+      cancelUrl: "https://www.kivai.com.br/planos?pagamento=cancelado",
+      expiredUrl: "https://www.kivai.com.br/planos?pagamento=expirado"
     },
     items: [{ name: "Kivai Pro mensal", description: "Assinatura", quantity: 1, value: 19.9 }],
     subscription: { cycle: "MONTHLY", nextDueDate: "2026-11-11 12:00:00" }
