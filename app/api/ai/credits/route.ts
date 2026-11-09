@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { getAiCreditBalance } from "@/lib/ai/credits";
 import { aiCreditSalesEnabled } from "@/lib/ai/packs";
 import { getAiHourlyStatus } from "@/lib/ai/limits";
