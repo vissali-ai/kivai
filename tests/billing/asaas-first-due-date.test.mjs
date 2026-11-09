@@ -32,7 +32,6 @@ test("first due date remains after entire 60-minute checkout lifetime",()=>{
   const start = new Date("2026-11-09T18:00:00.000Z");
   const due = nextAsaasFirstDueDate(start);
   const formatter = new Intl.DateTimeFormat("en-CA", {timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"});
-  const atExpiry = formatter.format(new Date(start.getTime()+60*60000));
   const dueParts = due.replace(/[- :]/g,"");
   const expiryParts = Object.fromEntries(formatter.formatToParts(new Date(start.getTime()+60*60000)).map(p=>[p.type,p.value]));
   const expirySort = ["year","month","day","hour","minute","second"].map(k=>expiryParts[k]).join("");
