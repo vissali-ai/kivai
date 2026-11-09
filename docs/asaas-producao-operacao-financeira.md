@@ -8,7 +8,7 @@ Status: **não habilitar checkout Asaas ainda**. Este documento descreve a opera
 - Exigir PAYMENT_CONFIRMED ou PAYMENT_RECEIVED validado em GET /payments/{id}, assinatura vinculada com origem, ciclo e valor esperados, além de RPC idempotente.
 - Nunca conceder dois períodos com o mesmo provider_payment_id.
 - Uma segunda notificação para o mesmo evento finalizado deve receber 200 sem novo efeito.
-- Revisar a política do primeiro vencimento (+5 minutos no fuso America/Sao_Paulo) com uma contratação controlada antes de ativar para clientes.
+- O primeiro vencimento foi provisoriamente definido para +70 minutos no fuso America/Sao_Paulo, após a janela de validade do checkout de 60 minutos (+10 min de margem). Isso evita uma data de vencimento passada enquanto o checkout ainda é válido, mas NÃO garante cobrança imediata na contratação. Aprovar a política comercial e validar a semântica do provedor antes de ativar para clientes.
 
 ## 2. Cancelamento de renovação
 - Pedidos do usuário são administrativos, não executam cancelamento financeiro automaticamente no provedor.
