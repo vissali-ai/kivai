@@ -53,11 +53,13 @@ export async function POST(request: Request) {
   // The service-only RPC accepts it only for a persisted checkout ID and deduplicates
   // by event ID. It does NOT activate the paid plan; that requires a separately
   // verified PAYMENT_CONFIRMED/RECEIVED in the financial webhook.
-  if (kind === "CHECKOUT_PAID") {
+  if (kind === "CHECKOUT_PAID" || kind === "CHECKOUT_CANCELED" || kind === "CHECKOUT_EXPIRED") {
     const checkout = data.checkout && typeof data.checkout === "object" && !Array.isArray(data.checkout)
       ? data.checkout as Record<string, unknown> : {};
     const checkoutId = typeof checkout.id === "string" ? checkout.id : "";
-    if (!IDENTIFIER.test(checkoutId) || checkout.status !== "PAID") {
+    // CHECKOUT_PAID additionally needs a matching paid status. Terminal events
+    // never grant access; the RPC only expires/cancels an unpaid known intent.
+    if (!IDENTIFIER.test(checkoutId) || (kind === "CHECKOUT_PAID" && checkout.status !== "PAID")) {
       return reply(400, "Checkout inválido.");
     }
     try {
@@ -66,10 +68,10 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           p_event_id: id,
           p_checkout_id: checkoutId,
-          p_event_type: "CHECKOUT_PAID",
+          p_event_type: kind,
         }),
       });
-      return reply(200, result.linked ? "Checkout registrado para conciliação." : "Checkout encaminhado à conferência.");
+      return reply(200, result.linked ? "Estado do checkout registrado." : "Checkout encaminhado à conferência.");
     } catch {
       console.error("asaas_production_checkout_lifecycle_persist_failed");
       return reply(503, "Falha temporária ao registrar o checkout.");
