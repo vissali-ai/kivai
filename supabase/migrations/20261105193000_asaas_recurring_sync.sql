@@ -87,6 +87,22 @@ begin
     raise exception 'Valor divergente';
   end if;
 
+  -- Antes de gravar a cobrança, confira TODAS as assinaturas vigentes do usuário.
+  -- Uma assinatura antiga ativa pode coexistir com uma linha inativa mais recente.
+  if exists (
+    select 1
+    from public.user_subscriptions active_sub
+    where active_sub.user_id = v_link.user_id
+      and active_sub.status = 'active'
+      and (active_sub.current_period_end is null or active_sub.current_period_end > now())
+      and (
+        coalesce(active_sub.provider, '') <> 'asaas'
+        or active_sub.provider_subscription_id is distinct from p_subscription_id
+      )
+  ) then
+    raise exception 'Há um plano ativo de outra origem; conciliação manual necessária';
+  end if;
+
   insert into public.kivai_recurring_paid_charges(
     provider_payment_id,provider_subscription_id,user_id,event_id,amount_brl
   ) values(p_payment_id,p_subscription_id,v_link.user_id,p_event_id,p_amount_brl)

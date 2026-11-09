@@ -106,6 +106,44 @@ test("incorrect amount and active other-provider subscription never create a pai
   } finally { await db.close(); }
 });
 
+
+test("older active non-Asaas subscription cannot be hidden by newer inactive subscription", async () => {
+  const db = await createDatabase();
+  try {
+    await db.query(`INSERT INTO public.user_subscriptions
+      (user_id, plan_code, status, provider, current_period_end, updated_at)
+      VALUES ($1, 'pro', 'active', 'sumup_external', now() + interval '30 days', now() - interval '2 days')`, [userId]);
+    await db.query(`INSERT INTO public.user_subscriptions
+      (user_id, plan_code, status, provider, current_period_end, updated_at)
+      VALUES ($1, 'free', 'inactive', 'admin_test', now() - interval '1 day', now())`, [userId]);
+    await assert.rejects(() => apply(db, "pay_older_active_00001"), /plano ativo de outra origem/);
+    const rows = (await db.query("SELECT provider, status, plan_code FROM public.user_subscriptions ORDER BY updated_at DESC")).rows;
+    assert.equal(rows.length, 2);
+    assert.equal(rows[0].provider, "admin_test");
+    assert.equal(rows[0].status, "inactive");
+    assert.equal(rows[1].provider, "sumup_external");
+    assert.equal(rows[1].status, "active");
+    assert.equal((await db.query("SELECT count(*)::int AS n FROM public.kivai_recurring_paid_charges")).rows[0].n, 0);
+  } finally { await db.close(); }
+});
+
+test("another provider's active indefinite contract is never overwritten", async () => {
+  const db = await createDatabase();
+  try {
+    await db.query("ALTER TABLE public.user_subscriptions ALTER COLUMN current_period_end DROP NOT NULL");
+    await db.query(`INSERT INTO public.user_subscriptions
+      (user_id, plan_code, status, provider, current_period_end)
+      VALUES ($1, 'agency', 'active', 'admin_manual', NULL)`, [userId]);
+    await assert.rejects(() => apply(db, "pay_indefinite_00001"), /plano ativo de outra origem/);
+    const existing = (await db.query("SELECT provider, status, plan_code, current_period_end FROM public.user_subscriptions")).rows[0];
+    assert.equal(existing.provider, "admin_manual");
+    assert.equal(existing.status, "active");
+    assert.equal(existing.plan_code, "agency");
+    assert.equal(existing.current_period_end, null);
+    assert.equal((await db.query("SELECT count(*)::int AS n FROM public.kivai_recurring_paid_charges")).rows[0].n, 0);
+  } finally { await db.close(); }
+});
+
 test("unauthorized roles cannot execute recurring charge RPC", async () => {
   const db = await createDatabase();
   try {
