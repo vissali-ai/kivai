@@ -100,6 +100,7 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
   const [starting, setStarting] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [asaasEnabled, setAsaasEnabled] = useState(false);
+  const [asaasPilotOnly, setAsaasPilotOnly] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -109,9 +110,16 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
       signal: controller.signal,
       ...(session?.access_token ? { headers: { Authorization: `Bearer ${session.access_token}` } } : {}),
     })
-      .then(async (response) => response.ok ? await response.json() as { enabled?: boolean } : null)
-      .then((config) => { if (!controller.signal.aborted) setAsaasEnabled(config?.enabled === true); })
-      .catch(() => { if (!controller.signal.aborted) setAsaasEnabled(false); });
+      .then(async (response) => response.ok ? await response.json() as { enabled?: boolean; pilotOnly?: boolean } : null)
+      .then((config) => {
+        if (!controller.signal.aborted) {
+          setAsaasEnabled(config?.enabled === true);
+          setAsaasPilotOnly(config?.enabled === true && config?.pilotOnly === true);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) { setAsaasEnabled(false); setAsaasPilotOnly(false); }
+      });
     return () => controller.abort();
   }, []);
 
@@ -161,11 +169,14 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
     if (!loggedIn) {
       return <Link href={`/conta/login?next=${encodeURIComponent("/planos")}`} className="inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90">Entrar para contratar <ArrowRight className="size-4" /></Link>;
     }
+    if (asaasPilotOnly && currentPlan === "free" && plan.code !== "pro") {
+      return <p className="text-center text-sm leading-6 text-muted-foreground">Contratação indisponível durante a validação financeira controlada.</p>;
+    }
     return (
       <div className="space-y-2">
         {isCurrent ? <div className="flex min-h-10 w-full items-center justify-center border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Este é o seu plano atual</div> : null}
         <Button className="h-12 w-full" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "monthly")}>{starting === `${plan.code}-monthly` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar mensal" : "Contratar mensal"}</Button>
-        <Button variant="outline" className="h-12 w-full border-primary/30 text-primary" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "annual")}>{starting === `${plan.code}-annual` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar anual" : "Contratar anual"}</Button>
+        {asaasPilotOnly && currentPlan === "free" ? null : <Button variant="outline" className="h-12 w-full border-primary/30 text-primary" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "annual")}>{starting === `${plan.code}-annual` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar anual" : "Contratar anual"}</Button>}
         <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">{asaasEnabled && currentPlan === "free" ? "Pagamento recorrente no cartão em ambiente seguro do Asaas. A ativação ocorre somente após a confirmação financeira, não pelo redirecionamento." : "Antes de abrir o serviço de pagamento, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento pelo administrador."}</p>
       </div>
     );
