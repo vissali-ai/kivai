@@ -1,4 +1,4 @@
-import {authenticateBillingUser} from "@/lib/billing/sumup";
+import {authenticateBillingUser} from "@/lib/auth/authenticated-billing-user";
 import {isAdminAuthenticated} from "@/lib/blog/auth";
 import {supabaseRest,supabaseStorage} from "@/lib/blog/supabase";
 import {isUuid,privateHeaders,supportError} from "@/lib/support/service";
