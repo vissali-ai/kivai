@@ -28,14 +28,26 @@ function respond(status: number, error: string) {
   return Response.json({ error }, { status, headers });
 }
 function dueDate(): string {
-  // Follows the format already accepted by the shared checkout builder.
+  // TODO: Agree and verify the first-payment date and intended timezone before enabling.
+  // The current delay of 24h is retained pending an explicit billing policy.
   return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace("T", " ");
+}
+
+function recurringProcessingConfigured(): boolean {
+  // Configuration gates do not prove a provider webhook was actually registered.
+  // This prevents creating a recurring contract with both processing paths off.
+  return process.env.ASAAS_ENVIRONMENT === "production" &&
+    process.env.KIVAI_ASAAS_RECURRING_SYNC === "true" &&
+    process.env.KIVAI_ASAAS_PRODUCTION_LIFECYCLE === "true" &&
+    (process.env.ASAAS_WEBHOOK_TOKEN ?? "").length >= 32;
 }
 
 export async function POST(request: Request) {
   // All gates are server-only; neither a public UI nor any payment option links here.
-  // The second flag allows independent review of the route before permitting POST /checkouts.
-  if (!productionCheckoutConfigured() || process.env.KIVAI_ASAAS_PRODUCTION_ROUTE !== "true") {
+  // Require lifecycle and financial processing to be explicitly configured too.
+  if (!productionCheckoutConfigured() ||
+      process.env.KIVAI_ASAAS_PRODUCTION_ROUTE !== "true" ||
+      !recurringProcessingConfigured()) {
     return respond(503, "Checkout recorrente indisponível.");
   }
 
