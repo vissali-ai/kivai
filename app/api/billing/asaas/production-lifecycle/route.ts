@@ -49,9 +49,32 @@ export async function POST(request: Request) {
     return reply(400, "Identificação inválida.");
   }
 
-  // Do not trust checkout.status from the webhook in production.
-  // CHECKOUT_PAID and other checkout events need independently verified
-  // provider state before any state-changing checkout RPC is permitted.
+  // Asaas documents authenticated CHECKOUT_PAID as the checkout completion event.
+  // The service-only RPC accepts it only for a persisted checkout ID and deduplicates
+  // by event ID. It does NOT activate the paid plan; that requires a separately
+  // verified PAYMENT_CONFIRMED/RECEIVED in the financial webhook.
+  if (kind === "CHECKOUT_PAID") {
+    const checkout = data.checkout && typeof data.checkout === "object" && !Array.isArray(data.checkout)
+      ? data.checkout as Record<string, unknown> : {};
+    const checkoutId = typeof checkout.id === "string" ? checkout.id : "";
+    if (!IDENTIFIER.test(checkoutId) || checkout.status !== "PAID") {
+      return reply(400, "Checkout inválido.");
+    }
+    try {
+      const result = await supabaseRest<{ linked?: boolean }>("rpc/kivai_record_asaas_checkout_lifecycle", {
+        method: "POST",
+        body: JSON.stringify({
+          p_event_id: id,
+          p_checkout_id: checkoutId,
+          p_event_type: "CHECKOUT_PAID",
+        }),
+      });
+      return reply(200, result.linked ? "Checkout registrado para conciliação." : "Checkout encaminhado à conferência.");
+    } catch {
+      console.error("asaas_production_checkout_lifecycle_persist_failed");
+      return reply(503, "Falha temporária ao registrar o checkout.");
+    }
+  }
   if (kind !== "SUBSCRIPTION_CREATED") return reply(200, "Evento não conciliado automaticamente.");
 
   const subscription = data.subscription && typeof data.subscription === "object" && !Array.isArray(data.subscription)
