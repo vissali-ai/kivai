@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { GeminiRequestError, requestGeminiJson } from "@/lib/ai/gemini";
 import { reserveAiRequest } from "@/lib/ai/limits";
 import { finalizeTrafficBetaCredit, reserveTrafficBetaCredit } from "@/lib/ai/traffic-beta";
