@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { getAccountAccess } from "@/lib/billing/access";
 import { approvalDraft } from "@/lib/agency/approval-schema";
 import { createApproval, listApprovals, changeOwnerApproval, getApprovalVersions, deleteOwnerApproval, getApprovalDetails } from "@/lib/agency/approvals";
