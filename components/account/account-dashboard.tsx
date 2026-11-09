@@ -128,6 +128,7 @@ export function AccountDashboard() {
           <p className="text-xs uppercase tracking-wider text-muted-foreground">Seu plano atual</p>
           <div className="mt-3 flex items-center gap-3"><div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><PlanIcon className="size-5" /></div><div className="min-w-0"><p className="text-lg font-semibold">{plan ? `Plano ${planLabels[plan]}` : "Plano indisponível"}</p><p className="break-all text-xs text-muted-foreground">{email}</p></div></div>
           <Button asChild size="sm" className="mt-5 w-full"><Link href="/conta/dados"><UserRound /> Meus Dados</Link></Button>
+          <Button asChild variant="outline" size="sm" className="mt-2 w-full"><Link href="/conta/cobrancas">Minha assinatura e pagamentos</Link></Button>
         </div>
       </div>
     </section>
