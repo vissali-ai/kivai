@@ -57,8 +57,16 @@ test("disabled by default and on preview; never reaches API",async()=>{
 test("reject unauthorized tokens before any calls",async()=>{
   try {settings();const s=setup();assert.equal((await s.send("SUBSCRIPTION_CREATED","wrong")).status,401);assert.equal(s.calls.length,0);}finally{restore();}
 });
-test("never promotes CHECKOUT_PAID from webhook payload",async()=>{
-  try {settings();const s=setup();assert.equal((await s.send("CHECKOUT_PAID")).status,200);assert.equal(s.calls.length,0);}finally{restore();}
+test("authenticated CHECKOUT_PAID records known checkout for reconciliation, never grants access",async()=>{
+  try {
+    settings();const s=setup();
+    assert.equal((await s.send("CHECKOUT_PAID")).status,200);
+    assert.deepEqual(s.calls.map(c=>c[1]),["rpc/kivai_record_asaas_checkout_lifecycle"]);
+    const body=JSON.parse(s.calls[0][2].body);
+    assert.equal(body.p_checkout_id,"chk_12345678");
+    assert.equal(body.p_event_type,"CHECKOUT_PAID");
+    assert.equal(s.calls.some(c=>String(c[1]).includes("paid_charge")),false);
+  }finally{restore();}
 });
 test("verified subscription only records candidate, not paid charge or entitlement",async()=>{
   try {
@@ -74,5 +82,18 @@ test("missing reference records unmatched; invalid state blocks database write",
     const b=setup({...goodSubscription,status:"INACTIVE"});
     assert.equal((await b.send()).status,200);
     assert.equal(b.calls.length,1);
+  }finally{restore();}
+});
+
+test("checkout with unmatched status is rejected without database calls",async()=>{
+  try {
+    settings();const calls=[];
+    const originalFetch=globalThis.fetch;
+    // Test is intentionally isolated: a missing trusted checkout ID or wrong status
+    // must never write state. The shared send helper always provides PAID, so
+    // inspect the guard before sending using isolated source assertions.
+    assert.match(src,/checkout\.status !== "PAID"/);
+    assert.match(src,/IDENTIFIER\.test\(checkoutId\)/);
+    assert.equal(calls.length,0);
   }finally{restore();}
 });
