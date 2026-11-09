@@ -16,6 +16,7 @@ export type AsaasSubscription = {
   value: number;
   cycle: "MONTHLY" | "YEARLY" | string;
   billingType: string;
+  externalReference?: string | null;
 };
 
 function getSettings() {
