@@ -46,7 +46,7 @@ jobs:
             --env PGSSLMODE=require \
             --env PGCONNECT_TIMEOUT=20 \
             postgres:17 \
-            sh -ec 'pg_dump --dbname="$KIVAI_BACKUP_DB_URL" --format=custom --no-owner --no-acl --file=/backup/kivai.dump'
+            sh -ec 'pg_dump --dbname="$KIVAI_BACKUP_DB_URL" --format=custom --no-owner --file=/backup/kivai.dump'
           test -s "$TEMP_BACKUP_DIR/kivai.dump"
           docker run --rm \
             --mount "type=bind,source=$TEMP_BACKUP_DIR,target=/backup,readonly" \
