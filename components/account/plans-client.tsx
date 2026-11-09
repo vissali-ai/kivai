@@ -103,7 +103,12 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
 
   useEffect(() => {
     const controller = new AbortController();
-    void fetch("/api/billing/asaas/production-checkout", { cache: "no-store", signal: controller.signal })
+    const session = getStoredSession();
+    void fetch("/api/billing/asaas/production-checkout", {
+      cache: "no-store",
+      signal: controller.signal,
+      ...(session?.access_token ? { headers: { Authorization: `Bearer ${session.access_token}` } } : {}),
+    })
       .then(async (response) => response.ok ? await response.json() as { enabled?: boolean } : null)
       .then((config) => { if (!controller.signal.aborted) setAsaasEnabled(config?.enabled === true); })
       .catch(() => { if (!controller.signal.aborted) setAsaasEnabled(false); });
