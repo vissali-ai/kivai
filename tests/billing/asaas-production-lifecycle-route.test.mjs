@@ -37,11 +37,11 @@ function setup(verified=goodSubscription) {
     assert.ok(Object.hasOwn(modules,name), name);
     return modules[name];
   },out,out.exports);
-  async function send(event="SUBSCRIPTION_CREATED",token=process.env.ASAAS_WEBHOOK_TOKEN) {
+  async function send(event="SUBSCRIPTION_CREATED",token=process.env.ASAAS_WEBHOOK_TOKEN,checkout={id:"chk_12345678",status:"PAID"}) {
     return out.exports.POST(new Request("https://kivai.com.br/api/billing/asaas/production-lifecycle",{
       method:"POST",headers:{"asaas-access-token":token??""},
       body:JSON.stringify({id:"evt_12345678",event,
-        subscription:{id:"sub_12345678"},checkout:{id:"chk_12345678",status:"PAID"}})
+        subscription:{id:"sub_12345678"},checkout})
     }));
   }
   return {send,calls};
@@ -85,15 +85,20 @@ test("missing reference records unmatched; invalid state blocks database write",
   }finally{restore();}
 });
 
-test("checkout with unmatched status is rejected without database calls",async()=>{
+test("checkout with invalid ID or status is rejected without database writes",async()=>{
   try {
-    settings();const calls=[];
-    const originalFetch=globalThis.fetch;
-    // Test is intentionally isolated: a missing trusted checkout ID or wrong status
-    // must never write state. The shared send helper always provides PAID, so
-    // inspect the guard before sending using isolated source assertions.
-    assert.match(src,/checkout\.status !== "PAID"/);
-    assert.match(src,/IDENTIFIER\.test\(checkoutId\)/);
-    assert.equal(calls.length,0);
+    settings();
+    for (const checkout of [{id:"chk_12345678",status:"ACTIVE"},{id:"bad",status:"PAID"},{status:"PAID"}]) {
+      const s=setup();
+      assert.equal((await s.send("CHECKOUT_PAID",process.env.ASAAS_WEBHOOK_TOKEN,checkout)).status,400);
+      assert.equal(s.calls.length,0);
+    }
+  }finally{restore();}
+});
+test("untrusted CHECKOUT_PAID cannot mutate checkout lifecycle",async()=>{
+  try {
+    settings();const s=setup();
+    assert.equal((await s.send("CHECKOUT_PAID","invalid-token")).status,401);
+    assert.equal(s.calls.length,0);
   }finally{restore();}
 });
