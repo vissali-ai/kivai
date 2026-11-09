@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { createCreditCheckout } from "@/lib/ai/credit-purchases";
 import { aiCreditSalesEnabled, isAiCreditPackCode } from "@/lib/ai/packs";
 export const runtime = "nodejs";
