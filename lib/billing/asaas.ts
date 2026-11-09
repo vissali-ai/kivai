@@ -20,9 +20,14 @@ export type AsaasSubscription = {
 };
 
 function getSettings() {
-  const environment = process.env.ASAAS_ENVIRONMENT === "production" ? "production" : "sandbox";
+  // A Preview deployment cannot call the production payment API, and
+  // a production deployment cannot silently fall back to Sandbox.
+  const environment = process.env.ASAAS_ENVIRONMENT;
+  const deployment = process.env.VERCEL_ENV;
+  const validPair = (environment === "production" && deployment === "production") ||
+    (environment === "sandbox" && deployment === "preview");
   return {
-    enabled: process.env.KIVAI_ASAAS_RECURRING_SYNC === "true",
+    enabled: validPair && process.env.KIVAI_ASAAS_RECURRING_SYNC === "true",
     key: process.env.ASAAS_API_KEY ?? "",
     webhookToken: process.env.ASAAS_WEBHOOK_TOKEN ?? "",
     base: environment === "production" ? "https://api.asaas.com/v3" : "https://api-sandbox.asaas.com/v3",
