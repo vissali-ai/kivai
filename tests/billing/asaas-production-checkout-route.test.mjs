@@ -164,7 +164,7 @@ test("test-only mode never exposes checkout to another account even with public-
     env();process.env.KIVAI_ASAAS_TEST_ONLY="true";process.env.KIVAI_ASAAS_TEST_USER_ID=user;
     const other=setup({userId:"99999999-9999-4999-8999-999999999999"});
     const url="https://www.kivai.com.br/api/billing/asaas/production-checkout";
-    assert.deepEqual(await (await other.GET(new Request(url))).json(),{enabled:false});
+    assert.deepEqual(await (await other.GET(new Request(url))).json(),{enabled:false,pilotOnly:false});
     assert.equal((await other.send()).status,403);
     assert.equal(other.calls.filter(s=>s.startsWith("rpc/")||s==="provider:POST").length,0);
     const selected=setup();
