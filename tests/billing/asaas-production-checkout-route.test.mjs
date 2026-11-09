@@ -168,7 +168,7 @@ test("test-only mode never exposes checkout to another account even with public-
     assert.equal((await other.send()).status,403);
     assert.equal(other.calls.filter(s=>s.startsWith("rpc/")||s==="provider:POST").length,0);
     const selected=setup();
-    assert.deepEqual(await (await selected.GET(new Request(url))).json(),{enabled:true});
+    assert.deepEqual(await (await selected.GET(new Request(url))).json(),{enabled:true,pilotOnly:true});
     assert.equal((await selected.send()).status,200);
     assert.equal(selected.calls.filter(s=>s==="provider:POST").length,1);
   }finally{restore();}
@@ -179,5 +179,16 @@ test("public sales require a separate explicit flag when test-only is off",async
     const x=setup();assert.deepEqual(await (await x.GET(new Request("https://www.kivai.com.br/api/billing/asaas/production-checkout"))).json(),{enabled:false});
     assert.equal((await x.send()).status,503);
     assert.deepEqual(x.calls,[]);
+  }finally{restore();}
+});
+
+test("test-only pilot refuses annual or Agency pricing before reservation or provider call",async()=>{
+  try{
+    env();process.env.KIVAI_ASAAS_TEST_ONLY="true";process.env.KIVAI_ASAAS_TEST_USER_ID=user;
+    for(const input of [{plan:"agency",billing:"monthly"},{plan:"pro",billing:"annual"},{plan:"agency",billing:"annual"}]){
+      const x=setup();
+      assert.equal((await x.send(input)).status,403);
+      assert.equal(x.calls.some(s=>s.startsWith("rpc/")||s==="provider:POST"),false);
+    }
   }finally{restore();}
 });
