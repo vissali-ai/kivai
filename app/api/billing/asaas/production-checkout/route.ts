@@ -105,7 +105,7 @@ export async function POST(request: Request) {
       amountBrl: Number(claim.expected_amount_brl),
       externalReference: claim.external_reference,
       nextDueDate: nextAsaasFirstDueDate(),
-      baseUrl: "https://kivai.com.br",
+      baseUrl: "https://www.kivai.com.br",
     });
     const checkout = await createAsaasProductionCheckout(payload);
     const finalized = await supabaseRest<Finalized>("rpc/kivai_finalize_asaas_checkout", {
