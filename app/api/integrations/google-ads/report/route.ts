@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { googleAdsCampaignReport, GoogleAdsConnectionError } from "@/lib/google-ads/oauth";
 
 export const runtime = "nodejs";

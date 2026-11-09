@@ -1,4 +1,4 @@
-import {authenticateBillingUser} from "@/lib/billing/sumup";
+import {authenticateBillingUser} from "@/lib/auth/authenticated-billing-user";
 import {supabaseRest,supabaseStorage} from "@/lib/blog/supabase";
 import {fetchTicket,isUuid,privateHeaders,sameOrigin,supportError,type SupportAttachment} from "@/lib/support/service";
 export const runtime="nodejs";

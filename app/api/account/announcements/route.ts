@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { listUserAnnouncements, readAnnouncement } from "@/lib/account/announcements";
 
 const noStore = { "Cache-Control": "private, no-store" };

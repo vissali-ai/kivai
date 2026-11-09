@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { reserveAiCredits, finalizeAiCredits } from "@/lib/ai/credits";
 import { reserveAiRequest } from "@/lib/ai/limits";
 import { getSocialEvidence, parseSocialLink } from "@/lib/ai/post-link";

@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { listGoogleAdsAccounts, GoogleAdsConnectionError } from "@/lib/google-ads/oauth";
 
 export const runtime = "nodejs";

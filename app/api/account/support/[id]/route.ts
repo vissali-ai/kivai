@@ -1,4 +1,4 @@
-import {authenticateBillingUser} from "@/lib/billing/sumup";
+import {authenticateBillingUser} from "@/lib/auth/authenticated-billing-user";
 import {supabaseRest} from "@/lib/blog/supabase";
 import {cleanText,fetchConversation,fetchTicket,logMessage,privateHeaders,readBody,sameOrigin,supportError,userTicket} from "@/lib/support/service";
 type Ctx={params:Promise<{id:string}>};

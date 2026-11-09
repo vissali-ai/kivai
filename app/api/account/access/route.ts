@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { getAccountAccess } from "@/lib/billing/access";
 export async function GET(request: Request) {
   try {

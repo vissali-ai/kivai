@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { confirmCreditCheckout } from "@/lib/ai/credit-purchases";
 export const runtime = "nodejs";
 export const maxDuration = 30;
