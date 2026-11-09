@@ -50,7 +50,7 @@ function setup({auth=true,existing=false,timeout=false,finalizeMismatch=false}={
     }},
     "@/lib/billing/asaas-first-due-date":{nextAsaasFirstDueDate:()=> "2026-11-09 15:05:00"},
     "@/lib/billing/asaas-checkout":{buildAsaasRecurringCheckout:input=>{
-      calls.push("payload");assert.equal(input.baseUrl,"https://kivai.com.br");
+      calls.push("payload");assert.equal(input.baseUrl,"https://www.kivai.com.br");
       assert.equal(input.amountBrl,19.9);assert.equal(input.externalReference,externalReference);
       assert.equal(input.nextDueDate,"2026-11-09 15:05:00");
       return {externalReference:input.externalReference};
