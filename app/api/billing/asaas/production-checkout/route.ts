@@ -34,15 +34,26 @@ function recurringProcessingConfigured(): boolean {
   return process.env.ASAAS_ENVIRONMENT === "production" &&
     process.env.KIVAI_ASAAS_RECURRING_SYNC === "true" &&
     process.env.KIVAI_ASAAS_PRODUCTION_LIFECYCLE === "true" &&
+    process.env.KIVAI_ASAAS_VERIFIED_AUTO_LINK === "true" &&
     (process.env.ASAAS_WEBHOOK_TOKEN ?? "").length >= 32;
 }
 
+function checkoutReady() {
+  return productionCheckoutConfigured() &&
+    process.env.KIVAI_ASAAS_PRODUCTION_ROUTE === "true" &&
+    recurringProcessingConfigured();
+}
+
+// Public readiness exposes no configuration values or API credentials.
+// The checkout remains inaccessible until all reconciliation gates pass.
+export async function GET() {
+  return Response.json({ enabled: checkoutReady() }, { headers });
+}
+
 export async function POST(request: Request) {
-  // All gates are server-only; neither a public UI nor any payment option links here.
-  // Require lifecycle and financial processing to be explicitly configured too.
-  if (!productionCheckoutConfigured() ||
-      process.env.KIVAI_ASAAS_PRODUCTION_ROUTE !== "true" ||
-      !recurringProcessingConfigured()) {
+  // The checkout remains disabled until both webhooks and verified auto-link
+  // are configured; redirects never grant entitlement.
+  if (!checkoutReady()) {
     return respond(503, "Checkout recorrente indisponível.");
   }
 
