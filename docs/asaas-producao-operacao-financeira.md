@@ -71,6 +71,9 @@ Acesse a conta Asaas de produção, em Webhooks, e confira **sem criar cobrança
 | `KIVAI_ASAAS_VERIFIED_AUTO_LINK=true` | Autorizar promoção de vínculo somente com eventos e API verificados |
 | `KIVAI_ASAAS_PRODUCTION_CHECKOUT=true` | Liberar transporte do Checkout API |
 | `KIVAI_ASAAS_PRODUCTION_ROUTE=true` | Liberar a rota para contratação a partir de `/planos` |
+| `KIVAI_ASAAS_RECONCILIATION=true` | Habilitar conciliação diária de cobranças anteriormente não vinculadas; só após validação dos webhooks |
+
+A rotina `GET /api/cron/asaas-reconcile` é autenticada por `CRON_SECRET`, já existente na Vercel; está agendada em `vercel.json` para 07:53 UTC diariamente, mas sem a flag `KIVAI_ASAAS_RECONCILIATION` não consulta banco nem Asaas. Processa no máximo 8 eventos de pagamento previamente marcados `manual_review` e revalida na API Asaas a cobrança e assinatura, exige checkout/assinatura reconciliados no banco e rejeita pagamentos vinculados a eventos de reembolso ou chargeback. Nunca cria cobranças ou checkouts. O ledger permanece idempotente, protegendo contra concorrência e duplicidades. Casos não resolvidos continuam em revisão manual.
 
 A rota `GET /api/billing/asaas/production-checkout` retorna apenas `{enabled:false}` enquanto faltar qualquer gate; a página de planos mantém o fluxo anterior e nunca recebe segredo. Habilitar as flags deve ser uma operação coordenada após a confirmação de webhooks e da política de faturamento, não durante testes de UI.
 
