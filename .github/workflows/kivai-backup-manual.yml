@@ -36,6 +36,29 @@ jobs:
             echo "::error::O secret de conexao deve ser uma URI PostgreSQL."
             exit 1
           fi
+          # Validate parsed URI before downloading PostgreSQL; never print credentials.
+          python3 - <<'PY'
+          import os
+          import sys
+          from urllib.parse import urlsplit
+          try:
+              url = urlsplit(os.environ["KIVAI_BACKUP_DB_URL"])
+              expected_user = "postgres.fphphknegwlgydwulehl"
+              if url.username != expected_user:
+                  raise ValueError("A URI do Session pooler nao usa o usuario correto. Confira o trecho entre '://' e ':' no secret KIVAI_BACKUP_DB_URL. Ele deve ser postgres.fphphknegwlgydwulehl, nao postgres.")
+              if not url.password or url.password == "[YOUR-PASSWORD]":
+                  raise ValueError("A URI nao possui senha de banco configurada.")
+              if not url.hostname or not url.hostname.endswith(".pooler.supabase.com"):
+                  raise ValueError("Use a URI do metodo Session pooler do Supabase.")
+              if url.port != 5432:
+                  raise ValueError("Session pooler precisa usar a porta 5432.")
+              if url.path != "/postgres":
+                  raise ValueError("A URI deve apontar para o banco postgres.")
+          except (ValueError, KeyError) as exc:
+              print(f"::error::{exc}", file=sys.stderr)
+              sys.exit(1)
+          print("Estrutura do secret PostgreSQL validada sem exibir credenciais.")
+          PY
           umask 077
           TEMP_BACKUP_DIR="$(mktemp -d)"
           trap 'rm -rf "$TEMP_BACKUP_DIR"' EXIT
