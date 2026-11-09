@@ -59,6 +59,7 @@ export default async function AdminSubscriptionsPage() {
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Assinaturas</p>
         <h1 className="mt-2 text-3xl font-semibold">Pagamentos e ativações</h1>
+        <Link href="/admin/assinaturas/mudancas" className="mt-3 inline-flex min-h-10 items-center rounded-md border border-border px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5">Solicitações de mudanças de plano</Link>
         {isAsaasSyncConfigured() ? <Link href="/admin/assinaturas/recorrencia" className="mt-3 inline-flex min-h-10 items-center rounded-md border border-border px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5">Conferir recorrências Asaas</Link> : null}
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Confira o pagamento recebido e confirme a ativação por aqui. Perfil, assinatura e solicitação são atualizados juntos. Uma falha no e-mail não desfaz a ativação; a comunicação fica disponível para nova tentativa. Na renovação do mesmo plano, o período é somado ao vencimento atual. Na troca entre Pro e Agency, o novo período começa na confirmação.</p>
       </header>

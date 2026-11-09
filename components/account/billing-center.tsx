@@ -31,6 +31,7 @@ type Overview = {
   } | null;
   creditOrders: Order[];
   planRequests: Request[];
+  changeRequests: Array<{ id: string; action: string; state: string; requested_at: string; target_plan: string; target_cycle: string | null }>;
   recurringManagementReady: boolean;
   servicesBillingReady: boolean;
 };
@@ -48,6 +49,8 @@ export function BillingCenter() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [working, setWorking] = useState(false);
+  const [notice, setNotice] = useState("");
   useEffect(() => {
     const controller = new AbortController();
     const session = getStoredSession();
@@ -72,6 +75,31 @@ export function BillingCenter() {
 
   if (loading) return <p role="status" className="text-sm text-muted-foreground">Carregando cobranças...</p>;
   if (error || !overview) return <p role="alert" className="text-sm text-destructive">{error || "Dados indisponíveis."}</p>;
+
+  async function requestChange(action: "cancel_renewal" | "upgrade" | "downgrade" | "change_cycle", targetCycle?: "monthly" | "annual") {
+    if (working || !overview) return;
+    const label = action === "cancel_renewal" ? "solicitar o cancelamento da renovação" : action === "upgrade" ? "solicitar upgrade para Agency" : action === "downgrade" ? "solicitar downgrade para Pro" : "solicitar a mudança da periodicidade";
+    if (!window.confirm(`Deseja ${label}? Isto abre uma solicitação para análise. NÃO interrompe nem altera a cobrança no provedor neste momento.`)) return;
+    const session = getStoredSession();
+    if (!session?.access_token) { setNotice("Faça login novamente."); return; }
+    setWorking(true); setNotice("");
+    try {
+      const response = await fetch("/api/account/subscription-change", {
+        method: "POST", cache: "no-store",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action, ...(targetCycle ? { targetCycle } : {}) }),
+      });
+      const data = await response.json() as { message?: string; error?: string };
+      if (!response.ok) throw Error(data.error || "Solicitação indisponível.");
+      setNotice(data.message || "Solicitação registrada, aguardando análise.");
+      const refreshed = await fetch("/api/account/billing-overview",{
+        headers: { Authorization: `Bearer ${session.access_token}` },cache:"no-store",
+      });
+      if (refreshed.ok) setOverview(await refreshed.json() as Overview);
+    } catch(error) {
+      setNotice(error instanceof Error ? error.message : "Falha ao registrar solicitação.");
+    } finally { setWorking(false); }
+  }
 
   const period = overview.subscription?.billing_cycle === "annual" ? "Anual" :
     overview.subscription?.billing_cycle === "monthly" ? "Mensal" : "Não informado";
@@ -98,9 +126,22 @@ export function BillingCenter() {
             : "Seu plano atual foi registrado por um fluxo anterior. Não presuma que a cobrança recorrente foi cancelada ao mudar de plano no site."}</p>
       <div className="flex flex-wrap gap-3">
         <Link href="/planos" className="inline-flex min-h-10 items-center bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Ver opções de plano</Link>
-        <Link href="/conta/atendimento" className="inline-flex min-h-10 items-center border border-border px-4 py-2 text-sm font-medium">Solicitar upgrade, downgrade ou cancelamento</Link>
+        {overview.plan === "pro" && !overview.subscription?.test_access && <button type="button" disabled={working} onClick={() => void requestChange("upgrade")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar upgrade para Agency</button>}
+        {overview.plan === "agency" && !overview.subscription?.test_access && <button type="button" disabled={working} onClick={() => void requestChange("downgrade")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar downgrade para Pro</button>}
+        {overview.plan !== "free" && !overview.subscription?.test_access && <>
+          <button type="button" disabled={working} onClick={() => void requestChange("cancel_renewal")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar cancelamento da renovação</button>
+          <button type="button" disabled={working || !["monthly","annual"].includes(overview.subscription?.billing_cycle ?? "")} onClick={() => void requestChange("change_cycle", overview.subscription?.billing_cycle === "monthly" ? "annual" : "monthly")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar mudança para {period === "Mensal" ? "anual" : "mensal"}</button>
+        </>}
+        <Link href="/conta/atendimento" className="inline-flex min-h-10 items-center border border-border px-4 py-2 text-sm font-medium">Falar com atendimento</Link>
       </div>
-      <p className="text-xs text-muted-foreground">O autoatendimento financeiro ainda está em desenvolvimento. Uma solicitação ao suporte não cancela automaticamente cobranças no provedor.</p>
+      {notice && <p role="status" className="text-sm font-medium">{notice}</p>}
+      {(overview.changeRequests?.length ?? 0) > 0 && <div className="space-y-2 text-sm">
+        <h3 className="font-semibold">Solicitações recentes</h3>
+        <ul className="space-y-1">
+          {overview.changeRequests.slice(0,5).map(item => <li key={item.id}>{date(item.requested_at)} · {item.action === "cancel_renewal" ? "Cancelar renovação" : item.action === "upgrade" ? "Upgrade" : item.action === "downgrade" ? "Downgrade" : "Alterar periodicidade"} · {item.state === "pending_review" ? "Aguardando análise" : item.state === "completed" ? "Concluída" : item.state === "rejected" ? "Não aprovada" : "Em processamento"}</li>)}
+        </ul>
+      </div>}
+      <p className="text-xs text-muted-foreground">Estas ações apenas registram solicitações. A cobrança no provedor NÃO é cancelada nem alterada automaticamente. O cancelamento só estará confirmado após a operação financeira e a atualização do status da solicitação.</p>
     </section>
     <section className="space-y-4 border border-border bg-card p-5 sm:p-7" aria-labelledby="billing-credits-title">
       <h2 id="billing-credits-title" className="text-xl font-semibold">Créditos de IA: compras avulsas</h2>
