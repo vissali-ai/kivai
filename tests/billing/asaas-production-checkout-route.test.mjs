@@ -11,7 +11,8 @@ const externalReference = "kivai_asaas_" + id;
 const keys = ["VERCEL_ENV","ASAAS_ENVIRONMENT","KIVAI_ASAAS_PRODUCTION_CHECKOUT",
               "KIVAI_ASAAS_PRODUCTION_ROUTE","ASAAS_API_KEY",
               "KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN",
-              "KIVAI_ASAAS_VERIFIED_AUTO_LINK"];
+              "KIVAI_ASAAS_VERIFIED_AUTO_LINK","KIVAI_ASAAS_TEST_ONLY",
+              "KIVAI_ASAAS_TEST_USER_ID","KIVAI_ASAAS_PUBLIC_SALES"];
 const original = Object.fromEntries(keys.map(k=>[k,process.env[k]]));
 
 function env(enabled=true) {
@@ -24,13 +25,16 @@ function env(enabled=true) {
   process.env.KIVAI_ASAAS_VERIFIED_AUTO_LINK="true";
   process.env.ASAAS_WEBHOOK_TOKEN="placeholder-long-webhook-token-for-tests";
   process.env.ASAAS_API_KEY="placeholder-key-for-testing-only";
+  process.env.KIVAI_ASAAS_PUBLIC_SALES="true";
+  delete process.env.KIVAI_ASAAS_TEST_ONLY;
+  delete process.env.KIVAI_ASAAS_TEST_USER_ID;
 }
 function restore(){for(const key of keys) original[key]===undefined?delete process.env[key]:process.env[key]=original[key];}
-function setup({auth=true,existing=false,timeout=false,finalizeMismatch=false}={}) {
+function setup({auth=true,existing=false,timeout=false,finalizeMismatch=false,userId=user}={}) {
   const calls = [];
   const mocks = {
     "@/lib/auth/authenticated-billing-user":{authenticateBillingUser:async()=>{
-      calls.push("auth");if(!auth)throw Error("unauthorized");return{id:user};
+      calls.push("auth");if(!auth)throw Error("unauthorized");return{id:userId};
     }},
     "@/lib/blog/supabase":{supabaseRest:async(path,options)=>{
       calls.push(path);
@@ -140,6 +144,40 @@ test("GET readiness exposes a single boolean, and never authenticates or contact
     assert.deepEqual(x.calls,[]);
     delete process.env.KIVAI_ASAAS_VERIFIED_AUTO_LINK;
     assert.deepEqual(await (await x.GET()).json(),{enabled:false});
+    assert.deepEqual(x.calls,[]);
+  }finally{restore();}
+});
+
+test("test-only mode remains disabled until a valid allowlisted account ID is provided",async()=>{
+  try{
+    env();process.env.KIVAI_ASAAS_TEST_ONLY="true";
+    let x=setup();assert.deepEqual(await (await x.GET(new Request("https://www.kivai.com.br/api/billing/asaas/production-checkout"))).json(),{enabled:false});
+    assert.equal((await x.send()).status,503);
+    assert.deepEqual(x.calls,[]);
+    process.env.KIVAI_ASAAS_TEST_USER_ID="invalid";
+    x=setup();assert.equal((await x.send()).status,503);
+    assert.deepEqual(x.calls,[]);
+  }finally{restore();}
+});
+test("test-only mode never exposes checkout to another account even with public-sales flag",async()=>{
+  try{
+    env();process.env.KIVAI_ASAAS_TEST_ONLY="true";process.env.KIVAI_ASAAS_TEST_USER_ID=user;
+    const other=setup({userId:"99999999-9999-4999-8999-999999999999"});
+    const url="https://www.kivai.com.br/api/billing/asaas/production-checkout";
+    assert.deepEqual(await (await other.GET(new Request(url))).json(),{enabled:false});
+    assert.equal((await other.send()).status,403);
+    assert.equal(other.calls.filter(s=>s.startsWith("rpc/")||s==="provider:POST").length,0);
+    const selected=setup();
+    assert.deepEqual(await (await selected.GET(new Request(url))).json(),{enabled:true});
+    assert.equal((await selected.send()).status,200);
+    assert.equal(selected.calls.filter(s=>s==="provider:POST").length,1);
+  }finally{restore();}
+});
+test("public sales require a separate explicit flag when test-only is off",async()=>{
+  try{
+    env();delete process.env.KIVAI_ASAAS_PUBLIC_SALES;
+    const x=setup();assert.deepEqual(await (await x.GET(new Request("https://www.kivai.com.br/api/billing/asaas/production-checkout"))).json(),{enabled:false});
+    assert.equal((await x.send()).status,503);
     assert.deepEqual(x.calls,[]);
   }finally{restore();}
 });
