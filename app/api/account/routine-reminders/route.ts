@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { defaultReminder, validReminderTimezone, type ReminderPreference } from "@/lib/account/routine-reminder-options";
 import { getVapidPublicKey, isPushConfigured, validPushEndpoint } from "@/lib/pwa/web-push";
