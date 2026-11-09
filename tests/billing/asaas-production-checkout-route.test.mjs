@@ -9,7 +9,8 @@ const user = "11111111-1111-4111-8111-111111111111";
 const id = "22222222-2222-4222-8222-222222222222";
 const externalReference = "kivai_asaas_" + id;
 const keys = ["VERCEL_ENV","ASAAS_ENVIRONMENT","KIVAI_ASAAS_PRODUCTION_CHECKOUT",
-              "KIVAI_ASAAS_PRODUCTION_ROUTE","ASAAS_API_KEY"];
+              "KIVAI_ASAAS_PRODUCTION_ROUTE","ASAAS_API_KEY",
+              "KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN"];
 const original = Object.fromEntries(keys.map(k=>[k,process.env[k]]));
 
 function env(enabled=true) {
@@ -17,6 +18,9 @@ function env(enabled=true) {
   process.env.ASAAS_ENVIRONMENT="production";
   process.env.KIVAI_ASAAS_PRODUCTION_CHECKOUT="true";
   process.env.KIVAI_ASAAS_PRODUCTION_ROUTE=enabled?"true":"false";
+  process.env.KIVAI_ASAAS_RECURRING_SYNC="true";
+  process.env.KIVAI_ASAAS_PRODUCTION_LIFECYCLE="true";
+  process.env.ASAAS_WEBHOOK_TOKEN="placeholder-long-webhook-token-for-tests";
   process.env.ASAAS_API_KEY="placeholder-key-for-testing-only";
 }
 function restore(){for(const key of keys) original[key]===undefined?delete process.env[key]:process.env[key]=original[key];}
@@ -75,6 +79,16 @@ test("disabled route never even authenticates or contacts provider",async()=>{
     env(true);process.env.VERCEL_ENV="preview";x=setup();
     assert.equal((await x.send()).status,503);assert.deepEqual(x.calls,[]);
   }finally{restore();}
+});
+test("unconfigured lifecycle or financial webhook cannot start production checkout",async()=>{
+  try {
+    for (const missing of ["KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN"]) {
+      env();delete process.env[missing];
+      const x=setup();
+      assert.equal((await x.send()).status,503);
+      assert.deepEqual(x.calls,[]);
+    }
+  } finally {restore();}
 });
 test("unauthorized user cannot reserve checkout",async()=>{
   try{env();const x=setup({auth:false});assert.equal((await x.send()).status,401);
