@@ -42,7 +42,7 @@ export async function createAsaasProductionCheckout(
   }
   for (const value of [payload.callback.successUrl, payload.callback.cancelUrl, payload.callback.expiredUrl]) {
     const callback = new URL(value);
-    if (callback.protocol !== "https:" || callback.hostname !== "kivai.com.br" ||
+    if (callback.protocol !== "https:" || callback.hostname !== "www.kivai.com.br" ||
         callback.username || callback.password) throw Error("INVALID_PRODUCTION_CALLBACK");
   }
   // Sem retry automático: timeout de criação exige conciliação manual por externalReference.
