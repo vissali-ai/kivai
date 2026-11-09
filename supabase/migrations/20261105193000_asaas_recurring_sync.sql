@@ -94,7 +94,7 @@ begin
     from public.user_subscriptions active_sub
     where active_sub.user_id = v_link.user_id
       and active_sub.status = 'active'
-      and active_sub.current_period_end > now()
+      and (active_sub.current_period_end is null or active_sub.current_period_end > now())
       and (
         coalesce(active_sub.provider, '') <> 'asaas'
         or active_sub.provider_subscription_id is distinct from p_subscription_id
