@@ -1,0 +1,120 @@
+name: Kivai - teste isolado de recuperacao do backup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kivai-restore-check
+  cancel-in-progress: false
+
+jobs:
+  recovery-check:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Descriptografar ultimo backup e restaurar dados criticos em PostgreSQL temporario
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          KIVAI_BACKUP_PASSPHRASE: ${{ secrets.KIVAI_BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          set +x
+          if [[ ${#KIVAI_BACKUP_PASSPHRASE} -lt 32 ]]; then
+            echo "::error::A senha de criptografia nao foi configurada."
+            exit 1
+          fi
+          TEMP_DIR="$(mktemp -d)"
+          CONTAINER="kivai-recovery-check-${GITHUB_RUN_ID}"
+          cleanup() {
+            docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+            rm -rf "$TEMP_DIR"
+          }
+          trap cleanup EXIT
+          umask 077
+
+          RUN_ID="$(gh run list --workflow kivai-backup-manual.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          if [[ -z "$RUN_ID" ]]; then
+            echo "::error::Nenhum backup concluido foi encontrado."
+            exit 1
+          fi
+          mkdir -p "$TEMP_DIR/encrypted"
+          if ! gh run download "$RUN_ID" -n kivai-supabase-backup-criptografado -D "$TEMP_DIR/encrypted"; then
+            echo "::error::Artefato indisponivel (retencao de 1 dia). Execute novo backup manual e tente novamente."
+            exit 1
+          fi
+          (
+            cd "$TEMP_DIR"
+            sha256sum --status -c encrypted/*.sha256
+          )
+          shopt -s nullglob
+          files=("$TEMP_DIR"/encrypted/*.dump.gpg)
+          if [[ "${#files[@]}" -ne 1 ]]; then
+            echo "::error::Esperado um arquivo .dump.gpg no artefato."
+            exit 1
+          fi
+          printf '%s\n' "$KIVAI_BACKUP_PASSPHRASE" |
+            gpg --batch --yes --quiet --pinentry-mode loopback --passphrase-fd 0 \
+              --decrypt "${files[0]}" > "$TEMP_DIR/database.dump"
+          test -s "$TEMP_DIR/database.dump"
+
+          docker run --rm -d --name "$CONTAINER" \
+            --network none -e POSTGRES_PASSWORD="$(openssl rand -hex 24)" \
+            postgres:17 > /dev/null
+          ready=0
+          for i in $(seq 1 45); do
+            if docker exec "$CONTAINER" pg_isready -q -U postgres; then ready=1; break; fi
+            sleep 1
+          done
+          if [[ "$ready" != 1 ]]; then
+            echo "::error::O banco temporario nao iniciou."
+            exit 1
+          fi
+          docker cp "$TEMP_DIR/database.dump" "$CONTAINER":/tmp/database.dump
+          docker exec "$CONTAINER" pg_restore --list /tmp/database.dump > /dev/null
+
+          # Restauracao real, mas PARCIAL: copia linhas de tabelas criticas em
+          # tabelas temporarias com colunas TEXT. Nao equivale a restore integral.
+          docker exec "$CONTAINER" pg_restore --data-only \
+            --table=user_subscriptions --table=user_profiles --table=customer_marketing_events \
+            --file=/tmp/recovery-data.sql /tmp/database.dump
+          docker cp "$CONTAINER":/tmp/recovery-data.sql "$TEMP_DIR/recovery-data.sql"
+
+          python3 - "$TEMP_DIR/recovery-data.sql" "$TEMP_DIR/schema.sql" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+          source = Path(sys.argv[1]).read_text()
+          allowed = {"user_subscriptions", "user_profiles", "customer_marketing_events"}
+          matches = re.findall(r"^COPY public\.([a-z_]+) \(([^)]+)\) FROM stdin;$", source, re.M)
+          found = set()
+          ddl = []
+          for table, columns in matches:
+              if table not in allowed:
+                  raise RuntimeError("Unexpected table in backup")
+              names = [col.strip() for col in columns.split(",")]
+              if any(not re.fullmatch(r"[a-z_][a-z0-9_]*", name) for name in names):
+                  raise RuntimeError("Unexpected column name")
+              if table in found:
+                  raise RuntimeError("Duplicate COPY for table")
+              found.add(table)
+              ddl.append("CREATE TABLE public." + table + " (" +
+                         ", ".join(name + " text" for name in names) + ");")
+          if found != allowed:
+              raise RuntimeError("Critical table data sections missing in backup: " + ",".join(sorted(allowed - found)))
+          Path(sys.argv[2]).write_text("\n".join(ddl) + "\n")
+          PY
+          docker cp "$TEMP_DIR/schema.sql" "$CONTAINER":/tmp/schema.sql
+          docker exec "$CONTAINER" psql -X -q -v ON_ERROR_STOP=1 -U postgres -d postgres -f /tmp/schema.sql > /dev/null
+          docker exec "$CONTAINER" psql -X -q -v ON_ERROR_STOP=1 -U postgres -d postgres -f /tmp/recovery-data.sql > /dev/null
+          docker exec "$CONTAINER" psql -X -qAt -v ON_ERROR_STOP=1 -U postgres -d postgres -c \
+            "SELECT 'user_subscriptions',count(*) FROM public.user_subscriptions
+             UNION ALL SELECT 'user_profiles',count(*) FROM public.user_profiles
+             UNION ALL SELECT 'customer_marketing_events',count(*) FROM public.customer_marketing_events"
+          echo "Teste PARCIAL de recuperacao de dados concluido em banco temporario sem acesso a rede."
