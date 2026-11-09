@@ -19,7 +19,7 @@ export function buildAsaasRecurringCheckout(input: Input) {
   if (!["pro", "agency"].includes(input.plan)) throw new Error("INVALID_PLAN");
   if (!["monthly", "annual"].includes(input.billing)) throw new Error("INVALID_CYCLE");
   if (!Number.isFinite(input.amountBrl) || input.amountBrl <= 0 ||
-      Math.round(input.amountBrl * 100) !== input.amountBrl * 100) {
+      Math.abs(Math.round(input.amountBrl * 100) - input.amountBrl * 100) > 1e-7) {
     throw new Error("INVALID_AMOUNT");
   }
   if (!/^[a-zA-Z0-9_-]{8,120}$/.test(input.externalReference)) throw new Error("INVALID_REFERENCE");
