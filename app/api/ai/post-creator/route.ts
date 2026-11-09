@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { reserveAiCredits, finalizeAiCredits } from "@/lib/ai/credits";
 import { reserveAiRequest } from "@/lib/ai/limits";
 import { requestGeminiJsonParts } from "@/lib/ai/gemini";
