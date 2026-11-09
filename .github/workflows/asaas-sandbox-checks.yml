@@ -28,3 +28,27 @@ jobs:
         run: npm run test:billing
       - name: Validate TypeScript without production secrets
         run: npx tsc --noEmit --incremental false
+
+  next-build-no-secrets:
+    name: Next.js build (no production credentials)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      VERCEL_ENV: "preview"
+      ASAAS_ENVIRONMENT: "sandbox"
+      KIVAI_ASAAS_PRODUCTION_CHECKOUT: "false"
+      KIVAI_ASAAS_PRODUCTION_ROUTE: "false"
+      KIVAI_ASAAS_PRODUCTION_LIFECYCLE: "false"
+      KIVAI_ASAAS_RECURRING_SYNC: "false"
+      KIVAI_ASAAS_VERIFIED_AUTO_LINK: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install project dependencies
+        run: npm ci
+      - name: Compile Next.js without financial credentials
+        run: npm run build
