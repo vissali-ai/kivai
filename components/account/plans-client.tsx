@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, Crown, ExternalLink, Loader2, ShieldCheck, UsersRound, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
@@ -99,6 +99,16 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
   const displayPlans = plans.map(plan => { const features = String(fields.find(f => f.key === `${plan.code}-features`)?.value ?? planBenefits[plan.code].join("\n")).split("\n").filter(Boolean); const hostingBenefit = planBenefits[plan.code].find(feature => feature.includes("Hospedagem de")); if (hostingBenefit) { const existingIndex = features.findIndex(feature => feature.includes("Hospedagem de")); if (existingIndex >= 0) features[existingIndex] = hostingBenefit; else features.push(hostingBenefit); } return { ...plan, description: String(fields.find(f => f.key === `${plan.code}-description`)?.value ?? plan.description), features }; });
   const [starting, setStarting] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [asaasEnabled, setAsaasEnabled] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/billing/asaas/production-checkout", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => response.ok ? await response.json() as { enabled?: boolean } : null)
+      .then((config) => { if (!controller.signal.aborted) setAsaasEnabled(config?.enabled === true); })
+      .catch(() => { if (!controller.signal.aborted) setAsaasEnabled(false); });
+    return () => controller.abort();
+  }, []);
 
 
   async function startExternalPayment(plan: PaidPlanCode, billing: BillingCycle) {
@@ -112,13 +122,26 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
     setStarting(key);
     setError("");
     try {
-      const response = await fetch("/api/account/subscription-request", {
+      // Asaas is offered only to free accounts after all server gates pass.
+      // Existing plans continue to use the original manual renewal process.
+      const useAsaas = asaasEnabled && currentPlan === "free";
+      const response = await fetch(useAsaas
+        ? "/api/billing/asaas/production-checkout"
+        : "/api/account/subscription-request", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ plan, billing }),
       });
-      const data = await response.json() as { error?: string; paymentLink?: string };
-      if (!response.ok || !data.paymentLink) throw new Error(data.error || "Não foi possível registrar sua solicitação de contratação.");
+      const data = await response.json() as { error?: string; paymentLink?: string; checkoutUrl?: string };
+      if (!response.ok) throw new Error(data.error || "Não foi possível iniciar a contratação.");
+      if (useAsaas) {
+        if (!data.checkoutUrl || !/^https:\/\/asaas\.com\/checkoutSession\/show\?id=/.test(data.checkoutUrl)) {
+          throw new Error("Checkout indisponível. Nenhuma nova tentativa será iniciada automaticamente.");
+        }
+        window.location.assign(data.checkoutUrl);
+        return;
+      }
+      if (!data.paymentLink) throw new Error("Não foi possível registrar sua solicitação de contratação.");
       window.open(data.paymentLink, "_blank", "noopener,noreferrer");
       window.setTimeout(() => router.push("/conta?pagamento=pendente"), 350);
     } catch (err) {
@@ -138,7 +161,7 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
         {isCurrent ? <div className="flex min-h-10 w-full items-center justify-center border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">Este é o seu plano atual</div> : null}
         <Button className="h-12 w-full" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "monthly")}>{starting === `${plan.code}-monthly` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar mensal" : "Contratar mensal"}</Button>
         <Button variant="outline" className="h-12 w-full border-primary/30 text-primary" disabled={starting !== null} onClick={() => startExternalPayment(plan.code as PaidPlanCode, "annual")}>{starting === `${plan.code}-annual` ? <Loader2 className="animate-spin" /> : <ExternalLink />} {isCurrent ? "Renovar anual" : "Contratar anual"}</Button>
-        <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">Antes de abrir o serviço de pagamento, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento pelo administrador.</p>
+        <p className="pt-1 text-center text-xs leading-5 text-muted-foreground">{asaasEnabled && currentPlan === "free" ? "Pagamento recorrente no cartão em ambiente seguro do Asaas. A ativação ocorre somente após a confirmação financeira, não pelo redirecionamento." : "Antes de abrir o serviço de pagamento, o Kivai registra a solicitação no seu painel. A ativação acontece depois da confirmação do pagamento pelo administrador."}</p>
       </div>
     );
   }
