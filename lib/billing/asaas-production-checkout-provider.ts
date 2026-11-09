@@ -2,8 +2,9 @@ import "server-only";
 
 /**
  * Preparação do transporte de Checkout recorrente Asaas em produção.
- * Este módulo NÃO está conectado a nenhuma rota pública.
- * Somente habilitar depois de auditar as migrations, webhooks e contratos legados.
+ * Chamado somente pela rota autenticada de produção, que exige flags
+ * independentes para checkout, lifecycle, sincronização e vinculação.
+ * Nenhum redirect é confirmação financeira.
  */
 type CheckoutPayload = {
   billingTypes: string[];
@@ -32,6 +33,7 @@ export async function createAsaasProductionCheckout(
       payload.billingTypes.length !== 1 || payload.billingTypes[0] !== "CREDIT_CARD" ||
       !/^kivai_asaas_[0-9a-f-]{36}$/.test(payload.externalReference) ||
       !["MONTHLY", "YEARLY"].includes(payload.subscription.cycle) ||
+      !/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/.test(payload.subscription.nextDueDate) ||
       !Number.isInteger(payload.minutesToExpire) || payload.minutesToExpire < 10 ||
       payload.minutesToExpire > 1440 ||
       payload.items.length !== 1 || payload.items[0].quantity !== 1 ||
