@@ -1,6 +1,7 @@
 import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { buildAsaasRecurringCheckout } from "@/lib/billing/asaas-checkout";
+import { nextAsaasFirstDueDate } from "@/lib/billing/asaas-first-due-date";
 import {
   createAsaasProductionCheckout,
   productionCheckoutConfigured,
@@ -27,12 +28,6 @@ type Finalized = { id: string; provider_checkout_id: string; state: string };
 function respond(status: number, error: string) {
   return Response.json({ error }, { status, headers });
 }
-function dueDate(): string {
-  // TODO: Agree and verify the first-payment date and intended timezone before enabling.
-  // The current delay of 24h is retained pending an explicit billing policy.
-  return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace("T", " ");
-}
-
 function recurringProcessingConfigured(): boolean {
   // Configuration gates do not prove a provider webhook was actually registered.
   // This prevents creating a recurring contract with both processing paths off.
@@ -98,7 +93,7 @@ export async function POST(request: Request) {
       billing: claim.billing_cycle,
       amountBrl: Number(claim.expected_amount_brl),
       externalReference: claim.external_reference,
-      nextDueDate: dueDate(),
+      nextDueDate: nextAsaasFirstDueDate(),
       baseUrl: "https://kivai.com.br",
     });
     const checkout = await createAsaasProductionCheckout(payload);
