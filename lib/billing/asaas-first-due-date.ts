@@ -1,7 +1,7 @@
 /**
  * First recurring-payment due date for a Brazilian Asaas Checkout.
  *
- * Target a near-immediate due date rather than imposing a 24-hour delay.
+ * Avoid a due date that falls before a payer can complete a valid checkout.
  * A due date is NOT proof of payment. Access remains pending until the
  * verified financial payment webhook applies the paid charge.
  *
@@ -10,9 +10,10 @@
  */
 export function nextAsaasFirstDueDate(now: Date = new Date()): string {
   if (Number.isNaN(now.getTime())) throw Error("ASAAS_INVALID_CURRENT_TIME");
-  // A short buffer prevents a timestamp that is already in the past when
-  // checkout creation and card verification complete.
-  const due = new Date(now.getTime() + 5 * 60 * 1000);
+  // The checkout remains valid for 60 minutes. Keep the first due date
+  // 10 minutes beyond that window so a valid completion never has an
+  // already elapsed first due date. Commercial timing still needs approval.
+  const due = new Date(now.getTime() + 70 * 60 * 1000);
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Sao_Paulo",
     year: "numeric", month: "2-digit", day: "2-digit",
