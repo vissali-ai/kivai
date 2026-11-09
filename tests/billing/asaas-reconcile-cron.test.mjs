@@ -72,9 +72,9 @@ function setup({status="CONFIRMED",value=19.9,linked=true,paid=true,entries=1}={
 test("Cron stays disabled by default and never queries database",async()=>{
   try{
     enable();delete process.env.KIVAI_ASAAS_RECONCILIATION;
-    const x=setup();assert.equal((await x.send()).status,503);assert.equal(x.calls.length,0);
+    const x=setup();assert.deepEqual(await (await x.send()).json(),{enabled:false,checked:0});assert.equal(x.calls.length,0);
     enable();process.env.VERCEL_ENV="preview";
-    assert.equal((await x.send()).status,503);assert.equal(x.calls.length,0);
+    assert.deepEqual(await (await x.send()).json(),{enabled:false,checked:0});assert.equal(x.calls.length,0);
   }finally{restore();}
 });
 test("Cron requires bearer auth and cannot process unauthenticated requests",async()=>{
