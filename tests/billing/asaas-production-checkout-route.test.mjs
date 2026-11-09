@@ -46,9 +46,11 @@ function setup({auth=true,existing=false,timeout=false,finalizeMismatch=false}={
       };
       throw Error("unknown rpc");
     }},
+    "@/lib/billing/asaas-first-due-date":{nextAsaasFirstDueDate:()=> "2026-11-09 15:05:00"},
     "@/lib/billing/asaas-checkout":{buildAsaasRecurringCheckout:input=>{
       calls.push("payload");assert.equal(input.baseUrl,"https://kivai.com.br");
       assert.equal(input.amountBrl,19.9);assert.equal(input.externalReference,externalReference);
+      assert.equal(input.nextDueDate,"2026-11-09 15:05:00");
       return {externalReference:input.externalReference};
     }},
     "@/lib/billing/asaas-production-checkout-provider":{
