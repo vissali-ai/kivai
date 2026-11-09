@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { getRateableTool } from "@/lib/tool-ratings";
 import { getToolRatingSummary } from "@/lib/tool-ratings";
