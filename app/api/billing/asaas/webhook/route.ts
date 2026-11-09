@@ -1,4 +1,4 @@
-import { asaasGet, isAsaasSyncConfigured, matchesAsaasWebhookToken, type AsaasPayment } from "@/lib/billing/asaas";
+import { asaasGet, isAsaasSyncConfigured, matchesAsaasWebhookToken, type AsaasPayment, type AsaasSubscription } from "@/lib/billing/asaas";
 import { supabaseRest } from "@/lib/blog/supabase";
 
 export const runtime = "nodejs";
@@ -89,9 +89,50 @@ export async function POST(request: Request) {
       await markEvent(id, "manual_review", "Cobrança sem assinatura de origem.");
       return reply(200, "Evento recebido para conferência.");
     }
-    const links = await supabaseRest<ProviderLink[]>(
+    let links = await supabaseRest<ProviderLink[]>(
       `kivai_recurring_provider_links?select=provider_subscription_id,state,expected_amount_brl,plan_code,billing_cycle&provider_subscription_id=eq.${encodeURIComponent(verified.subscription)}&state=eq.active&limit=1`
     );
+
+    // Vincula uma assinatura ainda não cadastrada somente quando os eventos
+    // CHECKOUT_PAID e SUBSCRIPTION_CREATED já foram conciliados no banco,
+    // e a API oficial confirmar a referência, cliente, ciclo, meio e valor.
+    if (!links[0] && process.env.KIVAI_ASAAS_VERIFIED_AUTO_LINK === "true") {
+      try {
+        const subscription = await asaasGet<AsaasSubscription>(`/subscriptions/${verified.subscription}`);
+        if (
+          subscription.id === verified.subscription &&
+          subscription.status === "ACTIVE" &&
+          subscription.billingType === "CREDIT_CARD" &&
+          typeof subscription.customer === "string" &&
+          /^cus_[a-zA-Z0-9_-]{4,120}$/.test(subscription.customer) &&
+          typeof subscription.externalReference === "string" &&
+          /^kivai_asaas_[0-9a-f-]{36}$/.test(subscription.externalReference) &&
+          ["MONTHLY", "YEARLY"].includes(subscription.cycle) &&
+          Number.isFinite(subscription.value) &&
+          Number(subscription.value).toFixed(2) === Number(verified.value).toFixed(2)
+        ) {
+          const result = await supabaseRest<{ linked: boolean }>(
+            "rpc/kivai_promote_asaas_verified_subscription", {
+              method: "POST",
+              body: JSON.stringify({
+                p_external_reference: subscription.externalReference,
+                p_subscription_id: subscription.id,
+                p_customer_id: subscription.customer,
+                p_amount_brl: subscription.value,
+                p_cycle: subscription.cycle,
+              }),
+            }
+          );
+          if (result.linked) {
+            links = await supabaseRest<ProviderLink[]>(
+              `kivai_recurring_provider_links?select=provider_subscription_id,state,expected_amount_brl,plan_code,billing_cycle&provider_subscription_id=eq.${encodeURIComponent(verified.subscription)}&state=eq.active&limit=1`
+            );
+          }
+        }
+      } catch {
+        console.error("asaas_verified_link_requires_review");
+      }
+    }
     if (!links[0]) {
       await markEvent(id, "manual_review", "Assinatura sem vínculo de usuário aprovado.");
       return reply(200, "Evento recebido para conferência.");
