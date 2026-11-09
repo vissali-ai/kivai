@@ -10,7 +10,8 @@ const id = "22222222-2222-4222-8222-222222222222";
 const externalReference = "kivai_asaas_" + id;
 const keys = ["VERCEL_ENV","ASAAS_ENVIRONMENT","KIVAI_ASAAS_PRODUCTION_CHECKOUT",
               "KIVAI_ASAAS_PRODUCTION_ROUTE","ASAAS_API_KEY",
-              "KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN"];
+              "KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN",
+              "KIVAI_ASAAS_VERIFIED_AUTO_LINK"];
 const original = Object.fromEntries(keys.map(k=>[k,process.env[k]]));
 
 function env(enabled=true) {
@@ -20,6 +21,7 @@ function env(enabled=true) {
   process.env.KIVAI_ASAAS_PRODUCTION_ROUTE=enabled?"true":"false";
   process.env.KIVAI_ASAAS_RECURRING_SYNC="true";
   process.env.KIVAI_ASAAS_PRODUCTION_LIFECYCLE="true";
+  process.env.KIVAI_ASAAS_VERIFIED_AUTO_LINK="true";
   process.env.ASAAS_WEBHOOK_TOKEN="placeholder-long-webhook-token-for-tests";
   process.env.ASAAS_API_KEY="placeholder-key-for-testing-only";
 }
@@ -73,7 +75,7 @@ function setup({auth=true,existing=false,timeout=false,finalizeMismatch=false}={
     new Request("https://kivai.com.br/api/billing/asaas/production-checkout",{
       method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)
     }));
-  return{send,calls};
+  return{send,calls,GET:mod.exports.GET};
 }
 test("disabled route never even authenticates or contacts provider",async()=>{
   try{
@@ -84,7 +86,7 @@ test("disabled route never even authenticates or contacts provider",async()=>{
 });
 test("unconfigured lifecycle or financial webhook cannot start production checkout",async()=>{
   try {
-    for (const missing of ["KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN"]) {
+    for (const missing of ["KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN","KIVAI_ASAAS_VERIFIED_AUTO_LINK"]) {
       env();delete process.env[missing];
       const x=setup();
       assert.equal((await x.send()).status,503);
@@ -125,4 +127,19 @@ test("timeout and finalization mismatch never retry provider",async()=>{
 test("reject invalid plan without starting reservation",async()=>{
   try{env();const x=setup();assert.equal((await x.send({plan:"agency-admin",billing:"monthly"})).status,400);
     assert.deepEqual(x.calls,["auth"]);}finally{restore();}
+});
+
+test("GET readiness exposes a single boolean, and never authenticates or contacts provider",async()=>{
+  try {
+    env(false);
+    const x=setup();
+    assert.deepEqual(await (await x.GET()).json(),{enabled:false});
+    assert.deepEqual(x.calls,[]);
+    env(true);
+    assert.deepEqual(await (await x.GET()).json(),{enabled:true});
+    assert.deepEqual(x.calls,[]);
+    delete process.env.KIVAI_ASAAS_VERIFIED_AUTO_LINK;
+    assert.deepEqual(await (await x.GET()).json(),{enabled:false});
+    assert.deepEqual(x.calls,[]);
+  }finally{restore();}
 });
