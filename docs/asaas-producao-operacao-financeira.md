@@ -49,3 +49,35 @@ Status: **não habilitar checkout Asaas ainda**. Este documento descreve a opera
 - Política financeira e fluxos administrativos aprovados.
 - Teste real de cobrança somente mediante autorização explícita e com impacto financeiro conhecido.
 - PR #97 revisado e aprovado antes de merge, mantendo todas as flags desligadas.
+
+## 6. Checklist de liberação operacional (não executado)
+
+### Webhooks Asaas
+Acesse a conta Asaas de produção, em Webhooks, e confira **sem criar cobranças**:
+- Webhook de checkout e assinatura apontando para `https://kivai.com.br/api/billing/asaas/production-lifecycle`. Eventos necessários: `CHECKOUT_PAID`, `CHECKOUT_CANCELED`, `CHECKOUT_EXPIRED`, `SUBSCRIPTION_CREATED`. `CHECKOUT_CREATED` é opcional e ignorado pela rota.
+- Webhook financeiro apontando para `https://kivai.com.br/api/billing/asaas/webhook`. Eventos de crédito: `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`; também monitorar reembolsos, chargebacks e inadimplência.
+- Ambos devem transmitir `asaas-access-token` correspondente ao `ASAAS_WEBHOOK_TOKEN` configurado no deployment, sem publicar o token. Verificar se a fila está habilitada, não interrompida, e se URLs e eventos correspondem ao ambiente correto.
+- Validar em uma contratação controlada que o Asaas preserva a referência do Checkout na assinatura criada, porque o vínculo automático exige a referência exata no `GET /subscriptions/{id}`. **Não considerar garantido sem prova do provedor.**
+- Conferir o comportamento de eventos fora de ordem. O processamento inicial pode registrar `manual_review`, que não é resolvido automaticamente só porque outro evento chegou depois. É necessário definir rotina de conciliação e reprocessamento seguro antes de operar em escala.
+
+### Flags de publicação (todas desabilitadas até autorização)
+| Variável | Finalidade |
+| --- | --- |
+| `ASAAS_ENVIRONMENT=production` | Selecionar produção, apenas com `VERCEL_ENV=production` |
+| `ASAAS_API_KEY` | Credencial secreta do Asaas (já cadastrada, valor não auditado) |
+| `ASAAS_WEBHOOK_TOKEN` | Token de autenticação dos eventos (já cadastrado, valor não auditado) |
+| `KIVAI_ASAAS_PRODUCTION_LIFECYCLE=true` | Permitir gravação de eventos do checkout e assinatura |
+| `KIVAI_ASAAS_RECURRING_SYNC=true` | Permitir consulta de cobranças confirmadas |
+| `KIVAI_ASAAS_VERIFIED_AUTO_LINK=true` | Autorizar promoção de vínculo somente com eventos e API verificados |
+| `KIVAI_ASAAS_PRODUCTION_CHECKOUT=true` | Liberar transporte do Checkout API |
+| `KIVAI_ASAAS_PRODUCTION_ROUTE=true` | Liberar a rota para contratação a partir de `/planos` |
+
+A rota `GET /api/billing/asaas/production-checkout` retorna apenas `{enabled:false}` enquanto faltar qualquer gate; a página de planos mantém o fluxo anterior e nunca recebe segredo. Habilitar as flags deve ser uma operação coordenada após a confirmação de webhooks e da política de faturamento, não durante testes de UI.
+
+### Critérios de aceite antes do primeiro cliente
+1. Conferir teste de fluxo com API Asaas e webhooks reais, sob autorização explícita e valor conhecido.
+2. Confirmar `CHECKOUT_PAID`, `SUBSCRIPTION_CREATED` e `PAYMENT_CONFIRMED/RECEIVED` com conciliação idempotente até plano ativo, sem concessão antecipada.
+3. Confirmar o que acontece com primeiro vencimento (+70 minutos é provisório), inclusive para compras próximas da meia-noite em Brasília.
+4. Exercitar cancelamento e expiração de checkout e garantir liberação segura da reserva.
+5. Validar recebimento de `PAYMENT_OVERDUE`, reembolso e chargeback sem aplicar novo período; definir tratamento de acesso e eventual estorno.
+6. Observar o resultado do GitHub Actions no **commit final**, realizar revisão do PR e liberar o merge somente quando a integração estiver operacionalmente auditada.
