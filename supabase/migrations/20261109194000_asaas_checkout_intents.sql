@@ -48,7 +48,7 @@ begin
  perform pg_advisory_xact_lock(hashtextextended(p_user_id::text, 4567));
  select case when p_billing_cycle='annual' then price_annual_brl else price_monthly_brl end
    into v_price from public.subscription_plans
-   where code=p_plan_code and active=true limit 1;
+   where code=p_plan_code::public.kivai_plan_code and active=true limit 1;
  if v_price is null or v_price <= 0 then raise exception 'Preço indisponível'; end if;
  if exists (
    select 1 from public.user_subscriptions s
