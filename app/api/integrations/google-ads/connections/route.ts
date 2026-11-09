@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import {
   deleteGoogleAdsConnection, googleAdsConnectionsForUser,
   GoogleAdsConnectionError,
