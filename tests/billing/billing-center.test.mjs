@@ -12,7 +12,7 @@ function setup({ authenticated = true } = {}) {
   const paths = [];
   const module = { exports: {} };
   const dependencies = {
-    "@/lib/billing/sumup": { authenticateBillingUser: async () => {
+    "@/lib/auth/authenticated-billing-user": { authenticateBillingUser: async () => {
       if (!authenticated) throw Error("UNAUTHORIZED");
       return {id:"11111111-1111-4111-8111-111111111111"};
     }},
