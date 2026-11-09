@@ -54,8 +54,8 @@ Status: **não habilitar checkout Asaas ainda**. Este documento descreve a opera
 
 ### Webhooks Asaas
 Acesse a conta Asaas de produção, em Webhooks, e confira **sem criar cobranças**:
-- Webhook de checkout e assinatura apontando para `https://kivai.com.br/api/billing/asaas/production-lifecycle`. Eventos necessários: `CHECKOUT_PAID`, `CHECKOUT_CANCELED`, `CHECKOUT_EXPIRED`, `SUBSCRIPTION_CREATED`. `CHECKOUT_CREATED` é opcional e ignorado pela rota.
-- Webhook financeiro apontando para `https://kivai.com.br/api/billing/asaas/webhook`. Eventos de crédito: `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`; também monitorar reembolsos, chargebacks e inadimplência.
+- Webhook de checkout e assinatura apontando para `https://www.kivai.com.br/api/billing/asaas/production-lifecycle`. Eventos necessários: `CHECKOUT_PAID`, `CHECKOUT_CANCELED`, `CHECKOUT_EXPIRED`, `SUBSCRIPTION_CREATED`. `CHECKOUT_CREATED` é opcional e ignorado pela rota.
+- Webhook financeiro apontando para `https://www.kivai.com.br/api/billing/asaas/webhook`. Eventos de crédito: `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`; também monitorar reembolsos, chargebacks e inadimplência.
 - Ambos devem transmitir `asaas-access-token` correspondente ao `ASAAS_WEBHOOK_TOKEN` configurado no deployment, sem publicar o token. Verificar se a fila está habilitada, não interrompida, e se URLs e eventos correspondem ao ambiente correto.
 - Validar em uma contratação controlada que o Asaas preserva a referência do Checkout na assinatura criada, porque o vínculo automático exige a referência exata no `GET /subscriptions/{id}`. **Não considerar garantido sem prova do provedor.**
 - Conferir o comportamento de eventos fora de ordem. O processamento inicial pode registrar `manual_review`, que não é resolvido automaticamente só porque outro evento chegou depois. É necessário definir rotina de conciliação e reprocessamento seguro antes de operar em escala.
@@ -84,3 +84,11 @@ A rota `GET /api/billing/asaas/production-checkout` retorna apenas `{enabled:fal
 4. Exercitar cancelamento e expiração de checkout e garantir liberação segura da reserva.
 5. Validar recebimento de `PAYMENT_OVERDUE`, reembolso e chargeback sem aplicar novo período; definir tratamento de acesso e eventual estorno.
 6. Observar o resultado do GitHub Actions no **commit final**, realizar revisão do PR e liberar o merge somente quando a integração estiver operacionalmente auditada.
+
+## 7. Auditoria da captura de configuração Asaas (2026-11-09)
+- A Vercel confirma `www.kivai.com.br` como domínio principal e redirecionamento HTTP 308 do domínio sem `www`. As URLs oficiais de webhooks e callbacks devem usar diretamente `https://www.kivai.com.br`.
+- Captura de um webhook identificado como **Kivai - Assinaturas Produção**, URL de cobrança com `www`, API v3, ativo e fila sequencial ativada. A tela estava **Em edição**, então salvar e voltar à listagem para confirmar a persistência.
+- Eventos financeiros visíveis selecionados: `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`, `PAYMENT_REFUNDED` e `PAYMENT_CHARGEBACK_REQUESTED`; `SUBSCRIPTION_CREATED` aparece desmarcado; eventos de `Checkouts` não estão visíveis.
+- **Necessários dois webhooks separados, com URLs diferentes**: o webhook financeiro deve receber eventos `PAYMENT_*`; um segundo webhook de lifecycle deve receber `CHECKOUT_PAID`, `CHECKOUT_CANCELED`, `CHECKOUT_EXPIRED` e `SUBSCRIPTION_CREATED`. Enviar `SUBSCRIPTION_CREATED` exclusivamente à rota financeira não efetua conciliação, pois ela não processa automaticamente esse evento.
+- Confirmar que o token de autenticação dos dois webhooks corresponde ao mesmo `ASAAS_WEBHOOK_TOKEN` da Vercel. Não enviar nem exibir segredo ao suporte ou PR.
+- A branch do PR #97 ainda não está publicada na URL principal; os endpoints do lifecycle e os eventos adicionais não podem ser validados em produção até um deploy aprovado, com as flags mantidas desligadas até revisão financeira.
