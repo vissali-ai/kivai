@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { getAccountAccess } from "@/lib/billing/access";
 import { supabaseRest, supabaseStorage } from "@/lib/blog/supabase";
 import { blogConfig } from "@/lib/blog/config";
