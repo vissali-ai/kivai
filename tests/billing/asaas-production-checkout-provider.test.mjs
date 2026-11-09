@@ -60,6 +60,7 @@ test("invalid payload and callback do not reach provider", async () => {
     const fakeFetch = async () => { calls++; throw Error("unexpected external call"); };
     await assert.rejects(createAsaasProductionCheckout({...payload(), callback: {...payload().callback, successUrl:"https://evil.example/"}}, {fetchImpl:fakeFetch}), /INVALID_PRODUCTION_CALLBACK/);
     await assert.rejects(createAsaasProductionCheckout({...payload(), chargeTypes:["DETACHED"]}, {fetchImpl:fakeFetch}), /INVALID_PRODUCTION_CHECKOUT_PAYLOAD/);
+    await assert.rejects(createAsaasProductionCheckout({...payload(), subscription:{cycle:"MONTHLY",nextDueDate:"today"}}, {fetchImpl:fakeFetch}), /INVALID_PRODUCTION_CHECKOUT_PAYLOAD/);
     assert.equal(calls, 0);
   } finally { restore(); }
 });
