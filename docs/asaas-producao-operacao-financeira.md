@@ -92,3 +92,17 @@ A rota `GET /api/billing/asaas/production-checkout` retorna apenas `{enabled:fal
 - **Necessários dois webhooks separados, com URLs diferentes**: o webhook financeiro deve receber eventos `PAYMENT_*`; um segundo webhook de lifecycle deve receber `CHECKOUT_PAID`, `CHECKOUT_CANCELED`, `CHECKOUT_EXPIRED` e `SUBSCRIPTION_CREATED`. Enviar `SUBSCRIPTION_CREATED` exclusivamente à rota financeira não efetua conciliação, pois ela não processa automaticamente esse evento.
 - Confirmar que o token de autenticação dos dois webhooks corresponde ao mesmo `ASAAS_WEBHOOK_TOKEN` da Vercel. Não enviar nem exibir segredo ao suporte ou PR.
 - A branch do PR #97 ainda não está publicada na URL principal; os endpoints do lifecycle e os eventos adicionais não podem ser validados em produção até um deploy aprovado, com as flags mantidas desligadas até revisão financeira.
+
+## 8. Validação financeira restrita a uma conta (modo de teste)
+
+Antes de iniciar uma cobrança real, ativar o piloto de uma conta:
+- `KIVAI_ASAAS_TEST_ONLY=true`: só a conta explicitamente autorizada pode acessar o checkout recorrente.
+- `KIVAI_ASAAS_TEST_USER_ID=<UUID>`: ID da conta **nova e elegível**, criada no Kivai especificamente para testar; sem contratos ativos nem pedidos de pagamento pendentes.
+- `KIVAI_ASAAS_PUBLIC_SALES=false`: não habilitar venda geral durante testes; essa flag exige revisão separada após aceite.
+- `KIVAI_ASAAS_PRODUCTION_ROUTE`, `KIVAI_ASAAS_PRODUCTION_CHECKOUT`, `KIVAI_ASAAS_RECURRING_SYNC`, `KIVAI_ASAAS_PRODUCTION_LIFECYCLE` e `KIVAI_ASAAS_VERIFIED_AUTO_LINK`: só ativar coordenadamente após validar webhook e token.
+- A página de planos faz consulta autenticada de disponibilidade e **POST valida novamente o ID no servidor**; uma URL manipulada não autoriza usuários fora da lista.
+- Teste de menor custo pelo checkout publicado: plano Pro mensal, preço corrente no banco **R$ 19,90** em 2026-11-09. É uma **assinatura recorrente real**, não pagamento avulso. Confirmar consentimento específico para valor, cartão, periodicidade e eventual taxa antes de executar. O vencimento inicialmente calculado como +70 minutos é provisório; conferir calendário de cobrança e prazo antes de prosseguir.
+- Foi identificada uma conta com e-mail de notificações Asaas também cadastrada no Kivai, mas nela existem **duas solicitações antigas ainda aguardando pagamento**. Não usar essa conta para o piloto nem remover solicitações ou alterar contratos históricos como atalho.
+- O usuário deve concluir o checkout e digitar dados do cartão **somente no ambiente hospedado pelo Asaas**. Não receber dados financeiros por chat. Acompanhar logs e entidades no Asaas e Supabase; não recriar checkout após timeout.
+- Após verificação: cancelar renovação da assinatura piloto no Asaas **apenas com autorização explícita**, sem presumir que cancelamento produz estorno da cobrança já confirmada; observar política de custos e reembolsos.
+- Depois do piloto: desabilitar `KIVAI_ASAAS_TEST_ONLY` apenas como parte de uma liberação pública auditada e que exija `KIVAI_ASAAS_PUBLIC_SALES=true`. Não misturar os dois controles.
