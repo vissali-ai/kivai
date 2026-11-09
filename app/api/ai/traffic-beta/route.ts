@@ -1,4 +1,4 @@
-import { authenticateBillingUser } from "@/lib/billing/sumup";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { trafficBetaBalance } from "@/lib/ai/traffic-beta";
 
 export const runtime = "nodejs";
