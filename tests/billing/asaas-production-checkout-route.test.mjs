@@ -13,7 +13,7 @@ const keys = ["VERCEL_ENV","ASAAS_ENVIRONMENT","KIVAI_ASAAS_PRODUCTION_CHECKOUT"
               "KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN",
               "KIVAI_ASAAS_VERIFIED_AUTO_LINK","KIVAI_ASAAS_TEST_ONLY",
               "KIVAI_ASAAS_TEST_USER_ID","KIVAI_ASAAS_PUBLIC_SALES",
-              "KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_MONITORING","RESEND_API_KEY","KIVAI_ASAAS_ALERT_EMAIL","KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED"];
+              "KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_MONITORING","RESEND_API_KEY","KIVAI_ASAAS_ALERT_EMAIL","KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED","KIVAI_ASAAS_PUBLIC_UNVALIDATED_APPROVED"];
 const original = Object.fromEntries(keys.map(k=>[k,process.env[k]]));
 
 function env(enabled=true) {
@@ -32,6 +32,7 @@ function env(enabled=true) {
   process.env.RESEND_API_KEY="test-key-long-enough-for-monitor";
   process.env.KIVAI_ASAAS_ALERT_EMAIL="ops@example.com";
   process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED="true";
+  delete process.env.KIVAI_ASAAS_PUBLIC_UNVALIDATED_APPROVED;
   delete process.env.KIVAI_ASAAS_TEST_ONLY;
   delete process.env.KIVAI_ASAAS_TEST_USER_ID;
 }
@@ -231,4 +232,39 @@ test("public reconciliation prerequisite never blocks an explicitly allowlisted 
     assert.equal((await x.send()).status,200);
     assert.equal(x.calls.filter(c=>c==="provider:POST").length,1);
   }finally{restore();}
+});
+
+test("explicit owner-approved early rollout can start publicly without pretending a payment was validated",async()=>{
+  try {
+    env();
+    delete process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED;
+    process.env.KIVAI_ASAAS_PUBLIC_UNVALIDATED_APPROVED="true";
+    const x=setup();
+    assert.equal((await x.send()).status,200);
+    assert.equal(x.calls.filter(y=>y==="provider:POST").length,1);
+  } finally {restore();}
+});
+test("early rollout remains unavailable without monitoring, reconciliation or explicit public sales",async()=>{
+  try {
+    for(const missing of ["KIVAI_ASAAS_PUBLIC_SALES","KIVAI_ASAAS_MONITORING","KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_ALERT_EMAIL"]){
+      env();
+      delete process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED;
+      process.env.KIVAI_ASAAS_PUBLIC_UNVALIDATED_APPROVED="true";
+      delete process.env[missing];
+      const x=setup();
+      assert.equal((await x.send()).status,503);
+      assert.deepEqual(x.calls,[]);
+    }
+  } finally {restore();}
+});
+test("pilot-only gate overrides owner-approved public rollout",async()=>{
+  try {
+    env();
+    process.env.KIVAI_ASAAS_TEST_ONLY="true";
+    process.env.KIVAI_ASAAS_TEST_USER_ID=user;
+    process.env.KIVAI_ASAAS_PUBLIC_UNVALIDATED_APPROVED="true";
+    const x=setup({userId:"99999999-9999-4999-8999-999999999999"});
+    assert.equal((await x.send()).status,403);
+    assert.equal(x.calls.filter(y=>y==="provider:POST").length,0);
+  } finally {restore();}
 });
