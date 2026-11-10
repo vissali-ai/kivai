@@ -1,6 +1,6 @@
 # Asaas produção: revisão financeira e operação segura
 
-Status: **não habilitar checkout Asaas ainda**. Este documento descreve a operação pretendida no PR #97; não ativa nenhum recurso.
+Status em 2026-11-10: **piloto de checkout Asaas restrito à conta de teste; venda pública bloqueada**. A implementação descrita foi preparada em etapas, mas o processamento de pagamento real ainda não foi validado. Nenhuma instrução deste documento autoriza ativação comercial.
 
 ## 1. Ativação e renovação
 - Criar checkout somente para usuário autenticado e reserva transacional sem assinatura ativa incompatível.
@@ -148,3 +148,14 @@ Documentação oficial consultada:
 - https://docs.asaas.com/docs/checkout-com-assinatura-recorrente
 - https://docs.asaas.com/docs/faq-assinaturas
 - https://docs.asaas.com/docs/faq-de-webhooks
+
+## 10. Pré-lançamento: monitor operacional diário (preparação sem ativação)
+
+- Nova rota `GET /api/cron/asaas-monitor`, agendada em `vercel.json` para **08:11 UTC diariamente**. Só opera em produção, com `CRON_SECRET` autenticado e **`KIVAI_ASAAS_MONITORING=true`**. Sem a flag, retorna `{enabled:false,checked:0}` sem ler o banco nem enviar e-mails.
+- Para habilitar futuramente, configurar `KIVAI_ASAAS_ALERT_EMAIL` (destinatário operacional autorizado) e reutilizar a `RESEND_API_KEY` server-only. Sem e-mail ou credencial, falha fechado. A remetente deve estar validada no Resend (`contato@kivai.com.br`).
+- Detecta `manual_review` com mais de 15 minutos e `CHECKOUT_PAID` sem assinatura verificada há mais de 90 minutos. Faz **somente leituras** no Supabase e, se necessário, um aviso por e-mail. Não processa, cobra, cancela, ativa ou estorna assinaturas.
+- E-mail contém **apenas contagens**, sem e-mail de clientes, IDs de pagamento ou cartão. Chave de idempotência por dia UTC reduz reenvios em tentativas repetidas. O monitor não substitui o tratamento humano da fila nem monitora diretamente a fila interrompida do painel Asaas.
+- Em falha de leitura ou entrega do alerta, retorna HTTP 503 e registra erro genérico, sem dados financeiros. A entrega diária depende do cron Vercel e da disponibilidade do Resend; portanto **não constitui monitoramento em tempo real**.
+- **Nova condição obrigatória da liberação pública:** `KIVAI_ASAAS_MONITORING=true`, `RESEND_API_KEY` configurada e `KIVAI_ASAAS_ALERT_EMAIL` válido, além de `KIVAI_ASAAS_RECONCILIATION=true` e `KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED=true`. Não ativar nenhuma delas apenas por testes unitários.
+- Política aprovada: primeira cobrança com vencimento no mesmo dia civil de São Paulo; a função atual fecha a criação perto da meia-noite, sem criar reserva. A documentação Asaas admite processamento imediato quando `nextDueDate` corresponde ao dia atual, mas não garante aprovação imediata. Fonte: https://docs.asaas.com/docs/checkout-com-assinatura-recorrente e https://docs.asaas.com/docs/faq-assinaturas
+- **Pendências de aceite:** comprovação de `CHECKOUT_PAID`, `SUBSCRIPTION_CREATED`, `PAYMENT_CONFIRMED/RECEIVED` e plano ativo em uma transação real; ensaio de cancelamento, chargeback, inadimplência e webhook fora de ordem; revisão de termos; validação de Resend/cron; aprovação explícita de abertura pública. Nenhum desses testes deve ser simulado como cobrança real.
