@@ -1,6 +1,6 @@
 # Asaas produção: revisão financeira e operação segura
 
-Status: **não habilitar checkout Asaas ainda**. Este documento descreve a operação pretendida no PR #97; não ativa nenhum recurso.
+Status em 2026-11-10: **piloto de checkout Asaas restrito à conta de teste; venda pública bloqueada**. A implementação descrita foi preparada em etapas, mas o processamento de pagamento real ainda não foi validado. Nenhuma instrução deste documento autoriza ativação comercial.
 
 ## 1. Ativação e renovação
 - Criar checkout somente para usuário autenticado e reserva transacional sem assinatura ativa incompatível.
