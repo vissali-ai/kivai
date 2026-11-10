@@ -49,6 +49,10 @@ export function VideoToolSeoContent({ variant }: { variant: VideoLocalVariant })
         limitations={content.limitations}
         faqs={content.faqs}
         relatedTools={content.related}
+        relatedArticles={slug === "capturar-frame-video" ? [
+          { href: "/blog/como-usar-capturar-frame-video", label: "Como capturar um frame de vídeo: guia prático" },
+          { href: "/blog/mp4-mov-avi-hevc-qual-formato-escolher", label: "MP4, MOV, AVI ou HEVC: qual formato escolher?" },
+        ] : []}
         afterFaq={<AdSlot placement="tool-bottom" />}
       />
     </>
