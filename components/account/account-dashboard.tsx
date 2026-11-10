@@ -132,7 +132,7 @@ export function AccountDashboard() {
               {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="size-8 rounded-full object-cover" referrerPolicy="no-referrer" /> : <span className="flex size-8 items-center justify-center rounded-full bg-primary/10"><PlanIcon className="size-4" /></span>}
               <ChevronDown aria-hidden="true" className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
             </summary>
-            <div className="absolute right-0 top-full z-30 mt-2 w-[min(19rem,calc(100vw-3rem))] rounded-xl border border-border bg-card p-2 shadow-lg">
+            <div className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-xl border border-border bg-card p-2 shadow-lg lg:absolute lg:inset-x-auto lg:bottom-auto lg:right-0 lg:top-full lg:mt-2 lg:w-76">
               <div className="border-b border-border px-3 py-2">
                 <p className="truncate text-sm font-semibold">{displayName}</p>
                 <p className="truncate text-xs text-muted-foreground">{email}</p>

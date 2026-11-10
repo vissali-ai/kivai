@@ -50,6 +50,23 @@ test("account menu keeps profile, billing and upgrade in a compact dropdown", as
   await expectNoOverflow(page);
 });
 
+test("profile menu stays completely visible on an iPhone-sized viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 740 });
+  await mockAccount(page);
+  await page.goto("/conta");
+  await page.locator('summary[aria-label="Abrir menu do usuário"]').click();
+  const menu = page.getByRole("navigation", { name: "Menu da conta" });
+  await expect(menu.getByRole("link", { name: "Meus Dados" })).toBeVisible();
+  const upgrade = page.getByRole("link", { name: "Conhecer Agency" });
+  await expect(upgrade).toBeVisible();
+  const bounds = await upgrade.locator("..").boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
+  await expect(page.getByRole("button", { name: "Sair da conta" })).toBeInViewport();
+  await expectNoOverflow(page);
+});
+
 test("unavailable plan never appears as free", async ({ page }) => {
   await mockAccount(page, { accessFails: true });
   await page.goto("/conta");
