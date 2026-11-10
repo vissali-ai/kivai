@@ -13,7 +13,7 @@ const keys = ["VERCEL_ENV","ASAAS_ENVIRONMENT","KIVAI_ASAAS_PRODUCTION_CHECKOUT"
               "KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN",
               "KIVAI_ASAAS_VERIFIED_AUTO_LINK","KIVAI_ASAAS_TEST_ONLY",
               "KIVAI_ASAAS_TEST_USER_ID","KIVAI_ASAAS_PUBLIC_SALES",
-              "KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED"];
+              "KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_MONITORING","KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED"];
 const original = Object.fromEntries(keys.map(k=>[k,process.env[k]]));
 
 function env(enabled=true) {
@@ -28,6 +28,7 @@ function env(enabled=true) {
   process.env.ASAAS_API_KEY="placeholder-key-for-testing-only";
   process.env.KIVAI_ASAAS_PUBLIC_SALES="true";
   process.env.KIVAI_ASAAS_RECONCILIATION="true";
+  process.env.KIVAI_ASAAS_MONITORING="true";
   process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED="true";
   delete process.env.KIVAI_ASAAS_TEST_ONLY;
   delete process.env.KIVAI_ASAAS_TEST_USER_ID;
@@ -208,7 +209,7 @@ test("same-day expiry boundary never reserves or calls Asaas",async()=>{
 
 test("public checkout fails closed until both reconciler and real-payment approval are explicitly enabled",async()=>{
   try{
-    for(const key of ["KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED"]){
+    for(const key of ["KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_MONITORING","KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED"]){
       env();
       delete process.env[key];
       const x=setup();
