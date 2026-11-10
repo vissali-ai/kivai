@@ -17,6 +17,10 @@ function reply(status: number, message: string) {
   return Response.json({ message }, { status, headers: { "Cache-Control": "no-store" } });
 }
 async function markEvent(id: string, status: "applied" | "duplicate" | "manual_review" | "ignored", error = "") {
+  if (status === "manual_review") {
+    // Visible in production runtime logs without exposing customer/card data.
+    console.warn("asaas_payment_requires_manual_review", error.slice(0, 120));
+  }
   await supabaseRest(`kivai_recurring_webhook_inbox?provider_event_id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
     body: JSON.stringify({ processing_status: status, last_error: error.slice(0, 160) || null, processed_at: new Date().toISOString() }),
@@ -87,6 +91,23 @@ export async function POST(request: Request) {
     }
     if (!verified.subscription || typeof verified.subscription !== "string") {
       await markEvent(id, "manual_review", "Cobrança sem assinatura de origem.");
+      return reply(200, "Evento recebido para conferência.");
+    }
+    if (verified.billingType && verified.billingType !== "CREDIT_CARD") {
+      await markEvent(id, "manual_review", "Meio de pagamento incompatível.");
+      return reply(200, "Evento recebido para conferência.");
+    }
+    // Even when Asaas reports CONFIRMED, never regrant a paid period when
+    // refund or chargeback notifications already exist for this charge.
+    // The daily reconciler enforces the same invariant.
+    const disputes = await supabaseRest<Array<{ provider_event_id: string }>>(
+      "kivai_recurring_webhook_inbox?select=provider_event_id" +
+      "&provider_payment_id=eq." + encodeURIComponent(paymentId) +
+      "&event_type=in.(PAYMENT_REFUNDED,PAYMENT_PARTIALLY_REFUNDED,PAYMENT_CHARGEBACK_REQUESTED,PAYMENT_CHARGEBACK_DISPUTE)" +
+      "&limit=1",
+    );
+    if (disputes.length) {
+      await markEvent(id, "manual_review", "Cobrança possui notificação de estorno ou contestação.");
       return reply(200, "Evento recebido para conferência.");
     }
     let links = await supabaseRest<ProviderLink[]>(
