@@ -57,7 +57,10 @@ function rolloutReady() {
     process.env.KIVAI_ASAAS_MONITORING === "true" &&
     (process.env.RESEND_API_KEY ?? "").length >= 20 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(process.env.KIVAI_ASAAS_ALERT_EMAIL ?? "") &&
-    // Owner may explicitly authorize a monitored commercial rollout before the\n    // first live payment; this flag is NEVER represented as financial validation.\n    (process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED === "true" ||\n      process.env.KIVAI_ASAAS_PUBLIC_UNVALIDATED_APPROVED === "true");
+    // Owner may explicitly authorize a monitored commercial rollout before the
+    // first live payment; this flag is NEVER represented as financial validation.
+    (process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED === "true" ||
+      process.env.KIVAI_ASAAS_PUBLIC_UNVALIDATED_APPROVED === "true");
 }
 function checkoutReady() {
   return productionCheckoutConfigured() &&
