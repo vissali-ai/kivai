@@ -1,6 +1,5 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { blogConfig } from "@/lib/blog/config";
