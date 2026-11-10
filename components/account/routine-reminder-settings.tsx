@@ -114,7 +114,7 @@ export function RoutineReminderSettings() {
         <BellRing className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" />
         <div>
           <h2 id="routine-reminders-title" className="text-xl font-semibold">Lembretes da rotina</h2>
-          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">Organize sua rotina: escolha uma ferramenta, defina o dia e o horário e selecione como prefere receber seu lembrete semanal.</p>
+          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">Escolha uma ferramenta e defina o dia e o horário para manter a rotina.</p>
         </div>
       </div>
       {loading ? <p className="mt-4 text-sm text-muted-foreground">Carregando preferências...</p> : (
