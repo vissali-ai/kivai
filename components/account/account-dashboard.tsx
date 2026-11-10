@@ -111,9 +111,10 @@ export function AccountDashboard() {
 
   return <div id="painel-inicio" tabIndex={-1} className="scroll-mt-28 space-y-6">
     {accessError || loadError ? <div role="alert" className="rounded border p-4"><p>{accessError || loadError}</p><Button variant="outline" size="sm" className="mt-3" onClick={() => window.location.reload()}>Atualizar painel</Button></div> : null}
-    <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8">
+    <section className="relative rounded-3xl border border-border bg-card p-6 sm:p-8">
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0 max-w-2xl          <div className="flex flex-wrap items-center gap-2">
+        <div className="min-w-0 max-w-2xl">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary"><LayoutDashboard className="size-4" /> Meu Kivai</span>
             <SupportBell />
           </div>
