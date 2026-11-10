@@ -108,6 +108,14 @@ export async function POST(request: Request) {
   if (testMode() && (plan !== "pro" || billing !== "monthly")) {
     return respond(403, "Piloto autorizado apenas para o plano Pro mensal.");
   }
+  // Calculate BEFORE reserving or claiming the checkout. A request close to
+  // Sao Paulo midnight must not leave an unusable, stuck reservation behind.
+  let firstDueDate: string;
+  try {
+    firstDueDate = nextAsaasFirstDueDate();
+  } catch {
+    return respond(503, "A contratação será disponibilizada novamente no início do próximo dia.");
+  }
 
   try {
     // Server-authoritative price, active-contract protection, in-flight InfinitePay
@@ -137,7 +145,7 @@ export async function POST(request: Request) {
       billing: claim.billing_cycle,
       amountBrl: Number(claim.expected_amount_brl),
       externalReference: claim.external_reference,
-      nextDueDate: nextAsaasFirstDueDate(),
+      nextDueDate: firstDueDate,
       baseUrl: "https://www.kivai.com.br",
     });
     const checkout = await createAsaasProductionCheckout(payload);
