@@ -99,6 +99,18 @@ test("bell combines announcements and support without dashboard duplicates", asy
   await expectNoOverflow(page);
 });
 
+test("dashboard presents services without personalization or plan upsell card", async ({ page }) => {
+  await mockAccount(page);
+  await page.goto("/conta");
+  await expect(page.getByText("Personalize seu Kivai")).toHaveCount(0);
+  await expect(page.getByText("Seu primeiro passo no Kivai")).toHaveCount(0);
+  await expect(page.getByText("Mais recursos", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Soluções profissionais para o seu negócio" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Conhecer nossos serviços" })).toHaveAttribute("href", "/servicos");
+  await expect(page.getByRole("link", { name: "Planos e benefícios Kivai" })).toHaveCount(0);
+  await expectNoOverflow(page);
+});
+
 test("unavailable plan never appears as free", async ({ page }) => {
   await mockAccount(page, { accessFails: true });
   await page.goto("/conta");
