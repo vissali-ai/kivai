@@ -165,14 +165,14 @@ export function VideoFrameCaptureClient() {
 
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramenta de vídeo</p>
-          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Gerador de Thumbnail para Vídeo</h1>
-          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Escolha o momento exato de um vídeo e crie uma thumbnail em PNG, JPG ou WebP.</p>
+          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Capturar Frame de Vídeo Online</h1>
+          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Extraia a imagem de qualquer momento do vídeo e salve o frame em PNG, JPG ou WebP. Use a captura para criar thumbnails ou guardar uma cena.</p>
         </div>
 
         <div className="mx-auto max-w-4xl"><Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Área de processamento</CardTitle>
-            <CardDescription>Envie ou arraste um vídeo e gere a thumbnail.</CardDescription>
+            <CardDescription>Selecione um vídeo para capturar um frame como imagem.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <input ref={inputRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
@@ -233,7 +233,7 @@ export function VideoFrameCaptureClient() {
                     </label>
                   )}
 
-                  <label className="mt-5 block text-sm font-medium" htmlFor="frame-size">Tamanho da thumbnail
+                  <label className="mt-5 block text-sm font-medium" htmlFor="frame-size">Tamanho da imagem
                     <select id="frame-size" value={outputSize} onChange={(event) => setOutputSize(event.target.value as OutputSize)} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
                       <option value="original">Original</option><option value="1280x720">1280 × 720</option><option value="1920x1080">1920 × 1080</option><option value="1080x1080">1080 × 1080</option><option value="1080x1350">1080 × 1350</option><option value="1080x1920">1080 × 1920</option>
                     </select>
@@ -257,7 +257,7 @@ export function VideoFrameCaptureClient() {
               <section aria-labelledby="frame-result-title" className="rounded-xl border border-border p-4 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <h2 id="frame-result-title" className="font-semibold">Thumbnail pronta</h2>
+                    <h2 id="frame-result-title" className="font-semibold">Frame capturado</h2>
                     <p className="mt-1 text-sm text-muted-foreground">{(frame.blob.size / 1024).toFixed(1)} KB · {outputSize === "original" ? `${dimensions?.width} × ${dimensions?.height}` : outputSize.replace("x", " × ")}px · {formatTime(currentTime)}</p>
                   </div>
                   <Button onClick={downloadFrame}><Download aria-hidden="true" /> Baixar imagem</Button>
