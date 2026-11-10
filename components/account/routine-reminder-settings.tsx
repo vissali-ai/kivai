@@ -28,6 +28,7 @@ async function api(method: "GET" | "POST", body?: object): Promise<ReminderRespo
 
 export function RoutineReminderSettings() {
   const [preference, setPreference] = useState<ReminderPreference>(defaultReminder);
+  const [savedRoutine, setSavedRoutine] = useState<ReminderPreference | null>(null);
   const [publicKey, setPublicKey] = useState("");
   const [channel, setChannel] = useState<"browser" | "email">("browser");
   const [emailAvailable, setEmailAvailable] = useState(false);
@@ -50,6 +51,7 @@ export function RoutineReminderSettings() {
         setPreference(result.preference.enabled ? result.preference : {
           ...result.preference, time_zone: zone || result.preference.time_zone,
         });
+        setSavedRoutine(result.preference.enabled ? result.preference : null);
         setPublicKey(result.vapidPublicKey);
         setChannel(result.preference.delivery_channel || "browser");
         setEmailAvailable(result.emailAvailable);
@@ -72,6 +74,7 @@ export function RoutineReminderSettings() {
         if (!emailConsent) throw new Error("Confirme que deseja receber os lembretes por e-mail.");
         await api("POST", { action: "save", ...preference, delivery_channel: "email", email_reminder_consent: true });
         setPreference(current => ({ ...current, delivery_channel: "email", enabled: true }));
+        setSavedRoutine({ ...preference, delivery_channel: "email", enabled: true });
         setFeedback("Lembrete semanal por e-mail ativado! O aviso será enviado ao endereço da sua conta, próximo ao horário escolhido.");
         return;
       }
@@ -88,6 +91,7 @@ export function RoutineReminderSettings() {
       if (!json.endpoint || !json.keys?.auth || !json.keys.p256dh) throw new Error("Não foi possível registrar este dispositivo.");
       await api("POST", { action: "save", ...preference, delivery_channel: "browser", subscription: json });
       setPreference(current => ({ ...current, delivery_channel: "browser", enabled: true }));
+      setSavedRoutine({ ...preference, delivery_channel: "browser", enabled: true });
       setFeedback("Lembrete ativado! Você receberá uma notificação no dia e horário escolhidos, conforme as permissões do dispositivo.");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível ativar seus lembretes."); }
     finally { setBusy(false); }
@@ -99,6 +103,7 @@ export function RoutineReminderSettings() {
     try {
       await api("POST", { action: "disable" });
       setPreference(current => ({ ...current, enabled: false }));
+      setSavedRoutine(null);
       try {
         const registration = await navigator.serviceWorker.getRegistration("/");
         const subscription = await registration?.pushManager.getSubscription();
@@ -163,13 +168,13 @@ export function RoutineReminderSettings() {
               <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1 shrink-0" checked={emailConsent} onChange={e => setEmailConsent(e.target.checked)} />Autorizo o Kivai a me enviar um lembrete semanal por e-mail, referente à atividade escolhida.</label>
             </div>
           ) : null}
-          {preference.enabled ? (
+          {savedRoutine ? (
             <div className="rounded-lg border border-primary/25 bg-primary/[0.035] p-3 text-sm">
               <p className="font-semibold">Rotina ativa</p>
               <p className="mt-1 text-muted-foreground">
-                {reminderToolChoices.find((item) => item.slug === preference.tool_slug)?.label ?? "Ferramenta selecionada"} • {reminderWeekdays[preference.weekday]} às {String(preference.hour).padStart(2, "0")}:00
+                {reminderToolChoices.find((item) => item.slug === savedRoutine.tool_slug)?.label ?? "Ferramenta selecionada"} • {reminderWeekdays[savedRoutine.weekday]} às {String(savedRoutine.hour).padStart(2, "0")}:00
               </p>
-              <Link href={`/ferramentas/${preference.tool_slug}`} className="mt-2 inline-flex items-center gap-1 font-medium text-primary hover:underline">
+              <Link href={`/ferramentas/${savedRoutine.tool_slug}`} className="mt-2 inline-flex items-center gap-1 font-medium text-primary hover:underline">
                 Abrir ferramenta <ArrowRight className="size-4" />
               </Link>
             </div>
