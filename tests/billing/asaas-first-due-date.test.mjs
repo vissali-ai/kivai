@@ -15,14 +15,28 @@ test("due date is later than the checkout expiry, in Sao Paulo instead of UTC",(
   const result = nextAsaasFirstDueDate(new Date("2026-11-09T18:00:00.000Z"));
   assert.equal(result,"2026-11-09 16:10:00");
 });
-test("crosses calendar day in Sao Paulo when checkout is close to midnight",()=>{
-  const result=nextAsaasFirstDueDate(new Date("2026-11-10T02:58:00.000Z"));
-  assert.equal(result,"2026-11-10 01:08:00");
+test("rejects checkout near Sao Paulo midnight instead of billing next calendar day",()=>{
+  assert.throws(
+    ()=>nextAsaasFirstDueDate(new Date("2026-11-10T02:58:00.000Z")),
+    /ASAAS_SAME_DAY_CHECKOUT_WINDOW_CLOSED/
+  );
+});
+test("rejects 23:00 in Sao Paulo when checkout might expire after midnight",()=>{
+  assert.throws(
+    ()=>nextAsaasFirstDueDate(new Date("2026-11-10T02:00:00.000Z")),
+    /ASAAS_SAME_DAY_CHECKOUT_WINDOW_CLOSED/
+  );
+});
+test("allows an early same-day checkout with a due date after expiry",()=>{
+  assert.equal(nextAsaasFirstDueDate(new Date("2026-11-10T01:45:00.000Z")),"2026-11-09 23:55:00");
 });
 test("preserves Brazil local time and format independent of UTC calendar day",()=>{
   const result=nextAsaasFirstDueDate(new Date("2026-11-10T00:00:00.000Z"));
-  assert.equal(result,"2026-11-09 22:10:00");
-  assert.match(result,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+  assert.throws(()=>nextAsaasFirstDueDate(new Date("2026-11-10T00:00:00.000Z")),
+    /ASAAS_SAME_DAY_CHECKOUT_WINDOW_CLOSED/);
+  const safe = nextAsaasFirstDueDate(new Date("2026-11-09T23:00:00.000Z"));
+  assert.equal(safe,"2026-11-09 21:10:00");
+  assert.match(safe,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 });
 test("rejects invalid date",()=>{
   assert.throws(()=>nextAsaasFirstDueDate(new Date(NaN)),/ASAAS_INVALID_CURRENT_TIME/);
