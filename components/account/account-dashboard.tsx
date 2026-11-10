@@ -142,6 +142,7 @@ export function AccountDashboard() {
               <nav aria-label="Menu da conta" className="mt-1">
                 <Link href="/conta/dados" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent"><UserRound className="size-4" /> Meus Dados</Link>
                 <Link href="/conta/cobrancas" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent">Minha assinatura e pagamentos</Link>
+                <Link href="/conta/atendimento" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent"><Headset className="size-4" /> Central de Atendimento</Link>
               </nav>
               <button type="button" onClick={handleLogout} className="mt-1 flex min-h-10 w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm hover:bg-accent"><LogOut className="size-4" /> Sair da conta</button>
             </div>
@@ -159,20 +160,8 @@ export function AccountDashboard() {
     {userId ? <SubscriptionRenewalNotice /> : null}
     <div id="painel-favoritos" tabIndex={-1} className="scroll-mt-28"><MyFavoriteTools /></div>
     <div id="painel-projetos" tabIndex={-1} className="scroll-mt-28"><SavedProjects /></div>
-    {plan ? <section id="painel-plano" tabIndex={-1} className="scroll-mt-28 rounded-2xl border border-border bg-card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold">{plan === "agency" ? "Área Agency" : "Área Pro"}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{plan === "free" ? "Conheça os benefícios dos planos Pro e Agency." : "Acesse seus benefícios, histórico e recursos exclusivos do plano."}</p>
-        </div>
-        <Button asChild><Link href={plan === "free" ? "/planos" : "/conta/pro"}>{plan === "free" ? "Conhecer benefícios" : "Abrir benefícios"} <ArrowRight className="size-4" /></Link></Button>
-      </div>
-    </section> : null}
     {snapshots.length ? <section className="overflow-hidden rounded-2xl border border-border bg-card"><div className="flex items-center gap-3 border-b border-border p-5"><History className="size-5 text-primary" /><div><h2 className="font-semibold">Análises recentes</h2><p className="mt-1 text-xs text-muted-foreground">Histórico privado dos seus perfis do Instagram.</p></div></div><div className="divide-y divide-white/5">{snapshots.map((snapshot) => <div key={snapshot.id} className="grid gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center"><div><p className="font-medium">@{snapshot.username || "instagram"}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(snapshot.analyzed_at).toLocaleString("pt-BR")}</p></div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguidores</span>{Number(snapshot.follower_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguindo</span>{Number(snapshot.following_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Novos</span>{snapshot.new_followers_count == null ? "-" : Number(snapshot.new_followers_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Unfollows</span>{snapshot.unfollowers_count == null ? "-" : Number(snapshot.unfollowers_count).toLocaleString("pt-BR")}</div></div>)}</div></section> : null}
 
-    <section id="painel-atendimento" className="scroll-mt-28 rounded-2xl border border-border bg-card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-start gap-3"><Headset className="mt-1 size-5 text-primary"/><div><h2 className="text-xl font-semibold">Central de Atendimento</h2><p className="mt-1 text-sm text-muted-foreground">Abra chamados, reporte erros e acompanhe as respostas da equipe Kivai.</p></div></div><Button asChild><Link href="/conta/atendimento">Meus protocolos <ArrowRight className="size-4"/></Link></Button></div>
-    </section>
     <div id="painel-avisos" tabIndex={-1} className="scroll-mt-28"><AccountNotifications /></div>
     <div id="painel-lembretes" tabIndex={-1} className="scroll-mt-28"><RoutineReminderSettings /></div>
     {paymentError ? <p role="alert" className="rounded border border-destructive/40 p-4 text-sm">{paymentError}</p> : null}
