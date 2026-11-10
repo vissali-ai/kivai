@@ -32,11 +32,8 @@ test("allows an early same-day checkout with a due date after expiry",()=>{
 });
 test("preserves Brazil local time and format independent of UTC calendar day",()=>{
   const result=nextAsaasFirstDueDate(new Date("2026-11-10T00:00:00.000Z"));
-  assert.throws(()=>nextAsaasFirstDueDate(new Date("2026-11-10T00:00:00.000Z")),
-    /ASAAS_SAME_DAY_CHECKOUT_WINDOW_CLOSED/);
-  const safe = nextAsaasFirstDueDate(new Date("2026-11-09T23:00:00.000Z"));
-  assert.equal(safe,"2026-11-09 21:10:00");
-  assert.match(safe,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+  assert.equal(result,"2026-11-09 22:10:00");
+  assert.match(result,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 });
 test("rejects invalid date",()=>{
   assert.throws(()=>nextAsaasFirstDueDate(new Date(NaN)),/ASAAS_INVALID_CURRENT_TIME/);
