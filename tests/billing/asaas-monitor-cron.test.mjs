@@ -72,7 +72,9 @@ test("monitor stays inert when disabled, preview, or missing recipient", async (
 });
 test("cron authorization is required before reading financial event metadata", async () => {
   try {
-    env(); const x = setup();
+    env();
+    assert.deepEqual({deployment:process.env.VERCEL_ENV,provider:process.env.ASAAS_ENVIRONMENT,monitor:process.env.KIVAI_ASAAS_MONITORING,cron:(process.env.CRON_SECRET??"").length,api:(process.env.RESEND_API_KEY??"").length,email:process.env.KIVAI_ASAAS_ALERT_EMAIL},{deployment:"production",provider:"production",monitor:"true",cron:45,api:32,email:"financeiro@example.com"});
+    const x = setup();
     assert.equal((await x.GET(x.request("invalid"))).status, 401);
     assert.equal((await x.GET(x.request(null))).status, 401);
     assert.deepEqual(x.calls, []);
