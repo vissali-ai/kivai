@@ -30,7 +30,7 @@ function env(enabled=true) {
   delete process.env.KIVAI_ASAAS_TEST_USER_ID;
 }
 function restore(){for(const key of keys) original[key]===undefined?delete process.env[key]:process.env[key]=original[key];}
-function setup({auth=true,existing=false,timeout=false,finalizeMismatch=false,userId=user}={}) {
+function setup({auth=true,existing=false,timeout=false,finalizeMismatch=false,userId=user,midnight=false}={}) {
   const calls = [];
   const mocks = {
     "@/lib/auth/authenticated-billing-user":{authenticateBillingUser:async()=>{
@@ -52,7 +52,7 @@ function setup({auth=true,existing=false,timeout=false,finalizeMismatch=false,us
       };
       throw Error("unknown rpc");
     }},
-    "@/lib/billing/asaas-first-due-date":{nextAsaasFirstDueDate:()=> "2026-11-09 15:05:00"},
+    "@/lib/billing/asaas-first-due-date":{nextAsaasFirstDueDate:()=> { if(midnight)throw Error("ASAAS_SAME_DAY_CHECKOUT_WINDOW_CLOSED");return "2026-11-09 15:05:00"; }},
     "@/lib/billing/asaas-checkout":{buildAsaasRecurringCheckout:input=>{
       calls.push("payload");assert.equal(input.baseUrl,"https://www.kivai.com.br");
       assert.equal(input.amountBrl,19.9);assert.equal(input.externalReference,externalReference);
@@ -190,5 +190,15 @@ test("test-only pilot refuses annual or Agency pricing before reservation or pro
       assert.equal((await x.send(input)).status,403);
       assert.equal(x.calls.some(s=>s.startsWith("rpc/")||s==="provider:POST"),false);
     }
+  }finally{restore();}
+});
+
+test("same-day expiry boundary never reserves or calls Asaas",async()=>{
+  try{
+    env();const x=setup({midnight:true});
+    const response=await x.send();
+    assert.equal(response.status,503);
+    assert.deepEqual(x.calls,["auth"]);
+    assert.equal((await response.json()).error.includes("próximo dia"),true);
   }finally{restore();}
 });
