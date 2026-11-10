@@ -110,3 +110,41 @@ Antes de iniciar uma cobrança real, ativar o piloto de uma conta:
 ### Limite técnico adicional do piloto
 - Durante `KIVAI_ASAAS_TEST_ONLY=true`, o checkout aceita **somente Pro mensal**, recusando Agency e ciclos anuais diretamente no endpoint, antes de qualquer escrita ou chamada ao Asaas. Na interface, o piloto disponibiliza somente essa opção para a conta autorizada. O preço é verificado por RPC, não por conteúdo enviado do navegador.
 - A conta de teste deve ter login próprio e nenhuma solicitação de pagamento pendente. Uma compra verdadeira pode iniciar renovações mensais; definir o cancelamento com o pagador após os testes e verificar eventuais taxas cobradas pelo Asaas.
+
+## 9. Política comercial aprovada em 2026-11-10: cobrança no dia da contratação
+
+Decisão comercial: a primeira cobrança deve ter **data no mesmo dia civil da contratação** no fuso `America/Sao_Paulo`. O acesso Pro/Agency somente é liberado após o pagamento constar como `CONFIRMED` ou `RECEIVED` na API do Asaas, reconciliado com a assinatura e a cobrança em RPC idempotente.
+
+- O Checkout do Asaas usa `subscription.nextDueDate` para definir a primeira cobrança. Mesmo com vencimento no dia, o Asaas **pode** processar o cartão imediatamente, mas não garante aprovação ou crédito imediato. Não anunciar ativação instantânea.
+- Durante o checkout de 60 minutos, a data original pode se aproximar da meia-noite de Brasília. O código conserva o buffer atual de +70 minutos e **bloqueia a criação** caso o primeiro vencimento calculado caia em outro dia civil. Isto evita prometer cobrança no dia e efetuar cobrança no dia seguinte. A verificação ocorre **antes da reserva** no Supabase, evitando intent presa.
+- Limitação aprovada para preparação, ainda não solução comercial final: há uma janela próxima da meia-noite em que novas contratações não são oferecidas. Antes do lançamento público, decidir se a experiência exibirá uma mensagem de indisponibilidade temporária ou se se implementará Checkout com prazo de expiração adaptativo, sujeito a validação adicional no Asaas.
+- O sistema continua proibido de conceder acesso por `CHECKOUT_PAID`, `SUBSCRIPTION_CREATED` ou redirecionamento de sucesso sem `PAYMENT_CONFIRMED/RECEIVED` validado.
+- A rotina financeira descarta cobranças incompatíveis com cartão de crédito e impede concessão de acesso quando já houver evento de estorno ou chargeback registrado para a mesma cobrança.
+- Os logs de produção registram casos `manual_review` sem dados de cartão ou de usuário; a fila de revisão precisa de acompanhamento operacional. Eles **não são** alertas enviados por e-mail e não substituem monitoramento automatizado.
+- Conciliação de eventos fora de ordem existe em `/api/cron/asaas-reconcile`, mas **não deve** ser habilitada só com testes unitários: primeiro verificar o processamento de um pagamento real e conferir o funcionamento da rotina sob credenciais de produção.
+
+### Portões técnicos adicionais para venda pública (não ativados)
+
+Além dos portões anteriores, a rota do Checkout público agora exige simultaneamente:
+- `KIVAI_ASAAS_TEST_ONLY=false`
+- `KIVAI_ASAAS_PUBLIC_SALES=true`
+- `KIVAI_ASAAS_RECONCILIATION=true`
+- `KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED=true`, a ser criada **apenas após** uma cobrança real ter ativado o período correto, haver evidência de vínculo dos eventos e uma execução controlada de conciliação
+- Todas as flags de lifecycle, checkout, sincronização e link verificado configuradas corretamente.
+
+A ausência ou valor diferente de `true` em qualquer uma dessas variáveis mantém a venda pública **bloqueada**. Em especial, `KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED` não está autorizada agora.
+
+### Checklist de aceite antes da aprovação do lançamento
+
+1. Confirmar na conta Asaas o token e a entrega HTTP 200 de `CHECKOUT_PAID`, `SUBSCRIPTION_CREATED` e `PAYMENT_CONFIRMED/RECEIVED` para uma cobrança real.
+2. Verificar o `provider_payment_id` no ledger e a assinatura ativa no Supabase, além de ausência de período duplicado.
+3. Verificar comportamento quando os eventos chegarem fora de ordem e a conciliação resolver `manual_review` sem duplicar valores.
+4. Conferir a data de primeiro vencimento em uma jornada real no mesmo dia e tratar a janela de fechamento perto de meia-noite.
+5. Revisar contrato de renovação, cancelamento pelo usuário, inadimplência, estorno, reembolso, chargeback e atendimento.
+6. Instrumentar alerta operacional fora dos logs da Vercel para `manual_review` e filas penalizadas, antes de escalar para muitos clientes.
+7. Executar testes de gateway e rollout em condições controladas. Aprovar o lançamento em nova etapa; nenhuma mudança desta branch autoriza venda pública.
+
+Documentação oficial consultada:
+- https://docs.asaas.com/docs/checkout-com-assinatura-recorrente
+- https://docs.asaas.com/docs/faq-assinaturas
+- https://docs.asaas.com/docs/faq-de-webhooks

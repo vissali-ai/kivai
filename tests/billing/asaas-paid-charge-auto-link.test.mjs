@@ -22,6 +22,7 @@ function setup({reference="kivai_asaas_11111111-1111-4111-8111-111111111111",sta
  },
  "@/lib/blog/supabase":{supabaseRest:async(path,options={})=>{
   calls.push(path);
+  if(path.startsWith("kivai_recurring_webhook_inbox?")&&path.includes("PAYMENT_REFUNDED"))return[];
   if(path.startsWith("kivai_recurring_webhook_inbox?")&&options.method==="POST")return[{provider_event_id:"evt_unique"}];
   if(path.startsWith("kivai_recurring_webhook_inbox?")&&options.method==="PATCH")return[];
   if(path.startsWith("kivai_recurring_provider_links?"))

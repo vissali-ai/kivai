@@ -1,7 +1,9 @@
 /**
  * First recurring-payment due date for a Brazilian Asaas Checkout.
  *
- * Avoid a due date that falls before a payer can complete a valid checkout.
+ * Commercial policy: first due date must remain on the same Sao Paulo calendar
+ * day that checkout was created. If a 60-minute checkout would cross midnight,
+ * fail closed rather than silently schedule the first charge for tomorrow.
  * A due date is NOT proof of payment. Access remains pending until the
  * verified financial payment webhook applies the paid charge.
  *
@@ -25,6 +27,14 @@ export function nextAsaasFirstDueDate(now: Date = new Date()): string {
     ["year", "month", "day", "hour", "minute", "second"].map(part);
   if (![year, month, day, hour, minute, second].every(Boolean)) {
     throw Error("ASAAS_INVALID_FORMATTED_DUE_DATE");
+  }
+  const nowParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(now);
+  const nowPart = (name: string) => nowParts.find(p => p.type === name)?.value;
+  if (nowPart("year") !== year || nowPart("month") !== month || nowPart("day") !== day) {
+    throw Error("ASAAS_SAME_DAY_CHECKOUT_WINDOW_CLOSED");
   }
   return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 }

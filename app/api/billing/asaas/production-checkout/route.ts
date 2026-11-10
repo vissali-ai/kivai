@@ -50,7 +50,11 @@ function rolloutReady() {
   // Explicit and mutually exclusive switches. A test cannot silently open
   // the recurring checkout to every free-tier account.
   if (testMode()) return UUID.test(process.env.KIVAI_ASAAS_TEST_USER_ID ?? "");
-  return process.env.KIVAI_ASAAS_PUBLIC_SALES === "true";
+  // Public sales require an independently verified real paid event and an
+  // active reconciliation path for late/out-of-order payment notifications.
+  return process.env.KIVAI_ASAAS_PUBLIC_SALES === "true" &&
+    process.env.KIVAI_ASAAS_RECONCILIATION === "true" &&
+    process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED === "true";
 }
 function checkoutReady() {
   return productionCheckoutConfigured() &&
@@ -108,6 +112,14 @@ export async function POST(request: Request) {
   if (testMode() && (plan !== "pro" || billing !== "monthly")) {
     return respond(403, "Piloto autorizado apenas para o plano Pro mensal.");
   }
+  // Calculate BEFORE reserving or claiming the checkout. A request close to
+  // Sao Paulo midnight must not leave an unusable, stuck reservation behind.
+  let firstDueDate: string;
+  try {
+    firstDueDate = nextAsaasFirstDueDate();
+  } catch {
+    return respond(503, "A contratação será disponibilizada novamente no início do próximo dia.");
+  }
 
   try {
     // Server-authoritative price, active-contract protection, in-flight InfinitePay
@@ -137,7 +149,7 @@ export async function POST(request: Request) {
       billing: claim.billing_cycle,
       amountBrl: Number(claim.expected_amount_brl),
       externalReference: claim.external_reference,
-      nextDueDate: nextAsaasFirstDueDate(),
+      nextDueDate: firstDueDate,
       baseUrl: "https://www.kivai.com.br",
     });
     const checkout = await createAsaasProductionCheckout(payload);

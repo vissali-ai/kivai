@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = fs.readFileSync(new URL("../../app/api/billing/asaas/webhook/route.ts", import.meta.url), "utf8");
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }}).outputText;
 
-function setup({ configured = true, token = "valid", providerStatus = "CONFIRMED", value = 19.90, link = true, repeated = false, existingEventStatus = null } = {}) {
+function setup({ configured = true, token = "valid", providerStatus = "CONFIRMED", value = 19.90, link = true, repeated = false, existingEventStatus = null, disputed = false, billingType = "CREDIT_CARD" } = {}) {
   const calls = [];
   const payments = [];
   const inbox = [];
@@ -14,11 +14,14 @@ function setup({ configured = true, token = "valid", providerStatus = "CONFIRMED
     "@/lib/billing/asaas": {
       isAsaasSyncConfigured: () => configured,
       matchesAsaasWebhookToken: received => received === token,
-      asaasGet: async () => ({ id: "pay_12345678", subscription: "sub_12345678", value, status: providerStatus }),
+      asaasGet: async () => ({ id: "pay_12345678", subscription: "sub_12345678", value, status: providerStatus, billingType }),
     },
     "@/lib/blog/supabase": {
       supabaseRest: async (path, opts = {}) => {
         calls.push({ path, method: opts.method || "GET" });
+        if (path.startsWith("kivai_recurring_webhook_inbox?") && path.includes("PAYMENT_REFUNDED")) {
+          return disputed ? [{provider_event_id:"evt_refund"}] : [];
+        }
         if (path === "rpc/kivai_apply_asaas_paid_charge") {
           const args = JSON.parse(opts.body);
           payments.push(args);
@@ -135,4 +138,19 @@ test("a previously refunded payment must not be regranted based on a new paid we
   assert.equal((await ctx.send("PAYMENT_CONFIRMED")).status, 200);
   assert.equal(ctx.payments.length, 0);
   assert.equal(ctx.inbox[0].processing_status, "manual_review");
+});
+
+test("previous refund or chargeback blocks late confirmed payment even when provider still says CONFIRMED", async () => {
+  const ctx = setup({disputed:true});
+  const res = await ctx.send("PAYMENT_CONFIRMED");
+  assert.equal(res.status,200);
+  assert.equal(ctx.payments.length,0);
+  assert.equal(ctx.inbox[0].processing_status,"manual_review");
+});
+test("a verified payment with incompatible billing method never grants subscription entitlement", async () => {
+  const ctx = setup({billingType:"BOLETO"});
+  const res = await ctx.send("PAYMENT_CONFIRMED");
+  assert.equal(res.status,200);
+  assert.equal(ctx.payments.length,0);
+  assert.equal(ctx.inbox[0].processing_status,"manual_review");
 });
