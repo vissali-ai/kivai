@@ -45,10 +45,10 @@ function setup({ reviews = [], paid = [], mailStatus = 200 } = {}) {
   globalThis.fetch = async (url, options) => {
     calls.push("mail");
     assert.equal(url, "https://api.resend.com/emails");
-    assert.match(options.headers["Idempotency-Key"], /^kivai-asaas-ops-\\d{4}-\\d{2}-\\d{2}$/);
+    assert.match(options.headers["Idempotency-Key"], /^kivai-asaas-ops-\d{4}-\d{2}-\d{2}$/);
     const payload = JSON.parse(options.body);
     assert.deepEqual(payload.to, ["financeiro@example.com"]);
-    assert.doesNotMatch(payload.text, /pay_[a-z0-9]+|cus_[a-z0-9]+|@example\\.com/i);
+    assert.doesNotMatch(payload.text, /pay_[a-z0-9]+|cus_[a-z0-9]+|@example\.com/i);
     return { ok: mailStatus === 200, status: mailStatus };
   };
   const request = (secret = token) => new Request("https://www.kivai.com.br/api/cron/asaas-monitor", {
