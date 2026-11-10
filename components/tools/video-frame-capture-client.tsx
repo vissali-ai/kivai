@@ -41,6 +41,7 @@ export function VideoFrameCaptureClient() {
   const [quality, setQuality] = useState(92);
   const [isDragging, setIsDragging] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [batchCount, setBatchCount] = useState<5 | 10 | 20>(5);
   const [error, setError] = useState("");
 
   function revokeFrame() {
@@ -132,6 +133,76 @@ export function VideoFrameCaptureClient() {
     } catch (captureError) {
       setError(captureError instanceof Error ? captureError.message : "Não foi possível capturar o frame.");
     } finally {
+      setIsCapturing(false);
+    }
+  }
+
+
+  async function captureMultipleFrames() {
+    if (!source || !dimensions || !Number.isFinite(duration) || duration <= 0) {
+      setError("Carregue um vídeo com duração válida antes de extrair os frames.");
+      return;
+    }
+
+    setIsCapturing(true);
+    setError("");
+    const temporaryVideo = document.createElement("video");
+    temporaryVideo.muted = true;
+    temporaryVideo.preload = "auto";
+    temporaryVideo.playsInline = true;
+    temporaryVideo.src = source.url;
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        temporaryVideo.onloadedmetadata = () => resolve();
+        temporaryVideo.onerror = () => reject(new Error("Não foi possível ler o vídeo."));
+        temporaryVideo.load();
+      });
+
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+      const canvas = document.createElement("canvas");
+      const [selectedWidth, selectedHeight] = outputSize === "original"
+        ? [dimensions.width, dimensions.height]
+        : outputSize.split("x").map(Number);
+      canvas.width = selectedWidth;
+      canvas.height = selectedHeight;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Não foi possível preparar a extração.");
+      const extension = format === "image/png" ? "png" : format === "image/webp" ? "webp" : "jpg";
+      const basename = source.file.name.replace(/\\.[^.]+$/, "") || "video";
+
+      for (let index = 0; index < batchCount; index += 1) {
+        // Evita extremos, onde alguns codecs não entregam um frame decodificado.
+        const timestamp = (temporaryVideo.duration * (index + 1)) / (batchCount + 1);
+        await new Promise<void>((resolve, reject) => {
+          temporaryVideo.onseeked = () => resolve();
+          temporaryVideo.onerror = () => reject(new Error("Falha ao localizar um frame do vídeo."));
+          temporaryVideo.currentTime = timestamp;
+        });
+        context.drawImage(temporaryVideo, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (value) => value ? resolve(value) : reject(new Error("Falha ao gerar a imagem.")),
+            format,
+            format === "image/png" ? undefined : quality / 100,
+          );
+        });
+        zip.file(`${basename}-frame-${String(index + 1).padStart(2, "0")}.${extension}`, blob);
+      }
+
+      const output = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(output);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${basename}-${batchCount}-frames.zip`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (batchError) {
+      setError(batchError instanceof Error ? batchError.message : "Não foi possível extrair os frames.");
+    } finally {
+      temporaryVideo.removeAttribute("src");
+      temporaryVideo.load();
       setIsCapturing(false);
     }
   }
@@ -239,9 +310,24 @@ export function VideoFrameCaptureClient() {
                     </select>
                   </label>
 
+                  <div className="mt-6 rounded-lg border border-border bg-background p-3">
+                    <label htmlFor="frame-batch-count" className="block text-sm font-medium">Extrair vários frames</label>
+                    <p className="mt-1 text-xs text-muted-foreground">Distribua as capturas ao longo do vídeo e baixe tudo em um arquivo ZIP.</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <select id="frame-batch-count" value={batchCount} onChange={(event) => setBatchCount(Number(event.target.value) as 5 | 10 | 20)} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                        <option value={5}>5 frames</option>
+                        <option value={10}>10 frames</option>
+                        <option value={20}>20 frames</option>
+                      </select>
+                      <Button variant="outline" onClick={captureMultipleFrames} disabled={isCapturing || !dimensions || duration <= 0}>
+                        <Download aria-hidden="true" /> {isCapturing ? "Processando…" : "Baixar frames em ZIP"}
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Button onClick={captureFrame} disabled={isCapturing || !dimensions}>
-                      <ImageIcon aria-hidden="true" /> {isCapturing ? "Capturando…" : "Capturar frame"}
+                      <ImageIcon aria-hidden="true" /> {isCapturing ? "Processando…" : "Capturar frame"}
                     </Button>
                     <Button variant="outline" onClick={clear}>
                       <RotateCcw aria-hidden="true" /> Limpar
