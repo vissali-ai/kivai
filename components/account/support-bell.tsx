@@ -13,7 +13,7 @@ export function SupportBell(){
   const token=getStoredSession()?.access_token;if(!token)return;
   try{
    const res=await fetch("/api/account/support/notifications",{headers:{Authorization:`Bearer ${token}`},cache:"no-store"});
-   if(res.ok){const data=await res.json() as {notifications:Notice[]};setNotices(data.notifications)}
+   if(res.ok){const data=await res.json() as {notifications:Notice[]};setNotices(Array.isArray(data.notifications) ? data.notifications : [])}
   }catch{/* Keep previous state when offline. */}
  },[]);
  useEffect(()=>{
