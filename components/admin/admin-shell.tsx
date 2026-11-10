@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bot, BookOpen, CreditCard, FolderTree, Images, LayoutDashboard, Headset, LogOut, MailPlus, Megaphone, Plus, PanelsTopLeft, Repeat2, UsersRound, Wrench } from "lucide-react";
+import { Bot, BookOpen, CreditCard, Coins, FolderTree, Images, LayoutDashboard, Headset, LogOut, MailPlus, Megaphone, Plus, PanelsTopLeft, Repeat2, UsersRound, Wrench } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +20,7 @@ const navigation = [
   { label: "Comercial", links: [
     { href: "/admin/usuarios", label: "Usuários e assinaturas", icon: UsersRound },
     { href: "/admin/assinaturas", label: "Pagamentos e capacidade", icon: CreditCard },
+    { href: "/admin/creditos-ia", label: "Gerenciar Créditos de IA", icon: Coins },
     { href: "/admin/marketing", label: "Disparos", icon: Megaphone },
     { href: "/admin/marketing/email-marketing", label: "Envio manual", icon: MailPlus },
     { href: "/admin/marketing/fila", label: "Fila de comunicações", icon: Repeat2 },
@@ -29,7 +30,7 @@ const navigation = [
   { label: "Sistema", links: [{ href: "/admin/blog/manutencao", label: "Manutenção", icon: Wrench }] },
 ];
 
-const originPanels = new Set(["/admin/blog", "/admin/blog/midias", "/admin/blog/categorias", "/admin/blog/agente", "/admin/site", "/admin/atendimento", "/admin/usuarios", "/admin/assinaturas", "/admin/marketing", "/admin/marketing/email-marketing", "/admin/marketing/fila", "/admin/trafego", "/admin/blog/manutencao"]);
+const originPanels = new Set(["/admin/blog", "/admin/blog/midias", "/admin/blog/categorias", "/admin/blog/agente", "/admin/site", "/admin/atendimento", "/admin/usuarios", "/admin/assinaturas", "/admin/creditos-ia", "/admin/marketing", "/admin/marketing/email-marketing", "/admin/marketing/fila", "/admin/trafego", "/admin/blog/manutencao"]);
 
 function isAdminSaveRequest(input: RequestInfo | URL, init?: RequestInit) {
   const method = String(init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
