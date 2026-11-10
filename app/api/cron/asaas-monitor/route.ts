@@ -18,7 +18,7 @@ function enabled() {
     process.env.KIVAI_ASAAS_MONITORING === "true" &&
     (process.env.CRON_SECRET ?? "").length >= 32 &&
     (process.env.RESEND_API_KEY ?? "").length >= 20 &&
-    /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(process.env.KIVAI_ASAAS_ALERT_EMAIL ?? "");
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(process.env.KIVAI_ASAAS_ALERT_EMAIL ?? "");
 }
 function authorized(header: string | null) {
   const expected = "Bearer " + (process.env.CRON_SECRET ?? "");
