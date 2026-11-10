@@ -80,6 +80,20 @@ export async function ToolEditorialLayout({
               </nav>
             </ToolSeoDisclosure>
           )}
+          {relatedArticles.length > 0 && (
+            <ToolSeoDisclosure title="Conteúdos relacionados">
+              <nav aria-label="Conteúdos relacionados" className="rounded-lg border border-border bg-card p-5 sm:p-6">
+                <h2 className="text-xl font-semibold">Conteúdos relacionados</h2>
+                <div className="mt-4 space-y-3">
+                  {relatedArticles.map((item) => (
+                    <Link key={item.href} href={item.href} className="block text-sm font-medium text-primary underline-offset-4 hover:underline">
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </nav>
+            </ToolSeoDisclosure>
+          )}
         </div>
       </section>
     );
