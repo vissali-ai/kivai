@@ -12,7 +12,8 @@ const keys = ["VERCEL_ENV","ASAAS_ENVIRONMENT","KIVAI_ASAAS_PRODUCTION_CHECKOUT"
               "KIVAI_ASAAS_PRODUCTION_ROUTE","ASAAS_API_KEY",
               "KIVAI_ASAAS_RECURRING_SYNC","KIVAI_ASAAS_PRODUCTION_LIFECYCLE","ASAAS_WEBHOOK_TOKEN",
               "KIVAI_ASAAS_VERIFIED_AUTO_LINK","KIVAI_ASAAS_TEST_ONLY",
-              "KIVAI_ASAAS_TEST_USER_ID","KIVAI_ASAAS_PUBLIC_SALES"];
+              "KIVAI_ASAAS_TEST_USER_ID","KIVAI_ASAAS_PUBLIC_SALES",
+              "KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED"];
 const original = Object.fromEntries(keys.map(k=>[k,process.env[k]]));
 
 function env(enabled=true) {
@@ -26,6 +27,8 @@ function env(enabled=true) {
   process.env.ASAAS_WEBHOOK_TOKEN="placeholder-long-webhook-token-for-tests";
   process.env.ASAAS_API_KEY="placeholder-key-for-testing-only";
   process.env.KIVAI_ASAAS_PUBLIC_SALES="true";
+  process.env.KIVAI_ASAAS_RECONCILIATION="true";
+  process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED="true";
   delete process.env.KIVAI_ASAAS_TEST_ONLY;
   delete process.env.KIVAI_ASAAS_TEST_USER_ID;
 }
@@ -200,5 +203,29 @@ test("same-day expiry boundary never reserves or calls Asaas",async()=>{
     assert.equal(response.status,503);
     assert.deepEqual(x.calls,["auth"]);
     assert.equal((await response.json()).error.includes("próximo dia"),true);
+  }finally{restore();}
+});
+
+test("public checkout fails closed until both reconciler and real-payment approval are explicitly enabled",async()=>{
+  try{
+    for(const key of ["KIVAI_ASAAS_RECONCILIATION","KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED"]){
+      env();
+      delete process.env[key];
+      const x=setup();
+      assert.equal((await x.send()).status,503);
+      assert.deepEqual(x.calls,[]);
+    }
+  }finally{restore();}
+});
+test("public reconciliation prerequisite never blocks an explicitly allowlisted pilot account",async()=>{
+  try{
+    env();
+    process.env.KIVAI_ASAAS_TEST_ONLY="true";
+    process.env.KIVAI_ASAAS_TEST_USER_ID=user;
+    delete process.env.KIVAI_ASAAS_RECONCILIATION;
+    delete process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED;
+    const x=setup();
+    assert.equal((await x.send()).status,200);
+    assert.equal(x.calls.filter(c=>c==="provider:POST").length,1);
   }finally{restore();}
 });
