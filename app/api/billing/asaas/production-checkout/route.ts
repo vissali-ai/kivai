@@ -50,7 +50,11 @@ function rolloutReady() {
   // Explicit and mutually exclusive switches. A test cannot silently open
   // the recurring checkout to every free-tier account.
   if (testMode()) return UUID.test(process.env.KIVAI_ASAAS_TEST_USER_ID ?? "");
-  return process.env.KIVAI_ASAAS_PUBLIC_SALES === "true";
+  // Public sales require an independently verified real paid event and an
+  // active reconciliation path for late/out-of-order payment notifications.
+  return process.env.KIVAI_ASAAS_PUBLIC_SALES === "true" &&
+    process.env.KIVAI_ASAAS_RECONCILIATION === "true" &&
+    process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED === "true";
 }
 function checkoutReady() {
   return productionCheckoutConfigured() &&
