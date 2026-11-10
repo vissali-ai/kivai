@@ -111,6 +111,21 @@ test("dashboard presents services without personalization or plan upsell card", 
   await expectNoOverflow(page);
 });
 
+test("routines live in the profile menu and not the dashboard", async ({ page }) => {
+  await mockAccount(page);
+  await page.goto("/conta");
+  await expect(page.locator("#painel-lembretes")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Minha rotina semanal" })).toHaveCount(0);
+  await page.locator('summary[aria-label="Abrir menu do usuário"]').click();
+  await expect(page.getByRole("navigation", { name: "Menu da conta" }).getByRole("link", { name: "Minhas Rotinas" })).toHaveAttribute("href", "/conta/rotinas");
+  await page.goto("/conta/rotinas");
+  await expect(page.getByRole("heading", { name: "Minhas Rotinas" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Minha rotina semanal" })).toBeVisible();
+  await expect(page.getByText("Você pode configurar uma rotina semanal por vez.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Voltar ao painel" })).toHaveAttribute("href", "/conta");
+  await expectNoOverflow(page);
+});
+
 test("unavailable plan never appears as free", async ({ page }) => {
   await mockAccount(page, { accessFails: true });
   await page.goto("/conta");
