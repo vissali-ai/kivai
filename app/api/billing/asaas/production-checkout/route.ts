@@ -54,6 +54,7 @@ function rolloutReady() {
   // active reconciliation path for late/out-of-order payment notifications.
   return process.env.KIVAI_ASAAS_PUBLIC_SALES === "true" &&
     process.env.KIVAI_ASAAS_RECONCILIATION === "true" &&
+    process.env.KIVAI_ASAAS_MONITORING === "true" &&
     process.env.KIVAI_ASAAS_PUBLIC_PAYMENT_VALIDATED === "true";
 }
 function checkoutReady() {
