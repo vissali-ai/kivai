@@ -70,6 +70,35 @@ test("profile menu stays completely visible on an iPhone-sized viewport", async 
   await expectNoOverflow(page);
 });
 
+test("bell combines announcements and support without dashboard duplicates", async ({ page }) => {
+  await mockAccount(page);
+  const noticeId = "12345678-1234-1234-1234-123456789012";
+  await page.route("**/api/account/announcements", route => {
+    if (route.request().method() === "POST") return route.fulfill({ json: { ok: true } });
+    return route.fulfill({ json: { notices: [{ id: noticeId, title: "Aviso importante", body: "Mensagem de teste", link_url: "/planos", read: false, created_at: "2026-11-10T12:00:00Z" }] } });
+  });
+  await page.route("**/api/account/support/notifications", route => {
+    if (route.request().method() === "PATCH") return route.fulfill({ json: { ok: true } });
+    return route.fulfill({ json: { notifications: [{ id: "support-one", ticket_id: "ticket-one", title: "Protocolo atualizado", kind: "reply", read_at: null, created_at: "2026-11-10T13:00:00Z" }] } });
+  });
+  await page.goto("/conta");
+  await expect(page.getByText("Seu espaço para retomar ferramentas recentes", { exact: false })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Benefício de boas-vindas" })).toHaveCount(0);
+  await expect(page.locator("#painel-avisos")).toHaveCount(0);
+  const bell = page.getByRole("button", { name: "Notificações: 2 não lidas" });
+  await expect(bell).toBeVisible();
+  await bell.click();
+  const panel = page.getByRole("region", { name: "Notificações" });
+  await expect(panel.getByText("Aviso importante")).toBeVisible();
+  await expect(panel.getByText("Protocolo atualizado")).toBeVisible();
+  await expect(panel.getByText("Mensagem de teste")).toBeVisible();
+  await expect(panel.getByRole("link", { name: "Saiba mais" })).toHaveAttribute("href", "/planos");
+  await panel.getByRole("button", { name: "Marcar como lido" }).click();
+  await expect(page.getByRole("button", { name: "Notificações: 1 não lidas" })).toBeVisible();
+  await expect(panel.getByRole("link", { name: "Protocolo atualizado" })).toHaveAttribute("href", "/conta/atendimento?ticket=ticket-one");
+  await expectNoOverflow(page);
+});
+
 test("unavailable plan never appears as free", async ({ page }) => {
   await mockAccount(page, { accessFails: true });
   await page.goto("/conta");
