@@ -58,6 +58,10 @@ export function CalculatorToolEditorialV2({ slug }: { slug: CalculatorToolEditor
         limitations={content.limitations}
         faqs={content.faqs}
         relatedTools={content.related.filter((item) => item.href !== `/ferramentas/${slug}`)}
+        relatedArticles={slug === "calculadora-de-porcentagem" ? [
+          { href: "/blog/como-calcular-porcentagem-na-calculadora-do-celular", label: "Como calcular porcentagem na calculadora do celular" },
+          { href: "/blog/como-descobrir-porcentagem-entre-dois-valores", label: "Como descobrir porcentagem entre dois valores" },
+        ] : []}
         afterFaq={<AdSlot placement="tool-bottom" />}
       />
     </>
