@@ -10,12 +10,10 @@ import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 import { useAccountAccess } from "@/lib/billing/access-client";
 import { SavedProjects } from "@/components/account/saved-projects";
 import { MyFavoriteTools } from "@/components/account/my-favorite-tools";
-import { AccountNotifications } from "@/components/account/account-notifications";
 import { RoutineReminderSettings } from "@/components/account/routine-reminder-settings";
 import { AccountWelcome } from "@/components/account/account-welcome";
 import { PaidQuickStart } from "@/components/account/paid-quick-start";
 import { SubscriptionRenewalNotice } from "@/components/account/subscription-renewal-notice";
-import { ProWelcomeTrialCard } from "@/components/account/pro-welcome-trial-card";
 import { SupportBell } from "@/components/account/support-bell";
 import { Headset } from "lucide-react";
 
@@ -119,7 +117,6 @@ export function AccountDashboard() {
             <SupportBell />
           </div>
           <h1 className="mt-3 break-words text-3xl font-semibold tracking-tight sm:text-4xl">Olá, {firstName}.</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Seu espaço para retomar ferramentas recentes, encontrar favoritos e descobrir recursos úteis para sua rotina.</p>
           <div className="mt-5"><Button asChild variant="outline"><Link href="/ferramentas"><LayoutDashboard /> Todas as ferramentas</Link></Button></div>
         </div>
         <div className="flex min-w-0 items-start gap-3 lg:shrink-0">
@@ -153,7 +150,6 @@ export function AccountDashboard() {
 
 
 
-    {userId ? <ProWelcomeTrialCard /> : null}
     {userId ? <div id="painel-creditos" tabIndex={-1} className="scroll-mt-28"><AiCreditBalance /></div> : null}
     {userId ? <AccountWelcome userId={userId} firstName={firstName} /> : null}
     {userId && (plan === "pro" || plan === "agency") ? <PaidQuickStart plan={plan} /> : null}
@@ -162,7 +158,6 @@ export function AccountDashboard() {
     <div id="painel-projetos" tabIndex={-1} className="scroll-mt-28"><SavedProjects /></div>
     {snapshots.length ? <section className="overflow-hidden rounded-2xl border border-border bg-card"><div className="flex items-center gap-3 border-b border-border p-5"><History className="size-5 text-primary" /><div><h2 className="font-semibold">Análises recentes</h2><p className="mt-1 text-xs text-muted-foreground">Histórico privado dos seus perfis do Instagram.</p></div></div><div className="divide-y divide-white/5">{snapshots.map((snapshot) => <div key={snapshot.id} className="grid gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center"><div><p className="font-medium">@{snapshot.username || "instagram"}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(snapshot.analyzed_at).toLocaleString("pt-BR")}</p></div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguidores</span>{Number(snapshot.follower_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguindo</span>{Number(snapshot.following_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Novos</span>{snapshot.new_followers_count == null ? "-" : Number(snapshot.new_followers_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Unfollows</span>{snapshot.unfollowers_count == null ? "-" : Number(snapshot.unfollowers_count).toLocaleString("pt-BR")}</div></div>)}</div></section> : null}
 
-    <div id="painel-avisos" tabIndex={-1} className="scroll-mt-28"><AccountNotifications /></div>
     <div id="painel-lembretes" tabIndex={-1} className="scroll-mt-28"><RoutineReminderSettings /></div>
     {paymentError ? <p role="alert" className="rounded border border-destructive/40 p-4 text-sm">{paymentError}</p> : null}
     {pendingRequest ? <section className="rounded-2xl border border-primary/25 bg-primary/[0.035] p-5 sm:p-6"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Contratação em andamento</p><h2 className="mt-2 text-xl font-semibold">Plano {pendingRequest.plan_code === "pro" ? "Pro" : "Agency"} {pendingRequest.billing_cycle === "monthly" ? "mensal" : "anual"}</h2><p className="mt-2 text-sm text-muted-foreground">Valor: R$ {Number(pendingRequest.amount_brl).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{pendingRequest.status === "payment_reported" ? "Pagamento informado. Aguardando confirmação e ativação." : "Depois de concluir o pagamento, informe aqui para destacar a solicitação no Admin."}</p></div><div className="flex min-w-[220px] flex-col gap-2">{pendingRequest.status === "awaiting_payment" ? <><Button onClick={reportPayment} disabled={reportingPayment}>{reportingPayment ? "Registrando..." : "Já realizei o pagamento"}</Button></> : <div className="flex items-center justify-center gap-2 border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-medium text-primary"><CheckCircle2 className="size-4" /> Aguardando confirmação</div>}<Button asChild variant="outline"><a href={pendingRequest.payment_link} target="_blank" rel="noopener noreferrer">Acessar o Link de Pagamento Novamente</a></Button></div></div></section> : null}
