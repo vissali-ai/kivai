@@ -52,13 +52,12 @@ export function MyFavoriteTools() {
     <section className="rounded-2xl border border-primary/25 bg-card p-5 sm:p-6" aria-labelledby="my-tools-title">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id="my-tools-title" className="flex items-center gap-2 text-xl font-semibold"><Star className="size-5 text-primary" /> Minhas Ferramentas</h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">Suas ferramentas favoritas, sempre disponíveis nesta conta. Não altera os benefícios do seu plano.</p>
+          <h2 id="my-tools-title" className="flex items-center gap-2 text-xl font-semibold"><Star className="size-5 text-primary" /> Ferramentas Favoritas</h2>
         </div>
-        <Button asChild variant="outline" size="sm"><Link href="/ferramentas">Explorar ferramentas <ArrowRight className="size-4" /></Link></Button>
+        <Button asChild variant="outline" size="sm"><Link href="/ferramentas">Abra uma ferramenta <ArrowRight className="size-4" /></Link></Button>
       </div>
       {loading ? <p className="mt-4 text-sm text-muted-foreground">Carregando seus favoritos...</p>
-        : items.length === 0 && !error ? <p className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">Você ainda não adicionou nenhuma ferramenta. Abra uma ferramenta e clique em Salvar nos favoritos para encontrá-la aqui.</p>
+        : items.length === 0 && !error ? <p className="mt-5 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">Clique em Salvar nos favoritos para encontrá-la aqui.</p>
         : null}
       {items.length > 0 ? <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => <div key={item.tool_slug} className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-background/40 p-3">
