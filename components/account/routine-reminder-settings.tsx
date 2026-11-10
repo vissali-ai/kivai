@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BellRing, BellOff, Check, Clock } from "lucide-react";
+import { ArrowRight, BellRing, BellOff, Check, Clock } from "lucide-react";
 import { getStoredSession } from "@/lib/user-auth";
 import { defaultReminder, reminderToolChoices, reminderWeekdays, type ReminderPreference } from "@/lib/account/routine-reminder-options";
 
@@ -113,8 +114,8 @@ export function RoutineReminderSettings() {
       <div className="flex items-start gap-3">
         <BellRing className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" />
         <div>
-          <h2 id="routine-reminders-title" className="text-xl font-semibold">Lembretes da rotina</h2>
-          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">Escolha uma ferramenta e defina o dia e o horário para manter a rotina.</p>
+          <h2 id="routine-reminders-title" className="text-xl font-semibold">Minha rotina semanal</h2>
+          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">Escolha uma ferramenta e defina o dia e o horário para manter a rotina. Você pode configurar uma rotina semanal por vez.</p>
         </div>
       </div>
       {loading ? <p className="mt-4 text-sm text-muted-foreground">Carregando preferências...</p> : (
@@ -160,6 +161,17 @@ export function RoutineReminderSettings() {
             <div className="space-y-2 rounded-lg border border-border bg-muted/10 p-3">
               <p className="text-xs leading-5 text-muted-foreground">{emailAvailable ? "Seu lembrete será enviado para o e-mail cadastrado nesta conta. Você poderá desativá-lo a qualquer momento." : "O canal de e-mail está indisponível no momento. Verifique se a conta tem um endereço de e-mail válido."}</p>
               <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1 shrink-0" checked={emailConsent} onChange={e => setEmailConsent(e.target.checked)} />Autorizo o Kivai a me enviar um lembrete semanal por e-mail, referente à atividade escolhida.</label>
+            </div>
+          ) : null}
+          {preference.enabled ? (
+            <div className="rounded-lg border border-primary/25 bg-primary/[0.035] p-3 text-sm">
+              <p className="font-semibold">Rotina ativa</p>
+              <p className="mt-1 text-muted-foreground">
+                {reminderToolChoices.find((item) => item.slug === preference.tool_slug)?.label ?? "Ferramenta selecionada"} • {reminderWeekdays[preference.weekday]} às {String(preference.hour).padStart(2, "0")}:00
+              </p>
+              <Link href={`/ferramentas/${preference.tool_slug}`} className="mt-2 inline-flex items-center gap-1 font-medium text-primary hover:underline">
+                Abrir ferramenta <ArrowRight className="size-4" />
+              </Link>
             </div>
           ) : null}
           <p className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="size-3.5" /> Fuso horário: {preference.time_zone}. Um lembrete por semana, próximo ao horário escolhido.</p>
