@@ -46,6 +46,9 @@ test("account menu keeps profile, billing and upgrade in a compact dropdown", as
   await page.locator('summary[aria-label="Abrir menu do usuário"]').click();
   await expect(page.getByRole("navigation", { name: "Menu da conta" }).getByRole("link", { name: "Meus Dados" })).toHaveAttribute("href", "/conta/dados");
   await expect(page.getByRole("link", { name: "Minha assinatura e pagamentos" })).toHaveAttribute("href", "/conta/cobrancas");
+  await expect(page.getByRole("navigation", { name: "Menu da conta" }).getByRole("link", { name: "Central de Atendimento" })).toHaveAttribute("href", "/conta/atendimento");
+  await expect(page.locator("#painel-plano")).toHaveCount(0);
+  await expect(page.locator("#painel-atendimento")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sair da conta" })).toBeVisible();
   await expectNoOverflow(page);
 });
