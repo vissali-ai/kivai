@@ -38,6 +38,18 @@ test("dashboard shows credits and recovers from payment reporting failure", asyn
   await expect(page.getByText("Não foi possível informar o pagamento", { exact: false })).toHaveCount(0);
 });
 
+test("account menu keeps profile, billing and upgrade in a compact dropdown", async ({ page }) => {
+  await mockAccount(page);
+  await page.goto("/conta");
+  await expect(page.getByRole("link", { name: "Configurações" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Sair da conta" })).not.toBeVisible();
+  await page.locator('summary[aria-label="Abrir menu do usuário"]').click();
+  await expect(page.getByRole("navigation", { name: "Menu da conta" }).getByRole("link", { name: "Meus Dados" })).toHaveAttribute("href", "/conta/dados");
+  await expect(page.getByRole("link", { name: "Minha assinatura e pagamentos" })).toHaveAttribute("href", "/conta/cobrancas");
+  await expect(page.getByRole("button", { name: "Sair da conta" })).toBeVisible();
+  await expectNoOverflow(page);
+});
+
 test("unavailable plan never appears as free", async ({ page }) => {
   await mockAccount(page, { accessFails: true });
   await page.goto("/conta");
