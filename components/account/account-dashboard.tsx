@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, ArrowUp, Building2, CheckCircle2, Crown, History, LayoutDashboard, LogOut, Settings, UserRound } from "lucide-react";
+import { ArrowRight, ArrowUp, Building2, CheckCircle2, ChevronDown, Crown, History, LayoutDashboard, LogOut, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession, signOut, supabaseUserFetch } from "@/lib/user-auth";
 import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
@@ -111,24 +111,41 @@ export function AccountDashboard() {
 
   return <div id="painel-inicio" tabIndex={-1} className="scroll-mt-28 space-y-6">
     {accessError || loadError ? <div role="alert" className="rounded border p-4"><p>{accessError || loadError}</p><Button variant="outline" size="sm" className="mt-3" onClick={() => window.location.reload()}>Atualizar painel</Button></div> : null}
-    <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8">
+    <section className="relative rounded-3xl border border-border bg-card p-6 sm:p-8">
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary"><LayoutDashboard className="size-4" /> Meu Kivai</span>
             <SupportBell />
-            <Button asChild variant="ghost" size="sm"><Link href="/conta/dados" title="Configurações da conta"><Settings className="size-4" /> Configurações</Link></Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout}><LogOut className="size-4" /> Sair da conta</Button>
           </div>
           <h1 className="mt-3 break-words text-3xl font-semibold tracking-tight sm:text-4xl">Olá, {firstName}.</h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Seu espaço para retomar ferramentas recentes, encontrar favoritos e descobrir recursos úteis para sua rotina.</p>
           <div className="mt-5"><Button asChild variant="outline"><Link href="/ferramentas"><LayoutDashboard /> Todas as ferramentas</Link></Button></div>
         </div>
-        <div className="w-full min-w-0 rounded-2xl border border-primary/20 bg-primary/[0.05] p-5 lg:w-80 lg:shrink-0">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Seu plano atual</p>
-          <div className="mt-3 flex items-center gap-3"><div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><PlanIcon className="size-5" /></div><div className="min-w-0"><p className="text-lg font-semibold">{plan ? `Plano ${planLabels[plan]}` : "Plano indisponível"}</p><p className="break-all text-xs text-muted-foreground">{email}</p></div></div>
-          <Button asChild size="sm" className="mt-5 w-full"><Link href="/conta/dados"><UserRound /> Meus Dados</Link></Button>
-          <Button asChild variant="outline" size="sm" className="mt-2 w-full"><Link href="/conta/cobrancas">Minha assinatura e pagamentos</Link></Button>
+        <div className="flex min-w-0 items-start gap-3 lg:shrink-0">
+          <div className="min-w-0 pt-1 text-right">
+            <p className="text-sm font-semibold">{plan ? `Plano ${planLabels[plan]}` : "Plano indisponível"}</p>
+            <p className="max-w-40 truncate text-xs text-muted-foreground sm:max-w-52">{email}</p>
+          </div>
+          <details className="group relative z-20 shrink-0">
+            <summary aria-label="Abrir menu do usuário" className="flex min-h-11 cursor-pointer list-none items-center gap-1 rounded-full border border-border bg-background px-2 text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="size-8 rounded-full object-cover" referrerPolicy="no-referrer" /> : <span className="flex size-8 items-center justify-center rounded-full bg-primary/10"><PlanIcon className="size-4" /></span>}
+              <ChevronDown aria-hidden="true" className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="absolute right-0 top-full z-30 mt-2 w-[min(19rem,calc(100vw-3rem))] rounded-xl border border-border bg-card p-2 shadow-lg">
+              <div className="border-b border-border px-3 py-2">
+                <p className="truncate text-sm font-semibold">{displayName}</p>
+                <p className="truncate text-xs text-muted-foreground">{email}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{plan ? `Plano ${planLabels[plan]}` : "Plano indisponível"}</p>
+              </div>
+              {plan === "free" ? <Link href="/planos" className="mt-2 flex min-h-10 items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"><Crown className="size-4" /> Fazer upgrade para Pro</Link> : plan === "pro" ? <Link href="/planos" className="mt-2 flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-accent"><Crown className="size-4" /> Conhecer Agency</Link> : null}
+              <nav aria-label="Menu da conta" className="mt-1">
+                <Link href="/conta/dados" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent"><UserRound className="size-4" /> Meus Dados</Link>
+                <Link href="/conta/cobrancas" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent">Minha assinatura e pagamentos</Link>
+              </nav>
+              <button type="button" onClick={handleLogout} className="mt-1 flex min-h-10 w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm hover:bg-accent"><LogOut className="size-4" /> Sair da conta</button>
+            </div>
+          </details>
         </div>
       </div>
     </section>
