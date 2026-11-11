@@ -139,8 +139,8 @@ export function isMatchingEditorialSource(requested: string, retrieved: string) 
   try {
     const a = new URL(validateSourceUrl(requested));
     const b = new URL(validateSourceUrl(retrieved));
-    const host = (url: URL) => url.hostname.toLowerCase().replace(/^www\\./, "");
-    const path = (url: URL) => url.pathname.replace(/\\/+$/, "") || "/";
+    const host = (url: URL) => url.hostname.toLowerCase().replace(/^www\./, "");
+    const path = (url: URL) => url.pathname.replace(/\/+$/, "") || "/";
     return host(a) === host(b) && path(a) === path(b) &&
       a.searchParams.toString() === b.searchParams.toString();
   } catch { return false; }
