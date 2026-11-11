@@ -190,6 +190,6 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         {plan === "free" ? <Link className={shortcutClass} href="/planos">Conhecer planos</Link> : null}
       </nav>
       </details>
-    </div> : userId ? <Link className="inline-flex min-h-11 items-center text-sm text-primary underline" href="/conta#painel-projetos">Ver todos os meus projetos no painel</Link> : null}
+    </div> : userId ? <Link className="inline-flex min-h-11 items-center text-sm text-primary underline" href="/conta/projetos">Ver todos os meus projetos no painel</Link> : null}
   </section>;
 }
