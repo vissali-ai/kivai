@@ -1211,14 +1211,14 @@ export const tools: Tool[] = [
   {
     slug: "capturar-frame-video",
     name: "Capturar Frame do Vídeo",
-    description: "Transforme momentos do vídeo em imagens. Capture uma imagem escolhida ou extraia automaticamente 5, 10 ou 20 imagens distribuídas pelo vídeo em um arquivo ZIP.",
+    description: "Capture um frame direto do player ou gere 5, 10 ou 20 imagens com prévia e download individual, sem precisar de ZIP.",
     category: "video",
     hubFilter: "Edição",
     badge: "Vídeo",
     icon: FileImage,
     available: true,
     seoTitle: "Capturar Frame de Vídeo Online e Salvar como Imagem | Kivai",
-    seoDescription: "Capture um frame de vídeo online ou extraia 5, 10 ou 20 frames em ZIP. Salve imagens PNG, JPG ou WebP diretamente no navegador.",
+    seoDescription: "Capture frames de vídeo online, visualize 5, 10 ou 20 imagens e baixe individualmente em PNG, JPG ou WebP. ZIP opcional.",
     keywords: ["capturar frame de vídeo", "capturar frame de video", "extrair frame de vídeo", "salvar frame como imagem", "tirar imagem de vídeo"],
   },
   {
