@@ -4,7 +4,7 @@ import { openFilePicker } from "@/lib/browser/file-picker";
 
 /* eslint-disable @next/next/no-img-element */
 
-import { ChangeEvent, DragEvent, useRef, useState } from "react";
+import { ChangeEvent, DragEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Download, ImageIcon, RotateCcw, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,13 @@ function formatTime(seconds: number) {
 export function VideoFrameCaptureClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const seekTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seekWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestedTimeRef = useRef(0);
+  const refreshAfterSeekRef = useRef(false);
+  const seekSequenceRef = useRef(0);
+  const previewCleanupRef = useRef<(() => void) | null>(null);
   const [source, setSource] = useState<{ file: File; url: string } | null>(null);
   const [frame, setFrame] = useState<CapturedFrame | null>(null);
   const [duration, setDuration] = useState(0);
@@ -46,6 +53,104 @@ export function VideoFrameCaptureClient() {
   const [batchCount, setBatchCount] = useState<5 | 10 | 20>(5);
   const [error, setError] = useState("");
 
+  useEffect(() => () => {
+    if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
+    if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
+    if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
+    previewCleanupRef.current?.();
+  }, []);
+
+  function cancelPendingSeek() {
+    seekSequenceRef.current += 1;
+    refreshAfterSeekRef.current = false;
+    if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
+    if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
+    if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
+    seekTimerRef.current = null;
+    seekWatchdogRef.current = null;
+    previewStopTimerRef.current = null;
+    previewCleanupRef.current?.();
+    previewCleanupRef.current = null;
+  }
+
+  // Safari no iPhone pode manter o último quadro quando se altera currentTime com o vídeo pausado.
+  // Reproduzir um único quadro, sem áudio, força a atualização visual quando o usuário confirma o seek.
+  function refreshPreviewFrame() {
+    const video = videoRef.current;
+    if (!video || (!video.paused && !previewCleanupRef.current) || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+
+    if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
+    previewCleanupRef.current?.();
+
+    const sequence = seekSequenceRef.current;
+    const targetTime = video.currentTime;
+    const wasMuted = video.muted;
+    video.muted = true;
+    let finished = false;
+    let callbackId: number | undefined;
+
+    const finish = (displayed: boolean) => {
+      if (finished) return;
+      finished = true;
+      if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
+      if (callbackId !== undefined && video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(callbackId);
+      video.pause();
+      video.muted = wasMuted;
+      if (sequence === seekSequenceRef.current) {
+        setIsSeeking(false);
+        setCurrentTime(video.currentTime);
+        if (!displayed) {
+          setError("Não foi possível confirmar a atualização do quadro. Toque em Atualizar prévia ou tente MP4/H.264.");
+        }
+      }
+      previewCleanupRef.current = null;
+    };
+
+    previewCleanupRef.current = () => finish(false);
+    if (video.requestVideoFrameCallback) {
+      const checkFrame: VideoFrameRequestCallback = (_now, metadata) => {
+        if (finished || sequence !== seekSequenceRef.current) return;
+        if (Math.abs(metadata.mediaTime - targetTime) <= 0.35) {
+          finish(true);
+        } else {
+          callbackId = video.requestVideoFrameCallback(checkFrame);
+        }
+      };
+      callbackId = video.requestVideoFrameCallback(checkFrame);
+    } else {
+      video.addEventListener("timeupdate", () => finish(true), { once: true });
+    }
+    previewStopTimerRef.current = setTimeout(() => finish(false), 1800);
+    void video.play().catch(() => finish(false));
+  }
+
+  function applySelectedTime(refresh = false) {
+    const video = videoRef.current;
+    if (!video) return;
+    if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
+    if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
+    seekTimerRef.current = null;
+    const selected = requestedTimeRef.current;
+    refreshAfterSeekRef.current = refresh;
+    if (Math.abs(video.currentTime - selected) > 0.015) {
+      video.currentTime = selected;
+      setIsSeeking(true);
+    } else {
+      setIsSeeking(false);
+      refreshAfterSeekRef.current = false;
+      if (refresh) refreshPreviewFrame();
+      return;
+    }
+
+    // Se o navegador não entregar seeked (ex.: MOV 4K no Safari), evita spinner permanente.
+    const sequence = seekSequenceRef.current;
+    seekWatchdogRef.current = setTimeout(() => {
+      if (sequence !== seekSequenceRef.current) return;
+      setIsSeeking(false);
+      setError("A prévia não respondeu à mudança de tempo. Toque em Atualizar prévia ou experimente um vídeo MP4/H.264.");
+    }, 3500);
+  }
+
   function revokeFrame() {
     if (frame) URL.revokeObjectURL(frame.url);
   }
@@ -58,6 +163,7 @@ export function VideoFrameCaptureClient() {
       return;
     }
 
+    cancelPendingSeek();
     if (source) URL.revokeObjectURL(source.url);
     revokeFrame();
 
@@ -65,6 +171,7 @@ export function VideoFrameCaptureClient() {
     setFrame(null);
     setDuration(0);
     setCurrentTime(0);
+    requestedTimeRef.current = 0;
     setIsSeeking(false);
     setDimensions(null);
     setError("");
@@ -90,17 +197,21 @@ export function VideoFrameCaptureClient() {
     setDimensions({ width: video.videoWidth, height: video.videoHeight });
   }
 
-  function seekTo(time: number) {
+  function seekTo(time: number, immediate = false) {
     const video = videoRef.current;
     if (!video) return;
-
     const nextTime = Math.min(Math.max(0, Number.isFinite(time) ? time : 0), duration || 0);
+
+    cancelPendingSeek();
     video.pause();
-    if (Math.abs(video.currentTime - nextTime) > 0.001) {
-      setIsSeeking(true);
-      video.currentTime = nextTime;
-    }
+    requestedTimeRef.current = nextTime;
     setCurrentTime(nextTime);
+    setError("");
+    setIsSeeking(true);
+
+    // Não dispara dezenas de seeks simultâneos enquanto o dedo arrasta o controle.
+    if (immediate) applySelectedTime();
+    else seekTimerRef.current = setTimeout(() => applySelectedTime(), 130);
   }
 
   async function captureFrame() {
@@ -229,6 +340,7 @@ export function VideoFrameCaptureClient() {
   }
 
   function clear() {
+    cancelPendingSeek();
     if (source) URL.revokeObjectURL(source.url);
     revokeFrame();
     setSource(null);
@@ -288,10 +400,20 @@ export function VideoFrameCaptureClient() {
                       onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
                       onSeeking={() => setIsSeeking(true)}
                       onSeeked={(event) => {
+                        if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
+                        seekWatchdogRef.current = null;
                         setCurrentTime(event.currentTarget.currentTime);
                         setIsSeeking(false);
+                        if (refreshAfterSeekRef.current) {
+                          refreshAfterSeekRef.current = false;
+                          refreshPreviewFrame();
+                        }
                       }}
-                      onError={() => setError("Não foi possível abrir este vídeo no navegador.")}
+                      onError={() => {
+                        cancelPendingSeek();
+                        setIsSeeking(false);
+                        setError("Não foi possível abrir este vídeo no navegador.");
+                      }}
                     />
                     <div className="pointer-events-none absolute right-3 top-3 rounded-md bg-black/75 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm" aria-hidden="true">
                       {isSeeking ? "Buscando frame…" : "Momento do frame"}: {formatTime(currentTime)}
@@ -306,10 +428,15 @@ export function VideoFrameCaptureClient() {
                 <div className="rounded-xl border border-border bg-muted/20 p-4 sm:p-5">
                   <label className="block text-sm font-medium" htmlFor="frame-time">Momento do frame: {formatTime(currentTime)} / {formatTime(duration)}</label>
                   <p className="mt-1 text-xs text-muted-foreground">Escolha o instante pelo player acima ou ajuste aqui. Os dois controles ficam sincronizados; ao mover este controle, o vídeo pausa no momento selecionado.</p>
-                  <input id="frame-time" type="range" min="0" max={duration || 0} step="0.01" value={currentTime} disabled={!dimensions || duration <= 0} onChange={(event) => seekTo(Number(event.target.value))} className="mt-3 w-full" />
-                  <p className="mt-1 text-xs text-muted-foreground">Duração: {formatTime(duration)}</p>
-                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[-5,-1,1,5].map((step) => <Button key={step} size="sm" variant="outline" onClick={() => seekTo(currentTime + step)}>{step > 0 ? `+${step}s` : `${step}s`}</Button>)}</div>
-                  <label className="mt-4 block text-sm font-medium">Tempo em segundos<input type="number" min="0" max={duration || 0} step="0.01" value={currentTime} onChange={(event) => seekTo(Number(event.target.value))} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3" /></label>
+                  <input id="frame-time" type="range" min="0" max={duration || 0} step="0.01" value={currentTime} disabled={!dimensions || duration <= 0} onChange={(event) => seekTo(Number(event.target.value))} onPointerUp={() => applySelectedTime(true)} className="mt-3 w-full" />
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">Duração: {formatTime(duration)}</p>
+                    <Button type="button" size="sm" variant="outline" onClick={refreshPreviewFrame} disabled={!dimensions || isCapturing}>
+                      Atualizar prévia
+                    </Button>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[-5,-1,1,5].map((step) => <Button key={step} size="sm" variant="outline" onClick={() => seekTo(currentTime + step, true)}>{step > 0 ? `+${step}s` : `${step}s`}</Button>)}</div>
+                  <label className="mt-4 block text-sm font-medium">Tempo em segundos<input type="number" min="0" max={duration || 0} step="0.01" value={currentTime} onChange={(event) => seekTo(Number(event.target.value))} onBlur={() => applySelectedTime(true)} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3" /></label>
 
                   <label className="mt-6 block text-sm font-medium" htmlFor="frame-format">Formato da imagem</label>
                   <select id="frame-format" value={format} onChange={(event) => setFormat(event.target.value as OutputFormat)} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
