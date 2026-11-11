@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, FolderOpen, LayoutGrid, List, Users } from "lucide-react";
+import { ArrowRight, FolderOpen, LayoutGrid, List, MoreHorizontal, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
@@ -33,7 +33,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState("");
   const [sortOrder, setSortOrder] = useState<"recent" | "oldest" | "name">("recent");
-  const [view, setView] = useState<"cards" | "list">("cards");
+  const [view, setView] = useState<"cards" | "list">(() => access?.plan === "agency" ? "list" : "cards");
   const [loadingProjects, setLoadingProjects] = useState(Boolean(access?.userId));
   const [loadError, setLoadError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -134,16 +134,23 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     {kind ? (
     <div className="space-y-2">{visible.map(project => <article key={project.id} className="flex flex-wrap items-center justify-between gap-3 rounded border p-3"><div className="min-w-0 max-w-full"><h3 className="break-words font-medium">{project.title}</h3><p className="text-xs text-muted-foreground">{labels[project.kind]}{project.client_name ? ` · ${project.client_name}` : ""} · {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p></div><div className="flex flex-wrap gap-2 [&_a]:min-h-11 [&_button]:min-h-11">{onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={routes[project.kind]}>Abrir ferramenta</Link></Button>}<Button size="sm" variant="outline" onClick={() => download(project)}>Exportar JSON</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirmDelete(project.id)}>Excluir</Button>{confirmDelete === project.id ? <><span className="text-sm">Excluir este projeto salvo?</span><Button size="sm" variant="destructive" disabled={busy} onClick={() => remove(project.id)}>Confirmar exclusão</Button><Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button></> : null}</div></article>)}</div>
     ) : (
-    <div className={kind || view === "list" ? "space-y-3" : "grid gap-3 xl:grid-cols-2"}>{visible.map(project => <article key={project.id} className={`flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/30 ${kind || view === "list" ? "sm:flex-row sm:items-center sm:justify-between" : ""}`}>
+    <div data-project-view={view} className={view === "list" ? "space-y-3" : "grid gap-3 sm:grid-cols-2"}>{visible.map(project => <article key={project.id} className={`flex min-w-0 gap-3 rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/30 ${view === "list" ? "flex-col sm:flex-row sm:items-center sm:justify-between" : "flex-col"}`}>
       <div className="min-w-0 max-w-full">
-        {!kind ? <span className="mb-2 inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary"><FolderOpen className="size-3" />{labels[project.kind]}</span> : null}
+        <span className="mb-2 inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary"><FolderOpen className="size-3" />{labels[project.kind]}</span>
         <h3 className="break-words font-semibold">{project.title}</h3>
-        <p className="mt-1 text-xs text-muted-foreground">{kind ? `${labels[project.kind]} · ` : ""}{project.client_name ? `${project.client_name} · ` : ""}Atualizado em {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{project.client_name ? `${project.client_name} · ` : ""}Atualizado em {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p>
       </div>
-      <div className="flex flex-wrap items-center gap-2 [&_a]:min-h-10 [&_button]:min-h-10">
-        {onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={routes[project.kind]}>Abrir ferramenta</Link></Button>}
-        <Button size="sm" variant="outline" onClick={() => download(project)}>Exportar JSON</Button>
-        <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirmDelete(project.id)}>Excluir</Button>
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-start">
+        {onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={routes[project.kind]}>Abrir ferramenta <ArrowRight className="size-4" /></Link></Button>}
+        <details className="group relative">
+          <summary aria-label={`Mais ações para ${project.title}`} className="flex min-h-10 min-w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
+            <MoreHorizontal className="size-4" aria-hidden="true" />
+          </summary>
+          <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-lg border border-border bg-card p-1 shadow-lg">
+            <button type="button" onClick={() => download(project)} className="flex min-h-10 w-full items-center rounded-md px-3 text-left text-sm hover:bg-accent">Exportar JSON</button>
+            <button type="button" disabled={busy} onClick={() => setConfirmDelete(project.id)} className="flex min-h-10 w-full items-center rounded-md px-3 text-left text-sm hover:bg-accent disabled:opacity-50">Excluir</button>
+          </div>
+        </details>
         {confirmDelete === project.id ? <div className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-destructive/30 p-2"><span className="text-sm">Excluir este projeto salvo?</span><Button size="sm" variant="destructive" disabled={busy} onClick={() => remove(project.id)}>Confirmar exclusão</Button><Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button></div> : null}
       </div>
     </article>)}</div>
