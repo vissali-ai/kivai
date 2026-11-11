@@ -171,8 +171,8 @@ test("temporary auth outage preserves session and allows retry", async ({ page }
 });
 
 const savedProjects = [
-  { id: "project-one", kind: "briefing", title: "Campanha São João", client_name: "Café Central", payload: {}, revision: 1, updated_at: "2026-10-16T12:00:00Z" },
-  { id: "project-two", kind: "calendar", title: "Calendário de outubro", client_name: "Loja Azul", payload: [], revision: 1, updated_at: "2026-10-16T12:00:00Z" },
+  { id: "11111111-1111-4111-8111-111111111111", kind: "briefing", title: "Campanha São João", client_name: "Café Central", payload: { theme: "Projeto de campanha", objective: "Engajamento", audience: "Público local", networks: ["Instagram"], message: "Mensagem", pillar: "Informativo", format: "Carrossel", approach: "Lista", hook: "Abertura", topics: ["Tópico A"], ctaType: "Comentar", cta: "Saiba mais", tone: "Profissional", status: "Planejado" }, revision: 3, updated_at: "2026-10-16T12:00:00Z" },
+  { id: "22222222-2222-4222-8222-222222222222", kind: "calendar", title: "Calendário de outubro", client_name: "Loja Azul", payload: [{ id: "post-one", date: "2026-11-11", title: "Postagem restaurada", network: "Instagram", format: "Post", objective: "Alcance", status: "Planejado", caption: "Legenda", cta: "", hashtags: "", observations: "", createdAt: "2026-11-01", updatedAt: "2026-11-01" }], revision: 2, updated_at: "2026-10-16T12:00:00Z" },
 ];
 
 test("saved projects are easy to find and filter without losing the catalog", async ({ page }, testInfo) => {
@@ -191,7 +191,7 @@ test("saved projects are easy to find and filter without losing the catalog", as
   await search.fill("sao joao");
   await expect(articles).toHaveCount(1);
   await expect(articles.first()).toContainText("Campanha São João");
-  await expect(articles.first().getByRole("link", { name: "Abrir ferramenta" })).toHaveAttribute("href", "/ferramentas/planejador-de-conteudo-social-media");
+  await expect(articles.first().getByRole("link", { name: "Continuar projeto" })).toHaveAttribute("href", "/ferramentas/planejador-de-conteudo-social-media?project=11111111-1111-4111-8111-111111111111");
   await search.fill("cafe");
   await expect(articles).toHaveCount(1);
   await search.fill("calendar");
@@ -220,12 +220,52 @@ test("projects default to cards for free and pro, list for agency", async ({ pag
     await expect(library.locator("[data-project-view]")).toHaveAttribute("data-project-view", expected);
     await expect(library.getByRole("button", { name: "Exibir em " + (expected === "cards" ? "cards" : "lista") })).toHaveAttribute("aria-pressed", "true");
     await expect(library.locator("article")).toHaveCount(2);
-    await expect(library.locator("article").first().getByRole("link", { name: "Abrir ferramenta" })).toBeVisible();
+    await expect(library.locator("article").first().getByRole("link", { name: "Continuar projeto" })).toBeVisible();
     await library.locator("article").first().getByLabel("Mais ações para Campanha São João").click();
     await expect(library.locator("article").first().getByRole("button", { name: "Exportar JSON" })).toBeVisible();
     await expect(library.locator("article").first().getByRole("button", { name: "Excluir", exact: true })).toBeVisible();
     await expectNoOverflow(page);
   }
+});
+
+test("planner resumes a saved project only after confirmation and updates the same revision", async ({ page }) => {
+  await mockAccount(page, { plan: "agency" });
+  let payloadSent: Record<string, unknown> | null = null;
+  await page.route("**/api/account/projects", async route => {
+    if (route.request().method() === "POST") {
+      payloadSent = route.request().postDataJSON() as Record<string, unknown>;
+      return route.fulfill({ json: { project: { ...savedProjects[0], revision: 4 } } });
+    }
+    return route.fulfill({ json: { projects: savedProjects } });
+  });
+  await page.goto("/conta/projetos");
+  const project = page.getByRole("region", { name: "Projetos salvos" }).locator("article").filter({ hasText: "Campanha São João" });
+  await project.getByRole("link", { name: "Continuar projeto" }).click();
+  await expect(page).toHaveURL(/project=11111111-1111-4111-8111-111111111111/);
+  const dialog = page.getByRole("dialog", { name: "Continuar projeto salvo?" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Continuar projeto" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Tema do conteúdo" })).toHaveValue("Projeto de campanha");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.getByRole("textbox", { name: "Nome do projeto" })).toHaveValue("Campanha São João");
+  await library.getByRole("button", { name: "Salvar na conta", exact: true }).click();
+  await expect.poll(() => payloadSent).toMatchObject({ id: savedProjects[0].id, kind: "briefing", revision: 3 });
+});
+
+test("calendar refuses to replace a local draft until user confirms", async ({ page }) => {
+  await mockAccount(page);
+  await page.addInitScript(() => {
+    localStorage.setItem("kivai:calendario-editorial:v1", JSON.stringify([{ id: "local-draft", date: "2026-11-12", title: "Rascunho local", network: "Instagram", format: "Post", objective: "Alcance", status: "Ideia", caption: "", cta: "", hashtags: "", observations: "", createdAt: "2026-11-01", updatedAt: "2026-11-01" }]));
+  });
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
+  await page.goto("/ferramentas/calendario-editorial-redes-sociais?project=22222222-2222-4222-8222-222222222222");
+  const dialog = page.getByRole("dialog", { name: "Continuar projeto salvo?" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Manter conteúdo atual" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem("kivai:calendario-editorial:v1") ?? "[]")[0]?.title)).toBe("Rascunho local");
+  await expect(page.getByText("Postagem restaurada", { exact: true })).toHaveCount(0);
 });
 
 test("project outage shows a retry instead of claiming the account is empty", async ({ page }) => {

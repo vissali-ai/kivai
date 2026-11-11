@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ArrowRight, FolderOpen, LayoutGrid, List, MoreHorizontal, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
 import { useAccountAccess, type AccountAccess } from "@/lib/billing/access-client";
@@ -10,6 +10,7 @@ import type { SavedProject } from "@/lib/projects/validation";
 
 type Props = { kind?: SavedProject["kind"]; payload?: unknown; onLoad?: (payload: unknown) => void; showInstagramHighlight?: boolean };
 const routes: Record<SavedProject["kind"], string> = { post_creator: "/ferramentas/criador-de-posts-com-ia", calendar: "/ferramentas/calendario-editorial-redes-sociais", briefing: "/ferramentas/planejador-de-conteudo-social-media", qr_code: "/ferramentas/gerador-de-qr-code", watermark: "/ferramentas/adicionar-marca-dagua", social_report: "/ferramentas/gerador-de-relatorio-social-media", preview_post: "/ferramentas/preview-de-post-redes-sociais", engagement: "/ferramentas/calculadora-de-engajamento", roas: "/ferramentas/calculadora-de-roas", roi: "/ferramentas/calculadora-de-roi", post_analysis: "/ferramentas/analisador-de-posts", trend_radar: "/ferramentas/radar-de-tendencias", margin: "/ferramentas/calculadora-de-margem", markup: "/ferramentas/calculadora-de-markup", proofreader: "/ferramentas/corretor-de-texto" };
+const resumableKinds: ReadonlySet<SavedProject["kind"]> = new Set(["calendar", "briefing"]);
 const labels: Record<SavedProject["kind"], string> = { post_creator: "Criador de Posts com IA", calendar: "Calendário", briefing: "Briefing", qr_code: "QR Code", watermark: "Marca d’água", social_report: "Relatório Social Media", preview_post: "Preview de Post", engagement: "Engajamento", roas: "ROAS", roi: "ROI", post_analysis: "Análise de Posts", trend_radar: "Radar de Tendências", margin: "Margem", markup: "Markup", proofreader: "Corretor de Texto com IA" };
 async function requestProjects(method = "GET", body?: unknown, id?: string) {
   const token = getStoredSession()?.access_token;
@@ -41,6 +42,8 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [opening, setOpening] = useState<SavedProject | null>(null);
+  const [resumeProjectId, setResumeProjectId] = useState<string | null>(null);
+  const handledResume = useRef(false);
   const plan = access?.plan ?? "free";
   const userId = access?.userId;
   const loginHref = "/conta/login?next=%2Fconta";
@@ -53,6 +56,23 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     requestProjects().then(data => { if (active) { setProjects(data.projects); setLoadError(""); } }).catch(err => { if (active) setLoadError(err.message); }).finally(() => { if (active) setLoadingProjects(false); });
     return () => { active = false; };
   }, [userId, retry]);
+  useEffect(() => {
+    if (!kind || !onLoad || !userId || loadingProjects || loadError || handledResume.current) return;
+    const projectId = new URLSearchParams(window.location.search).get("project");
+    if (!projectId) return;
+    handledResume.current = true;
+    if (!/^[0-9a-f-]{36}$/i.test(projectId)) {
+      setMessage("O link do projeto é inválido. Escolha um projeto na biblioteca.");
+      return;
+    }
+    const project = projects.find(item => item.id === projectId && item.kind === kind);
+    if (!project) {
+      setMessage("O projeto não foi encontrado nesta conta ou não pertence a esta ferramenta.");
+      return;
+    }
+    setResumeProjectId(project.id);
+    setOpening(project);
+  }, [kind, onLoad, userId, loadingProjects, loadError, projects]);
   const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
   const query = normalizeSearch(search.trim());
   const visible = projects
@@ -68,7 +88,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       const data = await requestProjects();
       const latest = data.projects.find(item => item.id === project.id);
       if (!latest) throw new Error("Este projeto foi excluído. Atualize a lista.");
-      setProjects(data.projects); onLoad?.(latest.payload); setSelected(latest); setTitle(latest.title); setClient(latest.client_name); setOpening(null); setMessage("Projeto aberto. Salve suas alterações na conta quando terminar.");
+      setProjects(data.projects); onLoad?.(latest.payload); setSelected(latest); setTitle(latest.title); setClient(latest.client_name); setOpening(null); setResumeProjectId(null); setMessage("Projeto aberto. Salve suas alterações na conta quando terminar.");
     } catch (err) { setMessage(err instanceof Error ? err.message : "Não foi possível abrir o projeto."); }
     finally { setBusy(false); }
   }
@@ -130,7 +150,16 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     {loadingProjects ? <p role="status" className="text-sm">Carregando seus projetos...</p> : null}
     {loadError ? <div role="alert" className="space-y-2 text-sm"><p>{loadError}</p><Button variant="outline" disabled={loadingProjects} onClick={() => { setLoadingProjects(true); setRetry(value => value + 1); }}>Tentar carregar projetos novamente</Button></div> : null}
     {userId && (message || accessError) ? <p role="status" className="text-sm">{accessError || message}</p> : null}
-    {opening ? <div className="rounded border p-3"><p className="text-sm">Abrir “{opening.title}” substituirá o conteúdo atual da ferramenta. Salve o trabalho atual antes de continuar.</p><div className="mt-2 flex gap-2"><Button onClick={() => open(opening)}>Abrir projeto</Button><Button variant="outline" onClick={() => setOpening(null)}>Cancelar</Button></div></div> : null}
+    {opening ? resumeProjectId ? <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
+      <div role="dialog" aria-modal="true" aria-labelledby="resume-project-title" className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl sm:p-6">
+        <h2 id="resume-project-title" className="text-xl font-semibold">Continuar projeto salvo?</h2>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">Você vai abrir “{opening.title}”. Isso substituirá o conteúdo que estiver preenchido nesta ferramenta. Salve seu trabalho atual antes de continuar.</p>
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <Button variant="outline" onClick={() => { setOpening(null); setResumeProjectId(null); }}>Manter conteúdo atual</Button>
+          <Button disabled={busy} onClick={() => void open(opening)}>{busy ? "Carregando..." : "Continuar projeto"}</Button>
+        </div>
+      </div>
+    </div> : <div className="rounded border p-3"><p className="text-sm">Abrir “{opening.title}” substituirá o conteúdo atual da ferramenta. Salve o trabalho atual antes de continuar.</p><div className="mt-2 flex gap-2"><Button onClick={() => void open(opening)}>Abrir projeto</Button><Button variant="outline" onClick={() => setOpening(null)}>Cancelar</Button></div></div> : null}
     {kind ? (
     <div className="space-y-2">{visible.map(project => <article key={project.id} className="flex flex-wrap items-center justify-between gap-3 rounded border p-3"><div className="min-w-0 max-w-full"><h3 className="break-words font-medium">{project.title}</h3><p className="text-xs text-muted-foreground">{labels[project.kind]}{project.client_name ? ` · ${project.client_name}` : ""} · {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p></div><div className="flex flex-wrap gap-2 [&_a]:min-h-11 [&_button]:min-h-11">{onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={routes[project.kind]}>Abrir ferramenta</Link></Button>}<Button size="sm" variant="outline" onClick={() => download(project)}>Exportar JSON</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirmDelete(project.id)}>Excluir</Button>{confirmDelete === project.id ? <><span className="text-sm">Excluir este projeto salvo?</span><Button size="sm" variant="destructive" disabled={busy} onClick={() => remove(project.id)}>Confirmar exclusão</Button><Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button></> : null}</div></article>)}</div>
     ) : (
@@ -141,7 +170,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         <p className="mt-1 text-xs text-muted-foreground">{project.client_name ? `${project.client_name} · ` : ""}Atualizado em {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-start">
-        {onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={routes[project.kind]}>Abrir ferramenta <ArrowRight className="size-4" /></Link></Button>}
+        {onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={resumableKinds.has(project.kind) ? `${routes[project.kind]}?project=${encodeURIComponent(project.id)}` : routes[project.kind]}>{resumableKinds.has(project.kind) ? "Continuar projeto" : "Abrir ferramenta"} <ArrowRight className="size-4" /></Link></Button>}
         <details className="group relative">
           <summary aria-label={`Mais ações para ${project.title}`} className="flex min-h-10 min-w-10 cursor-pointer list-none items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
             <MoreHorizontal className="size-4" aria-hidden="true" />
