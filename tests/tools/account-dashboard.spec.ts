@@ -229,7 +229,7 @@ test("projects default to cards for free and pro, list for agency", async ({ pag
 });
 
 test("planner resumes a saved project only after confirmation and updates the same revision", async ({ page }) => {
-  await mockAccount(page);
+  await mockAccount(page, { plan: "agency" });
   let payloadSent: Record<string, unknown> | null = null;
   await page.route("**/api/account/projects", async route => {
     if (route.request().method() === "POST") {
