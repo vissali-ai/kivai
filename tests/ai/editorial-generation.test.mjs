@@ -34,6 +34,7 @@ function editorial(fetch, extra = {}, globals = {}) {
   return load("lib/blog/editorial-ai.ts", {
     "@/lib/blog/sanitize": { plainText: (html) => sanitize(html, { allowedTags: [] }), sanitizePostHtml: sanitize },
     "@/lib/blog/supabase": {},
+    "@/lib/blog/public-editorial-source": { readPublicEditorialArticle: async () => { throw new Error("Não disponível no teste."); } },
     "@/lib/ai/gemini-quota": {},
     "@/lib/ai/free-models": { geminiCandidates: () => ["model-a", "model-b"] },
     ...extra,
@@ -87,6 +88,26 @@ test("Paywall é comunicado e não dispara nova tentativa com outro modelo", asy
   });
   await assert.rejects(api.generateEditorialBase(input), /assinatura ou cadastro/);
   assert.equal(calls, 1);
+});
+test("Com URL Context indisponível usa texto público verificado como alternativa", async () => {
+  let requests = 0;
+  const api = editorial(async (_endpoint, init) => {
+    requests++;
+    if (requests <= 2) return Response.json({
+      candidates: [{ finishReason: "STOP", content: { parts: [{ text: JSON.stringify(article) }] },
+        urlContextMetadata: { urlMetadata: [{ urlRetrievalStatus: "URL_RETRIEVAL_STATUS_ERROR" }] } }],
+    });
+    const payload = JSON.parse(init.body);
+    assert.equal(payload.tools, undefined);
+    assert.match(payload.contents[0].parts[0].text, /Texto confirmado da fonte/);
+    return Response.json({ candidates: [{ finishReason: "STOP",
+      content: { parts: [{ text: JSON.stringify(article) }] } }] });
+  }, { "@/lib/blog/public-editorial-source": {
+    readPublicEditorialArticle: async () => "Texto confirmado da fonte ".repeat(60),
+  } });
+  const result = await api.generateEditorialBase(input);
+  assert.equal(result.title, article.title);
+  assert.equal(requests, 3);
 });
 test("Fallback usa somente o tempo restante da janela total", async () => {
   let now = 0;
