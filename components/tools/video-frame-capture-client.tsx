@@ -77,7 +77,7 @@ export function VideoFrameCaptureClient() {
   // Reproduzir um único quadro, sem áudio, força a atualização visual quando o usuário confirma o seek.
   function refreshPreviewFrame() {
     const video = videoRef.current;
-    if (!video || !video.paused || video.seeking || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+    if (!video || (!video.paused && !previewCleanupRef.current) || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
 
     if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
     previewCleanupRef.current?.();
