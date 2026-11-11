@@ -447,7 +447,7 @@ export function VideoFrameCaptureClient() {
                             aria-pressed={selectedFrame === index}
                             className={"block w-full cursor-pointer border-b border-border p-2 text-left " + (selectedFrame === index ? "bg-primary/10" : "hover:bg-muted/30")}
                           >
-                            <img src={item.url} alt={"Frame " + (index + 1) + " do vídeo"} className="aspect-video w-full object-contain" />
+                            <img src={item.url} alt={"Frame " + (index + 1) + " do vídeo"} loading="lazy" decoding="async" className="aspect-video w-full object-contain" />
                             <span className="mt-2 block text-xs text-muted-foreground">Imagem {index + 1} · {formatTime(item.time)}</span>
                           </button>
                           <div className="p-2">
