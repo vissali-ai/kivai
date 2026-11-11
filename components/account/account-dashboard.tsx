@@ -8,8 +8,8 @@ import { getStoredSession, signOut, supabaseUserFetch } from "@/lib/user-auth";
 import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 
 import { useAccountAccess } from "@/lib/billing/access-client";
-import { SavedProjects } from "@/components/account/saved-projects";
-import { MyFavoriteTools } from "@/components/account/my-favorite-tools";
+import { AccountWorkspaceNav } from "@/components/account/account-workspace-nav";
+import { AccountWorkspaceOverview } from "@/components/account/account-workspace-overview";
 import { PaidQuickStart } from "@/components/account/paid-quick-start";
 import { SubscriptionRenewalNotice } from "@/components/account/subscription-renewal-notice";
 import { SupportBell } from "@/components/account/support-bell";
@@ -105,7 +105,9 @@ export function AccountDashboard() {
   const displayName = profile?.full_name?.trim() || email.split("@")[0] || "Usuário Kivai";
   const firstName = displayName.split(/\s+/)[0];
 
-  return <div id="painel-inicio" tabIndex={-1} className="scroll-mt-28 space-y-6">
+  return <div id="painel-inicio" tabIndex={-1} className="scroll-mt-28 grid min-w-0 gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+    <AccountWorkspaceNav />
+    <div className="min-w-0 space-y-6">
     {accessError || loadError ? <div role="alert" className="rounded border p-4"><p>{accessError || loadError}</p><Button variant="outline" size="sm" className="mt-3" onClick={() => window.location.reload()}>Atualizar painel</Button></div> : null}
     <section className="relative rounded-3xl border border-border bg-card p-6 sm:p-8">
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -149,11 +151,10 @@ export function AccountDashboard() {
 
 
 
+    {userId ? <AccountWorkspaceOverview /> : null}
     {userId ? <div id="painel-creditos" tabIndex={-1} className="scroll-mt-28"><AiCreditBalance /></div> : null}
     {userId && (plan === "pro" || plan === "agency") ? <PaidQuickStart plan={plan} /> : null}
     {userId ? <SubscriptionRenewalNotice /> : null}
-    <div id="painel-favoritos" tabIndex={-1} className="scroll-mt-28"><MyFavoriteTools /></div>
-    <div id="painel-projetos" tabIndex={-1} className="scroll-mt-28"><SavedProjects /></div>
     {snapshots.length ? <section className="overflow-hidden rounded-2xl border border-border bg-card"><div className="flex items-center gap-3 border-b border-border p-5"><History className="size-5 text-primary" /><div><h2 className="font-semibold">Análises recentes</h2><p className="mt-1 text-xs text-muted-foreground">Histórico privado dos seus perfis do Instagram.</p></div></div><div className="divide-y divide-white/5">{snapshots.map((snapshot) => <div key={snapshot.id} className="grid gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center"><div><p className="font-medium">@{snapshot.username || "instagram"}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(snapshot.analyzed_at).toLocaleString("pt-BR")}</p></div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguidores</span>{Number(snapshot.follower_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Seguindo</span>{Number(snapshot.following_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Novos</span>{snapshot.new_followers_count == null ? "-" : Number(snapshot.new_followers_count).toLocaleString("pt-BR")}</div><div className="text-sm"><span className="block text-xs text-muted-foreground">Unfollows</span>{snapshot.unfollowers_count == null ? "-" : Number(snapshot.unfollowers_count).toLocaleString("pt-BR")}</div></div>)}</div></section> : null}
 
     {paymentError ? <p role="alert" className="rounded border border-destructive/40 p-4 text-sm">{paymentError}</p> : null}
@@ -162,5 +163,6 @@ export function AccountDashboard() {
     <section className="rounded-3xl border border-primary/20 bg-primary/[0.035] p-6 sm:p-8"><div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Serviços Kivai</p><h2 className="mt-2 text-2xl font-semibold">Soluções profissionais para o seu negócio</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Conheça nossos serviços de gestão de tráfego pago, social media, criação de sites e lojas virtuais, SEO e automação de processos para fortalecer sua presença digital e impulsionar resultados.</p></div><Button asChild><Link href="/servicos">Conhecer nossos serviços <ArrowRight className="size-4" /></Link></Button></div></section>
 
     <div className="flex justify-end"><a href="#painel-inicio" className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"><ArrowUp aria-hidden="true" className="size-4" /> Voltar ao início do painel</a></div>
+    </div>
   </div>;
 }

@@ -111,6 +111,30 @@ test("dashboard presents services without personalization or plan upsell card", 
   await expectNoOverflow(page);
 });
 
+test("workspace navigation highlights projects and routines without duplicating the library", async ({ page }) => {
+  await mockAccount(page);
+  await page.goto("/conta");
+  const nav = page.getByRole("navigation", { name: "Navegação do espaço de trabalho" });
+  await expect(nav.getByRole("link", { name: "Início" })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "Meus Projetos" })).toHaveAttribute("href", "/conta/projetos");
+  await expect(nav.getByRole("link", { name: "Minhas Rotinas" })).toHaveAttribute("href", "/conta/rotinas");
+  await expect(nav.getByRole("link", { name: "Favoritos" })).toHaveAttribute("href", "/conta/favoritos");
+  await expect(page.getByRole("region", { name: "Continue de onde parou" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Projetos salvos" })).toHaveCount(0);
+  await nav.getByRole("link", { name: "Meus Projetos" }).click();
+  await expect(page).toHaveURL(/\/conta\/projetos$/);
+  await expect(page.getByRole("region", { name: "Projetos salvos" })).toBeVisible();
+  await expectNoOverflow(page);
+});
+
+test("workspace navigation fits a mobile viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 740 });
+  await mockAccount(page);
+  await page.goto("/conta");
+  await expect(page.getByRole("navigation", { name: "Navegação do espaço de trabalho" }).getByRole("link", { name: "Minhas Rotinas" })).toBeVisible();
+  await expectNoOverflow(page);
+});
+
 test("routines live in the profile menu and not the dashboard", async ({ page }) => {
   await mockAccount(page);
   await page.goto("/conta");
@@ -154,13 +178,15 @@ const savedProjects = [
 test("saved projects are easy to find and filter without losing the catalog", async ({ page }, testInfo) => {
   await mockAccount(page);
   await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
-  await page.goto("/conta");
+  await page.goto("/conta/projetos");
   const library = page.getByRole("region", { name: "Projetos salvos" });
   const search = library.getByRole("searchbox", { name: "Buscar projetos" });
   await expect(search).toBeVisible();
   const articles = library.locator("article");
   await expect(articles).toHaveCount(2);
-  expect((await articles.first().boundingBox())!.y).toBeLessThan((await library.getByRole("navigation", { name: "Ferramentas com projetos salvos" }).boundingBox())!.y);
+  await expect(library.getByRole("button", { name: "Exibir em cards" })).toHaveAttribute("aria-pressed", "true");
+  await library.getByRole("button", { name: "Exibir em lista" }).click();
+  await expect(library.getByRole("button", { name: "Exibir em lista" })).toHaveAttribute("aria-pressed", "true");
   await search.fill("sao joao");
   await expect(articles).toHaveCount(1);
   await expect(articles.first()).toContainText("Campanha São João");
@@ -176,7 +202,8 @@ test("saved projects are easy to find and filter without losing the catalog", as
   await clear.focus();
   await page.keyboard.press("Enter");
   await expect(articles).toHaveCount(2);
-  await expect(library.getByRole("navigation").getByRole("link")).toHaveCount(14);
+  await library.getByText("Criar projetos com outras ferramentas").click();
+  await expect(library.getByRole("navigation", { name: "Ferramentas com projetos salvos" }).getByRole("link")).toHaveCount(14);
   await expectNoOverflow(page);
   await search.scrollIntoViewIfNeeded();
   await library.screenshot({ path: testInfo.outputPath("project-library.png") });
