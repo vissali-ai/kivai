@@ -16,6 +16,7 @@ type OutputSize = "original" | "1280x720" | "1920x1080" | "1080x1080" | "1080x13
 type CapturedFrame = {
   blob: Blob;
   url: string;
+  time: number;
 };
 
 function formatTime(seconds: number) {
@@ -41,6 +42,7 @@ export function VideoFrameCaptureClient() {
   const [quality, setQuality] = useState(92);
   const [isDragging, setIsDragging] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
   const [batchCount, setBatchCount] = useState<5 | 10 | 20>(5);
   const [error, setError] = useState("");
 
@@ -63,6 +65,7 @@ export function VideoFrameCaptureClient() {
     setFrame(null);
     setDuration(0);
     setCurrentTime(0);
+    setIsSeeking(false);
     setDimensions(null);
     setError("");
   }
@@ -82,7 +85,8 @@ export function VideoFrameCaptureClient() {
     const video = videoRef.current;
     if (!video) return;
 
-    setDuration(video.duration);
+    setDuration(Number.isFinite(video.duration) ? video.duration : 0);
+    setCurrentTime(video.currentTime);
     setDimensions({ width: video.videoWidth, height: video.videoHeight });
   }
 
@@ -90,8 +94,12 @@ export function VideoFrameCaptureClient() {
     const video = videoRef.current;
     if (!video) return;
 
-    const nextTime = Math.min(Math.max(0, time), duration || 0);
-    video.currentTime = nextTime;
+    const nextTime = Math.min(Math.max(0, Number.isFinite(time) ? time : 0), duration || 0);
+    video.pause();
+    if (Math.abs(video.currentTime - nextTime) > 0.001) {
+      setIsSeeking(true);
+      video.currentTime = nextTime;
+    }
     setCurrentTime(nextTime);
   }
 
@@ -102,7 +110,7 @@ export function VideoFrameCaptureClient() {
       return;
     }
 
-    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+    if (isSeeking || video.seeking || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
       setError("O frame ainda não está disponível. Tente novamente em alguns instantes.");
       return;
     }
@@ -111,6 +119,8 @@ export function VideoFrameCaptureClient() {
     setError("");
 
     try {
+      video.pause();
+      const captureTime = video.currentTime;
       const canvas = document.createElement("canvas");
       const [selectedWidth, selectedHeight] = outputSize === "original" ? [dimensions.width, dimensions.height] : outputSize.split("x").map(Number);
       canvas.width = selectedWidth;
@@ -129,7 +139,7 @@ export function VideoFrameCaptureClient() {
       });
 
       revokeFrame();
-      setFrame({ blob, url: URL.createObjectURL(blob) });
+      setFrame({ blob, url: URL.createObjectURL(blob), time: captureTime });
     } catch (captureError) {
       setError(captureError instanceof Error ? captureError.message : "Não foi possível capturar o frame.");
     } finally {
@@ -214,7 +224,7 @@ export function VideoFrameCaptureClient() {
     const baseName = source.file.name.replace(/\.[^.]+$/, "") || "frame";
     const link = document.createElement("a");
     link.href = frame.url;
-    link.download = `${baseName}-frame-${Math.round(currentTime * 1000)}ms.${extension}`;
+    link.download = `${baseName}-frame-${Math.round(frame.time * 1000)}ms.${extension}`;
     link.click();
   }
 
@@ -225,6 +235,7 @@ export function VideoFrameCaptureClient() {
     setFrame(null);
     setDuration(0);
     setCurrentTime(0);
+    setIsSeeking(false);
     setDimensions(null);
     setError("");
   }
@@ -266,7 +277,7 @@ export function VideoFrameCaptureClient() {
             ) : (
               <div className="grid gap-6 lg:grid-cols-2">
                 <div className="space-y-4">
-                  <div className="overflow-hidden rounded-xl border border-border bg-black">
+                  <div className="relative overflow-hidden rounded-xl border border-border bg-black">
                     <video
                       ref={videoRef}
                       src={source.url}
@@ -275,8 +286,16 @@ export function VideoFrameCaptureClient() {
                       className="aspect-video w-full"
                       onLoadedMetadata={handleLoadedMetadata}
                       onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+                      onSeeking={() => setIsSeeking(true)}
+                      onSeeked={(event) => {
+                        setCurrentTime(event.currentTarget.currentTime);
+                        setIsSeeking(false);
+                      }}
                       onError={() => setError("Não foi possível abrir este vídeo no navegador.")}
                     />
+                    <div className="pointer-events-none absolute right-3 top-3 rounded-md bg-black/75 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm" aria-hidden="true">
+                      {isSeeking ? "Buscando frame…" : "Momento do frame"}: {formatTime(currentTime)}
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
                     <span className="truncate">{source.file.name}</span>
@@ -285,8 +304,9 @@ export function VideoFrameCaptureClient() {
                 </div>
 
                 <div className="rounded-xl border border-border bg-muted/20 p-4 sm:p-5">
-                  <label className="block text-sm font-medium" htmlFor="frame-time">Momento do frame: {formatTime(currentTime)}</label>
-                  <input id="frame-time" type="range" min="0" max={duration || 0} step="0.01" value={currentTime} onChange={(event) => seekTo(Number(event.target.value))} className="mt-3 w-full" />
+                  <label className="block text-sm font-medium" htmlFor="frame-time">Momento do frame: {formatTime(currentTime)} / {formatTime(duration)}</label>
+                  <p className="mt-1 text-xs text-muted-foreground">Escolha o instante pelo player acima ou ajuste aqui. Os dois controles ficam sincronizados; ao mover este controle, o vídeo pausa no momento selecionado.</p>
+                  <input id="frame-time" type="range" min="0" max={duration || 0} step="0.01" value={currentTime} disabled={!dimensions || duration <= 0} onChange={(event) => seekTo(Number(event.target.value))} className="mt-3 w-full" />
                   <p className="mt-1 text-xs text-muted-foreground">Duração: {formatTime(duration)}</p>
                   <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[-5,-1,1,5].map((step) => <Button key={step} size="sm" variant="outline" onClick={() => seekTo(currentTime + step)}>{step > 0 ? `+${step}s` : `${step}s`}</Button>)}</div>
                   <label className="mt-4 block text-sm font-medium">Tempo em segundos<input type="number" min="0" max={duration || 0} step="0.01" value={currentTime} onChange={(event) => seekTo(Number(event.target.value))} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3" /></label>
@@ -326,7 +346,7 @@ export function VideoFrameCaptureClient() {
                   </div>
 
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <Button onClick={captureFrame} disabled={isCapturing || !dimensions}>
+                    <Button onClick={captureFrame} disabled={isCapturing || isSeeking || !dimensions}>
                       <ImageIcon aria-hidden="true" /> {isCapturing ? "Processando…" : "Capturar imagem escolhida"}
                     </Button>
                     <Button variant="outline" onClick={clear}>
@@ -344,12 +364,12 @@ export function VideoFrameCaptureClient() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h2 id="frame-result-title" className="font-semibold">Frame capturado</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">{(frame.blob.size / 1024).toFixed(1)} KB · {outputSize === "original" ? `${dimensions?.width} × ${dimensions?.height}` : outputSize.replace("x", " × ")}px · {formatTime(currentTime)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{(frame.blob.size / 1024).toFixed(1)} KB · {outputSize === "original" ? `${dimensions?.width} × ${dimensions?.height}` : outputSize.replace("x", " × ")}px · {formatTime(frame.time)}</p>
                   </div>
                   <Button onClick={downloadFrame}><Download aria-hidden="true" /> Baixar imagem</Button>
                 </div>
                 <div className="mt-5 flex min-h-48 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/20 p-3">
-                  <img src={frame.url} alt={`Frame capturado em ${formatTime(currentTime)}`} className="max-h-[480px] max-w-full object-contain" />
+                  <img src={frame.url} alt={`Frame capturado em ${formatTime(frame.time)}`} className="max-h-[480px] max-w-full object-contain" />
                 </div>
               </section>
             )}
