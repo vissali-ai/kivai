@@ -264,7 +264,7 @@ test("calendar refuses to replace a local draft until user confirms", async ({ p
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Manter conteúdo atual" }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByText("Rascunho local", { exact: true }).first()).toBeVisible();
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem("kivai:calendario-editorial:v1") ?? "[]")[0]?.title)).toBe("Rascunho local");
   await expect(page.getByText("Postagem restaurada", { exact: true })).toHaveCount(0);
 });
 
