@@ -7,6 +7,12 @@ import {PDFDocument} from 'pdf-lib';
 const require=createRequire(import.meta.url);
 function load(file,mocks={}){const module={exports:{}};const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;new Function('require','module','exports',code)(name=>name in mocks?mocks[name]:require(name),module,module.exports);return module.exports;}
 const schema=load('lib/ai/tool-assistant.ts');
+const finance=load('lib/brand-financials.ts');
+test('Brand plan uses contribution after fees and rounds break-even units up',()=>{
+ const scenario={price:100,unitCost:55,fee:5,lot:10,setup:200,fixed:401,budget:1000};
+ assert.deepEqual(finance.brandFinancials(scenario),{contributionPerUnit:40,contributionMarginPercent:40,initialLotAndSetup:750,remainingBudget:250,monthlyBreakEvenUnits:11});
+ assert.equal(finance.brandFinancials({...scenario,unitCost:100}).monthlyBreakEvenUnits,null);
+});
 test('Business diagnosis requires profile data and three complete AI-generated models',()=>{
  const input={kind:'businessIdeas',consent:true,skills:'Ensino matemática',time:'Até 3 horas',budget:'R$ 0',goal:'Primeira venda',preference:'Online',resources:''};
  const idea={title:'Aula individual',offer:'Revisão para estudantes',fit:'Experiência em ensino',requirements:'Uma hora por aula',test:'Ofereça uma aula curta',signal:'Pedido de uma segunda aula'};
@@ -42,6 +48,7 @@ test('API authenticates before charges, uses fixed costs and refunds failures',a
  for(const scenario of ['success','image','pdf','unauthorized','no-credit','quota','invalid','provider','finalization','bad-file']){
   const calls=[];let cost;
   const route=load('app/api/ai/tool-assistant/route.ts',{
+   '@/lib/brand-financials':finance,
    '@/lib/ai/tool-assistant':schema,
    '@/lib/auth/authenticated-billing-user':{authenticateBillingUser:async()=>{if(scenario==='unauthorized')throw Error();return{id:'test'};}},
    '@/lib/ai/credits':{reserveAiCredits:async p=>{cost=p.cost;return{allowed:scenario!=='no-credit'};},finalizeAiCredits:async(_u,_o,ok)=>{calls.push(ok);return !(scenario==='finalization'&&ok);}},

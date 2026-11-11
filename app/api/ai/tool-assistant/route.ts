@@ -3,6 +3,7 @@ import { requestGeminiJsonParts, type GeminiInputPart } from "@/lib/ai/gemini";
 import { reserveAiCredits, finalizeAiCredits } from "@/lib/ai/credits";
 import { reserveAiRequest } from "@/lib/ai/limits";
 import { toolAssistantInput, toolInstructions, validateToolOutput } from "@/lib/ai/tool-assistant";
+import { brandFinancials } from "@/lib/brand-financials";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 const headers = { "Cache-Control": "private, no-store" };
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
     reserved = true;
     if (!(await reserveAiRequest(userId))) return fail("Limite temporário de IA atingido. Aguarde; a reserva será devolvida.", 429);
     const payload = { ...input, consent: undefined, image: undefined, file: undefined };
+    if (input.kind === "brandPlan") Object.assign(payload, { indicators: brandFinancials(input.finances) });
     const parts: GeminiInputPart[] = [{text: JSON.stringify(payload)}];
     if (attachment) parts.push({inlineData: attachment});
     const output = await requestGeminiJsonParts(toolInstructions(input.kind), parts, 4096);

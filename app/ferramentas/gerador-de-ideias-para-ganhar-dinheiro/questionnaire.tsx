@@ -26,6 +26,7 @@ export default function Questionnaire() {
       render={result=>result.kind === "businessIdeas" && <div className="space-y-5"><h2 className="text-2xl font-semibold">Seu diagnóstico</h2><p>{result.diagnosis}</p>
         {result.ideas.map((idea,i)=><article key={i} className="space-y-3 rounded-lg border bg-background p-5"><h3 className="text-xl font-semibold">{i+1}. {idea.title}</h3><p>{idea.offer}</p>
           <dl className="grid gap-3">{[["Por que combina com você",idea.fit],["O que exige",idea.requirements],["Como testar",idea.test],["O que observar",idea.signal]].map(([label,text])=><div key={label}><dt className="font-semibold">{label}</dt><dd>{text}</dd></div>)}</dl>
+          <a className="inline-block text-primary underline" href={"/ferramentas/criador-de-plano-de-negocios-e-marcas?ideia="+encodeURIComponent(idea.title+" — "+idea.offer)}>Criar plano para esta ideia</a>
         </article>)}<h3 className="font-semibold">Primeiro passo recomendado</h3><p>{result.nextStep}</p></div>}>
       {!complete&&<p className="text-sm">Preencha suas habilidades e as quatro escolhas para gerar o diagnóstico.</p>}
     </ToolAiPanel>
