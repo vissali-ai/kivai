@@ -289,7 +289,7 @@ export function VideoFrameCaptureClient() {
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle>Área de processamento</CardTitle>
-              <CardDescription>Envie o vídeo e escolha como deseja capturar as imagens.</CardDescription>
+              <CardDescription>Envie o vídeo e escolha no player abaixo o momento da captura do frame.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <input ref={inputRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
