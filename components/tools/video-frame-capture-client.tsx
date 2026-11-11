@@ -41,6 +41,7 @@ export function VideoFrameCaptureClient() {
   const [quality, setQuality] = useState(92);
   const [isDragging, setIsDragging] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [batchCount, setBatchCount] = useState<5 | 10 | 20>(5);
   const [error, setError] = useState("");
 
   function revokeFrame() {
@@ -136,6 +137,76 @@ export function VideoFrameCaptureClient() {
     }
   }
 
+
+  async function captureMultipleFrames() {
+    if (!source || !dimensions || !Number.isFinite(duration) || duration <= 0) {
+      setError("Carregue um vídeo com duração válida antes de extrair os frames.");
+      return;
+    }
+
+    setIsCapturing(true);
+    setError("");
+    const temporaryVideo = document.createElement("video");
+    temporaryVideo.muted = true;
+    temporaryVideo.preload = "auto";
+    temporaryVideo.playsInline = true;
+    temporaryVideo.src = source.url;
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        temporaryVideo.onloadedmetadata = () => resolve();
+        temporaryVideo.onerror = () => reject(new Error("Não foi possível ler o vídeo."));
+        temporaryVideo.load();
+      });
+
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+      const canvas = document.createElement("canvas");
+      const [selectedWidth, selectedHeight] = outputSize === "original"
+        ? [dimensions.width, dimensions.height]
+        : outputSize.split("x").map(Number);
+      canvas.width = selectedWidth;
+      canvas.height = selectedHeight;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Não foi possível preparar a extração.");
+      const extension = format === "image/png" ? "png" : format === "image/webp" ? "webp" : "jpg";
+      const basename = source.file.name.replace(/\\.[^.]+$/, "") || "video";
+
+      for (let index = 0; index < batchCount; index += 1) {
+        // Evita extremos, onde alguns codecs não entregam um frame decodificado.
+        const timestamp = (temporaryVideo.duration * (index + 1)) / (batchCount + 1);
+        await new Promise<void>((resolve, reject) => {
+          temporaryVideo.onseeked = () => resolve();
+          temporaryVideo.onerror = () => reject(new Error("Falha ao localizar um frame do vídeo."));
+          temporaryVideo.currentTime = timestamp;
+        });
+        context.drawImage(temporaryVideo, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (value) => value ? resolve(value) : reject(new Error("Falha ao gerar a imagem.")),
+            format,
+            format === "image/png" ? undefined : quality / 100,
+          );
+        });
+        zip.file(`${basename}-frame-${String(index + 1).padStart(2, "0")}.${extension}`, blob);
+      }
+
+      const output = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(output);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${basename}-${batchCount}-frames.zip`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (batchError) {
+      setError(batchError instanceof Error ? batchError.message : "Não foi possível extrair os frames.");
+    } finally {
+      temporaryVideo.removeAttribute("src");
+      temporaryVideo.load();
+      setIsCapturing(false);
+    }
+  }
+
   function downloadFrame() {
     if (!frame || !source) return;
 
@@ -165,14 +236,14 @@ export function VideoFrameCaptureClient() {
 
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramenta de vídeo</p>
-          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Gerador de Thumbnail para Vídeo</h1>
-          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Escolha o momento exato de um vídeo e crie uma thumbnail em PNG, JPG ou WebP.</p>
+          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Capturar Frame de Vídeo Online</h1>
+          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Extraia a imagem de qualquer momento do vídeo e salve o frame em PNG, JPG ou WebP. Use a captura para criar thumbnails ou guardar uma cena.</p>
         </div>
 
         <div className="mx-auto max-w-4xl"><Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Área de processamento</CardTitle>
-            <CardDescription>Envie ou arraste um vídeo e gere a thumbnail.</CardDescription>
+            <CardDescription>Selecione um vídeo para capturar um frame como imagem.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <input ref={inputRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
@@ -233,15 +304,30 @@ export function VideoFrameCaptureClient() {
                     </label>
                   )}
 
-                  <label className="mt-5 block text-sm font-medium" htmlFor="frame-size">Tamanho da thumbnail
+                  <label className="mt-5 block text-sm font-medium" htmlFor="frame-size">Tamanho da imagem
                     <select id="frame-size" value={outputSize} onChange={(event) => setOutputSize(event.target.value as OutputSize)} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
                       <option value="original">Original</option><option value="1280x720">1280 × 720</option><option value="1920x1080">1920 × 1080</option><option value="1080x1080">1080 × 1080</option><option value="1080x1350">1080 × 1350</option><option value="1080x1920">1080 × 1920</option>
                     </select>
                   </label>
 
+                  <div className="mt-6 rounded-lg border border-border bg-background p-3">
+                    <label htmlFor="frame-batch-count" className="block text-sm font-medium">Extrair vários frames</label>
+                    <p className="mt-1 text-xs text-muted-foreground">Distribua as capturas ao longo do vídeo e baixe tudo em um arquivo ZIP.</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <select id="frame-batch-count" value={batchCount} onChange={(event) => setBatchCount(Number(event.target.value) as 5 | 10 | 20)} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                        <option value={5}>5 frames</option>
+                        <option value={10}>10 frames</option>
+                        <option value={20}>20 frames</option>
+                      </select>
+                      <Button variant="outline" onClick={captureMultipleFrames} disabled={isCapturing || !dimensions || duration <= 0}>
+                        <Download aria-hidden="true" /> {isCapturing ? "Processando…" : "Baixar frames em ZIP"}
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Button onClick={captureFrame} disabled={isCapturing || !dimensions}>
-                      <ImageIcon aria-hidden="true" /> {isCapturing ? "Capturando…" : "Capturar frame"}
+                      <ImageIcon aria-hidden="true" /> {isCapturing ? "Processando…" : "Capturar frame"}
                     </Button>
                     <Button variant="outline" onClick={clear}>
                       <RotateCcw aria-hidden="true" /> Limpar
@@ -257,7 +343,7 @@ export function VideoFrameCaptureClient() {
               <section aria-labelledby="frame-result-title" className="rounded-xl border border-border p-4 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <h2 id="frame-result-title" className="font-semibold">Thumbnail pronta</h2>
+                    <h2 id="frame-result-title" className="font-semibold">Frame capturado</h2>
                     <p className="mt-1 text-sm text-muted-foreground">{(frame.blob.size / 1024).toFixed(1)} KB · {outputSize === "original" ? `${dimensions?.width} × ${dimensions?.height}` : outputSize.replace("x", " × ")}px · {formatTime(currentTime)}</p>
                   </div>
                   <Button onClick={downloadFrame}><Download aria-hidden="true" /> Baixar imagem</Button>

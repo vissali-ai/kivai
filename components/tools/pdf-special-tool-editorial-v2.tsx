@@ -58,6 +58,10 @@ export function PdfSpecialToolEditorialV2({ slug }: { slug: PdfSpecialToolEditor
         limitations={content.limitations}
         faqs={content.faqs}
         relatedTools={content.related}
+        relatedArticles={["redimensionar-pdf", "montar-pdf-para-impressao"].includes(slug) ? [
+          { href: "/blog/como-imprimir-etiqueta-a6-em-folha-a4", label: "Como imprimir etiqueta A6 em folha A4" },
+          { href: "/blog/pdf-impressao-tamanho-pagina-escala-papel", label: "Tamanho da página, escala e papel na impressão de PDF" },
+        ] : []}
         afterFaq={<AdSlot placement="tool-bottom" variant="banner" />}
       />
     </>

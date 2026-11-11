@@ -42,6 +42,10 @@ export function VideoServerToolEditorialV2({ slug }: { slug: VideoServerToolEdit
         limitations={content.limitations}
         faqs={content.faqs}
         relatedTools={content.related}
+        relatedArticles={slug === "mp4-para-hevc" ? [
+          { href: "/blog/o-que-e-hevc-e-por-que-alguns-videos-nao-abrem", label: "O que é HEVC e por que alguns vídeos não abrem" },
+          { href: "/blog/mp4-mov-avi-hevc-qual-formato-escolher", label: "MP4, MOV, AVI ou HEVC: qual formato escolher?" },
+        ] : []}
         afterFaq={<AdSlot placement="tool-bottom" />}
       />
     </>
