@@ -59,6 +59,8 @@ function validArticleUrl(raw: string) {
 function isInternational(source: NewsSource) {
   try {
     const host = new URL(source.siteUrl).hostname.toLowerCase();
+    // Feed geo=BR do Google Trends representa pesquisas brasileiras, apesar do domínio .com.
+    if (host === "trends.google.com" && new URL(source.feedUrl).searchParams.get("geo") === "BR") return false;
     return !host.endsWith(".br") && !BRAZILIAN_HOSTS.has(host);
   } catch { return false; }
 }
