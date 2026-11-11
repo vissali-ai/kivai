@@ -1,4 +1,5 @@
 export type VideoLocalToolEditorialSlug =
+  | "gravador-de-tela-online"
   | "ajustar-velocidade-video"
   | "alterar-volume-video"
   | "redimensionar-video"
@@ -48,6 +49,26 @@ function withRelated(
 }
 
 export const videoLocalToolEditorialContent: Record<VideoLocalToolEditorialSlug, VideoLocalEditorialContent> = {
+  "gravador-de-tela-online": withRelated("gravador-de-tela-online", {
+    overview: ["Para gravar a tela do PC, abra o gravador e escolha no seletor do navegador o que deseja mostrar. Uma aba é ideal para demonstrar um site. Uma janela acompanha um programa. A tela inteira permite alternar entre aplicativos durante a explicação."],
+    useCases: [
+      { title: "Demonstrar um procedimento", description: "Compartilhe a janela do aplicativo e narre cada etapa pelo microfone." },
+      { title: "Registrar um problema", description: "Grave a aba em que o erro acontece e baixe o vídeo para anexar ao chamado." },
+    ],
+    steps: ["Escolha se deseja incluir o microfone, o som compartilhado ou ambos.", "Clique em Iniciar gravação. No seletor do navegador, escolha uma tela, janela ou aba e confirme o compartilhamento.", "Se quiser capturar o som da aba, habilite também a opção de áudio no seletor, quando disponível.", "Clique em Encerrar gravação ou encerre o compartilhamento pelo navegador. Confira a prévia e baixe o arquivo."],
+    specifications: [
+      { label: "Fontes", value: "O navegador apresenta as telas, janelas e abas disponíveis para compartilhar." },
+      { label: "Áudio", value: "O microfone permite narrar. O som compartilhado depende da fonte, do navegador e do sistema operacional." },
+      { label: "Download", value: "O formato, como WebM ou MP4, é escolhido conforme o suporte do navegador." },
+    ],
+    privacy: "A captura e a montagem do vídeo acontecem no dispositivo. O gravador não envia a imagem da tela nem o áudio ao Kivai. Ao compartilhar a tela inteira, notificações e outras janelas visíveis podem entrar no vídeo.",
+    limitations: ["Mantenha a página aberta até baixar o arquivo. A gravação fica na memória e vídeos longos podem esgotar os recursos do dispositivo.", "O navegador precisa oferecer captura de tela e gravação de mídia. As fontes disponíveis podem variar em dispositivos móveis."],
+    faqs: [
+      { question: "Como gravar a tela do PC sem instalar programas?", answer: "Abra o gravador em um navegador compatível, clique em Iniciar gravação e autorize uma fonte. Ao terminar, encerre a captura e baixe o vídeo." },
+      { question: "Por que o som da aba não saiu?", answer: "Marque Som compartilhado antes de iniciar. No seletor, escolha a aba e autorize o áudio, se a opção aparecer. Algumas combinações de fonte e sistema oferecem apenas imagem." },
+      { question: "Posso gravar só a minha voz junto com a tela?", answer: "Sim. Marque Microfone, deixe Som compartilhado desmarcado e permita o acesso ao microfone quando solicitado." },
+    ],
+  }),
   "ajustar-velocidade-video": withRelated("ajustar-velocidade-video", {
     overview: [
       "A ferramenta permite acelerar ou desacelerar um vídeo entre 0,25× e 4×. A duração estimada muda de acordo com a velocidade escolhida, permitindo preparar câmera rápida, desaceleração ou versões mais curtas de uma gravação.",
@@ -313,6 +334,7 @@ export const videoLocalToolEditorialContent: Record<VideoLocalToolEditorialSlug,
 };
 
 export const videoVariantToSlug = {
+  recorder: "gravador-de-tela-online",
   speed: "ajustar-velocidade-video",
   volume: "alterar-volume-video",
   resize: "redimensionar-video",
