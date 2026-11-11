@@ -4,7 +4,7 @@ import { openFilePicker } from "@/lib/browser/file-picker";
 
 /* eslint-disable @next/next/no-img-element */
 
-import { ChangeEvent, DragEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, DragEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { Download, ImageIcon, RotateCcw, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ type OutputSize = "original" | "1280x720" | "1920x1080" | "1080x1080" | "1080x13
 type CapturedFrame = {
   blob: Blob;
   url: string;
-  time: number;
 };
 
 function formatTime(seconds: number) {
@@ -32,13 +31,6 @@ function formatTime(seconds: number) {
 export function VideoFrameCaptureClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const seekTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const seekWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const previewStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const requestedTimeRef = useRef(0);
-  const refreshAfterSeekRef = useRef(false);
-  const seekSequenceRef = useRef(0);
-  const previewCleanupRef = useRef<(() => void) | null>(null);
   const [source, setSource] = useState<{ file: File; url: string } | null>(null);
   const [frame, setFrame] = useState<CapturedFrame | null>(null);
   const [duration, setDuration] = useState(0);
@@ -49,107 +41,8 @@ export function VideoFrameCaptureClient() {
   const [quality, setQuality] = useState(92);
   const [isDragging, setIsDragging] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [isSeeking, setIsSeeking] = useState(false);
   const [batchCount, setBatchCount] = useState<5 | 10 | 20>(5);
   const [error, setError] = useState("");
-
-  useEffect(() => () => {
-    if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
-    if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
-    if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
-    previewCleanupRef.current?.();
-  }, []);
-
-  function cancelPendingSeek() {
-    seekSequenceRef.current += 1;
-    refreshAfterSeekRef.current = false;
-    if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
-    if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
-    if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
-    seekTimerRef.current = null;
-    seekWatchdogRef.current = null;
-    previewStopTimerRef.current = null;
-    previewCleanupRef.current?.();
-    previewCleanupRef.current = null;
-  }
-
-  // Safari no iPhone pode manter o último quadro quando se altera currentTime com o vídeo pausado.
-  // Reproduzir um único quadro, sem áudio, força a atualização visual quando o usuário confirma o seek.
-  function refreshPreviewFrame() {
-    const video = videoRef.current;
-    if (!video || (!video.paused && !previewCleanupRef.current) || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
-
-    if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
-    previewCleanupRef.current?.();
-
-    const sequence = seekSequenceRef.current;
-    const targetTime = video.currentTime;
-    const wasMuted = video.muted;
-    video.muted = true;
-    let finished = false;
-    let callbackId: number | undefined;
-
-    const finish = (displayed: boolean) => {
-      if (finished) return;
-      finished = true;
-      if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
-      if (callbackId !== undefined && video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(callbackId);
-      video.pause();
-      video.muted = wasMuted;
-      if (sequence === seekSequenceRef.current) {
-        setIsSeeking(false);
-        setCurrentTime(video.currentTime);
-        if (!displayed) {
-          setError("Não foi possível confirmar a atualização do quadro. Toque em Atualizar prévia ou tente MP4/H.264.");
-        }
-      }
-      previewCleanupRef.current = null;
-    };
-
-    previewCleanupRef.current = () => finish(false);
-    if (video.requestVideoFrameCallback) {
-      const checkFrame: VideoFrameRequestCallback = (_now, metadata) => {
-        if (finished || sequence !== seekSequenceRef.current) return;
-        if (Math.abs(metadata.mediaTime - targetTime) <= 0.35) {
-          finish(true);
-        } else {
-          callbackId = video.requestVideoFrameCallback(checkFrame);
-        }
-      };
-      callbackId = video.requestVideoFrameCallback(checkFrame);
-    } else {
-      video.addEventListener("timeupdate", () => finish(true), { once: true });
-    }
-    previewStopTimerRef.current = setTimeout(() => finish(false), 1800);
-    void video.play().catch(() => finish(false));
-  }
-
-  function applySelectedTime(refresh = false) {
-    const video = videoRef.current;
-    if (!video) return;
-    if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
-    if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
-    seekTimerRef.current = null;
-    const selected = requestedTimeRef.current;
-    refreshAfterSeekRef.current = refresh;
-    if (Math.abs(video.currentTime - selected) > 0.015) {
-      video.currentTime = selected;
-      setIsSeeking(true);
-    } else {
-      setIsSeeking(false);
-      refreshAfterSeekRef.current = false;
-      if (refresh) refreshPreviewFrame();
-      return;
-    }
-
-    // Se o navegador não entregar seeked (ex.: MOV 4K no Safari), evita spinner permanente.
-    const sequence = seekSequenceRef.current;
-    seekWatchdogRef.current = setTimeout(() => {
-      if (sequence !== seekSequenceRef.current) return;
-      setIsSeeking(false);
-      setError("A prévia não respondeu à mudança de tempo. Toque em Atualizar prévia ou experimente um vídeo MP4/H.264.");
-    }, 3500);
-  }
 
   function revokeFrame() {
     if (frame) URL.revokeObjectURL(frame.url);
@@ -163,7 +56,6 @@ export function VideoFrameCaptureClient() {
       return;
     }
 
-    cancelPendingSeek();
     if (source) URL.revokeObjectURL(source.url);
     revokeFrame();
 
@@ -171,8 +63,6 @@ export function VideoFrameCaptureClient() {
     setFrame(null);
     setDuration(0);
     setCurrentTime(0);
-    requestedTimeRef.current = 0;
-    setIsSeeking(false);
     setDimensions(null);
     setError("");
   }
@@ -192,26 +82,17 @@ export function VideoFrameCaptureClient() {
     const video = videoRef.current;
     if (!video) return;
 
-    setDuration(Number.isFinite(video.duration) ? video.duration : 0);
-    setCurrentTime(video.currentTime);
+    setDuration(video.duration);
     setDimensions({ width: video.videoWidth, height: video.videoHeight });
   }
 
-  function seekTo(time: number, immediate = false) {
+  function seekTo(time: number) {
     const video = videoRef.current;
     if (!video) return;
-    const nextTime = Math.min(Math.max(0, Number.isFinite(time) ? time : 0), duration || 0);
 
-    cancelPendingSeek();
-    video.pause();
-    requestedTimeRef.current = nextTime;
+    const nextTime = Math.min(Math.max(0, time), duration || 0);
+    video.currentTime = nextTime;
     setCurrentTime(nextTime);
-    setError("");
-    setIsSeeking(true);
-
-    // Não dispara dezenas de seeks simultâneos enquanto o dedo arrasta o controle.
-    if (immediate) applySelectedTime();
-    else seekTimerRef.current = setTimeout(() => applySelectedTime(), 130);
   }
 
   async function captureFrame() {
@@ -221,7 +102,7 @@ export function VideoFrameCaptureClient() {
       return;
     }
 
-    if (isSeeking || video.seeking || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
       setError("O frame ainda não está disponível. Tente novamente em alguns instantes.");
       return;
     }
@@ -230,8 +111,6 @@ export function VideoFrameCaptureClient() {
     setError("");
 
     try {
-      video.pause();
-      const captureTime = video.currentTime;
       const canvas = document.createElement("canvas");
       const [selectedWidth, selectedHeight] = outputSize === "original" ? [dimensions.width, dimensions.height] : outputSize.split("x").map(Number);
       canvas.width = selectedWidth;
@@ -250,7 +129,7 @@ export function VideoFrameCaptureClient() {
       });
 
       revokeFrame();
-      setFrame({ blob, url: URL.createObjectURL(blob), time: captureTime });
+      setFrame({ blob, url: URL.createObjectURL(blob) });
     } catch (captureError) {
       setError(captureError instanceof Error ? captureError.message : "Não foi possível capturar o frame.");
     } finally {
@@ -335,19 +214,17 @@ export function VideoFrameCaptureClient() {
     const baseName = source.file.name.replace(/\.[^.]+$/, "") || "frame";
     const link = document.createElement("a");
     link.href = frame.url;
-    link.download = `${baseName}-frame-${Math.round(frame.time * 1000)}ms.${extension}`;
+    link.download = `${baseName}-frame-${Math.round(currentTime * 1000)}ms.${extension}`;
     link.click();
   }
 
   function clear() {
-    cancelPendingSeek();
     if (source) URL.revokeObjectURL(source.url);
     revokeFrame();
     setSource(null);
     setFrame(null);
     setDuration(0);
     setCurrentTime(0);
-    setIsSeeking(false);
     setDimensions(null);
     setError("");
   }
@@ -389,7 +266,7 @@ export function VideoFrameCaptureClient() {
             ) : (
               <div className="grid gap-6 lg:grid-cols-2">
                 <div className="space-y-4">
-                  <div className="relative overflow-hidden rounded-xl border border-border bg-black">
+                  <div className="overflow-hidden rounded-xl border border-border bg-black">
                     <video
                       ref={videoRef}
                       src={source.url}
@@ -398,26 +275,8 @@ export function VideoFrameCaptureClient() {
                       className="aspect-video w-full"
                       onLoadedMetadata={handleLoadedMetadata}
                       onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
-                      onSeeking={() => setIsSeeking(true)}
-                      onSeeked={(event) => {
-                        if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
-                        seekWatchdogRef.current = null;
-                        setCurrentTime(event.currentTarget.currentTime);
-                        setIsSeeking(false);
-                        if (refreshAfterSeekRef.current) {
-                          refreshAfterSeekRef.current = false;
-                          refreshPreviewFrame();
-                        }
-                      }}
-                      onError={() => {
-                        cancelPendingSeek();
-                        setIsSeeking(false);
-                        setError("Não foi possível abrir este vídeo no navegador.");
-                      }}
+                      onError={() => setError("Não foi possível abrir este vídeo no navegador.")}
                     />
-                    <div className="pointer-events-none absolute right-3 top-3 rounded-md bg-black/75 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm" aria-hidden="true">
-                      {isSeeking ? "Buscando frame…" : "Momento do frame"}: {formatTime(currentTime)}
-                    </div>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
                     <span className="truncate">{source.file.name}</span>
@@ -426,17 +285,11 @@ export function VideoFrameCaptureClient() {
                 </div>
 
                 <div className="rounded-xl border border-border bg-muted/20 p-4 sm:p-5">
-                  <label className="block text-sm font-medium" htmlFor="frame-time">Momento do frame: {formatTime(currentTime)} / {formatTime(duration)}</label>
-                  <p className="mt-1 text-xs text-muted-foreground">Escolha o instante pelo player acima ou ajuste aqui. Os dois controles ficam sincronizados; ao mover este controle, o vídeo pausa no momento selecionado.</p>
-                  <input id="frame-time" type="range" min="0" max={duration || 0} step="0.01" value={currentTime} disabled={!dimensions || duration <= 0} onChange={(event) => seekTo(Number(event.target.value))} onPointerUp={() => applySelectedTime(true)} className="mt-3 w-full" />
-                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs text-muted-foreground">Duração: {formatTime(duration)}</p>
-                    <Button type="button" size="sm" variant="outline" onClick={refreshPreviewFrame} disabled={!dimensions || isCapturing}>
-                      Atualizar prévia
-                    </Button>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[-5,-1,1,5].map((step) => <Button key={step} size="sm" variant="outline" onClick={() => seekTo(currentTime + step, true)}>{step > 0 ? `+${step}s` : `${step}s`}</Button>)}</div>
-                  <label className="mt-4 block text-sm font-medium">Tempo em segundos<input type="number" min="0" max={duration || 0} step="0.01" value={currentTime} onChange={(event) => seekTo(Number(event.target.value))} onBlur={() => applySelectedTime(true)} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3" /></label>
+                  <label className="block text-sm font-medium" htmlFor="frame-time">Momento do frame: {formatTime(currentTime)}</label>
+                  <input id="frame-time" type="range" min="0" max={duration || 0} step="0.01" value={currentTime} onChange={(event) => seekTo(Number(event.target.value))} className="mt-3 w-full" />
+                  <p className="mt-1 text-xs text-muted-foreground">Duração: {formatTime(duration)}</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{[-5,-1,1,5].map((step) => <Button key={step} size="sm" variant="outline" onClick={() => seekTo(currentTime + step)}>{step > 0 ? `+${step}s` : `${step}s`}</Button>)}</div>
+                  <label className="mt-4 block text-sm font-medium">Tempo em segundos<input type="number" min="0" max={duration || 0} step="0.01" value={currentTime} onChange={(event) => seekTo(Number(event.target.value))} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3" /></label>
 
                   <label className="mt-6 block text-sm font-medium" htmlFor="frame-format">Formato da imagem</label>
                   <select id="frame-format" value={format} onChange={(event) => setFormat(event.target.value as OutputFormat)} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -473,7 +326,7 @@ export function VideoFrameCaptureClient() {
                   </div>
 
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <Button onClick={captureFrame} disabled={isCapturing || isSeeking || !dimensions}>
+                    <Button onClick={captureFrame} disabled={isCapturing || !dimensions}>
                       <ImageIcon aria-hidden="true" /> {isCapturing ? "Processando…" : "Capturar imagem escolhida"}
                     </Button>
                     <Button variant="outline" onClick={clear}>
@@ -491,12 +344,12 @@ export function VideoFrameCaptureClient() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h2 id="frame-result-title" className="font-semibold">Frame capturado</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">{(frame.blob.size / 1024).toFixed(1)} KB · {outputSize === "original" ? `${dimensions?.width} × ${dimensions?.height}` : outputSize.replace("x", " × ")}px · {formatTime(frame.time)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{(frame.blob.size / 1024).toFixed(1)} KB · {outputSize === "original" ? `${dimensions?.width} × ${dimensions?.height}` : outputSize.replace("x", " × ")}px · {formatTime(currentTime)}</p>
                   </div>
                   <Button onClick={downloadFrame}><Download aria-hidden="true" /> Baixar imagem</Button>
                 </div>
                 <div className="mt-5 flex min-h-48 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/20 p-3">
-                  <img src={frame.url} alt={`Frame capturado em ${formatTime(frame.time)}`} className="max-h-[480px] max-w-full object-contain" />
+                  <img src={frame.url} alt={`Frame capturado em ${formatTime(currentTime)}`} className="max-h-[480px] max-w-full object-contain" />
                 </div>
               </section>
             )}
