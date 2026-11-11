@@ -1,4 +1,5 @@
 import { duplexEditorial } from "@/lib/duplex-print/catalog";
+import { businessIdeasEditorial, businessIdeasSlug } from "@/lib/business-ideas-editorial";
 import { connectEditorial } from "@/lib/kivai-connect/content";
 import { postCreatorEditorial } from "@/lib/post-creator/editorial";
 import { pdfParaExcelEditorialOverride } from "@/lib/pdf-para-excel-editorial-override";
@@ -27,6 +28,7 @@ type EditorialSource = {
 };
 
 const sources: Array<Record<string, EditorialSource>> = [
+  { [businessIdeasSlug]: businessIdeasEditorial },
   { "criador-de-posts-com-ia": postCreatorEditorial },
   { "pdf-para-excel": pdfParaExcelEditorialOverride, "pdf-para-html": pdfParaHtmlEditorialOverride },
   archiveToolEditorialContent,
@@ -65,7 +67,7 @@ function list(items: readonly string[], ordered = false) {
 
 export function inferToolMode(slug: string): ToolImplementationMode {
   if (slug === "kivai-connect") return "auto";
-  if (slug === "criador-de-posts-com-ia") return "server";
+  if (slug === "criador-de-posts-com-ia" || slug === businessIdeasSlug) return "server";
   if (serverTools.has(slug)) return "server";
   if (informationalTools.has(slug)) return "informational";
   return "browser";

@@ -203,7 +203,7 @@ export async function listManagedSiteContents(): Promise<ManagedSiteContent[]> {
   const virtual: ManagedSiteContent[] = tools.filter((tool) => !byExistingSlug.has(tool.slug)).map((tool) => ({
     id: `existing:${tool.slug}`, contentType: "tool", slug: tool.slug, path: `/ferramentas/${tool.slug}`,
     title: tool.name, shortDescription: tool.description, contentHtml: "", seoTitle: tool.seoTitle ?? "",
-    seoDescription: tool.seoDescription ?? tool.description, canonicalUrl: "", hubId: hubBySlug.get(categoryHub[tool.category]) ?? null,
+    seoDescription: tool.seoDescription ?? tool.description, canonicalUrl: "", hubId: hubBySlug.get(categoryHub[tool.category] ?? tool.category) ?? null,
     existingToolSlug: tool.slug, toolMode: inferToolMode(tool.slug), technicalStatus: "ready", status: "published", indexable: isToolIndexable(tool.slug),
     displayLocation: "direct", showInMostUsed: defaultMostUsed.has(tool.slug), displayOrder: defaultMostUsed.get(tool.slug) ?? 100,
     includeInSitemap: isToolIndexable(tool.slug), customData: { ...(tool.slug === "imprimir-frente-e-verso" ? { printers: defaultPrinters } : {}), originalFields: [

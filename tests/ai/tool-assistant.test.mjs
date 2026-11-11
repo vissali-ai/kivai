@@ -7,6 +7,15 @@ import {PDFDocument} from 'pdf-lib';
 const require=createRequire(import.meta.url);
 function load(file,mocks={}){const module={exports:{}};const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;new Function('require','module','exports',code)(name=>name in mocks?mocks[name]:require(name),module,module.exports);return module.exports;}
 const schema=load('lib/ai/tool-assistant.ts');
+test('Business diagnosis requires profile data and three complete AI-generated models',()=>{
+ const input={kind:'businessIdeas',consent:true,skills:'Ensino matemática',time:'Até 3 horas',budget:'R$ 0',goal:'Primeira venda',preference:'Online',resources:''};
+ const idea={title:'Aula individual',offer:'Revisão para estudantes',fit:'Experiência em ensino',requirements:'Uma hora por aula',test:'Ofereça uma aula curta',signal:'Pedido de uma segunda aula'};
+ const output={diagnosis:'Comece com uma oferta curta.',ideas:[idea,idea,idea],nextStep:'Prepare uma aula de amostra.'};
+ assert.ok(schema.toolAssistantInput.safeParse(input).success);
+ assert.equal(schema.toolAssistantInput.safeParse({...input,skills:' '}).success,false);
+ assert.equal(schema.validateToolOutput(input,output).kind,'businessIdeas');
+ assert.throws(()=>schema.validateToolOutput(input,{...output,ideas:[idea]}));
+});
 const caption={kind:'caption',consent:true,text:'Café da casa',instruction:'Revisar',limit:100};
 const image={mimeType:'image/jpeg',data:Buffer.from([255,216,255,1,2,3]).toString('base64')};
 const samplePdf=await PDFDocument.create();samplePdf.addPage();
@@ -34,7 +43,7 @@ test('API authenticates before charges, uses fixed costs and refunds failures',a
   const calls=[];let cost;
   const route=load('app/api/ai/tool-assistant/route.ts',{
    '@/lib/ai/tool-assistant':schema,
-   '@/lib/billing/sumup':{authenticateBillingUser:async()=>{if(scenario==='unauthorized')throw Error();return{id:'test'};}},
+   '@/lib/auth/authenticated-billing-user':{authenticateBillingUser:async()=>{if(scenario==='unauthorized')throw Error();return{id:'test'};}},
    '@/lib/ai/credits':{reserveAiCredits:async p=>{cost=p.cost;return{allowed:scenario!=='no-credit'};},finalizeAiCredits:async(_u,_o,ok)=>{calls.push(ok);return !(scenario==='finalization'&&ok);}},
    '@/lib/ai/limits':{reserveAiRequest:async()=>scenario!=='quota'},
    '@/lib/ai/gemini':{requestGeminiJsonParts:async()=>{if(scenario==='provider')throw Error();return scenario==='invalid'?{}:scenario==='pdf'?{blocks:[{type:'paragraph',text:'Documento'}],warnings:[]}:output;}},
