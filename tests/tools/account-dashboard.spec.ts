@@ -1,19 +1,19 @@
 import { test, expect, expectNoOverflow } from "./helpers";
 import type { Page } from "@playwright/test";
 
-async function mockAccount(page: Page, options: { authFails?: boolean; accessFails?: boolean } = {}) {
+async function mockAccount(page: Page, options: { authFails?: boolean; accessFails?: boolean; plan?: "free" | "pro" | "agency" } = {}) {
   await page.addInitScript(() => localStorage.setItem("kivai_user_session", JSON.stringify({ access_token: "dashboard-test", user: { id: "dashboard-test" } })));
   await page.route("**/auth/v1/**", route => route.fulfill({ status: options.authFails ? 503 : 200, json: { id: "dashboard-test", email: `${"longemail".repeat(12)}@example.com` } }));
   await page.route("**/rest/v1/**", route => {
     const url = route.request().url();
-    const json = url.includes("user_profiles") ? [{ full_name: "Teste", plan_code: "pro" }]
+    const json = url.includes("user_profiles") ? [{ full_name: "Teste", plan_code: options.plan ?? "pro" }]
       : url.includes("subscription_requests") ? [{ id: "request-test", plan_code: "pro", billing_cycle: "monthly", amount_brl: 29, status: "awaiting_payment", payment_link: "https://example.com/payment" }]
       : [];
     return route.fulfill({ json });
   });
   await page.route("**/api/account/**", route => {
     const url = route.request().url();
-    if (url.includes("/access")) return route.fulfill({ status: options.accessFails ? 503 : 200, json: { userId: "dashboard-test", plan: "pro", subscription: null } });
+    if (url.includes("/access")) return route.fulfill({ status: options.accessFails ? 503 : 200, json: { userId: "dashboard-test", plan: options.plan ?? "pro", subscription: null } });
     if (url.includes("/announcements")) return route.fulfill({ json: { notices: [] } });
     if (url.includes("/routine-reminders")) return route.fulfill({ json: { preference: { enabled: false, weekday: 1, hour: 9, time_zone: "America/Sao_Paulo", tool_slug: "compressor-de-imagens" }, vapidPublicKey: "" } });
     return route.fulfill({ json: { projects: [] } });
@@ -187,6 +187,7 @@ test("saved projects are easy to find and filter without losing the catalog", as
   await expect(library.getByRole("button", { name: "Exibir em cards" })).toHaveAttribute("aria-pressed", "true");
   await library.getByRole("button", { name: "Exibir em lista" }).click();
   await expect(library.getByRole("button", { name: "Exibir em lista" })).toHaveAttribute("aria-pressed", "true");
+  await expect(library.locator("[data-project-view]")).toHaveAttribute("data-project-view", "list");
   await search.fill("sao joao");
   await expect(articles).toHaveCount(1);
   await expect(articles.first()).toContainText("Campanha São João");
@@ -209,11 +210,29 @@ test("saved projects are easy to find and filter without losing the catalog", as
   await library.screenshot({ path: testInfo.outputPath("project-library.png") });
 });
 
+test("projects default to cards for free and pro, list for agency", async ({ page }) => {
+  for (const plan of ["free", "pro", "agency"] as const) {
+    await mockAccount(page, { plan });
+    await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
+    await page.goto("/conta/projetos");
+    const library = page.getByRole("region", { name: "Projetos salvos" });
+    const expected = plan === "agency" ? "list" : "cards";
+    await expect(library.locator("[data-project-view]")).toHaveAttribute("data-project-view", expected);
+    await expect(library.getByRole("button", { name: "Exibir em " + (expected === "cards" ? "cards" : "lista") })).toHaveAttribute("aria-pressed", "true");
+    await expect(library.locator("article")).toHaveCount(2);
+    await expect(library.locator("article").first().getByRole("link", { name: "Abrir ferramenta" })).toBeVisible();
+    await library.locator("article").first().getByLabel("Mais ações para Campanha São João").click();
+    await expect(library.locator("article").first().getByRole("button", { name: "Exportar JSON" })).toBeVisible();
+    await expect(library.locator("article").first().getByRole("button", { name: "Excluir", exact: true })).toBeVisible();
+    await expectNoOverflow(page);
+  }
+});
+
 test("project outage shows a retry instead of claiming the account is empty", async ({ page }) => {
   await mockAccount(page);
   let unavailable = true;
   await page.route("**/api/account/projects", route => route.fulfill(unavailable ? { status: 503, json: { error: "Não foi possível carregar os projetos." } } : { json: { projects: savedProjects } }));
-  await page.goto("/conta");
+  await page.goto("/conta/projetos");
   const library = page.getByRole("region", { name: "Projetos salvos" });
   await expect(library.getByRole("alert")).toContainText("Não foi possível carregar os projetos.");
   await expect(library.getByText("Você ainda não tem projetos salvos", { exact: false })).toHaveCount(0);
