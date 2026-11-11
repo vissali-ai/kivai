@@ -83,7 +83,7 @@ export function VideoFrameCaptureClient() {
     previewCleanupRef.current?.();
 
     const sequence = seekSequenceRef.current;
-    const targetTime = requestedTimeRef.current;
+    const targetTime = video.currentTime;
     const wasMuted = video.muted;
     video.muted = true;
     let finished = false;
