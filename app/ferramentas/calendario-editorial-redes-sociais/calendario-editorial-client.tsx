@@ -145,7 +145,7 @@ export default function CalendarioEditorialClient({ aiCopy = assistantCopy(assis
       </CardContent>
     </Card>
     {modal && <PublicationModal modal={modal} selectedDate={selectedDate} onClose={() => setModal(null)} onSave={save} onDelete={(item) => setModal({ kind: "delete", item })} onRemove={remove} onEdit={(item) => setModal({ kind: "form", mode: "edit", item })} onDuplicate={(item) => setModal({ kind: "form", mode: "duplicate", item })} onMoveOpen={(item) => setModal({ kind: "move", item })} onMove={move} />}
-    <SavedProjects kind="calendar" payload={items} onLoad={value => { if (Array.isArray(value)) setItems(value.filter(validPublication)); }} />
+    <SavedProjects kind="calendar" payload={items} onLoad={value => { if (Array.isArray(value)) { const restored = value.filter(validPublication); setItems(restored); setFilters(emptyFilters); if (restored.length) { const first = restored.slice().sort((a, b) => a.date.localeCompare(b.date))[0]; const date = parseDate(first.date); setCurrentMonth(new Date(date.getFullYear(), date.getMonth(), 1)); setSelectedDate(first.date); setView("list"); } } }} />
   </ToolPageShell>;
 }
 
