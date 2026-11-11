@@ -38,6 +38,7 @@ const ALLOWED_FEED_HOSTS = new Set([
   "zapier.com",
   "www.socialmediatoday.com",
   "about.fb.com",
+  "trends.google.com",
 ]);
 
 const parser = new XMLParser({
@@ -90,6 +91,43 @@ function safeDate(value: unknown) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+/** O RSS de Trends é uma lista de buscas, não uma lista de matérias.
+ * Usamos apenas URLs de notícias associadas (ht:news_item_url), nunca uma URL
+ * de busca do Google como fonte jornalística para o gerador de rascunhos.
+ */
+function googleTrendsCandidates(source: NewsSource, rawItems: unknown[]): NewsCandidate[] {
+  return rawItems.flatMap((rawItem): NewsCandidate[] => {
+    if (!rawItem || typeof rawItem !== "object") return [];
+    const item = rawItem as Record<string, unknown>;
+    const trend = plainText(textValue(item.title)).trim().slice(0, 180);
+    const publishedAt = safeDate(item.pubDate);
+    if (!trend || !publishedAt) return [];
+    return asArray(item["ht:news_item"]).flatMap((entry): NewsCandidate[] => {
+      if (!entry || typeof entry !== "object") return [];
+      const news = entry as Record<string, unknown>;
+      const title = plainText(textValue(news["ht:news_item_title"])).trim();
+      const rawLink = textValue(news["ht:news_item_url"]);
+      if (!title || !rawLink) return [];
+      let url: URL;
+      try {
+        url = new URL(rawLink);
+        if (url.protocol !== "https:" || url.username || url.password ||
+          url.hostname === "trends.google.com" || url.hostname === "news.google.com" ||
+          url.hostname === "localhost" || url.hostname.endsWith(".local")) return [];
+      } catch { return []; }
+      const normalized = normalizeUrl(url.toString());
+      const publisher = plainText(textValue(news["ht:news_item_source"])).trim();
+      return [{
+        sourceId: source.id, sourceName: publisher ? `Google Trends · ${publisher}` : source.name,
+        categorySlug: source.defaultCategorySlug, guid: normalized, url: normalized,
+        title: title.slice(0, 180),
+        excerpt: `Assunto em alta no Google Trends Brasil: ${trend}. Verifique a notícia original antes de publicar.`,
+        contentHtml: "", tags: [trend], publishedAt,
+      }];
+    });
+  });
+}
+
 export async function fetchNewsFeed(source: NewsSource): Promise<NewsCandidate[]> {
   const feedUrl = new URL(source.feedUrl);
   if (feedUrl.protocol !== "https:" || !ALLOWED_FEED_HOSTS.has(feedUrl.hostname)) {
@@ -111,6 +149,9 @@ export async function fetchNewsFeed(source: NewsSource): Promise<NewsCandidate[]
   if (!document.rss?.channel && !document.feed) throw new Error(`${source.name} não retornou um feed RSS ou Atom válido.`);
   const rssItems = asArray(document.rss?.channel?.item);
   const atomItems = asArray(document.feed?.entry);
+  if (feedUrl.hostname === "trends.google.com" && feedUrl.pathname === "/trending/rss") {
+    return googleTrendsCandidates(source, rssItems);
+  }
   return [...rssItems, ...atomItems].flatMap((rawItem): NewsCandidate[] => {
     try {
       const item = rawItem as Record<string, unknown>;
