@@ -15,6 +15,7 @@ type ImageToolEditorialContent = {
 };
 
 export type ImageToolEditorialSlug =
+  | "capturador-de-tela-online"
   | "removedor-de-fundo"
   | "compressor-de-imagens"
   | "conversor-de-imagens"
@@ -29,6 +30,19 @@ export type ImageToolEditorialSlug =
   | "recortar-imagem";
 
 export const imageToolEditorialContent = {
+  "capturador-de-tela-online": {
+    overview: ["Para tirar print da tela do PC pelo navegador, escolha a aba, janela ou monitor que deseja mostrar. O capturador registra uma imagem e encerra o compartilhamento. Depois você pode destacar o que interessa antes de baixar o arquivo."],
+    useCases: [
+      { title: "Relatar um erro", description: "Capture a janela do aplicativo, recorte a mensagem de erro e circule o ponto que precisa de atenção." },
+      { title: "Montar um tutorial", description: "Marque botões e campos com retângulos para indicar onde clicar em cada etapa." },
+    ],
+    steps: ["Clique em Capturar tela e confirme uma fonte no seletor do navegador.", "Para manter apenas uma região, escolha Recortar e arraste de um canto ao outro.", "Escolha Desenhar ou Retângulo, selecione uma cor e arraste sobre o print para anotar.", "Confira a imagem e clique em Baixar PNG."],
+    specifications: [{ label: "Entrada", value: "Um quadro da fonte autorizada, nas dimensões fornecidas pelo navegador." }, { label: "Saída", value: "Imagem PNG com o recorte e as anotações aplicados." }],
+    privacy: "A captura e a edição acontecem no dispositivo. A ferramenta não envia o print ao Kivai e não solicita áudio. Confira notificações, nomes e outros dados visíveis antes de compartilhar a imagem.",
+    limitations: ["A captura depende do suporte do navegador e da permissão de compartilhamento. Conteúdo protegido pode aparecer em preto.", "O print inclui a área visível da fonte escolhida. Uma página longa não é capturada por rolagem automática."],
+    faqs: [{ question: "Como tirar print de apenas uma janela do PC?", answer: "Clique em Capturar tela, escolha a opção de janela no seletor e confirme o aplicativo desejado. As fontes oferecidas variam conforme o navegador." }, { question: "Como marcar uma parte do print?", answer: "Selecione Retângulo para contornar uma região ou Desenhar para fazer uma marca à mão livre. Use Desfazer para remover a última edição." }, { question: "O compartilhamento continua durante a edição?", answer: "Não. Assim que a imagem é capturada, a ferramenta encerra a captura e você edita a cópia local." }],
+    related: [{ href: "/ferramentas/recortar-imagem", label: "Recortar imagem" }, { href: "/ferramentas/gravador-de-tela-online", label: "Gravador de tela online" }],
+  },
   "removedor-de-fundo": {
     overview: [
       "O Removedor de Fundo identifica automaticamente o principal elemento da imagem e remove o cenário ao redor, criando um novo arquivo PNG com fundo transparente. É útil para fotos de produtos, pessoas, animais, objetos, logotipos e outros elementos que precisam ser usados sem o fundo original.",

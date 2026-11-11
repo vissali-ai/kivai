@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getToolHref, getToolsByCategory } from "@/lib/tools";
 
-const filters = ["Todos", "Otimizar", "Converter", "Editar"];
+const filters = ["Todos", "Capturar", "Otimizar", "Converter", "Editar"];
 const registeredTools = getToolsByCategory("imagens");
 const tools = [
   ...registeredTools.map((tool) => ({
