@@ -72,6 +72,7 @@ export function inferToolMode(slug: string): ToolImplementationMode {
 }
 
 export function getExistingToolEditorialHtml(slug: string) {
+  if (slug === "criador-de-curriculo-online") return "<h2>Como fazer currículo para uma vaga</h2><p>Comece com o cargo desejado e um contato atualizado. No resumo, descreva o que você sabe fazer e onde aplicou esse conhecimento. Em vez de escrever “responsável por atendimento”, por exemplo, explique “Atendia clientes por telefone e registrava solicitações no sistema”, se isso fizer parte da sua experiência.</p><p>Liste as experiências da mais recente para a mais antiga. Para o primeiro emprego, destaque sua formação, projetos e trabalho voluntário. Revise os dados e baixe a versão em PDF. O documento usa uma coluna e texto selecionável para facilitar a leitura por sistemas de triagem (ATS).</p>";
   if (slug === "kivai-connect") return connectEditorial;
   if (slug === "imprimir-frente-e-verso") return duplexEditorial;
   const content = sources.find((source) => source[slug])?.[slug];

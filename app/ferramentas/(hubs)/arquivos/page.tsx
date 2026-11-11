@@ -9,7 +9,7 @@ import { getToolsByCategory, getToolHref } from "@/lib/tools";
 
 import { AdSlot } from "@/components/ads/AdSlot";
 
-const filters = ["Todos", "Extrair", "Compactar", "Organizar"] as const;
+const filters = ["Todos", "Criar documentos", "Extrair", "Compactar", "Organizar"] as const;
 
 type Filter = (typeof filters)[number];
 

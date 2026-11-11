@@ -3,6 +3,7 @@ import type { SiteOriginalField } from "@/lib/site-cms/types";
 export type AssistantCopy = { title: string; description: string; tutorialUrl: string };
 export const assistantSlugs = { planner: "planejador-de-conteudo-social-media", calendar: "calendario-editorial-redes-sociais" } as const;
 const extraCopy: Record<string, [string, string]> = {
+  "criador-de-curriculo-online": ["Aprimorar descrição com IA", "Escolha um trecho do currículo. Revise a sugestão antes de aplicá-la."],
   "contador-de-caracteres-instagram": ["Melhore sua legenda com IA", "Revise, encurte ou crie variações da legenda. Confira a prévia antes de substituir seu texto."],
   "preview-de-post-redes-sociais": ["Revise seu post com IA", "Receba variações de legenda e, com uma imagem selecionada, sugestões de coerência e descrição acessível."],
   "radar-de-tendencias": ["Transforme uma notícia em ideias com IA", "Escolha uma notícia e informe seu segmento para receber pautas baseadas no trecho disponível, com a fonte preservada."],

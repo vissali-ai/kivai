@@ -159,6 +159,7 @@ export interface Tool {
 }
 
 export const INDEXABLE_TOOL_SLUGS = [
+  "criador-de-curriculo-online",
   "imprimir-frente-e-verso",
   "descompactar-zip",
   "descompactar-rar",
@@ -299,6 +300,18 @@ export const tools: Tool[] = [
     badge: "RAR",
     available: true,
     icon: Archive,
+  },
+  {
+    slug: "criador-de-curriculo-online",
+    name: "Criador de Currículo Online",
+    description: "Monte seu currículo, revise a descrição profissional com a IA do Kivai e exporte um PDF com texto selecionável.",
+    category: "arquivos",
+    hubFilter: "Criar documentos",
+    badge: "PDF",
+    available: true,
+    icon: FilePenLine,
+    keywords: ["como fazer currículo", "currículo ATS", "currículo para primeiro emprego"],
+    seoTitle: "Como fazer currículo online | Criador de Currículo Kivai",
   },
   {
     slug: "compactar-arquivos-zip",
