@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, Users } from "lucide-react";
+import { ArrowRight, FolderOpen, LayoutGrid, List, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
@@ -31,6 +31,9 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [client, setClient] = useState("");
   const [filter, setFilter] = useState("");
   const [search, setSearch] = useState("");
+  const [kindFilter, setKindFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState<"recent" | "oldest" | "name">("recent");
+  const [view, setView] = useState<"cards" | "list">("cards");
   const [loadingProjects, setLoadingProjects] = useState(Boolean(access?.userId));
   const [loadError, setLoadError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -52,7 +55,13 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   }, [userId, retry]);
   const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
   const query = normalizeSearch(search.trim());
-  const visible = projects.filter(p => (!kind || p.kind === kind) && (!filter || p.client_name === filter) && (!query || normalizeSearch(`${p.title} ${p.client_name} ${labels[p.kind]}`).includes(query)));
+  const visible = projects
+    .filter(p => (!kind || p.kind === kind) && (!kindFilter || p.kind === kindFilter) && (!filter || p.client_name === filter) && (!query || normalizeSearch(`${p.title} ${p.client_name} ${labels[p.kind]}`).includes(query)))
+    .sort((a, b) => sortOrder === "name"
+      ? a.title.localeCompare(b.title, "pt-BR")
+      : sortOrder === "oldest"
+        ? Date.parse(a.updated_at) - Date.parse(b.updated_at)
+        : Date.parse(b.updated_at) - Date.parse(a.updated_at));
   async function open(project: SavedProject) {
     setBusy(true);
     try {
@@ -90,14 +99,52 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       </p> : null}
     {!userId ? <Button asChild><Link href={loginHref}>Entrar na conta</Link></Button> : null}
     {kind && userId ? <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nome do projeto<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={120} value={title} onChange={e => setTitle(e.target.value)} /></label>{plan === "agency" ? <label className="text-sm">Cliente (opcional)<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={100} value={client} onChange={e => setClient(e.target.value)} /><span className="text-xs text-muted-foreground">Até 20 nomes de clientes em seus projetos.</span></label> : null}<div className="flex flex-wrap gap-2 sm:col-span-2"><Button disabled={busy || !title.trim() || !!accessError || (plan === "pro" && !!selected?.client_name)} onClick={() => save(false)}>Salvar na conta</Button><Button variant="outline" disabled={busy || !title.trim() || !!accessError} onClick={() => save(true)}>Salvar como novo projeto</Button></div></div> : null}
-    {!kind && projects.length > 0 ? <div className="flex flex-wrap items-end gap-3"><label className="min-w-0 flex-1 text-sm">Buscar projetos<input type="search" className="mt-1 block min-h-11 w-full rounded border bg-background px-3 py-2" placeholder="Nome, cliente ou ferramenta" value={search} onChange={event => setSearch(event.target.value)} /></label>{search || filter ? <Button variant="outline" className="min-h-11" onClick={() => { setSearch(""); setFilter(""); }}>Limpar filtros</Button> : null}</div> : null}
+    {!kind && projects.length > 0 ? <div className="space-y-3 rounded-xl border border-border bg-background/30 p-3 sm:p-4">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(160px,200px)]">
+        <label className="min-w-0 text-sm">Buscar projetos
+          <input type="search" className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2" placeholder="Nome, cliente ou ferramenta" value={search} onChange={event => setSearch(event.target.value)} />
+        </label>
+        <label className="text-sm">Ferramenta
+          <select aria-label="Filtrar por ferramenta" className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background p-2" value={kindFilter} onChange={event => setKindFilter(event.target.value)}>
+            <option value="">Todas as ferramentas</option>
+            {[...new Set(projects.map(project => project.kind))].sort((a, b) => labels[a].localeCompare(labels[b], "pt-BR")).map(tool => <option key={tool} value={tool}>{labels[tool]}</option>)}
+          </select>
+        </label>
+      </div>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-sm">Ordenar
+            <select aria-label="Ordenar projetos" className="ml-2 min-h-10 rounded-lg border border-border bg-background px-2" value={sortOrder} onChange={event => setSortOrder(event.target.value as typeof sortOrder)}>
+              <option value="recent">Mais recentes</option><option value="oldest">Mais antigos</option><option value="name">Nome (A–Z)</option>
+            </select>
+          </label>
+          {search || filter || kindFilter ? <Button variant="outline" size="sm" className="min-h-10" onClick={() => { setSearch(""); setFilter(""); setKindFilter(""); }}>Limpar filtros</Button> : null}
+        </div>
+        <div role="group" aria-label="Visualização dos projetos" className="flex rounded-lg border border-border p-1">
+          <button type="button" aria-label="Exibir em cards" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={`inline-flex size-9 items-center justify-center rounded-md ${view === "cards" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}><LayoutGrid className="size-4" /></button>
+          <button type="button" aria-label="Exibir em lista" aria-pressed={view === "list"} onClick={() => setView("list")} className={`inline-flex size-9 items-center justify-center rounded-md ${view === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}><List className="size-4" /></button>
+        </div>
+      </div>
+    </div> : null}
     {projects.some(p => p.client_name) ? <label className="block text-sm">Filtrar por cliente<select className="mt-1 block min-h-11 w-full rounded border bg-background p-2 sm:max-w-sm" value={filter} onChange={e => setFilter(e.target.value)}><option value="">Todos os clientes</option>{[...new Set(projects.map(p => p.client_name).filter(Boolean))].sort().map(name => <option key={name}>{name}</option>)}</select></label> : null}
     {loadingProjects ? <p role="status" className="text-sm">Carregando seus projetos...</p> : null}
     {loadError ? <div role="alert" className="space-y-2 text-sm"><p>{loadError}</p><Button variant="outline" disabled={loadingProjects} onClick={() => { setLoadingProjects(true); setRetry(value => value + 1); }}>Tentar carregar projetos novamente</Button></div> : null}
     {userId && (message || accessError) ? <p role="status" className="text-sm">{accessError || message}</p> : null}
     {opening ? <div className="rounded border p-3"><p className="text-sm">Abrir “{opening.title}” substituirá o conteúdo atual da ferramenta. Salve o trabalho atual antes de continuar.</p><div className="mt-2 flex gap-2"><Button onClick={() => open(opening)}>Abrir projeto</Button><Button variant="outline" onClick={() => setOpening(null)}>Cancelar</Button></div></div> : null}
-    <div className="space-y-2">{visible.map(project => <article key={project.id} className="flex flex-wrap items-center justify-between gap-3 rounded border p-3"><div className="min-w-0 max-w-full"><h3 className="break-words font-medium">{project.title}</h3><p className="text-xs text-muted-foreground">{labels[project.kind]}{project.client_name ? ` · ${project.client_name}` : ""} · {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p></div><div className="flex flex-wrap gap-2 [&_a]:min-h-11 [&_button]:min-h-11">{onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={routes[project.kind]}>Abrir ferramenta</Link></Button>}<Button size="sm" variant="outline" onClick={() => download(project)}>Exportar JSON</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirmDelete(project.id)}>Excluir</Button>{confirmDelete === project.id ? <><span className="text-sm">Excluir este projeto salvo?</span><Button size="sm" variant="destructive" disabled={busy} onClick={() => remove(project.id)}>Confirmar exclusão</Button><Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button></> : null}</div></article>)}</div>
-    {userId && !loadingProjects && !loadError && !accessError && !visible.length && (kind || search || filter) ? <p role="status" className="text-sm text-muted-foreground">{search || filter ? "Nenhum projeto encontrado. Tente outro nome ou limpe os filtros." : kind ? "Você ainda não tem projetos salvos nesta ferramenta. Dê um nome ao projeto e use Salvar na conta." : ""}</p> : null}
+    <div className={kind || view === "list" ? "space-y-3" : "grid gap-3 xl:grid-cols-2"}>{visible.map(project => <article key={project.id} className={`flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-primary/30 ${kind || view === "list" ? "sm:flex-row sm:items-center sm:justify-between" : ""}`}>
+      <div className="min-w-0 max-w-full">
+        {!kind ? <span className="mb-2 inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary"><FolderOpen className="size-3" />{labels[project.kind]}</span> : null}
+        <h3 className="break-words font-semibold">{project.title}</h3>
+        <p className="mt-1 text-xs text-muted-foreground">{kind ? `${labels[project.kind]} · ` : ""}{project.client_name ? `${project.client_name} · ` : ""}Atualizado em {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 [&_a]:min-h-10 [&_button]:min-h-10">
+        {onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={routes[project.kind]}>Abrir ferramenta</Link></Button>}
+        <Button size="sm" variant="outline" onClick={() => download(project)}>Exportar JSON</Button>
+        <Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirmDelete(project.id)}>Excluir</Button>
+        {confirmDelete === project.id ? <div className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-destructive/30 p-2"><span className="text-sm">Excluir este projeto salvo?</span><Button size="sm" variant="destructive" disabled={busy} onClick={() => remove(project.id)}>Confirmar exclusão</Button><Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button></div> : null}
+      </div>
+    </article>)}</div>
+    {userId && !loadingProjects && !loadError && !accessError && !visible.length && (kind || search || filter || kindFilter) ? <p role="status" className="text-sm text-muted-foreground">{search || filter || kindFilter ? "Nenhum projeto encontrado. Tente outro nome ou limpe os filtros." : kind ? "Você ainda não tem projetos salvos nesta ferramenta. Dê um nome ao projeto e use Salvar na conta." : ""}</p> : null}
 
     {showInstagramHighlight ? (
       <div className="relative overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/[0.12] via-primary/[0.045] to-transparent p-4 sm:p-5">
@@ -122,7 +169,9 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     ) : null}
     {!kind ? <div className="space-y-3">
       {showInstagramHighlight ? <h3 className="text-sm font-medium">Criar um novo projeto</h3> : null}
-      <nav aria-label="Ferramentas com projetos salvos" className="space-y-4">
+      <details open={Boolean(kind)} className="rounded-xl border border-border p-3">
+        <summary className="cursor-pointer text-sm font-semibold text-primary">Criar projetos com outras ferramentas</summary>
+      <nav aria-label="Ferramentas com projetos salvos" className="mt-3 space-y-4">
         {([
           { heading: "Social Media", tools: ["post_creator", "calendar", "briefing", "social_report", "preview_post", "engagement", "post_analysis", "trend_radar"] },
           { heading: "Marketing e performance", tools: ["roas", "roi", "margin", "markup"] },
@@ -140,6 +189,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         ))}
         {plan === "free" ? <Link className={shortcutClass} href="/planos">Conhecer planos</Link> : null}
       </nav>
+      </details>
     </div> : userId ? <Link className="inline-flex min-h-11 items-center text-sm text-primary underline" href="/conta#painel-projetos">Ver todos os meus projetos no painel</Link> : null}
   </section>;
 }
