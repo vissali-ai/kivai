@@ -1211,7 +1211,7 @@ export const tools: Tool[] = [
   {
     slug: "capturar-frame-video",
     name: "Capturar Frame do Vídeo",
-    description: "Capture um quadro do vídeo e salve como imagem PNG, JPG ou WebP.",
+    description: "Transforme momentos do vídeo em imagens. Capture uma imagem escolhida ou extraia automaticamente 5, 10 ou 20 imagens distribuídas pelo vídeo em um arquivo ZIP.",
     category: "video",
     hubFilter: "Edição",
     badge: "Vídeo",

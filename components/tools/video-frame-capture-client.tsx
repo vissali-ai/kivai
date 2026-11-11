@@ -170,7 +170,7 @@ export function VideoFrameCaptureClient() {
       const context = canvas.getContext("2d");
       if (!context) throw new Error("Não foi possível preparar a extração.");
       const extension = format === "image/png" ? "png" : format === "image/webp" ? "webp" : "jpg";
-      const basename = source.file.name.replace(/\\.[^.]+$/, "") || "video";
+      const basename = source.file.name.replace(/\.[^.]+$/, "") || "video";
 
       for (let index = 0; index < batchCount; index += 1) {
         // Evita extremos, onde alguns codecs não entregam um frame decodificado.
@@ -237,13 +237,13 @@ export function VideoFrameCaptureClient() {
         <div className="mb-10 max-w-3xl">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramenta de vídeo</p>
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Capturar Frame de Vídeo Online</h1>
-          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Extraia a imagem de qualquer momento do vídeo e salve o frame em PNG, JPG ou WebP. Use a captura para criar thumbnails ou guardar uma cena.</p>
+          <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Transforme momentos do seu vídeo em imagens PNG, JPG ou WebP. Escolha um instante para salvar uma imagem ou capture automaticamente 5, 10 ou 20 imagens distribuídas pelo vídeo e baixe todas em ZIP.</p>
         </div>
 
         <div className="mx-auto max-w-4xl"><Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Área de processamento</CardTitle>
-            <CardDescription>Selecione um vídeo para capturar um frame como imagem.</CardDescription>
+            <CardDescription>Carregue um vídeo e escolha entre capturar uma imagem ou várias imagens automaticamente.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <input ref={inputRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
@@ -311,23 +311,23 @@ export function VideoFrameCaptureClient() {
                   </label>
 
                   <div className="mt-6 rounded-lg border border-border bg-background p-3">
-                    <label htmlFor="frame-batch-count" className="block text-sm font-medium">Extrair vários frames</label>
-                    <p className="mt-1 text-xs text-muted-foreground">Distribua as capturas ao longo do vídeo e baixe tudo em um arquivo ZIP.</p>
+                    <label htmlFor="frame-batch-count" className="block text-sm font-medium">Capturar várias imagens automaticamente</label>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">O Kivai escolhe momentos espaçados ao longo do vídeo e salva uma imagem de cada momento. Exemplo: em um vídeo de 60 segundos, ao selecionar 5 imagens, as capturas serão feitas aproximadamente aos 10, 20, 30, 40 e 50 segundos. Todas vêm juntas em um arquivo ZIP.</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <select id="frame-batch-count" value={batchCount} onChange={(event) => setBatchCount(Number(event.target.value) as 5 | 10 | 20)} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
-                        <option value={5}>5 frames</option>
-                        <option value={10}>10 frames</option>
-                        <option value={20}>20 frames</option>
+                        <option value={5}>5 imagens</option>
+                        <option value={10}>10 imagens</option>
+                        <option value={20}>20 imagens</option>
                       </select>
                       <Button variant="outline" onClick={captureMultipleFrames} disabled={isCapturing || !dimensions || duration <= 0}>
-                        <Download aria-hidden="true" /> {isCapturing ? "Processando…" : "Baixar frames em ZIP"}
+                        <Download aria-hidden="true" /> {isCapturing ? "Processando…"  : "Capturar imagens e baixar ZIP"}
                       </Button>
                     </div>
                   </div>
 
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Button onClick={captureFrame} disabled={isCapturing || !dimensions}>
-                      <ImageIcon aria-hidden="true" /> {isCapturing ? "Processando…" : "Capturar frame"}
+                      <ImageIcon aria-hidden="true" /> {isCapturing ? "Processando…" : "Capturar imagem escolhida"}
                     </Button>
                     <Button variant="outline" onClick={clear}>
                       <RotateCcw aria-hidden="true" /> Limpar
