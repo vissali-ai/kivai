@@ -119,6 +119,8 @@ export function VideoFrameCaptureClient() {
     setError("");
 
     try {
+      video.pause();
+      const captureTime = video.currentTime;
       const canvas = document.createElement("canvas");
       const [selectedWidth, selectedHeight] = outputSize === "original" ? [dimensions.width, dimensions.height] : outputSize.split("x").map(Number);
       canvas.width = selectedWidth;
@@ -137,7 +139,7 @@ export function VideoFrameCaptureClient() {
       });
 
       revokeFrame();
-      setFrame({ blob, url: URL.createObjectURL(blob), time: video.currentTime });
+      setFrame({ blob, url: URL.createObjectURL(blob), time: captureTime });
     } catch (captureError) {
       setError(captureError instanceof Error ? captureError.message : "Não foi possível capturar o frame.");
     } finally {
