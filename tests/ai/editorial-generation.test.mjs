@@ -43,7 +43,7 @@ const input = { sourceUrl, sourceTitle: "Fonte", sourceName: "Veículo" };
 
 test("Exige leitura da fonte escolhida, não apenas sucesso de outra URL", async () => {
   const api = editorial(async () => response({ url: "https://example.com/outra-fonte" }));
-  await assert.rejects(api.generateEditorialBase(input), /fonte não pôde ser lida/);
+  await assert.rejects(api.generateEditorialBase(input), /URL diferente da reportagem/);
 });
 test("Rejeita geração interrompida mesmo com JSON e corpo suficientemente longo", async () => {
   const api = editorial(async () => response({ finishReason: "MAX_TOKENS" }));
@@ -60,6 +60,33 @@ test("URL equivalente com rastreamento não invalida leitura e é normalizada", 
   const api = editorial(async () => response({ url: sourceUrl + "?utm_source=feed#top" }));
   const result = await api.generateEditorialBase({ ...input, sourceUrl: sourceUrl + "?fbclid=abc" });
   assert.equal(result.sourceUrl, sourceUrl);
+});
+test("Aceita URL equivalente com www, barra final e parâmetros de rastreamento", async () => {
+  const api = editorial(async () => response({ url: "https://www.tecnoblog.net/noticias/fonte?utm_source=google#inicio" }));
+  const result = await api.generateEditorialBase(input);
+  assert.equal(result.title, article.title);
+});
+test("Modo automático tenta modelo seguinte após falha na recuperação da URL", async () => {
+  let calls = 0;
+  const api = editorial(async () => {
+    calls++;
+    if (calls === 1) return Response.json({ candidates: [{ finishReason: "STOP", content: { parts: [{ text: JSON.stringify(article) }] },
+      urlContextMetadata: { urlMetadata: [{ retrievedUrl: sourceUrl, urlRetrievalStatus: "URL_RETRIEVAL_STATUS_ERROR" }] } }] });
+    return response();
+  });
+  const result = await api.generateEditorialBase(input);
+  assert.equal(result.title, article.title);
+  assert.equal(calls, 2);
+});
+test("Paywall é comunicado e não dispara nova tentativa com outro modelo", async () => {
+  let calls = 0;
+  const api = editorial(async () => {
+    calls++;
+    return Response.json({ candidates: [{ finishReason: "STOP", content: { parts: [{ text: JSON.stringify(article) }] },
+      urlContextMetadata: { urlMetadata: [{ retrievedUrl: sourceUrl, urlRetrievalStatus: "URL_RETRIEVAL_STATUS_PAYWALL" }] } }] });
+  });
+  await assert.rejects(api.generateEditorialBase(input), /assinatura ou cadastro/);
+  assert.equal(calls, 1);
 });
 test("Fallback usa somente o tempo restante da janela total", async () => {
   let now = 0;

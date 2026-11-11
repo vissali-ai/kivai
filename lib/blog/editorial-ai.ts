@@ -132,12 +132,27 @@ export function validateSourceUrl(input: string) {
   }
   return url.toString();
 }
+/** Confere a identidade da matéria sem depender de fragmentos, rastreamento,
+ * www e barra final. Não aceita outros domínios ou outros caminhos como fonte.
+ */
+export function isMatchingEditorialSource(requested: string, retrieved: string) {
+  try {
+    const a = new URL(validateSourceUrl(requested));
+    const b = new URL(validateSourceUrl(retrieved));
+    const host = (url: URL) => url.hostname.toLowerCase().replace(/^www\./, "");
+    const path = (url: URL) => url.pathname.replace(/\/+$/, "") || "/";
+    return host(a) === host(b) && path(a) === path(b) &&
+      a.searchParams.toString() === b.searchParams.toString();
+  } catch { return false; }
+}
+
 async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: string) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("A chave Gemini não está configurada.");
-  // Uma única janela cobre fallback e repetição, deixando tempo para salvar no CMS.
   const deadline = Date.now() + 65_000;
-  for (const model of geminiCandidates("url", preferredModel)) {
+  const models = geminiCandidates("url", preferredModel);
+  let lastRetrievalError = "A fonte não pôde ser lida pelo Gemini. Confira se o artigo é público e não exige cadastro.";
+  for (const [index, model] of models.entries()) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       if (Date.now() >= deadline) throw new Error("O Gemini não respondeu a tempo de preparar a reportagem.");
       let response: Response;
@@ -151,32 +166,51 @@ async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: s
             generationConfig: { temperature: 0.25, maxOutputTokens: 6200 },
           }),
         });
-      } catch { throw new Error("O Gemini não respondeu a tempo de preparar a reportagem."); }
-      if (response.status === 404) break;
+      } catch {
+        throw new Error("O Gemini não respondeu a tempo de preparar a reportagem.");
+      }
+      if (response.status === 404) {
+        console.warn("[kivai-editorial] Modelo sem suporte ou indisponível para leitura de URL", { model, status: 404 });
+        break;
+      }
       if (response.status === 429) {
         const quota = await interpretGeminiQuota(response, "draft", model);
         if (attempt === 0 && await shortGeminiQuotaBackoff(quota)) continue;
         throw quota;
       }
       if (!response.ok) throw new Error("Falha ao analisar a reportagem no Gemini (HTTP " + response.status + ").");
-      const raw = await response.json() as GeminiResult;
+      let raw: GeminiResult;
+      try { raw = await response.json() as GeminiResult; }
+      catch { throw new Error("O Gemini retornou uma resposta inválida. Repita a geração."); }
       const candidate = raw.candidates?.[0];
       if (candidate?.finishReason !== "STOP") {
         throw new Error("O Gemini interrompeu a reportagem antes de concluí-la. Repita a geração.");
       }
-      const matches = candidate?.urlContextMetadata?.urlMetadata || [];
-      // A resposta só pode ser considerada verificada quando o provedor confirma a leitura da URL.
-      if (!matches.some((item) => {
-        if (item.urlRetrievalStatus !== "URL_RETRIEVAL_STATUS_SUCCESS" || !item.retrievedUrl) return false;
-        try { return validateSourceUrl(item.retrievedUrl) === url; } catch { return false; }
-      })) {
-        throw new Error("A fonte não pôde ser lida pelo Gemini. Confira se o artigo é público e não exige cadastro.");
+      const matches = candidate.urlContextMetadata?.urlMetadata || [];
+      if (!matches.some((item) => item.urlRetrievalStatus === "URL_RETRIEVAL_STATUS_SUCCESS" &&
+        typeof item.retrievedUrl === "string" && isMatchingEditorialSource(url, item.retrievedUrl))) {
+        const statuses = matches.map((item) => item.urlRetrievalStatus || "UNKNOWN");
+        // Não registrar URLs completas, texto da fonte nem o corpo do Gemini.
+        console.warn("[kivai-editorial] Leitura da fonte não confirmada", { model, statuses, metadataCount: matches.length });
+        if (statuses.includes("URL_RETRIEVAL_STATUS_PAYWALL")) {
+          throw new Error("A reportagem exige assinatura ou cadastro e não pôde ser lida pelo Gemini.");
+        }
+        if (statuses.includes("URL_RETRIEVAL_STATUS_UNSAFE")) {
+          throw new Error("O Gemini bloqueou o acesso à URL por segurança. Escolha outra fonte.");
+        }
+        lastRetrievalError = matches.some((item) => item.urlRetrievalStatus === "URL_RETRIEVAL_STATUS_SUCCESS")
+          ? "O Gemini retornou conteúdo de uma URL diferente da reportagem informada. Confira o redirecionamento e utilize o link direto da matéria."
+          : "O Gemini não confirmou a leitura do artigo. A fonte pode bloquear acesso automatizado ou o modelo não ter conseguido recuperá-la.";
+        // No modo automático, tente outro modelo sem recorrer a informações não verificadas.
+        // Não repita a mesma leitura falha nem contorne PAYWALL/UNSAFE.
+        break;
       }
-      const resultText = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text || "").join("") || "";
+      const resultText = candidate.content?.parts?.filter((part) => !part.thought).map((part) => part.text || "").join("") || "";
       return { generated: extractJson(resultText), model };
     }
+    if (index === models.length - 1) break;
   }
-  throw new Error("Nenhum modelo Gemini com leitura de URL está disponível.");
+  throw new Error(lastRetrievalError);
 }
 export async function generateEditorialBase(input: {
   sourceUrl: string; sourceTitle: string; sourceName: string; excerpt?: string; model?: string;
