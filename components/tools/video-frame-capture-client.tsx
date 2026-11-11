@@ -83,12 +83,13 @@ export function VideoFrameCaptureClient() {
     previewCleanupRef.current?.();
 
     const sequence = seekSequenceRef.current;
+    const targetTime = requestedTimeRef.current;
     const wasMuted = video.muted;
     video.muted = true;
     let finished = false;
     let callbackId: number | undefined;
 
-    const finish = () => {
+    const finish = (displayed: boolean) => {
       if (finished) return;
       finished = true;
       if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
@@ -98,18 +99,29 @@ export function VideoFrameCaptureClient() {
       if (sequence === seekSequenceRef.current) {
         setIsSeeking(false);
         setCurrentTime(video.currentTime);
+        if (!displayed) {
+          setError("Não foi possível confirmar a atualização do quadro. Toque em Atualizar prévia ou tente MP4/H.264.");
+        }
       }
       previewCleanupRef.current = null;
     };
 
-    previewCleanupRef.current = finish;
+    previewCleanupRef.current = () => finish(false);
     if (video.requestVideoFrameCallback) {
-      callbackId = video.requestVideoFrameCallback(() => finish());
+      const checkFrame: VideoFrameRequestCallback = (_now, metadata) => {
+        if (finished || sequence !== seekSequenceRef.current) return;
+        if (Math.abs(metadata.mediaTime - targetTime) <= 0.35) {
+          finish(true);
+        } else {
+          callbackId = video.requestVideoFrameCallback(checkFrame);
+        }
+      };
+      callbackId = video.requestVideoFrameCallback(checkFrame);
     } else {
-      video.addEventListener("timeupdate", finish, { once: true });
+      video.addEventListener("timeupdate", () => finish(true), { once: true });
     }
-    previewStopTimerRef.current = setTimeout(finish, 1400);
-    void video.play().catch(finish);
+    previewStopTimerRef.current = setTimeout(() => finish(false), 1800);
+    void video.play().catch(() => finish(false));
   }
 
   function applySelectedTime(refresh = false) {
