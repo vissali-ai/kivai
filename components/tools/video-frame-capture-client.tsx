@@ -36,6 +36,7 @@ export function VideoFrameCaptureClient() {
   const seekWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestedTimeRef = useRef(0);
+  const refreshAfterSeekRef = useRef(false);
   const seekSequenceRef = useRef(0);
   const previewCleanupRef = useRef<(() => void) | null>(null);
   const [source, setSource] = useState<{ file: File; url: string } | null>(null);
@@ -61,6 +62,7 @@ export function VideoFrameCaptureClient() {
 
   function cancelPendingSeek() {
     seekSequenceRef.current += 1;
+    refreshAfterSeekRef.current = false;
     if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
     if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
     if (previewStopTimerRef.current) clearTimeout(previewStopTimerRef.current);
@@ -117,11 +119,13 @@ export function VideoFrameCaptureClient() {
     if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
     seekTimerRef.current = null;
     const selected = requestedTimeRef.current;
+    refreshAfterSeekRef.current = refresh;
     if (Math.abs(video.currentTime - selected) > 0.015) {
       video.currentTime = selected;
       setIsSeeking(true);
     } else {
       setIsSeeking(false);
+      refreshAfterSeekRef.current = false;
       if (refresh) refreshPreviewFrame();
       return;
     }
@@ -388,6 +392,10 @@ export function VideoFrameCaptureClient() {
                         seekWatchdogRef.current = null;
                         setCurrentTime(event.currentTarget.currentTime);
                         setIsSeeking(false);
+                        if (refreshAfterSeekRef.current) {
+                          refreshAfterSeekRef.current = false;
+                          refreshPreviewFrame();
+                        }
                       }}
                       onError={() => {
                         cancelPendingSeek();
@@ -408,7 +416,7 @@ export function VideoFrameCaptureClient() {
                 <div className="rounded-xl border border-border bg-muted/20 p-4 sm:p-5">
                   <label className="block text-sm font-medium" htmlFor="frame-time">Momento do frame: {formatTime(currentTime)} / {formatTime(duration)}</label>
                   <p className="mt-1 text-xs text-muted-foreground">Escolha o instante pelo player acima ou ajuste aqui. Os dois controles ficam sincronizados; ao mover este controle, o vídeo pausa no momento selecionado.</p>
-                  <input id="frame-time" type="range" min="0" max={duration || 0} step="0.01" value={currentTime} disabled={!dimensions || duration <= 0} onChange={(event) => seekTo(Number(event.target.value))} onPointerUp={() => applySelectedTime(true)} onTouchEnd={() => applySelectedTime(true)} className="mt-3 w-full" />
+                  <input id="frame-time" type="range" min="0" max={duration || 0} step="0.01" value={currentTime} disabled={!dimensions || duration <= 0} onChange={(event) => seekTo(Number(event.target.value))} onPointerUp={() => applySelectedTime(true)} className="mt-3 w-full" />
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs text-muted-foreground">Duração: {formatTime(duration)}</p>
                     <Button type="button" size="sm" variant="outline" onClick={refreshPreviewFrame} disabled={!dimensions || isCapturing}>
