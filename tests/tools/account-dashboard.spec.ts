@@ -268,6 +268,69 @@ test("calendar refuses to replace a local draft until user confirms", async ({ p
   await expect(page.getByText("Postagem restaurada", { exact: true })).toHaveCount(0);
 });
 
+test("supported tools expose a direct resume link while unverified tools keep their original route", async ({ page }) => {
+  await mockAccount(page);
+  const cases = [
+    ["qr_code", "/ferramentas/gerador-de-qr-code"],
+    ["social_report", "/ferramentas/gerador-de-relatorio-social-media"],
+    ["preview_post", "/ferramentas/preview-de-post-redes-sociais"],
+    ["roas", "/ferramentas/calculadora-de-roas"],
+    ["roi", "/ferramentas/calculadora-de-roi"],
+    ["margin", "/ferramentas/calculadora-de-margem"],
+    ["markup", "/ferramentas/calculadora-de-markup"],
+    ["proofreader", "/ferramentas/corretor-de-texto"],
+  ] as const;
+  const expanded = [
+    ...savedProjects,
+    ...cases.map(([kind], index) => ({
+      id: `33333333-3333-4333-8333-${String(index + 1).padStart(12, "0")}`,
+      kind,
+      title: `Projeto extra ${index + 1}`,
+      client_name: "",
+      payload: {},
+      revision: 1,
+      updated_at: "2026-11-11T12:00:00Z",
+    })),
+    { id: "44444444-4444-4444-8444-444444444444", kind: "watermark", title: "Marca d'água não verificada", client_name: "", payload: {}, revision: 1, updated_at: "2026-11-11T12:00:00Z" },
+  ];
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: expanded } }));
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.locator("article")).toHaveCount(expanded.length);
+  for (const [kind, href] of cases) {
+    const project = expanded.find(item => item.kind === kind)!;
+    const card = library.locator("article").filter({ hasText: project.title });
+    await expect(card.getByRole("link", { name: "Continuar projeto" })).toHaveAttribute("href", `${href}?project=${project.id}`);
+  }
+  const unknown = library.locator("article").filter({ hasText: "Marca d'água não verificada" });
+  await expect(unknown.getByRole("link", { name: "Abrir ferramenta" })).toHaveAttribute("href", "/ferramentas/adicionar-marca-dagua");
+  await expectNoOverflow(page);
+});
+
+test("ROAS resumes the exact saved values and saves to the same project revision", async ({ page }) => {
+  await mockAccount(page);
+  const project = { id: "55555555-5555-4555-8555-555555555555", kind: "roas", title: "ROAS de novembro", client_name: "", revision: 2, updated_at: "2026-11-11T12:00:00Z", payload: { investimento: "100", receita: "500", margem: "30" } };
+  let saved: Record<string, unknown> | null = null;
+  await page.route("**/api/account/projects", route => {
+    if (route.request().method() === "POST") {
+      saved = route.request().postDataJSON() as Record<string, unknown>;
+      return route.fulfill({ json: { project: { ...project, revision: 3 } } });
+    }
+    return route.fulfill({ json: { projects: [project] } });
+  });
+  await page.goto("/conta/projetos");
+  await page.getByRole("region", { name: "Projetos salvos" }).getByRole("link", { name: "Continuar projeto" }).click();
+  await expect(page).toHaveURL(/project=55555555-5555-4555-8555-555555555555/);
+  const dialog = page.getByRole("dialog", { name: "Continuar projeto salvo?" });
+  await dialog.getByRole("button", { name: "Continuar projeto" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator("#investimento")).toHaveValue("100");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.getByRole("textbox", { name: "Nome do projeto" })).toHaveValue("ROAS de novembro");
+  await library.getByRole("button", { name: "Salvar na conta", exact: true }).click();
+  await expect.poll(() => saved).toMatchObject({ id: project.id, kind: "roas", revision: 2, payload: project.payload });
+});
+
 test("project outage shows a retry instead of claiming the account is empty", async ({ page }) => {
   await mockAccount(page);
   let unavailable = true;
