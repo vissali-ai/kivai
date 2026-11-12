@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run verify:adsense && npm run prepare:unrar-assets && next build",
+    "build": "node scripts/diagnose-gemini-video-preview.mjs && npm run verify:adsense && npm run prepare:unrar-assets && next build",
     "start": "next start",
     "lint": "eslint",
     "test:tools": "playwright test",
