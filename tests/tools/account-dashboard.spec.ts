@@ -14,6 +14,7 @@ async function mockAccount(page: Page, options: { authFails?: boolean; accessFai
   await page.route("**/api/account/**", route => {
     const url = route.request().url();
     if (url.includes("/access")) return route.fulfill({ status: options.accessFails ? 503 : 200, json: { userId: "dashboard-test", plan: options.plan ?? "pro", subscription: null } });
+    if (url.includes("/project-folders")) return route.fulfill({ json: { folders: [], assignments: [] } });
     if (url.includes("/announcements")) return route.fulfill({ json: { notices: [] } });
     if (url.includes("/routine-reminders")) return route.fulfill({ json: { preference: { enabled: false, weekday: 1, hour: 9, time_zone: "America/Sao_Paulo", tool_slug: "compressor-de-imagens" }, vapidPublicKey: "" } });
     return route.fulfill({ json: { projects: [] } });
