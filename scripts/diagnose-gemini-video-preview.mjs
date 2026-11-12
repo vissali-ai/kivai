@@ -37,7 +37,7 @@ async function check(label, uri, body, timeout = 20000) {
   }
 }
 await check("models", base + "/models?pageSize=1000");
-await check("text-2.5",base+"/models/gemini-2.5-flash:generateContent",{contents:[{parts:[{text:"Responda apenas OK."}]}],generationConfig:{maxOutputTokens:30}},15000);
-await check("youtube-2.5",base+"/interactions",{model:"gemini-2.5-flash",input:[{type:"text",text:"What is happening in this video? Answer in one short sentence."},{type:"video",uri:"https://www.youtube.com/watch?v=9hE5-98ZeCg"}]},25000);
-await check("text-3.5-lite",base+"/models/gemini-3.5-flash-lite:generateContent",{contents:[{parts:[{text:"Responda apenas OK."}]}],generationConfig:{maxOutputTokens:30}},15000);
+await check("text-3.7",base+"/models/gemini-3.7-flash:generateContent",{contents:[{parts:[{text:"Responda apenas OK."}]}],generationConfig:{maxOutputTokens:30}},15000);
+await check("youtube-3.5-lite",base+"/interactions",{model:"gemini-3.5-flash-lite",input:[{type:"text",text:"What is happening in this video? Answer in one short sentence."},{type:"video",uri:"https://www.youtube.com/watch?v=9hE5-98ZeCg"}]},25000);
+
 console.log("[video-diag] completed");
