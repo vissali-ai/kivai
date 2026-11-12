@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const instruction = mode === "summary"
     ? "Analise o vídeo fornecido. Produza em português do Brasil: título curto, resumo fiel em até 5 parágrafos, lista de 5 a 10 tópicos principais e, quando possível, referências temporais [mm:ss]. Não invente informações nem timestamps. Se o vídeo não puder ser acessado ou não houver informações suficientes, explique isso em vez de criar um resumo."
     : "Transcreva em português do Brasil a fala audível do vídeo inteiro, na sequência original. Preserve o máximo possível as palavras ditas, sem resumir nem acrescentar informações. Marque [mm:ss] apenas quando tiver segurança e identifique interlocutores somente quando for possível. Se houver trechos inaudíveis escreva [inaudível]. Se o vídeo for muito longo para uma transcrição completa, informe explicitamente que o resultado é parcial. Nunca invente falas. Responda somente com a transcrição e eventuais ressalvas.";
-  // Persisted daily quota: 3 attempts per IP, 30 overall. Failed requests count too.
+  // 12 attempts per IP and 30 globally per day, but at most 3 successful analyses per IP.
   const ip = request.headers.get("x-real-ip") || request.headers.get("x-vercel-forwarded-for")?.split(",")[0] || "unknown";
   const key = createHash("sha256")
     .update(`${process.env.ADMIN_AUTH_SECRET ?? "preview"}:${ip}`)
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       method: "POST",
       body: JSON.stringify({ p_client_key: key }),
     });
-    if (!allowed) return fail("Limite diário gratuito do teste atingido. Tente novamente amanhã.", 429);
+    if (!allowed) return fail("Limite diário de segurança atingido (12 tentativas por visitante ou 30 globais, com máximo de 3 resultados concluídos).", 429);
   } catch { return fail("O controle de acesso temporário está indisponível.", 503); }
 
   try {
@@ -116,6 +116,15 @@ export async function POST(request: Request) {
     if (!result) {
       console.warn("[kivai-video-preview] empty interactions response", interaction.status ?? "unknown");
       return fail("A IA respondeu, mas não gerou texto utilizável. Tente um vídeo público mais curto.", 503);
+    }
+    try {
+      const recorded = await supabaseRest<boolean>("rpc/record_ai_video_preview_success", {
+        method: "POST",
+        body: JSON.stringify({ p_client_key: key }),
+      });
+      if (!recorded) console.warn("[kivai-video-preview] completed request without quota record");
+    } catch {
+      console.warn("[kivai-video-preview] quota completion record failed");
     }
     return Response.json({
       text: result,
