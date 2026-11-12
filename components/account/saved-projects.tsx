@@ -41,6 +41,8 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState<SavedProject | null>(null);
+  const [duplicateTitle, setDuplicateTitle] = useState("");
   const [opening, setOpening] = useState<SavedProject | null>(null);
   const [resumeProjectId, setResumeProjectId] = useState<string | null>(null);
   const handledResume = useRef(false);
@@ -100,6 +102,37 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     } catch (err) { setMessage(err instanceof Error ? err.message : "Falha ao salvar."); }
     finally { setBusy(false); }
   }
+  function startDuplicate(project: SavedProject) {
+    setMessage("");
+    setDuplicating(project);
+    const suffix = " (cópia)";
+    setDuplicateTitle(`${project.title.slice(0, 120 - suffix.length)}${suffix}`);
+  }
+  async function duplicateProject() {
+    if (!duplicating || !duplicateTitle.trim() || busy) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      // Read the latest owned project before copying, never trust a stale card payload.
+      const latest = await requestProjects();
+      const source = latest.projects.find(item => item.id === duplicating.id && item.kind === duplicating.kind);
+      if (!source) throw new Error("Este projeto foi excluído. Atualize a lista.");
+      const { project } = await requestProjects("POST", {
+        id: null,
+        kind: source.kind,
+        title: duplicateTitle.trim(),
+        clientName: plan === "agency" ? source.client_name : "",
+        payload: source.payload,
+      });
+      setProjects(all => [project, ...all.filter(item => item.id !== project.id)]);
+      setDuplicating(null);
+      setMessage("Cópia criada na sua biblioteca. O projeto original foi preservado.");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Não foi possível duplicar o projeto.");
+    } finally {
+      setBusy(false);
+    }
+  }
   async function remove(id: string) {
     setBusy(true);
     try { await requestProjects("DELETE", undefined, id); setProjects(all => all.filter(p => p.id !== id)); if (selected?.id === id) setSelected(null); setConfirmDelete(null); setMessage("Projeto excluído da conta. O conteúdo aberto na ferramenta foi preservado."); }
@@ -150,6 +183,20 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     {loadingProjects ? <p role="status" className="text-sm">Carregando seus projetos...</p> : null}
     {loadError ? <div role="alert" className="space-y-2 text-sm"><p>{loadError}</p><Button variant="outline" disabled={loadingProjects} onClick={() => { setLoadingProjects(true); setRetry(value => value + 1); }}>Tentar carregar projetos novamente</Button></div> : null}
     {userId && (message || accessError) ? <p role="status" className="text-sm">{accessError || message}</p> : null}
+    {!kind && duplicating ? <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
+      <div role="dialog" aria-modal="true" aria-labelledby="duplicate-project-title" className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl sm:p-6">
+        <h2 id="duplicate-project-title" className="text-xl font-semibold">Duplicar projeto</h2>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">Uma nova cópia de “{duplicating.title}” será salva na sua conta. O original não será alterado e a cópia contará para o limite do seu plano.</p>
+        <label className="mt-4 block text-sm font-medium">Nome da cópia
+          <input autoFocus value={duplicateTitle} maxLength={120} onChange={event => setDuplicateTitle(event.target.value)} className="mt-2 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2" />
+        </label>
+        {message ? <p role="alert" className="mt-3 text-sm text-destructive">{message}</p> : null}
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <Button variant="outline" disabled={busy} onClick={() => { setDuplicating(null); setMessage(""); }}>Cancelar</Button>
+          <Button disabled={busy || !duplicateTitle.trim()} onClick={() => void duplicateProject()}>{busy ? "Duplicando..." : "Criar cópia"}</Button>
+        </div>
+      </div>
+    </div> : null}
     {opening ? resumeProjectId ? <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
       <div role="dialog" aria-modal="true" aria-labelledby="resume-project-title" className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl sm:p-6">
         <h2 id="resume-project-title" className="text-xl font-semibold">Continuar projeto salvo?</h2>
@@ -176,6 +223,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
             <MoreHorizontal className="size-4" aria-hidden="true" />
           </summary>
           <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-lg border border-border bg-card p-1 shadow-lg">
+            <button type="button" disabled={busy} onClick={() => startDuplicate(project)} className="flex min-h-10 w-full items-center rounded-md px-3 text-left text-sm hover:bg-accent disabled:opacity-50">Duplicar</button>
             <button type="button" onClick={() => download(project)} className="flex min-h-10 w-full items-center rounded-md px-3 text-left text-sm hover:bg-accent">Exportar JSON</button>
             <button type="button" disabled={busy} onClick={() => setConfirmDelete(project.id)} className="flex min-h-10 w-full items-center rounded-md px-3 text-left text-sm hover:bg-accent disabled:opacity-50">Excluir</button>
           </div>
