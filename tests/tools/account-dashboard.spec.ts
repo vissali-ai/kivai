@@ -354,6 +354,41 @@ test("project folders can be created, assigned and filtered without losing proje
   await expectNoOverflow(page);
 });
 
+test("empty folders and empty accounts explain the state instead of showing blank content", async ({ page }) => {
+  await mockAccount(page);
+  const folderId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
+  await page.route("**/api/account/project-folders", route => route.fulfill({
+    json: { folders: [{ id: folderId, name: "Sem campanhas", created_at: "2026-11-12T10:00:00Z" }], assignments: [] },
+  }));
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await library.getByLabel("Filtrar por pasta").selectOption(folderId);
+  await expect(library.getByRole("status").filter({ hasText: "Nenhum projeto nesta pasta" })).toBeVisible();
+  await library.getByLabel("Filtrar por pasta").selectOption("all");
+  await expect(library.locator("article")).toHaveCount(2);
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: [] } }));
+  await page.reload();
+  await expect(library.getByRole("status").filter({ hasText: "Você ainda não tem projetos salvos" })).toBeVisible();
+  await expectNoOverflow(page);
+});
+
+test("folder fetch failure offers retry without hiding projects", async ({ page }) => {
+  await mockAccount(page);
+  let attempts = 0;
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
+  await page.route("**/api/account/project-folders", route => route.fulfill(++attempts === 1
+    ? { status: 503, json: { error: "Indisponível" } }
+    : { json: { folders: [], assignments: [] } }));
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.locator("article")).toHaveCount(2);
+  await library.getByRole("button", { name: "Tentar carregar pastas novamente" }).click();
+  await expect(library.getByLabel("Filtrar por pasta")).toBeVisible();
+  await expect(library.locator("article")).toHaveCount(2);
+  expect(attempts).toBe(2);
+});
+
 test("unavailable folder service does not conceal existing saved projects", async ({ page }) => {
   await mockAccount(page);
   await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
