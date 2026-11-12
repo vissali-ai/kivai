@@ -142,7 +142,7 @@ export default function ScreenshotEditor() {
       if (!controller.signal.aborted) {
         setBusy(false);
         window.focus();
-        if (source) window.setTimeout(() => canvas.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+        window.setTimeout(() => canvas.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
       }
     }
   }
