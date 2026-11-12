@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { VideoToolSeoContent } from "@/components/tools/video-tool-seo-content";
 import { getToolMetadataAsync } from "@/lib/seo";
 import { getToolOverride } from "@/lib/site-cms/repository";
@@ -12,13 +13,20 @@ export default async function Page() {
   const content = await getToolOverride(slug);
   if (content && content.status !== "published") notFound();
   const tool = getToolBySlug(slug)!;
-  return <main>
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-16 sm:px-6">
-      <a href="/ferramentas/videos" className="text-sm underline">Hub Vídeos</a>
-      <header><h1 className="font-heading text-4xl font-bold">{content?.title || tool.name}</h1>
-        <p className="mt-3 text-muted-foreground">{content?.shortDescription || tool.description}</p></header>
+  const title = content?.title || tool.name;
+  const description = content?.shortDescription || tool.description;
+
+  return <>
+    <ToolPageShell
+      title={title}
+      description={description}
+      categoryName="Vídeos"
+      categoryHref="/ferramentas/videos"
+      processingMode="local"
+      privacyMessage="A gravação é criada no navegador a partir da tela, janela ou aba que você autorizar. O Kivai não inicia captura sem a sua ação."
+    >
       <Recorder />
-    </div>
+    </ToolPageShell>
     <VideoToolSeoContent variant="recorder" />
-  </main>;
+  </>;
 }
