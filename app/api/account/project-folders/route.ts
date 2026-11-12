@@ -33,9 +33,9 @@ export async function POST(request: Request) {
     const body = await bodyOf(request);
     const name = typeof body?.name === "string" ? body.name.trim() : "";
     if (!name || name.length > 80) return Response.json({ error: "Informe um nome de até 80 caracteres." }, { status: 400, headers });
-    const folders = await supabaseRest<Folder[]>(`account_project_folders?select=id&user_id=eq.${encodeURIComponent(user.id)}&limit=101`);
+    const folders = await supabaseRest<Pick<Folder, "id" | "name">[]>(`account_project_folders?select=id,name&user_id=eq.${encodeURIComponent(user.id)}&limit=101`);
     if (folders.length >= 100) return Response.json({ error: "Limite de 100 pastas atingido." }, { status: 409, headers });
-    if (folders.some(folder => "name" in folder && String(folder.name).toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR"))) {
+    if (folders.some(folder => folder.name.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR"))) {
       return Response.json({ error: "Já existe uma pasta com esse nome." }, { status: 409, headers });
     }
     const created = await supabaseRest<Folder[]>("account_project_folders", {
