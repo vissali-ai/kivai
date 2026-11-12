@@ -4,15 +4,22 @@ import { Button } from "@/components/ui/button";
 import { AiCreditBalance } from "./ai-credit-balance";
 import { useToolAiCopy } from "./tool-ai-provider";
 import { getStoredSession } from "@/lib/user-auth";
+import { rememberAuthReturnPath } from "@/lib/account/auth-return";
 import type { ToolAssistantInput, ToolAssistantResult } from "@/lib/ai/tool-assistant";
 
 export function ToolAiPanel({fingerprint,cost,disabled,compactNotice=false,prepare,children,render}:{fingerprint:string;cost:1|2;disabled?:boolean;compactNotice?:boolean;prepare:()=>Promise<ToolAssistantInput>;children?:React.ReactNode;render:(result:ToolAssistantResult)=>React.ReactNode}) {
  const copy=useToolAiCopy(); const lock=useRef(false);
  const [loading,setLoading]=useState(false),[error,setError]=useState("");
+ const [loginHref,setLoginHref]=useState("/conta/login");
  const [result,setResult]=useState<{fingerprint:string;data:ToolAssistantResult}|null>(null);
  async function generate(){
   if(lock.current||disabled)return;
-  const session=getStoredSession();if(!session?.access_token){setError("Entre na sua conta para usar a IA.");return;}
+  const session=getStoredSession();if(!session?.access_token){
+   const destination=window.location.pathname+window.location.search+window.location.hash;
+   rememberAuthReturnPath(destination);
+   setLoginHref(`/conta/login?next=${encodeURIComponent(destination)}`);
+   setError("Entre na sua conta para usar a IA.");return;
+  }
   lock.current=true;setLoading(true);setError("");
   try{const input=await prepare();const response=await fetch('/api/ai/tool-assistant',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify(input)});const data=await response.json();if(!response.ok)throw Error(data.error||'Falha na geração.');setResult({fingerprint,data});}
   catch(e){setError(e instanceof Error?e.message:'Não foi possível concluir.');}
@@ -24,7 +31,7 @@ export function ToolAiPanel({fingerprint,cost,disabled,compactNotice=false,prepa
   {compactNotice ? <p className="text-sm text-muted-foreground">A revisão com IA custa {cost} {cost === 1 ? "crédito" : "créditos"}. Confira as sugestões antes de aplicar.</p> : <><p className="text-sm text-muted-foreground">Ao clicar em Gerar com IA, os dados selecionados serão enviados a um provedor externo. Não envie informações pessoais ou confidenciais. O provedor gratuito pode utilizar os dados para melhorar seus produtos.</p><p className="text-xs text-muted-foreground">A IA pode errar: confira os resultados. Cada geração custa {cost} crédito(s); revisar, aplicar e baixar não cobra novamente.</p></>}
   <Button onClick={generate} disabled={loading||disabled}>{loading?'Gerando…':`Gerar com IA · ${cost} crédito(s)`}</Button>
   {/^https:\/\//.test(copy.tutorialUrl)&&<a href={copy.tutorialUrl} target="_blank" rel="noopener noreferrer" className="ml-3 underline">Ver tutorial</a>}
-  {error&&<p role="alert" className="text-sm text-destructive">{error}{error.startsWith('Entre')&&<> <a href="/conta/login" className="underline">Entrar na conta</a></>}</p>}
+  {error&&<p role="alert" className="text-sm text-destructive">{error}{error.startsWith('Entre')&&<> <a href={loginHref} className="underline">Entrar na conta</a></>}</p>}
   {result?.fingerprint===fingerprint&&<div className="space-y-3 border-t pt-4" aria-live="polite">{render(result.data)}</div>}
  </section>;
 }
