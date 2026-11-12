@@ -85,7 +85,7 @@ export default function Recorder() {
         if (resultUrl.current) URL.revokeObjectURL(resultUrl.current);
         resultUrl.current = url;
         setResult({url, filename:"gravacao-de-tela." + (type.includes("mp4") ? "mp4" : "webm")});
-        setMessage(interrupted ? "A captura foi interrompida. Confira o trecho disponível." : "Gravação concluída. Você voltou ao Kivai para conferir e baixar o vídeo.");
+        setMessage(interrupted ? "A captura foi interrompida. Confira o trecho disponível." : "Gravação pronta para baixar.");
         window.focus();
         window.setTimeout(() => resultSection.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
       };
@@ -108,6 +108,7 @@ export default function Recorder() {
       <label className="flex items-center gap-2"><input type="checkbox" checked={mic} onChange={e=>setMic(e.target.checked)}/>Microfone</label>
     </fieldset>
     <p className="text-sm text-muted-foreground">Ao iniciar, escolha a tela, janela ou aba no navegador. Para incluir o som da fonte, autorize também o áudio no seletor.</p>
+    {(phase === "recording" || phase === "finishing") && <p role="note" className="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm font-medium">Retorne ao site Kivai para baixar a gravação da tela quando terminar de compartilhar.</p>}
     {phase === "recording" ? <Button onClick={finish}>Encerrar gravação</Button> :
       <Button disabled={phase !== "idle"} onClick={start}>{phase === "requesting" ? "Aguardando permissão…" : phase === "finishing" ? "Preparando vídeo…" : "Iniciar gravação"}</Button>}
     <p role="status">{message}</p>
