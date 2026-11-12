@@ -59,6 +59,9 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [assignments, setAssignments] = useState<FolderAssignment[]>([]);
   const [folderFilter, setFolderFilter] = useState("all");
   const [folderName, setFolderName] = useState("");
+  const [editingFolder, setEditingFolder] = useState(false);
+  const [editFolderName, setEditFolderName] = useState("");
+  const [confirmFolderDelete, setConfirmFolderDelete] = useState(false);
   const [folderError, setFolderError] = useState("");
   const [folderReady, setFolderReady] = useState(false);
   const [folderBusy, setFolderBusy] = useState(false);
@@ -117,6 +120,30 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       setFolderName("");
       setFolderFilter(folder.id);
     } catch (error) { setFolderError(error instanceof Error ? error.message : "Não foi possível criar a pasta."); }
+    finally { setFolderBusy(false); }
+  }
+  async function renameFolder() {
+    if (folderBusy || !editFolderName.trim() || folderFilter === "all" || folderFilter === "unfiled") return;
+    setFolderBusy(true); setFolderError("");
+    try {
+      const { folder } = await requestFolders("PATCH", { id: folderFilter, name: editFolderName.trim() });
+      setFolders(all => all.map(item => item.id === folder.id ? folder : item).sort((a, b) => a.name.localeCompare(b.name, "pt-BR")));
+      setEditingFolder(false);
+    } catch (error) { setFolderError(error instanceof Error ? error.message : "Não foi possível renomear a pasta."); }
+    finally { setFolderBusy(false); }
+  }
+  async function deleteFolder() {
+    if (folderBusy || !confirmFolderDelete || folderFilter === "all" || folderFilter === "unfiled") return;
+    setFolderBusy(true); setFolderError("");
+    try {
+      await requestFolders("DELETE", undefined, folderFilter);
+      setFolders(all => all.filter(item => item.id !== folderFilter));
+      setAssignments(all => all.filter(item => item.folder_id !== folderFilter));
+      setFolderFilter("all");
+      setConfirmFolderDelete(false);
+      setEditingFolder(false);
+      setMessage("Pasta excluída. Os projetos foram preservados, agora sem pasta.");
+    } catch (error) { setFolderError(error instanceof Error ? error.message : "Não foi possível excluir a pasta."); }
     finally { setFolderBusy(false); }
   }
   async function moveToFolder(projectId: string, folderId: string | null) {
@@ -214,12 +241,30 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       {folderError ? <p role="alert" className="text-sm text-destructive">{folderError}</p> : null}
       {folderReady ? <>
         <label className="block text-sm">Exibir projetos
-          <select aria-label="Filtrar por pasta" value={folderFilter} onChange={event => setFolderFilter(event.target.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 sm:max-w-md">
+          <select aria-label="Filtrar por pasta" value={folderFilter} onChange={event => { setFolderFilter(event.target.value); setEditingFolder(false); setConfirmFolderDelete(false); }} className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 sm:max-w-md">
             <option value="all">Todos os projetos</option>
             <option value="unfiled">Sem pasta</option>
             {folders.map(folder => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
           </select>
         </label>
+        {folderFilter !== "all" && folderFilter !== "unfiled" ? <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" disabled={folderBusy} onClick={() => { setEditFolderName(folders.find(item => item.id === folderFilter)?.name ?? ""); setEditingFolder(true); setConfirmFolderDelete(false); }}>Renomear pasta</Button>
+          <Button size="sm" variant="outline" disabled={folderBusy} onClick={() => { setConfirmFolderDelete(true); setEditingFolder(false); }}>Excluir pasta</Button>
+        </div> : null}
+        {editingFolder ? <div className="flex flex-wrap items-end gap-2">
+          <label className="min-w-0 flex-1 text-sm">Novo nome
+            <input value={editFolderName} maxLength={80} onChange={event => setEditFolderName(event.target.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2" />
+          </label>
+          <Button disabled={folderBusy || !editFolderName.trim()} onClick={() => void renameFolder()}>Salvar nome</Button>
+          <Button variant="outline" disabled={folderBusy} onClick={() => setEditingFolder(false)}>Cancelar</Button>
+        </div> : null}
+        {confirmFolderDelete ? <div className="space-y-2 rounded-lg border border-destructive/30 p-3">
+          <p className="text-sm">Excluir esta pasta? Os projetos serão preservados e ficarão sem pasta.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="destructive" disabled={folderBusy} onClick={() => void deleteFolder()}>Confirmar exclusão da pasta</Button>
+            <Button variant="outline" disabled={folderBusy} onClick={() => setConfirmFolderDelete(false)}>Cancelar</Button>
+          </div>
+        </div> : null}
         <div className="flex flex-wrap items-end gap-2">
           <label className="min-w-0 flex-1 text-sm">Nova pasta
             <input value={folderName} maxLength={80} onChange={event => setFolderName(event.target.value)} placeholder="Ex.: Campanhas" className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2" />
