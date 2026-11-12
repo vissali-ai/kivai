@@ -41,7 +41,12 @@ export async function POST(request: Request) {
     reserved = true;
     if (!(await reserveAiRequest(userId))) return fail("Limite temporário de IA atingido. Aguarde; a reserva será devolvida.", 429);
     const payload = { ...input, consent: undefined, image: undefined, file: undefined };
-    if (input.kind === "brandPlan") Object.assign(payload, { indicators: brandFinancials(input.finances) });
+    if (input.kind === "brandPlan") {
+      const f = input.finances;
+      if (f.budget !== null && f.price !== null && f.unitCost !== null && f.fee !== null && f.lot !== null && f.setup !== null && f.fixed !== null) {
+        Object.assign(payload, { indicators: brandFinancials({ budget: f.budget, price: f.price, unitCost: f.unitCost, fee: f.fee, lot: f.lot, setup: f.setup, fixed: f.fixed }) });
+      }
+    }
     const parts: GeminiInputPart[] = [{text: JSON.stringify(payload)}];
     if (attachment) parts.push({inlineData: attachment});
     const output = await requestGeminiJsonParts(toolInstructions(input.kind), parts, 4096);
