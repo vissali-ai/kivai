@@ -23,9 +23,9 @@ function youtubeUrl(raw: unknown): string | null {
   return `https://www.youtube.com/watch?v=${id}`;
 }
 
-type GeminiResponse = {
-  candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
-  error?: { code?: number };
+type GeminiInteraction = {
+  status?: string;
+  steps?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }>;
 };
 
 export async function POST(request: Request) {
@@ -64,44 +64,63 @@ export async function POST(request: Request) {
   } catch { return fail("O controle de acesso temporário está indisponível.", 503); }
 
   try {
-
+    // Public YouTube links must use the video input type in the Interactions API.
+    // The previous generateContent fileData request returned HTTP 503.
+    const model = "gemini-3.8-flash";
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         cache: "no-store",
-        signal: AbortSignal.timeout(52_000),
+        signal: AbortSignal.timeout(50_000),
         body: JSON.stringify({
-          contents: [{ role: "user", parts: [
-            { fileData: { fileUri: url } },
-            { text: instruction },
-          ] }],
-          generationConfig: { maxOutputTokens: mode === "transcript" ? 8192 : 3072, temperature: 0.1 },
+          model,
+          input: [
+            { type: "text", text: instruction },
+            { type: "video", uri: url },
+          ],
+          generation_config: { temperature: 0.1 },
         }),
       },
     );
 
     if (!response.ok) {
-      console.warn("[kivai-video-preview] provider status", response.status);
-      if (response.status === 429) return fail("Limite temporário do Gemini atingido.", 429);
-      if (response.status === 400 || response.status === 404) return fail("O Gemini não conseguiu acessar esse vídeo ou o modelo não está disponível. Tente outro vídeo público.", 422);
-      return fail("Falha temporária no processamento.", 503);
+      // Log only the HTTP status; never log response body, credentials, or video URLs.
+      console.warn("[kivai-video-preview] interactions provider status", response.status);
+      if (response.status === 429) return fail("O limite de uso da API Gemini foi atingido. Tente novamente mais tarde.", 429);
+      if (response.status === 503 || response.status === 502 || response.status === 504)
+        return fail("O serviço Gemini está temporariamente indisponível (503). Tente novamente mais tarde.", 503);
+      if (response.status === 401 || response.status === 403)
+        return fail("A chave Gemini do ambiente de teste não tem permissão para processar este modelo.", 503);
+      if (response.status === 400 || response.status === 404 || response.status === 422)
+        return fail("O modelo Gemini não conseguiu aceitar este link do YouTube. Verifique se o vídeo é público e está acessível.", 422);
+      return fail("O Gemini não concluiu a análise. Código HTTP " + response.status + ".", 503);
     }
-    const json = await response.json() as GeminiResponse;
-    const candidate = json.candidates?.[0];
-    const result = candidate?.content?.parts?.map(p => p.text || "").join("").trim();
-    if (!result || (candidate?.finishReason !== "STOP" && candidate?.finishReason !== "MAX_TOKENS")) {
-      return fail("O Gemini não retornou texto utilizável.", 503);
+
+    const interaction = await response.json() as GeminiInteraction;
+    const texts = interaction.steps
+      ?.filter(step => step.type === "model_output")
+      .flatMap(step => step.content ?? [])
+      .filter(item => item.type === "text" && typeof item.text === "string")
+      .map(item => item.text?.trim() ?? "")
+      .filter(Boolean) ?? [];
+    const result = texts.join("\n\n").trim();
+    if (!result) {
+      console.warn("[kivai-video-preview] empty interactions response", interaction.status ?? "unknown");
+      return fail("A IA respondeu, mas não gerou texto utilizável. Tente um vídeo público mais curto.", 503);
     }
     return Response.json({
       text: result,
       mode,
-      partial: candidate?.finishReason === "MAX_TOKENS",
+      partial: interaction.status !== "completed",
       source: url,
-      model: "gemini-3.8-flash",
+      model,
     }, { headers });
-  } catch {
-    return fail("O processamento falhou ou excedeu o tempo disponível.", 503);
+  } catch (cause) {
+    if (cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError"))
+      return fail("O Gemini excedeu o tempo de resposta do teste. Experimente um vídeo menor.", 504);
+    console.error("[kivai-video-preview] video analysis request failed");
+    return fail("Não foi possível concluir a análise. O serviço pode estar temporariamente indisponível.", 503);
   }
 }
