@@ -228,8 +228,8 @@ test("user can choose and reorder shortcuts and the selection reloads from their
   });
   await page.goto("/conta/projetos");
   const section = page.getByRole("region", { name: "Projetos salvos" });
-  const shortcuts = section.getByRole("heading", { name: "Crie seu primeiro projeto" }).locator("..").locator("..");
-  await expect(shortcuts.getByRole("link", { name: "Criador de Posts com IA" })).toBeVisible();
+  const shortcuts = section.locator("section[aria-labelledby='create-project-shortcuts-title']");
+  await expect(shortcuts.locator("> div.grid > a").first()).toContainText("Criador de Posts com IA");
   await section.getByRole("button", { name: "Personalizar" }).click();
   await section.getByRole("button", { name: "Calendário", exact: true }).click();
   await section.getByRole("button", { name: "ROAS", exact: true }).click();
