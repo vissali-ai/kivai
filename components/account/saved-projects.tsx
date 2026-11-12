@@ -63,6 +63,8 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [editFolderName, setEditFolderName] = useState("");
   const [confirmFolderDelete, setConfirmFolderDelete] = useState(false);
   const [folderError, setFolderError] = useState("");
+  const [folderRetry, setFolderRetry] = useState(0);
+  const [folderLoading, setFolderLoading] = useState(Boolean(access?.userId && !kind));
   const [folderReady, setFolderReady] = useState(false);
   const [folderBusy, setFolderBusy] = useState(false);
   const [duplicating, setDuplicating] = useState<SavedProject | null>(null);
@@ -122,9 +124,10 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       setAssignments(data.assignments);
       setFolderError("");
       setFolderReady(true);
-    }).catch(() => { if (active) setFolderError("Não foi possível carregar as pastas da conta."); });
+    }).catch(() => { if (active) { setFolderReady(false); setFolderError("Não foi possível carregar as pastas da conta."); } })
+      .finally(() => { if (active) setFolderLoading(false); });
     return () => { active = false; };
-  }, [kind, userId]);
+  }, [kind, userId, folderRetry]);
   async function createFolder() {
     if (!folderReady || folderBusy || !folderName.trim()) return;
     setFolderBusy(true); setFolderError("");
@@ -252,7 +255,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         <h3 className="text-sm font-semibold">Pastas</h3>
         {folderReady ? <span className="text-xs text-muted-foreground">{folders.length} {folders.length === 1 ? "pasta" : "pastas"}</span> : null}
       </div>
-      {folderError ? <p role="alert" className="text-sm text-destructive">{folderError}</p> : null}
+      {folderError ? <div className="flex flex-wrap items-center gap-3"><p role="alert" className="text-sm text-destructive">{folderError}</p>{!folderReady ? <Button size="sm" variant="outline" disabled={folderLoading} onClick={() => { setFolderLoading(true); setFolderRetry(value => value + 1); }}>Tentar carregar pastas novamente</Button> : null}</div> : null}
       {folderReady ? <>
         <label className="block text-sm">Exibir projetos
           <select aria-label="Filtrar por pasta" value={folderFilter} onChange={event => { setFolderFilter(event.target.value); setEditingFolder(false); setConfirmFolderDelete(false); }} className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 sm:max-w-md">
@@ -285,7 +288,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
           </label>
           <Button variant="outline" disabled={folderBusy || !folderName.trim()} onClick={() => void createFolder()}>Criar pasta</Button>
         </div>
-      </> : <p className="text-sm text-muted-foreground">Organização por pastas indisponível.</p>}
+      </> : folderLoading ? <p role="status" className="text-sm text-muted-foreground">Carregando pastas...</p> : <p className="text-sm text-muted-foreground">Organização por pastas indisponível. Seus projetos continuam disponíveis.</p>}
     </div> : null}
     {!kind && projects.length > 0 ? <div className="space-y-3 rounded-xl border border-border bg-background/30 p-3 sm:p-4">
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(160px,200px)]">
@@ -373,7 +376,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       </div>
     </article>)}</div>
     )}
-    {userId && !loadingProjects && !loadError && !accessError && !visible.length && (kind || search || filter || kindFilter || folderFilter !== "all") ? <p role="status" className="text-sm text-muted-foreground">{search || filter || kindFilter ? "Nenhum projeto encontrado. Tente outro nome ou limpe os filtros." : kind ? "Você ainda não tem projetos salvos nesta ferramenta. Dê um nome ao projeto e use Salvar na conta." : ""}</p> : null}
+    {userId && !loadingProjects && !loadError && !accessError && !visible.length ? <p role="status" className="text-sm text-muted-foreground">{search || filter || kindFilter ? "Nenhum projeto encontrado. Tente outro nome ou limpe os filtros." : kind ? "Você ainda não tem projetos salvos nesta ferramenta. Dê um nome ao projeto e use Salvar na conta." : folderFilter !== "all" ? "Nenhum projeto nesta pasta. Escolha outra pasta ou mova um projeto para cá." : "Você ainda não tem projetos salvos. Comece por uma ferramenta abaixo."}</p> : null}
 
     {showInstagramHighlight ? (
       <div className="relative overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/[0.12] via-primary/[0.045] to-transparent p-4 sm:p-5">

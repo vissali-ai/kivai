@@ -1,0 +1,45 @@
+name: Workspace audit
+
+on:
+  pull_request:
+    paths:
+      - "components/account/**"
+      - "app/conta/**"
+      - "app/api/account/**"
+      - "lib/billing/**"
+      - "tests/tools/account-dashboard.spec.ts"
+      - "tests/tools/helpers.ts"
+      - "playwright.config.ts"
+      - ".github/workflows/workspace-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Test account flows on desktop and mobile
+        run: npx playwright test tests/tools/account-dashboard.spec.ts --project=desktop --project=mobile
+        env:
+          CI: "true"
+          NEXT_PUBLIC_ADS_ENABLED: "false"
+      - name: Unit-test billing and plans
+        run: npm run test:billing
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: workspace-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
