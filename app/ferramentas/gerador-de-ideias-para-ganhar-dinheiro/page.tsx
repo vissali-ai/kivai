@@ -30,7 +30,7 @@ export default async function Page() {
       categoryName="Empresas"
       categoryHref="/ferramentas/empresas"
       processingMode="hybrid"
-      privacyMessage="O questionário fica salvo neste navegador. As respostas só são enviadas ao serviço de IA quando você solicita o diagnóstico."
+      showPrivacyNotice={false}
     >
       <ToolAiProvider copy={assistantCopy(slug,content?.customData.originalFields)}><Questionnaire/></ToolAiProvider>
     </ToolPageShell>
