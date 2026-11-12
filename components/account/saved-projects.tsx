@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, FolderOpen, LayoutGrid, List, MoreHorizontal, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ProjectShortcuts } from "@/components/account/project-shortcuts";
 import { getStoredSession } from "@/lib/user-auth";
 import { useAccountAccess, type AccountAccess } from "@/lib/billing/access-client";
 import { projectLimits } from "@/lib/billing/plan-benefits";
@@ -89,9 +90,6 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     try { window.localStorage.setItem(viewStorageKey, next); }
     catch { /* A alteração permanece válida nesta sessão. */ }
   }
-  const shortcutClass = showInstagramHighlight
-    ? "inline-flex min-h-11 items-center rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-medium text-primary transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-    : "text-primary underline";
   useEffect(() => {
     let active = true;
     if (!userId) return;
@@ -399,29 +397,14 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         </div>
       </div>
     ) : null}
-    {!kind ? <div className="space-y-3">
-      {showInstagramHighlight ? <h3 className="text-sm font-medium">Criar um novo projeto</h3> : null}
-      <details open={Boolean(kind)} className="rounded-xl border border-border p-3">
-        <summary className="cursor-pointer text-sm font-semibold text-primary">Criar projetos com outras ferramentas</summary>
-      <nav aria-label="Ferramentas com projetos salvos" className="mt-3 space-y-4">
-        {([
-          { heading: "Social Media", tools: ["post_creator", "calendar", "briefing", "social_report", "preview_post", "engagement", "post_analysis", "trend_radar"] },
-          { heading: "Marketing e performance", tools: ["roas", "roi", "margin", "markup"] },
-          { heading: "Texto", tools: ["proofreader"] },
-          { heading: "Imagens e utilidades", tools: ["qr_code", "watermark"] },
-        ] as const).map(group => (
-          <div key={group.heading} className="space-y-2">
-            <h4 className="text-sm font-medium text-muted-foreground">{group.heading}</h4>
-            <div className="flex flex-wrap gap-2 text-sm">
-              {group.tools.map(tool => (
-                <Link key={tool} className={shortcutClass} href={routes[tool]}>{labels[tool]}</Link>
-              ))}
-            </div>
-          </div>
-        ))}
-        {plan === "free" ? <Link className={shortcutClass} href="/planos">Conhecer planos</Link> : null}
-      </nav>
-      </details>
-    </div> : userId ? <Link className="inline-flex min-h-11 items-center text-sm text-primary underline" href="/conta/projetos">Ver todos os meus projetos no painel</Link> : null}
+    {!kind ? <ProjectShortcuts
+      entries={([
+        "post_creator", "calendar", "briefing", "social_report", "preview_post",
+        "engagement", "post_analysis", "trend_radar", "roas", "roi", "margin",
+        "markup", "proofreader", "qr_code", "watermark",
+      ] as SavedProject["kind"][]).map(tool => ({ kind: tool, label: labels[tool], href: routes[tool] }))}
+      userId={userId ?? null}
+      hasProjects={projects.length > 0}
+    /> : userId ? <Link className="inline-flex min-h-11 items-center text-sm text-primary underline" href="/conta/projetos">Ver todos os meus projetos no painel</Link> : null}
   </section>;
 }
