@@ -73,6 +73,20 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const plan = access?.plan ?? "free";
   const userId = access?.userId;
   const loginHref = "/conta/login?next=%2Fconta";
+  const viewStorageKey = userId ? `kivai:project-library-view:${userId}` : null;
+  useEffect(() => {
+    if (kind || !viewStorageKey) return;
+    try {
+      const saved = window.localStorage.getItem(viewStorageKey);
+      if (saved === "cards" || saved === "list") setView(saved);
+    } catch { /* Navegador pode bloquear armazenamento local; o padrão continua disponível. */ }
+  }, [kind, viewStorageKey]);
+  function changeView(next: "cards" | "list") {
+    setView(next);
+    if (!viewStorageKey) return;
+    try { window.localStorage.setItem(viewStorageKey, next); }
+    catch { /* A alteração permanece válida nesta sessão. */ }
+  }
   const shortcutClass = showInstagramHighlight
     ? "inline-flex min-h-11 items-center rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-medium text-primary transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     : "text-primary underline";
@@ -295,8 +309,8 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
           {search || filter || kindFilter || folderFilter !== "all" ? <Button variant="outline" size="sm" className="min-h-10" onClick={() => { setSearch(""); setFilter(""); setKindFilter(""); setFolderFilter("all"); }}>Limpar filtros</Button> : null}
         </div>
         <div role="group" aria-label="Visualização dos projetos" className="flex rounded-lg border border-border p-1">
-          <button type="button" aria-label="Exibir em cards" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={`inline-flex size-9 items-center justify-center rounded-md ${view === "cards" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}><LayoutGrid className="size-4" /></button>
-          <button type="button" aria-label="Exibir em lista" aria-pressed={view === "list"} onClick={() => setView("list")} className={`inline-flex size-9 items-center justify-center rounded-md ${view === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}><List className="size-4" /></button>
+          <button type="button" aria-label="Exibir em cards" aria-pressed={view === "cards"} onClick={() => changeView("cards")} className={`inline-flex size-9 items-center justify-center rounded-md ${view === "cards" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}><LayoutGrid className="size-4" /></button>
+          <button type="button" aria-label="Exibir em lista" aria-pressed={view === "list"} onClick={() => changeView("list")} className={`inline-flex size-9 items-center justify-center rounded-md ${view === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}><List className="size-4" /></button>
         </div>
       </div>
     </div> : null}
@@ -335,7 +349,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       <div className="min-w-0 max-w-full">
         <span className="mb-2 inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary"><FolderOpen className="size-3" />{labels[project.kind]}</span>
         <h3 className="break-words font-semibold">{project.title}</h3>
-        <p className="mt-1 text-xs text-muted-foreground">{project.client_name ? `${project.client_name} · ` : ""}Atualizado em {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{project.client_name ? `${project.client_name} · ` : ""}{folderReady ? `Pasta: ${folders.find(folder => folder.id === assignments.find(item => item.project_id === project.id)?.folder_id)?.name ?? "Sem pasta"} · ` : ""}Atualizado em {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p>
         {folderReady ? <label className="mt-2 block text-xs text-muted-foreground">Pasta
           <select aria-label={`Pasta de ${project.title}`} value={assignments.find(item => item.project_id === project.id)?.folder_id ?? ""} disabled={folderBusy} onChange={event => void moveToFolder(project.id, event.target.value || null)} className="mt-1 block min-h-10 w-full rounded-lg border border-border bg-background px-2 py-1 text-sm text-foreground">
             <option value="">Sem pasta</option>
