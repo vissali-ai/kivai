@@ -140,7 +140,7 @@ export default function Questionnaire() {
               ["Sinal para avançar ou ajustar", idea.signal],
             ].map(([label, text]) => <div key={label}><dt className="font-semibold">{label}</dt><dd>{text}</dd></div>)}
           </dl>
-          <a className="inline-block text-primary underline" href={"/ferramentas/criador-de-plano-de-negocios-e-marcas?ideia=" + encodeURIComponent(idea.title + " — " + idea.offer)}>Criar plano para esta ideia</a>
+          <a className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 py-2.5 text-center text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" href={"/ferramentas/criador-de-plano-de-negocios-e-marcas?ideia=" + encodeURIComponent(idea.title + " — " + idea.offer)} aria-label={"Criar plano para esta ideia: " + idea.title}>Criar plano para esta ideia</a>
         </article>)}
         <h3 className="font-semibold">Primeiro passo recomendado</h3>
         <p>{result.nextStep}</p>
