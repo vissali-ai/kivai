@@ -20,6 +20,7 @@ export default function Recorder() {
   const active = useRef<Capture | null>(null);
   const resultUrl = useRef("");
   const live = useRef<HTMLVideoElement>(null);
+  const resultSection = useRef<HTMLDivElement>(null);
   useEffect(() => () => {
     const session = active.current;
     active.current = null;
@@ -84,7 +85,9 @@ export default function Recorder() {
         if (resultUrl.current) URL.revokeObjectURL(resultUrl.current);
         resultUrl.current = url;
         setResult({url, filename:"gravacao-de-tela." + (type.includes("mp4") ? "mp4" : "webm")});
-        setMessage(interrupted ? "A captura foi interrompida. Confira o trecho disponível." : "Gravação pronta para conferir e baixar.");
+        setMessage(interrupted ? "A captura foi interrompida. Confira o trecho disponível." : "Gravação concluída. Você voltou ao Kivai para conferir e baixar o vídeo.");
+        window.focus();
+        window.setTimeout(() => resultSection.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
       };
       video.addEventListener("ended", finish, {once:true});
       recorder.start(1000);
@@ -109,7 +112,7 @@ export default function Recorder() {
       <Button disabled={phase !== "idle"} onClick={start}>{phase === "requesting" ? "Aguardando permissão…" : phase === "finishing" ? "Preparando vídeo…" : "Iniciar gravação"}</Button>}
     <p role="status">{message}</p>
     <video ref={live} autoPlay muted playsInline hidden={phase !== "recording"} aria-label="Prévia ao vivo" className="max-h-96 w-full rounded-lg bg-black" />
-    {result && <div className="space-y-4"><h2 className="font-semibold">Última gravação</h2>
+    {result && <div ref={resultSection} className="space-y-4"><h2 className="font-semibold">Última gravação</h2>
       <video src={result.url} controls playsInline aria-label="Gravação concluída" className="max-h-96 w-full rounded-lg bg-black"/>
       <a className="inline-block rounded-md bg-primary px-5 py-2 font-semibold text-primary-foreground" href={result.url} download={result.filename}>Baixar gravação</a></div>}
   </section>;
