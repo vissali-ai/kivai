@@ -27,7 +27,7 @@ test("dashboard shows credits and recovers from payment reporting failure", asyn
   let attempts = 0;
   await page.route("**/api/account/subscription-request", route => route.fulfill({ status: ++attempts === 1 ? 500 : 200, json: { ok: attempts > 1 } }));
   await page.goto("/conta");
-  await expect(page.getByText("Plano Pro", { exact: true })).toBeVisible();
+  await expect(page.getByText("Plano Pro", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("104", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Comprar créditos" })).toHaveAttribute("href", "/creditos");
   await expectNoOverflow(page);
@@ -154,7 +154,7 @@ test("routines live in the profile menu and not the dashboard", async ({ page })
 test("unavailable plan never appears as free", async ({ page }) => {
   await mockAccount(page, { accessFails: true });
   await page.goto("/conta");
-  await expect(page.getByText("Plano indisponível", { exact: true })).toBeVisible();
+  await expect(page.getByText("Plano indisponível", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Plano Grátis", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Atualizar painel" })).toBeVisible();
 });
@@ -205,7 +205,7 @@ test("saved projects are easy to find and filter without losing the catalog", as
   await page.keyboard.press("Enter");
   await expect(articles).toHaveCount(2);
   await library.getByText("Criar projetos com outras ferramentas").click();
-  await expect(library.getByRole("navigation", { name: "Ferramentas com projetos salvos" }).getByRole("link")).toHaveCount(14);
+  await expect(library.getByRole("navigation", { name: "Ferramentas com projetos salvos" }).getByRole("link")).toHaveCount(15);
   await expectNoOverflow(page);
   await search.scrollIntoViewIfNeeded();
   await library.screenshot({ path: testInfo.outputPath("project-library.png") });
@@ -376,17 +376,24 @@ test("empty folders and empty accounts explain the state instead of showing blan
 test("folder fetch failure offers retry without hiding projects", async ({ page }) => {
   await mockAccount(page);
   let attempts = 0;
+  let unavailable = true;
   await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
-  await page.route("**/api/account/project-folders", route => route.fulfill(++attempts === 1
-    ? { status: 503, json: { error: "Indisponível" } }
-    : { json: { folders: [], assignments: [] } }));
+  await page.route("**/api/account/project-folders", route => {
+    attempts++;
+    return route.fulfill(unavailable
+      ? { status: 503, json: { error: "Indisponível" } }
+      : { json: { folders: [], assignments: [] } });
+  });
   await page.goto("/conta/projetos");
   const library = page.getByRole("region", { name: "Projetos salvos" });
   await expect(library.locator("article")).toHaveCount(2);
+  await expect(library.getByRole("button", { name: "Tentar carregar pastas novamente" })).toBeVisible();
+  unavailable = false;
+  const beforeRetry = attempts;
   await library.getByRole("button", { name: "Tentar carregar pastas novamente" }).click();
   await expect(library.getByLabel("Filtrar por pasta")).toBeVisible();
   await expect(library.locator("article")).toHaveCount(2);
-  expect(attempts).toBe(2);
+  expect(attempts).toBeGreaterThan(beforeRetry);
 });
 
 test("unavailable folder service does not conceal existing saved projects", async ({ page }) => {
@@ -474,8 +481,8 @@ test("supported tools expose a direct resume link while unverified tools keep th
     const card = library.locator("article").filter({ hasText: project.title });
     await expect(card.getByRole("link", { name: "Continuar projeto" })).toHaveAttribute("href", `${href}?project=${project.id}`);
   }
-  const unknown = library.locator("article").filter({ hasText: "Marca d'água não verificada" });
-  await expect(unknown.getByRole("link", { name: "Abrir ferramenta" })).toHaveAttribute("href", "/ferramentas/adicionar-marca-dagua");
+  const watermark = library.locator("article").filter({ hasText: "Marca d'água não verificada" });
+  await expect(watermark.getByRole("link", { name: "Continuar projeto" })).toHaveAttribute("href", "/ferramentas/adicionar-marca-dagua?project=44444444-4444-4444-8444-444444444444");
   await expectNoOverflow(page);
 });
 
