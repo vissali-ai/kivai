@@ -1,7 +1,6 @@
 import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { getAiCreditBalance } from "@/lib/ai/credits";
 import { aiCreditSalesEnabled } from "@/lib/ai/packs";
-import { getAiHourlyStatus } from "@/lib/ai/limits";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,11 +14,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [wallet, hourly] = await Promise.all([
-      getAiCreditBalance(userId),
-      getAiHourlyStatus(userId),
-    ]);
-    return Response.json({ wallet, hourly, salesEnabled: aiCreditSalesEnabled() }, { headers: { "Cache-Control": "private, no-store" } });
+    const wallet = await getAiCreditBalance(userId);
+    return Response.json({ wallet, salesEnabled: aiCreditSalesEnabled() }, { headers: { "Cache-Control": "private, no-store" } });
   } catch {
     console.error("[kivai-ai] Credit balance unavailable");
     return Response.json(
