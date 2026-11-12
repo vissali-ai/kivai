@@ -28,6 +28,15 @@ async function check(label, uri, body, timeout = 20000) {
           "steps",response.steps?.length??"n/a",
           "output",typeof response.output_text==="string"?response.output_text.length:"n/a",
           "candidates",response.candidates?.length??"n/a");
+        if (label.startsWith("youtube") && Array.isArray(response.steps)) {
+          const safe = response.steps.map(step => ({
+            type: step.type,
+            contentKind: Array.isArray(step.content) ? "array" : typeof step.content,
+            contentTypes: Array.isArray(step.content) ? step.content.map(x => x.type) : [],
+            textLength: Array.isArray(step.content) ? step.content.filter(x => typeof x.text === "string").reduce((n,x)=>n+x.text.length,0) : 0,
+          }));
+          console.log("[video-diag] youtube steps", JSON.stringify(safe));
+        }
       }
     }
     return result.status;
@@ -37,7 +46,7 @@ async function check(label, uri, body, timeout = 20000) {
   }
 }
 await check("models", base + "/models?pageSize=1000");
-await check("text-3.7",base+"/models/gemini-3.7-flash:generateContent",{contents:[{parts:[{text:"Responda apenas OK."}]}],generationConfig:{maxOutputTokens:30}},15000);
-await check("youtube-3.5-lite",base+"/interactions",{model:"gemini-3.5-flash-lite",input:[{type:"text",text:"What is happening in this video? Answer in one short sentence."},{type:"video",uri:"https://www.youtube.com/watch?v=9hE5-98ZeCg"}]},25000);
+
+await check("youtube-3.5-lite",base+"/interactions",{model:"gemini-3.5-flash-lite",input:[{type:"text",text:"Transcribe the audible speech from the video, or state clearly that no speech is audible. Respond in one short paragraph."},{type:"video",uri:"https://www.youtube.com/watch?v=9hE5-98ZeCg"}]},25000);
 
 console.log("[video-diag] completed");
