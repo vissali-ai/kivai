@@ -1,10 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
-import { getStoredSession } from "@/lib/user-auth";
 
 type Mode = "summary" | "transcript";
 type Result = { text: string; mode: Mode; partial: boolean; source: string; model: string };
@@ -21,8 +18,6 @@ export default function YoutubeVideoPreviewClient() {
 
   async function run() {
     if (lock.current) return;
-    const token = getStoredSession()?.access_token;
-    if (!token) { setError("Entre na sua conta para testar a ferramenta."); return; }
     if (!consent) { setError("Autorize o envio do link para o Gemini."); return; }
     lock.current = true;
     setBusy(true);
@@ -32,7 +27,7 @@ export default function YoutubeVideoPreviewClient() {
     try {
       const response = await fetch("/api/ai/video-youtube-preview", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, mode, consent }),
         signal: AbortSignal.timeout(58_000),
       });
@@ -44,7 +39,6 @@ export default function YoutubeVideoPreviewClient() {
     } finally {
       lock.current = false;
       setBusy(false);
-      window.dispatchEvent(new Event("kivai:ai-credit-update"));
     }
   }
 
@@ -67,7 +61,7 @@ export default function YoutubeVideoPreviewClient() {
 
   return (
     <div className="space-y-5">
-      <AiCreditBalance />
+
       <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold">Cole um link público do YouTube</h2>
@@ -103,12 +97,11 @@ export default function YoutubeVideoPreviewClient() {
           <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} disabled={busy} className="mt-1 accent-primary" />
           Autorizo o envio do link para o Google Gemini processar o vídeo.
         </label>
-        <p className="text-xs text-muted-foreground">Teste com custo de 1 crédito por solicitação bem-sucedida. Em caso de falha, a reserva é devolvida. Não há garantia de transcrição literal ou completa em vídeos longos.</p>
+        <p className="text-xs text-muted-foreground">Teste gratuito sem login e sem consumo de créditos. Até 3 solicitações por visitante por dia, com limite global de 30 testes diários. Não há garantia de transcrição literal ou completa em vídeos longos.</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button disabled={busy || !url.trim() || !consent} onClick={() => void run()}>
-            {busy ? "Analisando vídeo..." : mode === "summary" ? "Gerar resumo · 1 crédito" : "Transcrever · 1 crédito"}
+            {busy ? "Analisando vídeo..." : mode === "summary" ? "Gerar resumo gratuito" : "Transcrever gratuitamente"}
           </Button>
-          <Link href="/conta" className="text-sm underline">Entrar na conta</Link>
         </div>
         {busy && <p role="status" className="text-sm text-muted-foreground">A IA está processando o conteúdo. Vídeos longos podem ultrapassar o limite desta versão de teste.</p>}
       </section>
