@@ -15,6 +15,7 @@ async function mockAccount(page: Page, options: { authFails?: boolean; accessFai
     const url = route.request().url();
     if (url.includes("/access")) return route.fulfill({ status: options.accessFails ? 503 : 200, json: { userId: "dashboard-test", plan: options.plan ?? "pro", subscription: null } });
     if (url.includes("/project-folders")) return route.fulfill({ json: { folders: [], assignments: [] } });
+    if (url.includes("/project-shortcuts")) return route.fulfill({ json: { toolKinds: ["post_creator", "calendar", "briefing", "social_report"] } });
     if (url.includes("/announcements")) return route.fulfill({ json: { notices: [] } });
     if (url.includes("/routine-reminders")) return route.fulfill({ json: { preference: { enabled: false, weekday: 1, hour: 9, time_zone: "America/Sao_Paulo", tool_slug: "compressor-de-imagens" }, vapidPublicKey: "" } });
     return route.fulfill({ json: { projects: [] } });
@@ -204,11 +205,60 @@ test("saved projects are easy to find and filter without losing the catalog", as
   await clear.focus();
   await page.keyboard.press("Enter");
   await expect(articles).toHaveCount(2);
-  await library.getByText("Criar projetos com outras ferramentas").click();
-  await expect(library.getByRole("navigation", { name: "Ferramentas com projetos salvos" }).getByRole("link")).toHaveCount(15);
+  await library.getByText("Ver todas as ferramentas compatíveis").click();
+  await expect(library.getByRole("navigation", { name: "Todas as ferramentas com projetos salvos" }).getByRole("link")).toHaveCount(15);
   await expectNoOverflow(page);
   await search.scrollIntoViewIfNeeded();
   await library.screenshot({ path: testInfo.outputPath("project-library.png") });
+});
+
+test("user can choose and reorder shortcuts and the selection reloads from their account", async ({ page }) => {
+  await mockAccount(page);
+  const defaults = ["post_creator", "calendar", "briefing", "social_report"];
+  let saved: string[] = [...defaults];
+  let writes = 0;
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: [] } }));
+  await page.route("**/api/account/project-shortcuts", route => {
+    if (route.request().method() === "PUT") {
+      writes++;
+      saved = (route.request().postDataJSON() as { toolKinds: string[] }).toolKinds;
+      return route.fulfill({ json: { toolKinds: saved } });
+    }
+    return route.fulfill({ json: { toolKinds: saved } });
+  });
+  await page.goto("/conta/projetos");
+  const section = page.getByRole("region", { name: "Projetos salvos" });
+  const shortcuts = section.locator("section[aria-labelledby='create-project-shortcuts-title']");
+  await expect(shortcuts.locator(":scope > div.grid > a").first()).toContainText("Criador de Posts com IA");
+  await section.getByRole("button", { name: "Personalizar" }).click();
+  await section.getByRole("button", { name: "Calendário", exact: true }).click();
+  await section.getByRole("button", { name: "ROAS", exact: true }).click();
+  await section.getByRole("button", { name: "Subir ROAS" }).click();
+  await section.getByRole("button", { name: "Salvar minha seleção" }).click();
+  await expect.poll(() => writes).toBe(1);
+  expect(saved).toEqual(["post_creator", "briefing", "roas", "social_report"]);
+  await page.reload();
+  await expect(section.getByRole("heading", { name: "Crie seu primeiro projeto" })).toBeVisible();
+  const cards = section.locator("section[aria-labelledby='create-project-shortcuts-title'] > div.grid > a");
+  await expect(cards).toHaveCount(4);
+  await expect(cards.nth(2)).toContainText("ROAS");
+  await expect(cards.filter({ hasText: "Calendário" })).toHaveCount(0);
+});
+
+test("shortcut editor enforces six selections and makes all tools accessible", async ({ page }) => {
+  await mockAccount(page);
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: [] } }));
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await library.getByRole("button", { name: "Personalizar" }).click();
+  await library.getByRole("button", { name: "ROAS", exact: true }).click();
+  await library.getByRole("button", { name: "ROI", exact: true }).click();
+  await expect(library.getByRole("button", { name: "Margem", exact: true })).toBeDisabled();
+  await expect(library.getByText("6/6 selecionadas")).toBeVisible();
+  await library.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await library.getByText("Ver todas as ferramentas compatíveis").click();
+  await expect(library.getByRole("navigation", { name: "Todas as ferramentas com projetos salvos" }).getByRole("link")).toHaveCount(15);
+  await expectNoOverflow(page);
 });
 
 test("projects default to cards for free and pro, list for agency", async ({ page }) => {
