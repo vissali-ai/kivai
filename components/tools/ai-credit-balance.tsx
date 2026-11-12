@@ -14,7 +14,6 @@ export type AiCreditsInfo = {
     total_remaining: number;
     renews_on: string;
   };
-  hourly: { limit: number; remaining: number; renews_at: string | null };
   salesEnabled: boolean;
 };
 
@@ -68,7 +67,6 @@ export function AiCreditBalance() {
                 </span>
               </p>
               <p className="text-xs leading-5 text-muted-foreground">
-                {info.hourly.remaining} de {info.hourly.limit} solicitações nesta hora.
                 Seus {info.wallet.free_limit} créditos mensais renovam em {renewal} e não acumulam.
               </p>
             </>
