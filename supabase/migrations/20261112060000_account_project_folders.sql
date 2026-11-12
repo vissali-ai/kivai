@@ -11,7 +11,7 @@ create unique index if not exists account_project_folders_owner_name_idx
   on public.account_project_folders (user_id, lower(name));
 create table if not exists public.account_project_folder_items (
   user_id uuid not null,
-  project_id uuid not null,
+  project_id uuid not null references public.saved_tool_projects(id) on delete cascade,
   folder_id uuid not null,
   primary key (user_id, project_id),
   constraint account_project_folder_items_folder_fk
