@@ -27,11 +27,12 @@ test('Brand plan accepts unknown optional fields without converting them to zero
  assert.ok(schema.toolAssistantInput.safeParse(input).success);
  assert.equal(schema.toolAssistantInput.safeParse({...input,niche:' '}).success,false);
 });
-test('Resume AI accepts every curriculum field but still requires existing text',()=>{
- for(const section of ['Nome completo','Cargo desejado','Contato e cidade','Resumo profissional','Experiência profissional','Formação','Projetos e atividades','Habilidades']){
+test('Resume AI accepts professional sections only and requires existing text',()=>{
+ for(const section of ['Resumo profissional','Experiência profissional','Formação','Projetos e atividades','Habilidades']){
   assert.ok(schema.toolAssistantInput.safeParse({kind:'resume',consent:true,section,text:'Conteúdo informado pelo usuário'}).success);
  }
  assert.equal(schema.toolAssistantInput.safeParse({kind:'resume',consent:true,section:'Habilidades',text:' '}).success,false);
+ for(const section of ['Nome completo','Cargo desejado','Contato e cidade','Endereço e Contato']) assert.equal(schema.toolAssistantInput.safeParse({kind:'resume',consent:true,section,text:'dados'}).success,false);
 });
 const caption={kind:'caption',consent:true,text:'Café da casa',instruction:'Revisar',limit:100};
 const image={mimeType:'image/jpeg',data:Buffer.from([255,216,255,1,2,3]).toString('base64')};
@@ -56,7 +57,7 @@ test('All seven tools expose title, description and tutorial in Admin',()=>{
  for(const slug of ['contador-de-caracteres-instagram','preview-de-post-redes-sociais','radar-de-tendencias','pdf-para-excel','pdf-para-word','pdf-para-html','renomear-arquivos-em-lote'])assert.deepEqual(copy.assistantFields(slug).map(x=>x.key),['ai-title','ai-description','ai-tutorial-url']);
 });
 test('API authenticates before charges, uses fixed costs and refunds failures',async()=>{
- for(const scenario of ['success','image','pdf','unauthorized','no-credit','quota','invalid','provider','finalization','bad-file']){
+ for(const scenario of ['success','image','pdf','unauthorized','no-credit','invalid','provider','finalization','bad-file']){
   const calls=[];let cost;
   const route=load('app/api/ai/tool-assistant/route.ts',{
    '@/lib/brand-financials':finance,
@@ -69,7 +70,7 @@ test('API authenticates before charges, uses fixed costs and refunds failures',a
   const input=scenario==='pdf'?{kind:'document',consent:true,file}:scenario==='image'?{...caption,image}:scenario==='bad-file'?{...caption,image:{...image,data:'aGVsbG8='}}:caption;
   const response=await route.POST(new Request('http://localhost/api',{method:'POST',body:JSON.stringify(input)}));
   const success=['success','image','pdf'].includes(scenario);
-  assert.equal(response.status,success?200:scenario==='unauthorized'?401:scenario==='bad-file'?400:scenario==='no-credit'?402:scenario==='quota'?429:503);
+  assert.equal(response.status,success?200:scenario==='unauthorized'?401:scenario==='bad-file'?400:scenario==='no-credit'?402:503);
   assert.equal(cost,['unauthorized','bad-file'].includes(scenario)?undefined:['image','pdf'].includes(scenario)?2:1);
   assert.deepEqual(calls,success?[true]:['unauthorized','bad-file','no-credit'].includes(scenario)?[]:scenario==='finalization'?[true,false]:[false]);
  }

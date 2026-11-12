@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { ToolAiPanel } from "@/components/tools/tool-ai-panel";
 
 const labels = {
-  name: "Nome completo", role: "Cargo desejado", contact: "Contato e cidade",
+  name: "Nome completo", role: "Cargo desejado", contact: "Endereço e Contato",
   summary: "Resumo profissional", experience: "Experiência profissional",
   education: "Formação", projects: "Projetos e atividades", skills: "Habilidades",
 } as const;
 type Field = keyof typeof labels;
 const empty = { name: "", role: "", contact: "", summary: "", experience: "", education: "", projects: "", skills: "" };
 const fields = Object.keys(labels) as Field[];
+const aiFields = ["summary", "experience", "education", "projects", "skills"] as const satisfies readonly Field[];
+type AiField = (typeof aiFields)[number];
 const storage = "kivai.curriculo.v1";
 const control = "mt-1 w-full rounded-md border bg-background px-3 py-2";
 export default function ResumeEditor() {
@@ -18,7 +20,7 @@ export default function ResumeEditor() {
   const [first, setFirst] = useState(false);
   const [ready, setReady] = useState(false);
   const [notice, setNotice] = useState("");
-  const [target, setTarget] = useState<Field>("summary");
+  const [target, setTarget] = useState<AiField>("summary");
   useEffect(() => {
     try {
       const draft = JSON.parse(localStorage.getItem(storage) || "null");
@@ -68,8 +70,8 @@ export default function ResumeEditor() {
       <ToolAiPanel fingerprint={JSON.stringify([target,values[target]])} cost={1} disabled={!values[target].trim()}
         prepare={async()=>({kind:"resume", consent:true, section:labels[target], text:values[target]})}
         render={result=>result.kind === "resume" && <><p className="whitespace-pre-line">{result.suggestion}</p><Button onClick={()=>update(target, sections.includes(target) ? result.suggestion : result.suggestion.slice(0,250))}>Aplicar sugestão</Button></>}>
-        <label>Campo para revisar com IA<select className={control} value={target} onChange={e=>setTarget(e.target.value as Field)}>
-          {fields.map(key=><option key={key} value={key}>{labels[key]}</option>)}
+        <label>Campo para revisar com IA<select className={control} value={target} onChange={e=>setTarget(e.target.value as AiField)}>
+          {aiFields.map(key=><option key={key} value={key}>{labels[key]}</option>)}
         </select></label>
         <p className="text-xs text-muted-foreground">A IA trabalha somente com o conteúdo já digitado no campo selecionado e foi orientada a não inventar experiências, habilidades, métricas ou dados de contato.</p>
       </ToolAiPanel>

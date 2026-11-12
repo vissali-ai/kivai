@@ -3,7 +3,7 @@ export const resumeSlug = "criador-de-curriculo-online";
 export const resumeEditorial = {
   overview: [
     "Crie um currículo objetivo em PDF com texto selecionável, organizado para leitura humana e para sistemas de triagem que extraem texto do documento. Você pode escolher um modelo com experiência em destaque ou uma ordem voltada ao primeiro emprego.",
-    "A inteligência artificial pode revisar qualquer campo que você já tenha preenchido. O Kivai envia somente o campo selecionado e orienta a IA a melhorar clareza e apresentação sem inventar cargos, experiências, cursos, resultados, habilidades ou dados de contato."
+    "A inteligência artificial pode revisar o resumo profissional, a experiência, a formação, os projetos e as habilidades que você já tenha preenchido. O Kivai envia somente o campo selecionado e orienta a IA a melhorar clareza e apresentação sem inventar cargos, experiências, cursos, resultados, habilidades ou dados de contato."
   ],
   useCases: [
     { title: "Primeiro emprego", description: "Destaque formação, projetos, atividades e habilidades quando ainda não houver experiência profissional extensa." },
@@ -12,15 +12,15 @@ export const resumeEditorial = {
   ],
   steps: [
     "Escolha a ordem mais adequada entre profissional e primeiro emprego.",
-    "Preencha nome, cargo desejado, contato, resumo, experiências, formação, projetos e habilidades.",
-    "Selecione qualquer campo preenchido na área de IA para revisar a redação. Confira a sugestão antes de aplicá-la.",
+    "Preencha nome, cargo desejado, endereço e contato, resumo, experiências, formação, projetos e habilidades.",
+    "Selecione um campo de conteúdo profissional na área de IA para revisar a redação. Confira a sugestão antes de aplicá-la.",
     "Revise a prévia completa e confirme se datas, nomes, cargos, contatos e qualificações estão corretos.",
     "Baixe o currículo em PDF quando estiver satisfeito com o resultado."
   ],
   specifications: [
     { label: "Formato de saída", value: "PDF com texto selecionável, adequado para leitura, impressão e envio em candidaturas." },
     { label: "Rascunho", value: "Os campos preenchidos ficam salvos localmente neste navegador para reduzir o risco de perda ao sair da página ou entrar na conta." },
-    { label: "Revisão com IA", value: "Todos os campos podem ser revisados individualmente. Cada geração usa 1 crédito de IA e exige login." },
+    { label: "Revisão com IA", value: "Resumo, experiência, formação, projetos e habilidades podem ser revisados individualmente. Cada geração usa 1 crédito de IA e exige login." },
     { label: "Modelos", value: "Ordem profissional, com experiência em destaque, ou primeiro emprego, com formação e projetos priorizados." }
   ],
   privacy: "O rascunho do currículo fica salvo no armazenamento local do navegador. Ao pedir uma revisão com IA, somente o texto do campo selecionado é enviado ao serviço Kivai e ao provedor externo de IA. Evite inserir informações sensíveis desnecessárias.",
@@ -31,7 +31,7 @@ export const resumeEditorial = {
   ],
   faqs: [
     { question: "A IA pode preencher meu currículo sozinha?", answer: "Não. Para evitar informações inventadas, a IA revisa somente o conteúdo que você já digitou no campo selecionado. Você decide se aplica a sugestão." },
-    { question: "Posso usar a IA em todos os campos?", answer: "Sim. Nome, cargo desejado, contato, resumo, experiência, formação, projetos e habilidades podem ser selecionados para revisão individual." },
+    { question: "Quais campos oferecem revisão com IA?", answer: "A IA está disponível para resumo, experiência, formação, projetos e habilidades. Nome, cargo desejado e endereço/contato são preenchidos manualmente." },
     { question: "Meu currículo fica salvo se eu precisar entrar na conta?", answer: "Sim. O rascunho é salvo neste navegador e pode ser restaurado ao retornar à ferramenta. Ainda assim, não use o armazenamento local como cópia definitiva de informações importantes." },
     { question: "O PDF tem texto selecionável?", answer: "Sim. O currículo é gerado como PDF textual, o que facilita seleção, cópia e leitura por ferramentas que extraem texto." }
   ],

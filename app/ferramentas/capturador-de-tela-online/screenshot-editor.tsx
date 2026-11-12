@@ -74,25 +74,68 @@ export default function ScreenshotEditor() {
       stream = await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
       if (controller.signal.aborted) return;
       video.srcObject = stream;
-      await Promise.race([video.play(), new Promise<never>((_,reject)=>{
-        timer = window.setTimeout(()=>reject(new Error("frame")),10000);
-      })]);
+      await Promise.race([
+        video.play(),
+        new Promise<never>((_, reject) => {
+          timer = window.setTimeout(() => reject(new Error("frame_timeout")), 10000);
+        }),
+      ]);
       if (controller.signal.aborted) return;
-      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
       if (!video.videoWidth || !video.videoHeight || video.readyState < 2) throw new Error("frame");
       const image = document.createElement("canvas");
-      image.width = video.videoWidth; image.height = video.videoHeight;
-      const context = image.getContext("2d");
+      image.width = video.videoWidth;
+      image.height = video.videoHeight;
+      const context = image.getContext("2d", { willReadFrequently: true });
       if (!context) throw new Error("frame");
-      context.drawImage(video,0,0);
+
+      // A video may report readyState HAVE_CURRENT_DATA before the capture
+      // surface has delivered a real frame. Avoid exporting a black placeholder.
+      const nextFrame = () => new Promise<void>((resolve) => {
+        if ("requestVideoFrameCallback" in video) {
+          video.requestVideoFrameCallback(() => resolve());
+        } else {
+          window.setTimeout(resolve, 100);
+        }
+      });
+      let usable = false;
+      const started = performance.now();
+      for (let attempts = 0; attempts < 35 && performance.now() - started < 4500; attempts++) {
+        if (controller.signal.aborted || stream.getVideoTracks()[0]?.readyState !== "live") return;
+        await Promise.race([
+          nextFrame(),
+          new Promise<void>(resolve => window.setTimeout(resolve, 180)),
+        ]);
+        context.drawImage(video, 0, 0);
+        const check = document.createElement("canvas");
+        check.width = 32; check.height = 18;
+        const checkContext = check.getContext("2d", { willReadFrequently: true });
+        if (!checkContext) break;
+        checkContext.drawImage(image, 0, 0, check.width, check.height);
+        const pixels = checkContext.getImageData(0, 0, check.width, check.height).data;
+        // Completely black/transparent frames indicate an unusable capture.
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i] > 5 || pixels[i + 1] > 5 || pixels[i + 2] > 5) {
+            usable = true;
+            break;
+          }
+        }
+        if (usable) break;
+      }
+      if (!usable) throw new Error("blank_capture");
       setSource(image);
       setEdits([]);
       setMode(selection === "area" ? "Recortar" : "Desenhar");
       setMessage(selection === "area"
         ? "Captura concluída. Arraste sobre a imagem para marcar a parte que deseja manter."
-        : "Captura concluída. Você voltou ao Kivai e já pode editar ou baixar o PNG.");
+        : "Captura concluída. Confira o resultado e baixe o PNG.");
     } catch (e) {
-      if (!controller.signal.aborted) setMessage(e instanceof DOMException && e.name === "NotAllowedError" ? "Captura cancelada ou sem permissão. Clique em Capturar tela para escolher uma fonte." : "Não foi possível obter a imagem. Tente selecionar outra janela ou aba.");
+      if (!controller.signal.aborted) {
+        const cancelled = e instanceof DOMException && e.name === "NotAllowedError";
+        setMessage(cancelled ? "Nenhuma tela foi selecionada." :
+          e instanceof Error && e.message === "blank_capture"
+            ? "O navegador entregou somente uma imagem preta. Tente compartilhar uma aba visível ou outra janela; conteúdo protegido e algumas janelas minimizadas não podem ser capturados."
+            : "Não foi possível obter a imagem. Tente selecionar outra janela ou aba.");
+      }
     } finally {
       stop(); video.srcObject = null; window.clearTimeout(timer);
       capture.current = null;

@@ -23,7 +23,7 @@ export default async function Page() {
       categoryName="Vídeos"
       categoryHref="/ferramentas/videos"
       processingMode="local"
-      privacyMessage="A gravação é criada no navegador a partir da tela, janela ou aba que você autorizar. O Kivai não inicia captura sem a sua ação."
+      privacyMessage="A gravação é criada no navegador a partir da tela, janela ou aba que você autorizar."
     >
       <Recorder />
     </ToolPageShell>
