@@ -1,23 +1,56 @@
 import { notFound } from "next/navigation";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolAiContent } from "@/components/tools/tool-ai-content";
+import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
+import { ToolPageShell } from "@/components/tools/tool-page-shell";
+import { resumeEditorial, resumeSlug as slug } from "@/lib/resume-editorial";
 import { getToolMetadataAsync } from "@/lib/seo";
 import { getToolOverride } from "@/lib/site-cms/repository";
-import { getExistingToolEditorialHtml } from "@/lib/site-cms/tool-editorial-source";
+import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 import ResumeEditor from "./resume-editor";
 
-const slug = "criador-de-curriculo-online";
 export const generateMetadata = () => getToolMetadataAsync(slug);
 
 export default async function Page() {
   const content = await getToolOverride(slug);
   if (content && content.status !== "published") notFound();
+
   const tool = getToolBySlug(slug)!;
-  return <main className="mx-auto max-w-6xl space-y-8 px-4 py-20">
-    <a href="/ferramentas/arquivos" className="text-sm underline">Hub Arquivos</a>
-    <header><h1 className="font-heading text-4xl font-bold">{content?.title || tool.name}</h1>
-      <p className="mt-3 text-muted-foreground">{content?.shortDescription || tool.description}</p></header>
-    <ToolAiContent slug={slug}><ResumeEditor /></ToolAiContent>
-    <article className="cms-public-content leading-7" dangerouslySetInnerHTML={{__html: content?.contentHtml ?? getExistingToolEditorialHtml(slug)}} />
-  </main>;
+  const name = content?.title || tool.name;
+  const description = content?.shortDescription || tool.description;
+  const schema = buildToolPageSchema({
+    slug,
+    name,
+    description: tool.seoDescription ?? description,
+    applicationCategory: "BusinessApplication",
+    breadcrumbs: [
+      { name: "Início", href: "/" },
+      { name: "Ferramentas", href: "/ferramentas" },
+      { name: "Arquivos", href: "/ferramentas/arquivos" },
+      { name, href: "/ferramentas/" + slug },
+    ],
+    faqs: content?.contentHtml ? [] : resumeEditorial.faqs,
+  });
+
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} />
+    <ToolPageShell
+      title={name}
+      description={description}
+      categoryName="Arquivos"
+      categoryHref="/ferramentas/arquivos"
+      processingMode="hybrid"
+      privacyMessage="O rascunho e a geração do PDF ficam no navegador. Somente o campo selecionado é enviado ao serviço de IA quando você solicita uma revisão."
+    >
+      <ToolAiContent slug={slug}><ResumeEditor /></ToolAiContent>
+    </ToolPageShell>
+    <ToolEditorialLayout
+      slug={slug}
+      {...resumeEditorial}
+      relatedTools={resumeEditorial.related}
+      specificationsTitle="Currículo, IA e exportação"
+      afterFaq={<AdSlot placement="tool-bottom" />}
+    />
+  </>;
 }
