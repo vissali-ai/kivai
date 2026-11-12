@@ -14,13 +14,24 @@ test('Brand plan uses contribution after fees and rounds break-even units up',()
  assert.equal(finance.brandFinancials({...scenario,unitCost:100}).monthlyBreakEvenUnits,null);
 });
 test('Business diagnosis requires profile data and three complete AI-generated models',()=>{
- const input={kind:'businessIdeas',consent:true,skills:'Ensino matemática',time:'Até 3 horas',budget:'R$ 0',goal:'Primeira venda',preference:'Online',resources:''};
+ const input={kind:'businessIdeas',consent:true,skills:'Ensino matemática',evidence:'Já dei reforço para colegas',time:'Até 3 horas',budget:'R$ 0',goal:'Primeira venda',preference:'Online',activity:'Ensinar e orientar',salesComfort:'Consigo vender com roteiro',digitalLevel:'Intermediário',risk:'Pequenos testes',resources:'',urgency:'',modelPreference:'',constraints:''};
  const idea={title:'Aula individual',offer:'Revisão para estudantes',fit:'Experiência em ensino',requirements:'Uma hora por aula',test:'Ofereça uma aula curta',signal:'Pedido de uma segunda aula'};
  const output={diagnosis:'Comece com uma oferta curta.',ideas:[idea,idea,idea],nextStep:'Prepare uma aula de amostra.'};
  assert.ok(schema.toolAssistantInput.safeParse(input).success);
  assert.equal(schema.toolAssistantInput.safeParse({...input,skills:' '}).success,false);
  assert.equal(schema.validateToolOutput(input,output).kind,'businessIdeas');
  assert.throws(()=>schema.validateToolOutput(input,{...output,ideas:[idea]}));
+});
+test('Brand plan accepts unknown optional fields without converting them to zero',()=>{
+ const input={kind:'brandPlan',consent:true,niche:'Acessórios',offer:'Produto autoral',customer:'Adultos que compram online',stage:'',operations:'',channel:'',deadline:'',finances:{budget:null,price:null,unitCost:null,fee:null,lot:null,setup:null,fixed:null}};
+ assert.ok(schema.toolAssistantInput.safeParse(input).success);
+ assert.equal(schema.toolAssistantInput.safeParse({...input,niche:' '}).success,false);
+});
+test('Resume AI accepts every curriculum field but still requires existing text',()=>{
+ for(const section of ['Nome completo','Cargo desejado','Contato e cidade','Resumo profissional','Experiência profissional','Formação','Projetos e atividades','Habilidades']){
+  assert.ok(schema.toolAssistantInput.safeParse({kind:'resume',consent:true,section,text:'Conteúdo informado pelo usuário'}).success);
+ }
+ assert.equal(schema.toolAssistantInput.safeParse({kind:'resume',consent:true,section:'Habilidades',text:' '}).success,false);
 });
 const caption={kind:'caption',consent:true,text:'Café da casa',instruction:'Revisar',limit:100};
 const image={mimeType:'image/jpeg',data:Buffer.from([255,216,255,1,2,3]).toString('base64')};
