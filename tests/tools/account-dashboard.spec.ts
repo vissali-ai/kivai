@@ -14,6 +14,7 @@ async function mockAccount(page: Page, options: { authFails?: boolean; accessFai
   await page.route("**/api/account/**", route => {
     const url = route.request().url();
     if (url.includes("/access")) return route.fulfill({ status: options.accessFails ? 503 : 200, json: { userId: "dashboard-test", plan: options.plan ?? "pro", subscription: null } });
+    if (url.includes("/project-folders")) return route.fulfill({ json: { folders: [], assignments: [] } });
     if (url.includes("/announcements")) return route.fulfill({ json: { notices: [] } });
     if (url.includes("/routine-reminders")) return route.fulfill({ json: { preference: { enabled: false, weekday: 1, hour: 9, time_zone: "America/Sao_Paulo", tool_slug: "compressor-de-imagens" }, vapidPublicKey: "" } });
     return route.fulfill({ json: { projects: [] } });
@@ -279,6 +280,57 @@ test("duplicating handles plan limit without creating a fake project", async ({ 
   expect(attempts).toBe(1);
   await modal.getByRole("button", { name: "Cancelar" }).click();
   await expect(modal).toHaveCount(0);
+});
+
+test("project folders can be created, assigned and filtered without losing projects", async ({ page }) => {
+  await mockAccount(page);
+  const folder = { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", name: "Campanhas", created_at: "2026-11-12T10:00:00Z" };
+  const assignments: Array<{ project_id: string; folder_id: string }> = [];
+  let created = 0;
+  let moved = 0;
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
+  await page.route("**/api/account/project-folders", route => {
+    const method = route.request().method();
+    if (method === "GET") return route.fulfill({ json: { folders: created ? [folder] : [], assignments } });
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+    if (method === "POST") { created++; return route.fulfill({ status: 201, json: { folder } }); }
+    if (method === "PUT") {
+      moved++;
+      assignments.splice(0, assignments.length);
+      if (body.folderId) assignments.push({ project_id: String(body.projectId), folder_id: String(body.folderId) });
+      return route.fulfill({ json: { ok: true } });
+    }
+    return route.fulfill({ status: 405, json: {} });
+  });
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.getByLabel("Filtrar por pasta")).toBeVisible();
+  await library.getByRole("textbox", { name: "Nova pasta" }).fill("Campanhas");
+  await library.getByRole("button", { name: "Criar pasta" }).click();
+  await expect(library.getByLabel("Filtrar por pasta")).toHaveValue(folder.id);
+  await expect(library.locator("article")).toHaveCount(0);
+  await library.getByLabel("Filtrar por pasta").selectOption("all");
+  await library.getByLabel("Pasta de Campanha São João").selectOption(folder.id);
+  await expect.poll(() => moved).toBe(1);
+  await library.getByLabel("Filtrar por pasta").selectOption(folder.id);
+  await expect(library.locator("article")).toHaveCount(1);
+  await expect(library.locator("article").first()).toContainText("Campanha São João");
+  await library.getByLabel("Pasta de Campanha São João").selectOption("");
+  await expect(library.locator("article")).toHaveCount(0);
+  await library.getByLabel("Filtrar por pasta").selectOption("all");
+  await expect(library.locator("article")).toHaveCount(2);
+  await expectNoOverflow(page);
+});
+
+test("unavailable folder service does not conceal existing saved projects", async ({ page }) => {
+  await mockAccount(page);
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
+  await page.route("**/api/account/project-folders", route => route.fulfill({ status: 503, json: { error: "Serviço indisponível" } }));
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.getByRole("alert")).toContainText("Não foi possível carregar as pastas");
+  await expect(library.locator("article")).toHaveCount(2);
+  await expect(library.getByRole("link", { name: "Continuar projeto" })).toHaveCount(2);
 });
 
 test("planner resumes a saved project only after confirmation and updates the same revision", async ({ page }) => {
