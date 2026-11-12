@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ImageToolEditorialV2 } from "@/components/tools/image-tool-editorial-v2";
+import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { getToolMetadataAsync } from "@/lib/seo";
 import { getToolOverride } from "@/lib/site-cms/repository";
 import { getToolBySlug } from "@/lib/tools";
@@ -12,10 +13,20 @@ export default async function Page() {
   const content = await getToolOverride(slug);
   if (content && content.status !== "published") notFound();
   const tool = getToolBySlug(slug)!;
-  return <main><div className="mx-auto max-w-6xl space-y-6 px-4 py-16 sm:px-6">
-    <a href="/ferramentas/imagens" className="text-sm underline">Hub Imagens</a>
-    <header><h1 className="font-heading text-4xl font-bold">{content?.title || tool.name}</h1>
-      <p className="mt-3 text-muted-foreground">{content?.shortDescription || tool.description}</p></header>
-    <ScreenshotEditor />
-  </div><ImageToolEditorialV2 slug={slug}/></main>;
+  const title = content?.title || tool.name;
+  const description = content?.shortDescription || tool.description;
+
+  return <>
+    <ToolPageShell
+      title={title}
+      description={description}
+      categoryName="Imagens"
+      categoryHref="/ferramentas/imagens"
+      processingMode="local"
+      privacyMessage="A captura e a edição acontecem no navegador. O compartilhamento de tela é encerrado assim que o frame é obtido."
+    >
+      <ScreenshotEditor />
+    </ToolPageShell>
+    <ImageToolEditorialV2 slug={slug} />
+  </>;
 }

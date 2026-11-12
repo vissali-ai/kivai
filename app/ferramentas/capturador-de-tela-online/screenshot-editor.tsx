@@ -58,7 +58,7 @@ export default function ScreenshotEditor() {
     gesture.current = null;
   },[source,edits]);
 
-  async function take() {
+  async function take(selection: "full" | "area") {
     if (capture.current) return;
     if (!navigator.mediaDevices?.getDisplayMedia) {setMessage("Abra esta página em um navegador de computador que permita compartilhar a tela."); return;}
     const controller = new AbortController();
@@ -78,17 +78,29 @@ export default function ScreenshotEditor() {
         timer = window.setTimeout(()=>reject(new Error("frame")),10000);
       })]);
       if (controller.signal.aborted) return;
-      if (!video.videoWidth || !video.videoHeight) throw new Error("frame");
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      if (!video.videoWidth || !video.videoHeight || video.readyState < 2) throw new Error("frame");
       const image = document.createElement("canvas");
       image.width = video.videoWidth; image.height = video.videoHeight;
-      image.getContext("2d")!.drawImage(video,0,0);
-      setSource(image); setEdits([]); setMessage("Print capturado. O compartilhamento foi encerrado.");
+      const context = image.getContext("2d");
+      if (!context) throw new Error("frame");
+      context.drawImage(video,0,0);
+      setSource(image);
+      setEdits([]);
+      setMode(selection === "area" ? "Recortar" : "Desenhar");
+      setMessage(selection === "area"
+        ? "Captura concluída. Arraste sobre a imagem para marcar a parte que deseja manter."
+        : "Captura concluída. Você voltou ao Kivai e já pode editar ou baixar o PNG.");
     } catch (e) {
       if (!controller.signal.aborted) setMessage(e instanceof DOMException && e.name === "NotAllowedError" ? "Captura cancelada ou sem permissão. Clique em Capturar tela para escolher uma fonte." : "Não foi possível obter a imagem. Tente selecionar outra janela ou aba.");
     } finally {
       stop(); video.srcObject = null; window.clearTimeout(timer);
       capture.current = null;
-      if (!controller.signal.aborted) setBusy(false);
+      if (!controller.signal.aborted) {
+        setBusy(false);
+        window.focus();
+        window.setTimeout(() => canvas.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+      }
     }
   }
   function position(e: PointerEvent<HTMLCanvasElement>) {
@@ -116,8 +128,15 @@ export default function ScreenshotEditor() {
     link.href = url; link.download = "captura-de-tela.png"; link.click();
     window.setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-  return <section className="space-y-4 rounded-xl border bg-card p-5">
-    <Button onClick={take} disabled={busy}>{busy ? "Aguardando captura…" : "Capturar tela"}</Button>
+  return <section className="space-y-4 rounded-xl border bg-card p-5 sm:p-7">
+    <div>
+      <h2 className="font-semibold">Como deseja capturar?</h2>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">O navegador sempre mostra o seletor seguro de compartilhamento. Depois da captura, o Kivai encerra o compartilhamento e tenta devolver o foco para esta página.</p>
+    </div>
+    <div className="flex flex-wrap gap-3">
+      <Button onClick={()=>take("full")} disabled={busy}>{busy ? "Aguardando captura…" : "Capturar tela inteira"}</Button>
+      <Button variant="outline" onClick={()=>take("area")} disabled={busy}>{busy ? "Aguardando captura…" : "Escolher uma parte"}</Button>
+    </div>
     <p role="status" className="text-sm">{message}</p>
     {source && <><div className="flex flex-wrap items-center gap-2">
       {(["Recortar","Desenhar","Retângulo"] as const).map(item=><Button key={item} variant={mode===item?"default":"outline"} aria-pressed={mode===item} onClick={()=>setMode(item)}>{item}</Button>)}
