@@ -331,6 +331,77 @@ test("ROAS resumes the exact saved values and saves to the same project revision
   await expect.poll(() => saved).toMatchObject({ id: project.id, kind: "roas", revision: 2, payload: project.payload });
 });
 
+test("remaining saved project types link to their own tool and restore with confirmation", async ({ page }) => {
+  await mockAccount(page);
+  const cases = [
+    ["post_creator", "/ferramentas/criador-de-posts-com-ia"],
+    ["watermark", "/ferramentas/adicionar-marca-dagua"],
+    ["engagement", "/ferramentas/calculadora-de-engajamento"],
+    ["post_analysis", "/ferramentas/analisador-de-posts"],
+    ["trend_radar", "/ferramentas/radar-de-tendencias"],
+  ] as const;
+  const extra = cases.map(([kind], index) => ({
+    id: `66666666-6666-4666-8666-${String(index + 1).padStart(12, "0")}`,
+    kind,
+    title: `Retomar categoria ${index + 1}`,
+    client_name: "",
+    payload: {},
+    revision: 1,
+    updated_at: "2026-11-11T12:00:00Z",
+  }));
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: extra } }));
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  for (const [kind, route] of cases) {
+    const project = extra.find(item => item.kind === kind)!;
+    await expect(library.locator("article").filter({ hasText: project.title }).getByRole("link", { name: "Continuar projeto" })).toHaveAttribute("href", `${route}?project=${project.id}`);
+  }
+  await expectNoOverflow(page);
+});
+
+test("engagement calculator resumes saved inputs and preserves project revision", async ({ page }) => {
+  await mockAccount(page);
+  const project = {
+    id: "77777777-7777-4777-8777-777777777777",
+    kind: "engagement", title: "Engajamento novembro", client_name: "", revision: 5, updated_at: "2026-11-11T12:00:00Z",
+    payload: { mode: "single", method: "followers", single: { likes: "100", comments: "20", shares: "10", saves: "5", followers: "2000", reach: "", impressions: "" }, posts: [], network: "Instagram", contentType: "Post" },
+  };
+  let saved: Record<string, unknown> | null = null;
+  await page.route("**/api/account/projects", route => {
+    if (route.request().method() === "POST") {
+      saved = route.request().postDataJSON() as Record<string, unknown>;
+      return route.fulfill({ json: { project: { ...project, revision: 6 } } });
+    }
+    return route.fulfill({ json: { projects: [project] } });
+  });
+  await page.goto("/conta/projetos");
+  await page.getByRole("region", { name: "Projetos salvos" }).getByRole("link", { name: "Continuar projeto" }).click();
+  const dialog = page.getByRole("dialog", { name: "Continuar projeto salvo?" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Continuar projeto" }).click();
+  await expect(dialog).toHaveCount(0);
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.getByRole("textbox", { name: "Nome do projeto" })).toHaveValue("Engajamento novembro");
+  await library.getByRole("button", { name: "Salvar na conta", exact: true }).click();
+  await expect.poll(() => saved).toMatchObject({ id: project.id, revision: 5, kind: "engagement", payload: project.payload });
+});
+
+test("watermark resume makes clear that source image is not retained", async ({ page }) => {
+  await mockAccount(page);
+  const project = {
+    id: "88888888-8888-4888-8888-888888888888", kind: "watermark", title: "Marca d'água salva",
+    client_name: "", revision: 1, updated_at: "2026-11-11T12:00:00Z",
+    payload: { text: "Marca", type: "text", opacity: 50, placement: { x: 0.5, y: 0.5, scale: 0.3 }, logoDataUrl: "" },
+  };
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: [project] } }));
+  await page.goto("/conta/projetos");
+  await page.getByRole("region", { name: "Projetos salvos" }).getByRole("link", { name: "Continuar projeto" }).click();
+  const dialog = page.getByRole("dialog", { name: "Continuar projeto salvo?" });
+  await expect(dialog).toContainText("A imagem principal não é armazenada no projeto");
+  await dialog.getByRole("button", { name: "Manter conteúdo atual" }).click();
+  await expect(dialog).toHaveCount(0);
+});
+
 test("project outage shows a retry instead of claiming the account is empty", async ({ page }) => {
   await mockAccount(page);
   let unavailable = true;
