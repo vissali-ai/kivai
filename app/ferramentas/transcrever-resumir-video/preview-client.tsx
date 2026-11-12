@@ -97,7 +97,7 @@ export default function YoutubeVideoPreviewClient() {
           <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} disabled={busy} className="mt-1 accent-primary" />
           Autorizo o envio do link para o Google Gemini processar o vídeo.
         </label>
-        <p className="text-xs text-muted-foreground">Teste gratuito sem login e sem consumo de créditos. Até 3 solicitações por visitante por dia, com limite global de 30 testes diários. Não há garantia de transcrição literal ou completa em vídeos longos.</p>
+        <p className="text-xs text-muted-foreground">Teste gratuito sem login e sem consumo de créditos. Até 3 análises concluídas por visitante ao dia. Falhas não contam como resultado concluído; por segurança, há limite de 12 tentativas por visitante e 30 tentativas globais ao dia. Não há garantia de transcrição literal ou completa em vídeos longos.</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button disabled={busy || !url.trim() || !consent} onClick={() => void run()}>
             {busy ? "Analisando vídeo..." : mode === "summary" ? "Gerar resumo gratuito" : "Transcrever gratuitamente"}
