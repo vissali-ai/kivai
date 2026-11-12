@@ -10,7 +10,7 @@ import type { SavedProject } from "@/lib/projects/validation";
 
 type Props = { kind?: SavedProject["kind"]; payload?: unknown; onLoad?: (payload: unknown) => void; showInstagramHighlight?: boolean };
 const routes: Record<SavedProject["kind"], string> = { post_creator: "/ferramentas/criador-de-posts-com-ia", calendar: "/ferramentas/calendario-editorial-redes-sociais", briefing: "/ferramentas/planejador-de-conteudo-social-media", qr_code: "/ferramentas/gerador-de-qr-code", watermark: "/ferramentas/adicionar-marca-dagua", social_report: "/ferramentas/gerador-de-relatorio-social-media", preview_post: "/ferramentas/preview-de-post-redes-sociais", engagement: "/ferramentas/calculadora-de-engajamento", roas: "/ferramentas/calculadora-de-roas", roi: "/ferramentas/calculadora-de-roi", post_analysis: "/ferramentas/analisador-de-posts", trend_radar: "/ferramentas/radar-de-tendencias", margin: "/ferramentas/calculadora-de-margem", markup: "/ferramentas/calculadora-de-markup", proofreader: "/ferramentas/corretor-de-texto" };
-const resumableKinds: ReadonlySet<SavedProject["kind"]> = new Set(["calendar", "briefing", "qr_code", "social_report", "preview_post", "roas", "roi", "margin", "markup", "proofreader"]);
+const resumableKinds: ReadonlySet<SavedProject["kind"]> = new Set(["calendar", "briefing", "qr_code", "social_report", "preview_post", "roas", "roi", "margin", "markup", "proofreader", "post_creator", "watermark", "engagement", "post_analysis", "trend_radar"]);
 const labels: Record<SavedProject["kind"], string> = { post_creator: "Criador de Posts com IA", calendar: "Calendário", briefing: "Briefing", qr_code: "QR Code", watermark: "Marca d’água", social_report: "Relatório Social Media", preview_post: "Preview de Post", engagement: "Engajamento", roas: "ROAS", roi: "ROI", post_analysis: "Análise de Posts", trend_radar: "Radar de Tendências", margin: "Margem", markup: "Markup", proofreader: "Corretor de Texto com IA" };
 async function requestProjects(method = "GET", body?: unknown, id?: string) {
   const token = getStoredSession()?.access_token;
@@ -153,7 +153,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     {opening ? resumeProjectId ? <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
       <div role="dialog" aria-modal="true" aria-labelledby="resume-project-title" className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl sm:p-6">
         <h2 id="resume-project-title" className="text-xl font-semibold">Continuar projeto salvo?</h2>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">Você vai abrir “{opening.title}”. Isso substituirá o conteúdo que estiver preenchido nesta ferramenta. Salve seu trabalho atual antes de continuar.</p>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">Você vai abrir “{opening.title}”. Isso substituirá o conteúdo que estiver preenchido nesta ferramenta. Salve seu trabalho atual antes de continuar.{kind === "watermark" ? " A imagem principal não é armazenada no projeto; será necessário enviá-la novamente." : null}</p>
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <Button variant="outline" onClick={() => { setOpening(null); setResumeProjectId(null); }}>Manter conteúdo atual</Button>
           <Button disabled={busy} onClick={() => void open(opening)}>{busy ? "Carregando..." : "Continuar projeto"}</Button>
