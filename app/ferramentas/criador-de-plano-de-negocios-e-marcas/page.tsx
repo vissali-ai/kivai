@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ToolEditorialLayout } from "@/components/tools/tool-editorial-layout";
+import { ToolPageShell } from "@/components/tools/tool-page-shell";
 import { ToolAiProvider } from "@/components/tools/tool-ai-provider";
 import { assistantCopy } from "@/lib/ai/content-assistant-copy";
 import { brandEditorial as editorial, brandSlug as slug } from "@/lib/brand-plan-editorial";
@@ -25,11 +26,16 @@ export default async function Page({searchParams}:{searchParams:Promise<{ideia?:
   for (const item of schema["@graph"]) if (item["@type"] === "SoftwareApplication") delete item.offers;
   return <main>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema).replace(/</g,"\\u003c")}}/>
-    <div className="mx-auto max-w-5xl space-y-7 px-4 py-16 sm:px-6">
-      <a className="text-sm underline" href="/ferramentas/empresas">Hub Empresas</a>
-      <header><h1 className="font-heading text-4xl font-bold">{name}</h1><p className="mt-3 max-w-3xl text-muted-foreground">{description}</p></header>
+    <ToolPageShell
+      title={name}
+      description={description}
+      categoryName="Empresas"
+      categoryHref="/ferramentas/empresas"
+      processingMode="hybrid"
+      privacyMessage="O rascunho fica salvo neste navegador. As respostas só são enviadas ao serviço de IA quando você solicita a geração do plano."
+    >
       <ToolAiProvider copy={assistantCopy(slug,content?.customData.originalFields)}><Questionnaire initialOffer={initialOffer}/></ToolAiProvider>
-    </div>
+    </ToolPageShell>
     <ToolEditorialLayout slug={slug} {...editorial} relatedTools={editorial.related}/>
   </main>;
 }
