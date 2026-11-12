@@ -24,7 +24,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{ideia?:
     faqs:content?.contentHtml ? [] : editorial.faqs});
   // Credit packages vary; omit the shared builder's free offer for this paid generation.
   for (const item of schema["@graph"]) if (item["@type"] === "SoftwareApplication") delete item.offers;
-  return <main>
+  return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema).replace(/</g,"\\u003c")}}/>
     <ToolPageShell
       title={name}
@@ -37,6 +37,6 @@ export default async function Page({searchParams}:{searchParams:Promise<{ideia?:
       <ToolAiProvider copy={assistantCopy(slug,content?.customData.originalFields)}><Questionnaire initialOffer={initialOffer}/></ToolAiProvider>
     </ToolPageShell>
     <ToolEditorialLayout slug={slug} {...editorial} relatedTools={editorial.related}/>
-  </main>;
+  </>;
 }
 
