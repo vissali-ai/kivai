@@ -1,5 +1,5 @@
-import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
-import { reserveAiCredits, finalizeAiCredits } from "@/lib/ai/credits";
+import { createHash } from "node:crypto";
+import { supabaseRest } from "@/lib/blog/supabase";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -29,9 +29,8 @@ type GeminiResponse = {
 };
 
 export async function POST(request: Request) {
-  let userId: string;
-  try { userId = (await authenticateBillingUser(request)).id; }
-  catch { return fail("Entre na sua conta para testar o processamento com IA.", 401); }
+  // Anonymous API access is strictly limited to preview deployments.
+  if (process.env.VERCEL_ENV !== "preview") return fail("Disponível somente na prévia de testes.", 404);
 
   let input: { url?: unknown; mode?: unknown; consent?: unknown };
   try {
@@ -51,12 +50,20 @@ export async function POST(request: Request) {
   const instruction = mode === "summary"
     ? "Analise o vídeo fornecido. Produza em português do Brasil: título curto, resumo fiel em até 5 parágrafos, lista de 5 a 10 tópicos principais e, quando possível, referências temporais [mm:ss]. Não invente informações nem timestamps. Se o vídeo não puder ser acessado ou não houver informações suficientes, explique isso em vez de criar um resumo."
     : "Transcreva em português do Brasil a fala audível do vídeo inteiro, na sequência original. Preserve o máximo possível as palavras ditas, sem resumir nem acrescentar informações. Marque [mm:ss] apenas quando tiver segurança e identifique interlocutores somente quando for possível. Se houver trechos inaudíveis escreva [inaudível]. Se o vídeo for muito longo para uma transcrição completa, informe explicitamente que o resultado é parcial. Nunca invente falas. Responda somente com a transcrição e eventuais ressalvas.";
-  const operationId = crypto.randomUUID();
-  let reserved = false;
+  // Persisted daily quota: 3 attempts per IP, 30 overall. Failed requests count too.
+  const ip = request.headers.get("x-real-ip") || request.headers.get("x-vercel-forwarded-for")?.split(",")[0] || "unknown";
+  const key = createHash("sha256")
+    .update(`${process.env.ADMIN_AUTH_SECRET ?? "preview"}:${ip}`)
+    .digest("hex");
   try {
-    const reservation = await reserveAiCredits({ userId, operationId, kind: "insight", cost: 1 });
-    if (!reservation.allowed) return fail("Créditos insuficientes para testar. Consulte seu saldo.", 402);
-    reserved = true;
+    const allowed = await supabaseRest<boolean>("rpc/reserve_ai_video_preview", {
+      method: "POST",
+      body: JSON.stringify({ p_client_key: key }),
+    });
+    if (!allowed) return fail("Limite diário gratuito do teste atingido. Tente novamente amanhã.", 429);
+  } catch { return fail("O controle de acesso temporário está indisponível.", 503); }
+
+  try {
 
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
@@ -77,18 +84,16 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       console.warn("[kivai-video-preview] provider status", response.status);
-      if (response.status === 429) return fail("Limite temporário do Gemini atingido. O crédito será devolvido.", 429);
-      if (response.status === 400 || response.status === 404) return fail("O Gemini não conseguiu acessar esse vídeo ou o modelo não está disponível. Tente outro vídeo público. O crédito será devolvido.", 422);
-      return fail("Falha temporária no processamento. O crédito será devolvido.", 503);
+      if (response.status === 429) return fail("Limite temporário do Gemini atingido.", 429);
+      if (response.status === 400 || response.status === 404) return fail("O Gemini não conseguiu acessar esse vídeo ou o modelo não está disponível. Tente outro vídeo público.", 422);
+      return fail("Falha temporária no processamento.", 503);
     }
     const json = await response.json() as GeminiResponse;
     const candidate = json.candidates?.[0];
     const result = candidate?.content?.parts?.map(p => p.text || "").join("").trim();
     if (!result || (candidate?.finishReason !== "STOP" && candidate?.finishReason !== "MAX_TOKENS")) {
-      return fail("O Gemini não retornou texto utilizável. O crédito será devolvido.", 503);
+      return fail("O Gemini não retornou texto utilizável.", 503);
     }
-    if (!(await finalizeAiCredits(userId, operationId, true))) throw new Error("FINALIZATION_FAILED");
-    reserved = false;
     return Response.json({
       text: result,
       mode,
@@ -97,11 +102,6 @@ export async function POST(request: Request) {
       model: "gemini-3.8-flash",
     }, { headers });
   } catch {
-    return fail("O processamento falhou ou excedeu o tempo disponível. A reserva será devolvida.", 503);
-  } finally {
-    if (reserved) {
-      try { await finalizeAiCredits(userId, operationId, false); }
-      catch { console.error("[kivai-video-preview] refund pending recovery"); }
-    }
+    return fail("O processamento falhou ou excedeu o tempo disponível.", 503);
   }
 }
