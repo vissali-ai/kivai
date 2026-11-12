@@ -229,6 +229,38 @@ test("projects default to cards for free and pro, list for agency", async ({ pag
   }
 });
 
+test("project view choice persists for the same account after reload", async ({ page }) => {
+  await mockAccount(page, { plan: "pro" });
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await expect(library.locator("[data-project-view]")).toHaveAttribute("data-project-view", "cards");
+  await library.getByRole("button", { name: "Exibir em lista" }).click();
+  await expect(library.locator("[data-project-view]")).toHaveAttribute("data-project-view", "list");
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("kivai:project-library-view:dashboard-test"))).toBe("list");
+  await page.reload();
+  await expect(library.locator("[data-project-view]")).toHaveAttribute("data-project-view", "list");
+  await library.getByRole("button", { name: "Exibir em cards" }).click();
+  await page.reload();
+  await expect(library.locator("[data-project-view]")).toHaveAttribute("data-project-view", "cards");
+});
+
+test("library shows the saved folder name next to project metadata", async ({ page }) => {
+  await mockAccount(page);
+  const folderId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  await page.route("**/api/account/projects", route => route.fulfill({ json: { projects: savedProjects } }));
+  await page.route("**/api/account/project-folders", route => route.fulfill({
+    json: {
+      folders: [{ id: folderId, name: "Campanhas", created_at: "2026-11-12T10:00:00Z" }],
+      assignments: [{ project_id: savedProjects[0].id, folder_id: folderId }],
+    },
+  }));
+  await page.goto("/conta/projetos");
+  const articles = page.getByRole("region", { name: "Projetos salvos" }).locator("article");
+  await expect(articles.filter({ hasText: "Campanha São João" })).toContainText("Pasta: Campanhas");
+  await expect(articles.filter({ hasText: "Calendário de outubro" })).toContainText("Pasta: Sem pasta");
+});
+
 test("Agency duplicates a saved project in the library preserving its payload and client", async ({ page }) => {
   await mockAccount(page, { plan: "agency" });
   const original = savedProjects[0];
