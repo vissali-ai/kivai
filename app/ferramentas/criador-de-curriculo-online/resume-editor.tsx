@@ -18,7 +18,7 @@ export default function ResumeEditor() {
   const [first, setFirst] = useState(false);
   const [ready, setReady] = useState(false);
   const [notice, setNotice] = useState("");
-  const [target, setTarget] = useState<"summary" | "experience">("summary");
+  const [target, setTarget] = useState<Field>("summary");
   useEffect(() => {
     try {
       const draft = JSON.parse(localStorage.getItem(storage) || "null");
@@ -67,9 +67,11 @@ export default function ResumeEditor() {
       <p className="text-sm text-muted-foreground">O rascunho fica salvo neste navegador.</p>
       <ToolAiPanel fingerprint={JSON.stringify([target,values[target]])} cost={1} disabled={!values[target].trim()}
         prepare={async()=>({kind:"resume", consent:true, section:labels[target], text:values[target]})}
-        render={result=>result.kind === "resume" && <><p className="whitespace-pre-line">{result.suggestion}</p><Button onClick={()=>update(target,result.suggestion)}>Aplicar sugestão</Button></>}>
-        <label>Trecho para enviar<select className={control} value={target} onChange={e=>setTarget(e.target.value === "experience" ? "experience" : "summary")}>
-          <option value="summary">Resumo profissional</option><option value="experience">Experiência profissional</option></select></label>
+        render={result=>result.kind === "resume" && <><p className="whitespace-pre-line">{result.suggestion}</p><Button onClick={()=>update(target, sections.includes(target) ? result.suggestion : result.suggestion.slice(0,250))}>Aplicar sugestão</Button></>}>
+        <label>Campo para revisar com IA<select className={control} value={target} onChange={e=>setTarget(e.target.value as Field)}>
+          {fields.map(key=><option key={key} value={key}>{labels[key]}</option>)}
+        </select></label>
+        <p className="text-xs text-muted-foreground">A IA trabalha somente com o conteúdo já digitado no campo selecionado e foi orientada a não inventar experiências, habilidades, métricas ou dados de contato.</p>
       </ToolAiPanel>
     </section>
     <section className="rounded-lg border bg-muted/30 p-4 sm:p-6">
