@@ -9,6 +9,19 @@ import { projectLimits } from "@/lib/billing/plan-benefits";
 import type { SavedProject } from "@/lib/projects/validation";
 
 type Props = { kind?: SavedProject["kind"]; payload?: unknown; onLoad?: (payload: unknown) => void; showInstagramHighlight?: boolean };
+type ProjectFolder = { id: string; name: string; created_at: string };
+type FolderAssignment = { project_id: string; folder_id: string };
+async function requestFolders(method = "GET", body?: unknown, id?: string) {
+  const token = getStoredSession()?.access_token;
+  if (!token) throw new Error("Entre na sua conta para organizar os projetos.");
+  const response = await fetch(`/api/account/project-folders${id ? `?id=${encodeURIComponent(id)}` : ""}`, {
+    method, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}), cache: "no-store",
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Não foi possível organizar os projetos.");
+  return data as { folders: ProjectFolder[]; assignments: FolderAssignment[]; folder: ProjectFolder; ok: true };
+}
 const routes: Record<SavedProject["kind"], string> = { post_creator: "/ferramentas/criador-de-posts-com-ia", calendar: "/ferramentas/calendario-editorial-redes-sociais", briefing: "/ferramentas/planejador-de-conteudo-social-media", qr_code: "/ferramentas/gerador-de-qr-code", watermark: "/ferramentas/adicionar-marca-dagua", social_report: "/ferramentas/gerador-de-relatorio-social-media", preview_post: "/ferramentas/preview-de-post-redes-sociais", engagement: "/ferramentas/calculadora-de-engajamento", roas: "/ferramentas/calculadora-de-roas", roi: "/ferramentas/calculadora-de-roi", post_analysis: "/ferramentas/analisador-de-posts", trend_radar: "/ferramentas/radar-de-tendencias", margin: "/ferramentas/calculadora-de-margem", markup: "/ferramentas/calculadora-de-markup", proofreader: "/ferramentas/corretor-de-texto" };
 const resumableKinds: ReadonlySet<SavedProject["kind"]> = new Set(["calendar", "briefing", "qr_code", "social_report", "preview_post", "roas", "roi", "margin", "markup", "proofreader", "post_creator", "watermark", "engagement", "post_analysis", "trend_radar"]);
 const labels: Record<SavedProject["kind"], string> = { post_creator: "Criador de Posts com IA", calendar: "Calendário", briefing: "Briefing", qr_code: "QR Code", watermark: "Marca d’água", social_report: "Relatório Social Media", preview_post: "Preview de Post", engagement: "Engajamento", roas: "ROAS", roi: "ROI", post_analysis: "Análise de Posts", trend_radar: "Radar de Tendências", margin: "Margem", markup: "Markup", proofreader: "Corretor de Texto com IA" };
@@ -41,6 +54,13 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [folders, setFolders] = useState<ProjectFolder[]>([]);
+  const [assignments, setAssignments] = useState<FolderAssignment[]>([]);
+  const [folderFilter, setFolderFilter] = useState("all");
+  const [folderName, setFolderName] = useState("");
+  const [folderError, setFolderError] = useState("");
+  const [folderReady, setFolderReady] = useState(false);
+  const [folderBusy, setFolderBusy] = useState(false);
   const [duplicating, setDuplicating] = useState<SavedProject | null>(null);
   const [duplicateTitle, setDuplicateTitle] = useState("");
   const [opening, setOpening] = useState<SavedProject | null>(null);
@@ -75,10 +95,43 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     setResumeProjectId(project.id);
     setOpening(project);
   }, [kind, onLoad, userId, loadingProjects, loadError, projects]);
+  useEffect(() => {
+    if (kind || !userId) return;
+    let active = true;
+    requestFolders().then(data => {
+      if (!active) return;
+      setFolders(data.folders);
+      setAssignments(data.assignments);
+      setFolderError("");
+      setFolderReady(true);
+    }).catch(() => { if (active) setFolderError("Não foi possível carregar as pastas da conta."); });
+    return () => { active = false; };
+  }, [kind, userId]);
+  async function createFolder() {
+    if (!folderReady || folderBusy || !folderName.trim()) return;
+    setFolderBusy(true); setFolderError("");
+    try {
+      const { folder } = await requestFolders("POST", { name: folderName.trim() });
+      setFolders(all => [...all, folder].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")));
+      setFolderName("");
+      setFolderFilter(folder.id);
+    } catch (error) { setFolderError(error instanceof Error ? error.message : "Não foi possível criar a pasta."); }
+    finally { setFolderBusy(false); }
+  }
+  async function moveToFolder(projectId: string, folderId: string | null) {
+    if (!folderReady || folderBusy) return;
+    setFolderBusy(true); setFolderError("");
+    try {
+      await requestFolders("PUT", { projectId, folderId });
+      setAssignments(all => [...all.filter(item => item.project_id !== projectId), ...(folderId ? [{ project_id: projectId, folder_id: folderId }] : [])]);
+      setMessage("Organização do projeto atualizada.");
+    } catch (error) { setFolderError(error instanceof Error ? error.message : "Não foi possível mover o projeto."); }
+    finally { setFolderBusy(false); }
+  }
   const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
   const query = normalizeSearch(search.trim());
   const visible = projects
-    .filter(p => (!kind || p.kind === kind) && (!kindFilter || p.kind === kindFilter) && (!filter || p.client_name === filter) && (!query || normalizeSearch(`${p.title} ${p.client_name} ${labels[p.kind]}`).includes(query)))
+    .filter(p => (!kind || p.kind === kind) && (!kindFilter || p.kind === kindFilter) && (!filter || p.client_name === filter) && (kind || folderFilter === "all" || (folderFilter === "unfiled" ? !assignments.some(item => item.project_id === p.id) : assignments.some(item => item.project_id === p.id && item.folder_id === folderFilter))) && (!query || normalizeSearch(`${p.title} ${p.client_name} ${labels[p.kind]}`).includes(query)))
     .sort((a, b) => sortOrder === "name"
       ? a.title.localeCompare(b.title, "pt-BR")
       : sortOrder === "oldest"
@@ -135,7 +188,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   }
   async function remove(id: string) {
     setBusy(true);
-    try { await requestProjects("DELETE", undefined, id); setProjects(all => all.filter(p => p.id !== id)); if (selected?.id === id) setSelected(null); setConfirmDelete(null); setMessage("Projeto excluído da conta. O conteúdo aberto na ferramenta foi preservado."); }
+    try { await requestProjects("DELETE", undefined, id); setProjects(all => all.filter(p => p.id !== id)); setAssignments(all => all.filter(item => item.project_id !== id)); if (selected?.id === id) setSelected(null); setConfirmDelete(null); setMessage("Projeto excluído da conta. O conteúdo aberto na ferramenta foi preservado."); }
     catch (err) { setMessage(err instanceof Error ? err.message : "Falha ao excluir."); }
     finally { setBusy(false); }
   }
@@ -152,6 +205,28 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       </p> : null}
     {!userId ? <Button asChild><Link href={loginHref}>Entrar na conta</Link></Button> : null}
     {kind && userId ? <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nome do projeto<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={120} value={title} onChange={e => setTitle(e.target.value)} /></label>{plan === "agency" ? <label className="text-sm">Cliente (opcional)<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={100} value={client} onChange={e => setClient(e.target.value)} /><span className="text-xs text-muted-foreground">Até 20 nomes de clientes em seus projetos.</span></label> : null}<div className="flex flex-wrap gap-2 sm:col-span-2"><Button disabled={busy || !title.trim() || !!accessError || (plan === "pro" && !!selected?.client_name)} onClick={() => save(false)}>Salvar na conta</Button><Button variant="outline" disabled={busy || !title.trim() || !!accessError} onClick={() => save(true)}>Salvar como novo projeto</Button></div></div> : null}
+    {!kind && userId ? <div className="space-y-3 rounded-xl border border-border bg-background/30 p-3 sm:p-4" aria-label="Pastas de projetos">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold">Pastas</h3>
+        {folderReady ? <span className="text-xs text-muted-foreground">{folders.length} {folders.length === 1 ? "pasta" : "pastas"}</span> : null}
+      </div>
+      {folderError ? <p role="alert" className="text-sm text-destructive">{folderError}</p> : null}
+      {folderReady ? <>
+        <label className="block text-sm">Exibir projetos
+          <select aria-label="Filtrar por pasta" value={folderFilter} onChange={event => setFolderFilter(event.target.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2 sm:max-w-md">
+            <option value="all">Todos os projetos</option>
+            <option value="unfiled">Sem pasta</option>
+            {folders.map(folder => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+          </select>
+        </label>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="min-w-0 flex-1 text-sm">Nova pasta
+            <input value={folderName} maxLength={80} onChange={event => setFolderName(event.target.value)} placeholder="Ex.: Campanhas" className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2" />
+          </label>
+          <Button variant="outline" disabled={folderBusy || !folderName.trim()} onClick={() => void createFolder()}>Criar pasta</Button>
+        </div>
+      </> : <p className="text-sm text-muted-foreground">Organização por pastas indisponível.</p>}
+    </div> : null}
     {!kind && projects.length > 0 ? <div className="space-y-3 rounded-xl border border-border bg-background/30 p-3 sm:p-4">
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(160px,200px)]">
         <label className="min-w-0 text-sm">Buscar projetos
@@ -171,7 +246,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
               <option value="recent">Mais recentes</option><option value="oldest">Mais antigos</option><option value="name">Nome (A–Z)</option>
             </select>
           </label>
-          {search || filter || kindFilter ? <Button variant="outline" size="sm" className="min-h-10" onClick={() => { setSearch(""); setFilter(""); setKindFilter(""); }}>Limpar filtros</Button> : null}
+          {search || filter || kindFilter || folderFilter !== "all" ? <Button variant="outline" size="sm" className="min-h-10" onClick={() => { setSearch(""); setFilter(""); setKindFilter(""); setFolderFilter("all"); }}>Limpar filtros</Button> : null}
         </div>
         <div role="group" aria-label="Visualização dos projetos" className="flex rounded-lg border border-border p-1">
           <button type="button" aria-label="Exibir em cards" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={`inline-flex size-9 items-center justify-center rounded-md ${view === "cards" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}><LayoutGrid className="size-4" /></button>
@@ -215,6 +290,12 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         <span className="mb-2 inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary"><FolderOpen className="size-3" />{labels[project.kind]}</span>
         <h3 className="break-words font-semibold">{project.title}</h3>
         <p className="mt-1 text-xs text-muted-foreground">{project.client_name ? `${project.client_name} · ` : ""}Atualizado em {new Date(project.updated_at).toLocaleDateString("pt-BR")}</p>
+        {folderReady ? <label className="mt-2 block text-xs text-muted-foreground">Pasta
+          <select aria-label={`Pasta de ${project.title}`} value={assignments.find(item => item.project_id === project.id)?.folder_id ?? ""} disabled={folderBusy} onChange={event => void moveToFolder(project.id, event.target.value || null)} className="mt-1 block min-h-10 w-full rounded-lg border border-border bg-background px-2 py-1 text-sm text-foreground">
+            <option value="">Sem pasta</option>
+            {folders.map(folder => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+          </select>
+        </label> : null}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-start">
         {onLoad ? <Button size="sm" variant="outline" onClick={() => setOpening(project)}>Abrir</Button> : <Button asChild size="sm" variant="outline"><Link href={resumableKinds.has(project.kind) ? `${routes[project.kind]}?project=${encodeURIComponent(project.id)}` : routes[project.kind]}>{resumableKinds.has(project.kind) ? "Continuar projeto" : "Abrir ferramenta"} <ArrowRight className="size-4" /></Link></Button>}
@@ -232,7 +313,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       </div>
     </article>)}</div>
     )}
-    {userId && !loadingProjects && !loadError && !accessError && !visible.length && (kind || search || filter || kindFilter) ? <p role="status" className="text-sm text-muted-foreground">{search || filter || kindFilter ? "Nenhum projeto encontrado. Tente outro nome ou limpe os filtros." : kind ? "Você ainda não tem projetos salvos nesta ferramenta. Dê um nome ao projeto e use Salvar na conta." : ""}</p> : null}
+    {userId && !loadingProjects && !loadError && !accessError && !visible.length && (kind || search || filter || kindFilter || folderFilter !== "all") ? <p role="status" className="text-sm text-muted-foreground">{search || filter || kindFilter ? "Nenhum projeto encontrado. Tente outro nome ou limpe os filtros." : kind ? "Você ainda não tem projetos salvos nesta ferramenta. Dê um nome ao projeto e use Salvar na conta." : ""}</p> : null}
 
     {showInstagramHighlight ? (
       <div className="relative overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/[0.12] via-primary/[0.045] to-transparent p-4 sm:p-5">
