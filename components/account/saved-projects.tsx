@@ -20,6 +20,7 @@ async function requestFolders(method = "GET", body?: unknown, id?: string) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Não foi possível organizar os projetos.");
+  if (method === "GET" && (!Array.isArray(data.folders) || !Array.isArray(data.assignments))) throw new Error("As pastas ainda não estão disponíveis.");
   return data as { folders: ProjectFolder[]; assignments: FolderAssignment[]; folder: ProjectFolder; ok: true };
 }
 const routes: Record<SavedProject["kind"], string> = { post_creator: "/ferramentas/criador-de-posts-com-ia", calendar: "/ferramentas/calendario-editorial-redes-sociais", briefing: "/ferramentas/planejador-de-conteudo-social-media", qr_code: "/ferramentas/gerador-de-qr-code", watermark: "/ferramentas/adicionar-marca-dagua", social_report: "/ferramentas/gerador-de-relatorio-social-media", preview_post: "/ferramentas/preview-de-post-redes-sociais", engagement: "/ferramentas/calculadora-de-engajamento", roas: "/ferramentas/calculadora-de-roas", roi: "/ferramentas/calculadora-de-roi", post_analysis: "/ferramentas/analisador-de-posts", trend_radar: "/ferramentas/radar-de-tendencias", margin: "/ferramentas/calculadora-de-margem", markup: "/ferramentas/calculadora-de-markup", proofreader: "/ferramentas/corretor-de-texto" };
