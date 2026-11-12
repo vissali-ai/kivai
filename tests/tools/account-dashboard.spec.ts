@@ -228,6 +228,59 @@ test("projects default to cards for free and pro, list for agency", async ({ pag
   }
 });
 
+test("Agency duplicates a saved project in the library preserving its payload and client", async ({ page }) => {
+  await mockAccount(page, { plan: "agency" });
+  const original = savedProjects[0];
+  const duplicate = { ...original, id: "99999999-9999-4999-8999-999999999999", title: "Campanha São João (cópia)", revision: 1 };
+  let submitted: Record<string, unknown> | null = null;
+  await page.route("**/api/account/projects", route => {
+    if (route.request().method() === "POST") {
+      submitted = route.request().postDataJSON() as Record<string, unknown>;
+      return route.fulfill({ json: { project: duplicate } });
+    }
+    return route.fulfill({ json: { projects: savedProjects } });
+  });
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await library.getByLabel("Mais ações para Campanha São João").click();
+  await library.getByRole("button", { name: "Duplicar", exact: true }).click();
+  const modal = page.getByRole("dialog", { name: "Duplicar projeto" });
+  await expect(modal.getByRole("textbox", { name: "Nome da cópia" })).toHaveValue("Campanha São João (cópia)");
+  await modal.getByRole("button", { name: "Criar cópia" }).click();
+  await expect(modal).toHaveCount(0);
+  await expect.poll(() => submitted).toMatchObject({
+    id: null, kind: "briefing", title: "Campanha São João (cópia)",
+    clientName: "Café Central", payload: original.payload,
+  });
+  expect(submitted).not.toHaveProperty("revision");
+  await expect(library.locator("article")).toHaveCount(3);
+  await expect(library.locator("article").filter({ hasText: "Campanha São João (cópia)" })).toHaveCount(1);
+  await expect(library.locator("article").filter({ hasText: "Campanha São João" })).toHaveCount(2);
+});
+
+test("duplicating handles plan limit without creating a fake project", async ({ page }) => {
+  await mockAccount(page, { plan: "free" });
+  let attempts = 0;
+  await page.route("**/api/account/projects", route => {
+    if (route.request().method() === "POST") {
+      attempts++;
+      return route.fulfill({ status: 409, json: { error: "Limite de projetos atingido" } });
+    }
+    return route.fulfill({ json: { projects: savedProjects } });
+  });
+  await page.goto("/conta/projetos");
+  const library = page.getByRole("region", { name: "Projetos salvos" });
+  await library.getByLabel("Mais ações para Campanha São João").click();
+  await library.getByRole("button", { name: "Duplicar", exact: true }).click();
+  const modal = page.getByRole("dialog", { name: "Duplicar projeto" });
+  await modal.getByRole("button", { name: "Criar cópia" }).click();
+  await expect(modal.getByRole("alert")).toContainText("Limite de projetos atingido");
+  await expect(library.locator("article")).toHaveCount(2);
+  expect(attempts).toBe(1);
+  await modal.getByRole("button", { name: "Cancelar" }).click();
+  await expect(modal).toHaveCount(0);
+});
+
 test("planner resumes a saved project only after confirmation and updates the same revision", async ({ page }) => {
   await mockAccount(page, { plan: "agency" });
   let payloadSent: Record<string, unknown> | null = null;
