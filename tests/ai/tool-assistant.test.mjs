@@ -27,11 +27,12 @@ test('Brand plan accepts unknown optional fields without converting them to zero
  assert.ok(schema.toolAssistantInput.safeParse(input).success);
  assert.equal(schema.toolAssistantInput.safeParse({...input,niche:' '}).success,false);
 });
-test('Resume AI accepts every curriculum field but still requires existing text',()=>{
- for(const section of ['Nome completo','Cargo desejado','Contato e cidade','Resumo profissional','Experiência profissional','Formação','Projetos e atividades','Habilidades']){
+test('Resume AI accepts professional sections only and requires existing text',()=>{
+ for(const section of ['Resumo profissional','Experiência profissional','Formação','Projetos e atividades','Habilidades']){
   assert.ok(schema.toolAssistantInput.safeParse({kind:'resume',consent:true,section,text:'Conteúdo informado pelo usuário'}).success);
  }
  assert.equal(schema.toolAssistantInput.safeParse({kind:'resume',consent:true,section:'Habilidades',text:' '}).success,false);
+ for(const section of ['Nome completo','Cargo desejado','Contato e cidade','Endereço e Contato']) assert.equal(schema.toolAssistantInput.safeParse({kind:'resume',consent:true,section,text:'dados'}).success,false);
 });
 const caption={kind:'caption',consent:true,text:'Café da casa',instruction:'Revisar',limit:100};
 const image={mimeType:'image/jpeg',data:Buffer.from([255,216,255,1,2,3]).toString('base64')};
