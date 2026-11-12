@@ -66,36 +66,43 @@ export async function POST(request: Request) {
   try {
     // Public YouTube links must use the video input type in the Interactions API.
     // The previous generateContent fileData request returned HTTP 503.
-    const model = "gemini-3.8-flash";
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/interactions",
-      {
+    const models = ["gemini-3.8-flash", "gemini-3.7-flash"] as const;
+    let response: Response | null = null;
+    let model: string = models[0];
+    const startedAt = Date.now();
+    for (const candidate of models) {
+      model = candidate;
+      // Keep both attempts inside the same function timeout.
+      const remaining = 48_000 - (Date.now() - startedAt);
+      if (remaining < 8_000) break;
+      response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         cache: "no-store",
-        signal: AbortSignal.timeout(50_000),
+        signal: AbortSignal.timeout(remaining),
         body: JSON.stringify({
-          model,
+          model: candidate,
           input: [
             { type: "text", text: instruction },
             { type: "video", uri: url },
           ],
-          generation_config: { temperature: 0.1 },
         }),
-      },
-    );
-
+      });
+      if (response.ok) break;
+      console.warn("[kivai-video-preview] Gemini HTTP status", candidate, response.status);
+      // Retry only temporary service failures, once, using another supported model.
+      if (![502, 503, 504].includes(response.status)) break;
+    }
+    if (!response) return fail("O Gemini não respondeu dentro do tempo de teste.", 504);
     if (!response.ok) {
-      // Log only the HTTP status; never log response body, credentials, or video URLs.
-      console.warn("[kivai-video-preview] interactions provider status", response.status);
-      if (response.status === 429) return fail("O limite de uso da API Gemini foi atingido. Tente novamente mais tarde.", 429);
-      if (response.status === 503 || response.status === 502 || response.status === 504)
-        return fail("O serviço Gemini está temporariamente indisponível (503). Tente novamente mais tarde.", 503);
-      if (response.status === 401 || response.status === 403)
-        return fail("A chave Gemini do ambiente de teste não tem permissão para processar este modelo.", 503);
-      if (response.status === 400 || response.status === 404 || response.status === 422)
-        return fail("O modelo Gemini não conseguiu aceitar este link do YouTube. Verifique se o vídeo é público e está acessível.", 422);
-      return fail("O Gemini não concluiu a análise. Código HTTP " + response.status + ".", 503);
+      if (response.status === 429) return fail("A cota do Gemini foi atingida (429). Não é um erro no seu link.", 429);
+      if ([502, 503, 504].includes(response.status))
+        return fail("O Gemini continua indisponível (HTTP " + response.status + ") nos modelos testados. Não foi possível processar o vídeo.", 503);
+      if ([401, 403].includes(response.status))
+        return fail("A chave do ambiente de teste não possui autorização para este modelo Gemini (HTTP " + response.status + ").", 503);
+      if ([400, 404, 422].includes(response.status))
+        return fail("O Gemini recusou a solicitação (HTTP " + response.status + "). O vídeo pode estar inacessível ou o modelo não suporta esta entrada.", 422);
+      return fail("O Gemini retornou HTTP " + response.status + ".", 503);
     }
 
     const interaction = await response.json() as GeminiInteraction;
