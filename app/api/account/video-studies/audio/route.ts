@@ -39,7 +39,6 @@ export async function GET(request:Request){
 export async function POST(request:Request){
  let userId:string|null=null;let reserved=false;
  try{
-  if(process.env.VERCEL_ENV!=="preview")return fail("Disponível somente na homologação.",404);
   const user=await authenticateBillingUser(request);userId=user.id;
   const body=await request.json() as {id?:string};
   const id=body.id??"";
@@ -88,6 +87,6 @@ export async function POST(request:Request){
   return Response.json({url:await playUrl({project_id:id,user_id:user.id,storage_path:path,size_bytes:bytes.byteLength,mime_type:"audio/wav",expires_at:expiresAt}),expiresAt,reused:false},{headers});
  }catch(error){
   if(reserved&&userId)try{await supabaseRest("rpc/kivai_refund_video_study_usage",{method:"POST",body:JSON.stringify({p_user_id:userId,p_kind:"audio"})});}catch{console.warn("[video-study-tts] quota refund unavailable");}
-  return fail(error instanceof Error&&error.message==="UNAUTHORIZED"?"Entre na sua conta para gerar áudio.":"Não foi possível gerar a narração. Nenhuma geração concluída será cobrada.",503);
+  return fail(error instanceof Error&&error.message==="UNAUTHORIZED"?"Entre na sua conta para gerar áudio.":"Não foi possível gerar a narração. Tente novamente.",503);
  }
 }
