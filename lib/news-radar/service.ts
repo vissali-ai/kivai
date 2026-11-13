@@ -111,11 +111,11 @@ function rankCandidates(candidates: RankedCandidate[], nowDate: Date) {
   return selectDiverse([...today, ...last24Hours], newsRadarConfig.maxResults);
 }
 
-function cacheIsFresh(cache: Awaited<ReturnType<typeof getRadarCache>>) {
+function cacheIsFresh(cache: Awaited<ReturnType<typeof getRadarCache>> | null) {
   return Boolean(cache?.payload && cache.expires_at && new Date(cache.expires_at).getTime() > Date.now());
 }
 
-function cacheCanBeFallback(cache: Awaited<ReturnType<typeof getRadarCache>>) {
+function cacheCanBeFallback(cache: Awaited<ReturnType<typeof getRadarCache>> | null) {
   if (!cache?.payload || !cache.collected_at) return false;
   return new Date(cache.collected_at).getTime() >= Date.now() - newsRadarConfig.staleFallbackHours * 3_600_000;
 }
@@ -190,7 +190,7 @@ export async function searchNewsRadar(category: NewsRadarCategory): Promise<Rada
   // Uma falha transitória na leitura do cache não deve impedir uma nova coleta.
   // Se o Supabase continuar indisponível, o bloqueio/consulta seguinte retornará
   // uma mensagem controlada pela rota, sem exibir notícias antigas como atuais.
-  let existing: Awaited<ReturnType<typeof getRadarCache>> = null;
+  let existing: Awaited<ReturnType<typeof getRadarCache>> | null = null;
   try {
     existing = await getRadarCache(category);
   } catch (error) {
