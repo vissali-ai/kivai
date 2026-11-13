@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 export default function PreviousVideoSummaryUrl(){
- redirect("/ferramentas/resumir-video-youtube");
+ permanentRedirect("/ferramentas/resumir-video-youtube");
 }
