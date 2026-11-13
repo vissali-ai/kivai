@@ -59,6 +59,31 @@ export async function POST(request: Request) {
     try {
       const user = await authenticateBillingUser(request);
       quotaUserId = user.id;
+      const plan = await supabaseRest<"free"|"pro"|"agency">("rpc/kivai_effective_plan",{
+        method:"POST",body:JSON.stringify({p_user_id:user.id})
+      });
+      const maximumSeconds = plan === "agency" ? 3600 : plan === "pro" ? 1800 : 720;
+      const metadataKey=process.env.YOUTUBE_DATA_API_KEY;
+      if (metadataKey) {
+        const id=new URL(url).searchParams.get("v");
+        const metaResponse=await fetch(
+          "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id="+id+"&key="+encodeURIComponent(metadataKey),{
+          cache:"no-store",signal:AbortSignal.timeout(9000)
+        });
+        if(!metaResponse.ok)return fail("Não foi possível verificar a duração do vídeo pelo YouTube. Tente novamente mais tarde.",503);
+        const meta=await metaResponse.json() as {items?:Array<{contentDetails?:{duration?:string}}>} ;
+        const duration=meta.items?.[0]?.contentDetails?.duration??"";
+        const match=/^P(?:(\\d+)D)?T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?$/.exec(duration);
+        if(!match)return fail("Não foi possível confirmar a duração deste vídeo.",422);
+        const seconds=Number(match[1]??0)*86400+Number(match[2]??0)*3600+Number(match[3]??0)*60+Number(match[4]??0);
+        if(seconds<1)return fail("Este vídeo não tem duração válida para análise.",422);
+        if(seconds>maximumSeconds)return fail(
+          "Este vídeo ultrapassa o limite de duração do seu plano ("+Math.floor(maximumSeconds/60)+" minutos).",422
+        );
+      } else {
+        // Before production rollout, configure a dedicated YouTube Data API key to enforce plan duration.
+        console.warn("[kivai-video-preview] YouTube duration verification not configured in preview");
+      }
       const allowed = await supabaseRest<boolean>("rpc/kivai_reserve_video_study_usage",{
         method:"POST",body:JSON.stringify({p_user_id:user.id,p_kind:"summary"})
       });
