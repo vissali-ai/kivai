@@ -2,6 +2,7 @@ import { Crown, KeyRound, Search, ShieldAlert, Trash2, UserRound, UsersRound } f
 import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { deleteCustomerPermanently, grantProTest, sendCustomerPasswordReset, updateCustomerAccount } from "./actions";
 import { CustomerAccessFields } from "@/components/admin/customer-access-fields";
+import { VideoStudyStorageAdmin } from "@/components/admin/video-study-storage-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -34,5 +35,6 @@ export default async function AdminUsuariosPage({ searchParams }: { searchParams
         <div className="flex min-w-[190px] flex-col gap-2"><form action={grantProTest}><input type="hidden" name="userId" value={user.id} /><button className="flex h-9 w-full items-center justify-center gap-2 border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary"><Crown className="size-4" /> Pro teste 7 dias</button></form>{user.authProvider === "email" ? <form action={sendCustomerPasswordReset}><input type="hidden" name="email" value={user.email} /><input type="hidden" name="provider" value={user.authProvider} /><button className="flex h-9 w-full items-center justify-center gap-2 border border-border px-3 text-xs font-semibold"><KeyRound className="size-4" /> Redefinir senha</button></form> : <div className="border border-border p-2 text-center text-[11px] leading-4 text-muted-foreground">Senha administrada pelo Google.</div>}<details className="border border-red-500/20 bg-red-500/[0.04] p-3"><summary className="cursor-pointer text-xs font-semibold text-red-700"><span className="inline-flex items-center gap-2"><Trash2 className="size-4" /> Excluir usuário</span></summary><form action={deleteCustomerPermanently} className="mt-3 space-y-2"><input type="hidden" name="userId" value={user.id} /><p className="text-xs leading-5 text-muted-foreground">Exclusão permanente. Digite EXCLUIR.</p><input name="confirmation" required placeholder="EXCLUIR" className="h-8 w-full border border-red-500/20 bg-background px-2 text-xs" /><button className="flex h-8 w-full items-center justify-center gap-2 bg-red-500/15 text-xs font-semibold text-red-200"><ShieldAlert className="size-3.5" /> Excluir permanentemente</button></form></details></div>
       </div>
     </details>)}{!users.length ? <div className="border border-border bg-card p-8 text-center text-sm text-muted-foreground">Nenhum usuário encontrado com esses filtros.</div> : null}</div>
+    <VideoStudyStorageAdmin />
   </div>;
 }
