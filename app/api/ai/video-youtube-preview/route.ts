@@ -84,7 +84,7 @@ export async function POST(request:Request){
     method:"POST",body:JSON.stringify({p_visitor_key:visitor,p_kind:"summary"})
    });
   }
-  if(!reserved)return fail("Você atingiu a quantidade de resumos deste mês. Consulte os planos para continuar.",429);
+  if(!reserved)return fail(userId?"Você atingiu a quantidade de resumos deste mês. Consulte os planos para continuar.":"Você já utilizou seu resumo gratuito. Crie sua conta Kivai para continuar.",429);
   const instruction="Analise este vídeo público do YouTube. Em português brasileiro, escreva um título claro, um resumo fiel em até cinco parágrafos e de cinco a dez tópicos principais. Inclua tempos [mm:ss] apenas quando puder verificá-los. Não invente afirmações ou tempos. Se o vídeo estiver inacessível, informe a limitação em vez de criar conteúdo fictício. Responda diretamente com o resumo.";
   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/interactions",{
    method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":process.env.GEMINI_API_KEY},

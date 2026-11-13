@@ -167,6 +167,30 @@ export default function YoutubeVideoPreviewClient(){
    <Button disabled={busy||!url.trim()} onClick={()=>void generateSummary()}>{busy?"Gerando resumo...":"Gerar resumo inteligente"}</Button>
    {busy&&<p role="status" className="text-sm text-muted-foreground">Estamos preparando seu resumo. Mantenha esta página aberta.</p>}
   </section>
+  {!loggedIn&&<section className="rounded-2xl border border-primary/20 bg-primary/[0.035] p-4 sm:p-5" aria-label="Planos para resumir vídeos">
+   <div className="flex flex-wrap items-start justify-between gap-3">
+    <div>
+     <h2 className="text-sm font-semibold sm:text-base">Gostou? Faça mais com o Kivai.</h2>
+     <p className="mt-1 text-xs leading-5 text-muted-foreground">Sem conta, você pode experimentar 1 resumo e ouvir seu áudio. Cadastre-se para continuar.</p>
+    </div>
+    <Button asChild size="sm"><Link href="/conta/cadastro?next=%2Fferramentas%2Fresumir-video-youtube">Criar conta grátis</Link></Button>
+   </div>
+   <div className="mt-4 grid gap-2 sm:grid-cols-3">
+    <div className="rounded-lg border border-border bg-card p-3">
+     <p className="text-sm font-semibold">Free</p>
+     <p className="mt-1 text-xs text-muted-foreground">3 resumos/mês, áudios e biblioteca pessoal.</p>
+    </div>
+    <div className="rounded-lg border border-border bg-card p-3">
+     <p className="text-sm font-semibold">Pro</p>
+     <p className="mt-1 text-xs text-muted-foreground">20 resumos/mês, vídeos de até 30 min e mais playlists.</p>
+    </div>
+    <div className="rounded-lg border border-border bg-card p-3">
+     <p className="text-sm font-semibold">Agency</p>
+     <p className="mt-1 text-xs text-muted-foreground">60 resumos/mês, vídeos de até 60 min e biblioteca ampliada.</p>
+    </div>
+   </div>
+   <div className="mt-3 text-right"><Link href="/planos" className="text-xs font-semibold text-primary underline-offset-2 hover:underline">Ver planos e assinar</Link></div>
+  </section>}
   {error&&<p role="alert" className="rounded-xl border border-destructive/40 bg-card p-4 text-sm">{error}</p>}
   {notice&&<p role="status" className="rounded-xl border border-border bg-card p-4 text-sm">{notice}</p>}
   <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="step-two">

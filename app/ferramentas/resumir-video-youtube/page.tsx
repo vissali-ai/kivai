@@ -49,7 +49,8 @@ export default function YouTubeSummaryPage(){
     {label:"Áudio",value:"Narração disponível depois da geração do resumo."},
     {label:"Biblioteca",value:"Salve resumos e organize playlists em sua conta Kivai."},
     {label:"Duração",value:"Até 12 minutos por vídeo no gratuito, 30 minutos no Pro e 60 minutos no Agency."},
-    {label:"Uso gratuito",value:"Até 3 resumos e 3 narrações por mês."}
+    {label:"Sem conta",value:"1 resumo e 1 narração para experimentar."},
+    {label:"Conta Free",value:"Até 3 resumos e 3 narrações por mês."}
    ]}
    privacy="Para gerar o resumo, o endereço e o conteúdo público do vídeo são analisados por um serviço de inteligência artificial. Os vídeos originais não são armazenados no Kivai. O usuário escolhe quais resumos e narrações deseja guardar na própria biblioteca."
    limitations={[
