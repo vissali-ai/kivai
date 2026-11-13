@@ -54,13 +54,13 @@ async def compress_video(
     target_mb: float | None = Form(default=None),
 ):
     if mode not in VIDEO_COMPRESS_MODES or preset not in VIDEO_COMPRESS_PRESETS:
-        raise HTTPException(status_code=400, detail="ConfiguraÃ§Ã£o de compressÃ£o invÃ¡lida.")
+        raise HTTPException(status_code=400, detail="Configuração de compressão inválida.")
     if resolution not in {"auto", "original", "2160", "1080", "720", "480", "360"}:
-        raise HTTPException(status_code=400, detail="ResoluÃ§Ã£o invÃ¡lida.")
+        raise HTTPException(status_code=400, detail="Resolução inválida.")
     if fps not in {"original", "60", "30", "24"} or bitrate not in {"auto", "low", "medium", "high", "custom"}:
-        raise HTTPException(status_code=400, detail="ConfiguraÃ§Ã£o avanÃ§ada invÃ¡lida.")
+        raise HTTPException(status_code=400, detail="Configuração avançada inválida.")
     if codec not in {"h264", "hevc"} or audio not in {"keep", "reduce", "remove"}:
-        raise HTTPException(status_code=400, detail="ConfiguraÃ§Ã£o de codec ou Ã¡udio invÃ¡lida.")
+        raise HTTPException(status_code=400, detail="Configuração de codec ou áudio inválida.")
     if not 150 <= custom_bitrate <= 50_000 or audio_bitrate not in {64, 96, 128, 192}:
         raise HTTPException(status_code=400, detail="Bitrate invÃ¡lido.")
     if target_mb is not None and not 1 <= target_mb <= 200:
@@ -102,7 +102,7 @@ async def compress_video(
             source_total_kbps = int(original_size * 8 / metadata["duration"] / 1000)
             selected_video_kbps = min(50_000, max(150, total_kbps - audio_kbps), max(150, int(source_total_kbps * 0.95) - audio_kbps))
 
-        command = [ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path, "-map", "0:v:0"]
+        command = [ffmpeg, "-hide_banner", "-loglevel", "warning", "-threads", "1", "-filter_threads", "1", "-filter_complex_threads", "1", "-y", "-i", input_path, "-map", "0:v:0"]
         if effective_audio != "remove":
             command.extend(["-map", "0:a?"])
         filters = []
@@ -128,12 +128,12 @@ async def compress_video(
 
         returncode, _, conversion_error = await run_ffmpeg_cancellable(request, *command, timeout=1800)
         if returncode != 0 or not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
-            raise RuntimeError(conversion_error.decode("utf-8", errors="replace")[-1000:])
+            raise RuntimeError(f"FFmpeg conversion failed: exit_code={returncode}; output_exists={os.path.exists(output_path)}; output_size={os.path.getsize(output_path) if os.path.exists(output_path) else 0}; stderr={conversion_error.decode("utf-8", errors="replace")[-2000:]}")
         verification_code, _, verification_error = await run_ffmpeg(
             ffmpeg, "-v", "error", "-i", output_path, "-f", "null", "-", timeout=180
         )
         if verification_code != 0:
-            raise RuntimeError(verification_error.decode("utf-8", errors="replace")[-1000:])
+            raise RuntimeError(f"FFmpeg verification failed: exit_code={verification_code}; stderr={verification_error.decode(chr(117)+chr(116)+chr(102)+chr(45)+chr(56), errors=chr(114)+chr(101)+chr(112)+chr(108)+chr(97)+chr(99)+chr(101))[-2000:]}")
         compressed_size = os.path.getsize(output_path)
         return FileResponse(
             output_path,
@@ -162,4 +162,4 @@ async def compress_video(
     except Exception as error:
         print(f"Erro ao comprimir vÃ­deo: {type(error).__name__}: {str(error)[:3000]}")
         shutil.rmtree(workdir, ignore_errors=True)
-        raise HTTPException(status_code=500, detail="NÃ£o foi possÃ­vel comprimir este vÃ­deo. Tente novamente com outro arquivo ou configuraÃ§Ã£o.")
+        raise HTTPException(status_code=500, detail="Não foi possível comprimir este vídeo. Tente novamente com outro arquivo ou configuração.")
