@@ -50,8 +50,8 @@ export async function POST(request:Request){
    console.warn("[video-narration] provider HTTP",response.status);
    return fail(response.status===429?"O serviço de áudio está com muitas solicitações. Tente novamente.":"Não foi possível gerar o áudio agora.",response.status===429?429:503);
   }
-  const data=await response.json() as {steps?:Array<{type?:string;content?:Array<{type?:string;data?:string}>}>};
-  const audio64=data.steps?.filter(s=>s.type==="model_output").flatMap(s=>s.content??[]).find(s=>s.type==="audio")?.data;
+  const generated=await response.json() as {steps?:Array<{type?:string;content?:Array<{type?:string;data?:string}>}>};
+  const audio64=generated.steps?.filter(s=>s.type==="model_output").flatMap(s=>s.content??[]).find(s=>s.type==="audio")?.data;
   if(!audio64)return fail("Não foi possível preparar a narração desse resumo.",503);
   const audio=Buffer.from(audio64,"base64");
   if(audio.length<44||audio.toString("ascii",0,4)!=="RIFF"||audio.byteLength>30000000)return fail("Não foi possível preparar a narração desse resumo.",503);
