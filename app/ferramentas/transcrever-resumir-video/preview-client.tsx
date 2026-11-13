@@ -189,7 +189,7 @@ export default function YoutubeVideoPreviewClient(){
      <p className="mt-1 text-xs text-muted-foreground">60 resumos/mês, vídeos de até 60 min e biblioteca ampliada.</p>
     </div>
    </div>
-   <div className="mt-3 text-right"><Link href="/planos" className="text-xs font-semibold text-primary underline-offset-2 hover:underline">Conhecer planos e benefícios</Link></div>
+   <div className="mt-3 text-right"><Link href="/planos" className="text-xs font-semibold text-primary underline-offset-2 hover:underline">Ver planos e assinar</Link></div>
   </section>}
   {error&&<p role="alert" className="rounded-xl border border-destructive/40 bg-card p-4 text-sm">{error}</p>}
   {notice&&<p role="status" className="rounded-xl border border-border bg-card p-4 text-sm">{notice}</p>}
