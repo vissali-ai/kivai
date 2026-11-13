@@ -43,15 +43,15 @@ export default function YoutubeVideoPreviewClient() {
  useEffect(()=>{
   const query=new URLSearchParams(window.location.search).get("project");
   if(!query||!/^[a-f\d-]{36}$/i.test(query))return;
-  if(!token()){
-   const guest=guestStudies().find(item=>item.id===query);
-   if(!guest)return;
+  const guest=guestStudies().find(item=>item.id===query);
+  if(guest){
    setSaved({id:guest.id,revision:0,title:guest.title,guest:true});
    setUrl(guest.source);setMode(guest.mode);setConsent(true);
    setResult({text:guest.text,source:guest.source,mode:guest.mode,partial:guest.partial,model:"gemini-3.5-flash-lite"});
    void getGuestAudio(guest.id).then(blob=>{if(blob)setAudioUrl(URL.createObjectURL(blob));}).catch(()=>{});
    return;
   }
+  if(!token())return;
   let active=true;
   void accountRequest("/api/account/video-studies").then(data=>{
    const project=(data.projects as SavedRecord[]).find(item=>item.id===query);
