@@ -39,10 +39,8 @@ export default function YoutubeVideoPreviewClient() {
  const [saved,setSaved]=useState<Saved|null>(null);
  const [audioUrl,setAudioUrl]=useState("");
  const [audioExpiry,setAudioExpiry]=useState("");
- const [loggedIn,setLoggedIn]=useState(false);
  const lock=useRef(false);
  useEffect(()=>{
-  setLoggedIn(Boolean(token()));
   const query=new URLSearchParams(window.location.search).get("project");
   if(!query||!/^[a-f\d-]{36}$/i.test(query))return;
   if(!token()){
@@ -99,6 +97,7 @@ export default function YoutubeVideoPreviewClient() {
     const title=saved?.title??titleOf(result);
     const studies=guestStudies();
     storeGuestStudies([{id,title,source:result.source,text:result.text,mode:result.mode,partial:result.partial,createdAt:new Date().toISOString()},...studies.filter(x=>x.id!==id)]);
+    if(audioUrl.startsWith("blob:")){try{await putGuestAudio(id,await (await fetch(audioUrl)).blob());}catch{setNotice("Resumo salvo. O áudio não pôde ser armazenado, mas continua disponível nesta aba.");}}
     setSaved({id,revision:0,title,guest:true});
     setNotice("Resumo salvo no navegador de teste. Você já pode gerar o áudio e adicioná-lo a playlists.");
    }else{
