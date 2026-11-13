@@ -45,7 +45,7 @@ function getPublicReadCache(path: string, options: RequestOptions) {
 export async function supabaseRest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   if (options.allowMissingConfig && !blogConfig.supabaseUrl) return [] as T;
   assertBlogDatabaseConfigured();
-  let response: Response;
+  let response: Response | null = null;
   const cacheOptions = getPublicReadCache(path, options);
   const method = (options.method ?? "GET").toUpperCase();
   // GET é idempotente: tentativas curtas absorvem resets/timeout transitórios
@@ -76,7 +76,7 @@ export async function supabaseRest<T>(path: string, options: RequestOptions = {}
     await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
   }
 
-  if (!response!) {
+  if (!response) {
     throw new Error(lastNetworkError instanceof Error ? lastNetworkError.message : "Não foi possível conectar ao Supabase.");
   }
   if (!response.ok) {
