@@ -48,6 +48,7 @@ export async function GET(request: Request) {
     return Response.json({
       plan: access.plan,
       subscription: access.subscription,
+      testMode: access.testMode,
       creditOrders: orders,
       planRequests: requests,
       changeRequests: changes,

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getStoredSession } from "@/lib/user-auth";
 import type { PlanCode } from "@/lib/billing/plan-benefits";
 import type { AccessSubscription } from "@/lib/billing/access";
-export type AccountAccess = { userId: string; plan: PlanCode; subscription: AccessSubscription | null };
+export type AccountAccess = { userId: string; plan: PlanCode; subscription: AccessSubscription | null; testMode?: boolean };
 export async function fetchAccountAccess(): Promise<AccountAccess | null> {
   const token = getStoredSession()?.access_token;
   if (!token) return null;

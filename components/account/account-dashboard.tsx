@@ -9,6 +9,7 @@ import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 
 import { useAccountAccess } from "@/lib/billing/access-client";
 import { AccountWorkspaceNav } from "@/components/account/account-workspace-nav";
+import { TestPlanSwitcher } from "@/components/account/test-plan-switcher";
 import { AccountWorkspaceOverview } from "@/components/account/account-workspace-overview";
 import { PaidQuickStart } from "@/components/account/paid-quick-start";
 import { SubscriptionRenewalNotice } from "@/components/account/subscription-renewal-notice";
@@ -151,6 +152,7 @@ export function AccountDashboard() {
 
 
 
+    {access?.testMode && plan ? <TestPlanSwitcher currentPlan={plan} /> : null}
     {userId ? <AccountWorkspaceOverview /> : null}
     {userId ? <div id="painel-creditos" tabIndex={-1} className="scroll-mt-28"><AiCreditBalance /></div> : null}
     {userId && (plan === "pro" || plan === "agency") ? <PaidQuickStart plan={plan} /> : null}

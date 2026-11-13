@@ -21,6 +21,7 @@ type Request = {
 };
 type Overview = {
   plan: "free" | "pro" | "agency";
+  testMode?: boolean;
   subscription: {
     plan_code: string;
     status: string;
@@ -117,7 +118,9 @@ export function BillingCenter() {
         <div><dt className="text-muted-foreground">Periodicidade registrada</dt><dd className="mt-1 font-semibold">{period}</dd></div>
         <div><dt className="text-muted-foreground">Fim do período registrado</dt><dd className="mt-1 font-semibold">{date(overview.subscription?.current_period_end)}</dd></div>
       </dl>
-      <p className="text-sm text-muted-foreground">{overview.plan === "free"
+      <p className="text-sm text-muted-foreground">{overview.testMode
+        ? "Conta em modo de avaliação. O plano exibido simula os benefícios e não gera cobrança nem altera a assinatura real."
+        : overview.plan === "free"
         ? "Você não possui um plano pago vigente."
         : overview.subscription?.test_access
           ? "Este acesso é de teste. Não gera cobrança automática."
@@ -126,9 +129,9 @@ export function BillingCenter() {
             : "Seu plano atual foi registrado por um fluxo anterior. Não presuma que a cobrança recorrente foi cancelada ao mudar de plano no site."}</p>
       <div className="flex flex-wrap gap-3">
         <Link href="/planos" className="inline-flex min-h-10 items-center bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Ver opções de plano</Link>
-        {overview.plan === "pro" && !overview.subscription?.test_access && <button type="button" disabled={working} onClick={() => void requestChange("upgrade")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar upgrade para Agency</button>}
-        {overview.plan === "agency" && !overview.subscription?.test_access && <button type="button" disabled={working} onClick={() => void requestChange("downgrade")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar downgrade para Pro</button>}
-        {overview.plan !== "free" && !overview.subscription?.test_access && <>
+        {!overview.testMode && overview.plan === "pro" && !overview.subscription?.test_access && <button type="button" disabled={working} onClick={() => void requestChange("upgrade")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar upgrade para Agency</button>}
+        {!overview.testMode && overview.plan === "agency" && !overview.subscription?.test_access && <button type="button" disabled={working} onClick={() => void requestChange("downgrade")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar downgrade para Pro</button>}
+        {!overview.testMode && overview.plan !== "free" && !overview.subscription?.test_access && <>
           <button type="button" disabled={working} onClick={() => void requestChange("cancel_renewal")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar cancelamento da renovação</button>
           <button type="button" disabled={working || !["monthly","annual"].includes(overview.subscription?.billing_cycle ?? "")} onClick={() => void requestChange("change_cycle", overview.subscription?.billing_cycle === "monthly" ? "annual" : "monthly")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar mudança para {period === "Mensal" ? "anual" : "mensal"}</button>
         </>}
