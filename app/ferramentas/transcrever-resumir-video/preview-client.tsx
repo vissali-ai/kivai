@@ -33,6 +33,7 @@ async function uploadNarration(id:string,blob:Blob,proof:string,sha:string){
 }
 export default function YoutubeVideoPreviewClient(){
  const [url,setUrl]=useState("");
+ const urlInputRef=useRef<HTMLInputElement>(null);
  const [result,setResult]=useState<Summary|null>(null);
  const [saved,setSaved]=useState<Saved|null>(null);
  const [busy,setBusy]=useState(false);
@@ -116,6 +117,27 @@ export default function YoutubeVideoPreviewClient(){
   }
   return()=>{active=false;};
  },[]);
+ async function pasteYoutubeLink(){
+  setError("");setNotice("");
+  try{
+   if(!navigator.clipboard?.readText)throw new Error("clipboard-unavailable");
+   const pasted=(await navigator.clipboard.readText()).trim();
+   if(!pasted)throw new Error("clipboard-empty");
+   setUrl(pasted);
+   setNotice("Link colado. Agora você pode gerar o resumo.");
+   urlInputRef.current?.focus();
+  }catch{
+   urlInputRef.current?.focus();
+   setNotice("Toque no campo do link e escolha “Colar” no menu do aparelho. Se o navegador pedir permissão para acessar a área de transferência, autorize.");
+  }
+ }
+ function handleLinkPaste(event:React.ClipboardEvent<HTMLInputElement>){
+  const pasted=event.clipboardData.getData("text/plain").trim();
+  if(!pasted)return;
+  event.preventDefault();
+  setUrl(pasted);
+  setError("");setNotice("Link colado. Agora você pode gerar o resumo.");
+ }
  async function generateSummary(){
   if(running.current||!url.trim())return;
   running.current=true;setBusy(true);setError("");setNotice("");setResult(null);setSaved(null);
@@ -214,7 +236,10 @@ export default function YoutubeVideoPreviewClient(){
    <h2 id="step-one" className="text-lg font-semibold">1. Gerar resumo</h2>
    <p className="text-sm text-muted-foreground">Cole um link público do YouTube.</p>
    <label htmlFor="youtube-link" className="sr-only">Link do YouTube</label>
-   <input id="youtube-link" type="url" value={url} onChange={e=>setUrl(e.target.value)} disabled={busy} autoComplete="url" placeholder="https://www.youtube.com/watch?v=..." className="w-full min-w-0 rounded-lg border border-border bg-background px-3 py-3 text-sm" maxLength={300}/>
+   <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+    <input ref={urlInputRef} id="youtube-link" type="url" inputMode="url" value={url} onChange={e=>setUrl(e.target.value)} onPaste={handleLinkPaste} disabled={busy} autoComplete="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="https://www.youtube.com/watch?v=..." className="w-full min-w-0 rounded-lg border border-border bg-background px-3 py-3 text-base sm:text-sm" maxLength={300}/>
+    <Button type="button" variant="outline" disabled={busy} onClick={()=>void pasteYoutubeLink()}>Colar link</Button>
+   </div>
    <Button disabled={busy||!url.trim()} onClick={()=>void generateSummary()}>{busy?"Gerando resumo...":"Gerar resumo inteligente"}</Button>
    {busy&&<p role="status" className="text-sm text-muted-foreground">Estamos preparando seu resumo. Mantenha esta página aberta.</p>}
   </section>
