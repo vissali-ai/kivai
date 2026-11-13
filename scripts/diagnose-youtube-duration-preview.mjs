@@ -7,5 +7,6 @@ try{
  const chunk=start>=0?html.slice(start,start+14000):"";
  const sec=chunk.match(/"lengthSeconds":"(\\d+)"/)?.[1]??chunk.match(/\\\\"lengthSeconds\\\\":\\\\"(\\d+)\\\\"/)?.[1];
  const idFound=chunk.includes(id);
- console.log("[duration-diag] youtube-watch",r.status,"details",start>=0,"id-match",idFound,"seconds",sec??"unknown");
+ const first=html.indexOf("lengthSeconds"), approx=html.indexOf("approxDurationMs"), dur=html.indexOf("duration");
+ console.log("[duration-diag] youtube-watch",r.status,"details",start>=0,"id-match",idFound,"seconds",sec??"unknown","length-index",first,"approx-index",approx,"near",first>=0?html.slice(first-20,first+90):approx>=0?html.slice(approx-20,approx+90):"none");
 }catch(e){console.log("[duration-diag] youtube-watch exception",e?.name??"unknown")}
