@@ -15,7 +15,7 @@ try:
     from .facebook import facebook_resolve
     from .tiktok import tiktok_resolve
     from ..instagram_downloader import InstagramResolveError
-    from .tiktok import TikTokResolveRequest
+    from .tiktok import TikTokResolveRequest, TikTokResolveError
     from .facebook import FacebookResolveRequest
     from .instagram import InstagramResolveRequest
 except ImportError:
@@ -23,7 +23,7 @@ except ImportError:
     from api.facebook import facebook_resolve
     from api.tiktok import tiktok_resolve
     from instagram_downloader import InstagramResolveError
-    from api.tiktok import TikTokResolveRequest
+    from api.tiktok import TikTokResolveRequest, TikTokResolveError
     from api.facebook import FacebookResolveRequest
     from api.instagram import InstagramResolveRequest
 
@@ -134,5 +134,5 @@ async def resolve_video_source(payload: VideoSourceRequest):
                 "message": "Esta origem ainda não possui integração compatível. Envie o arquivo de vídeo diretamente.",
             }
         return {**detected, "status": "media_resolved", "media": media}
-    except InstagramResolveError as exc:
+    except (InstagramResolveError, TikTokResolveError) as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
