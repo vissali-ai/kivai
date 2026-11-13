@@ -21,10 +21,11 @@ export function AccountWorkspaceOverview() {
     if (!token) { setLoading(false); return; }
     let active = true;
     const headers = { Authorization: `Bearer ${token}` };
-    void Promise.allSettled([
-      fetch("/api/account/projects", { headers, cache: "no-store" }),
-      fetch("/api/account/routine-reminders", { headers, cache: "no-store" }),
-    ]).then(async ([projectsResult, reminderResult]) => {
+    async function refreshOverview() {
+      const [projectsResult, reminderResult] = await Promise.allSettled([
+        fetch("/api/account/projects", { headers, cache: "no-store" }),
+        fetch("/api/account/routine-reminders", { headers, cache: "no-store" }),
+      ]);
       let projects: SavedProject[] | null = null;
       let reminder: ReminderPreference | null = null;
       if (projectsResult.status === "fulfilled" && projectsResult.value.ok) {
@@ -39,9 +40,13 @@ export function AccountWorkspaceOverview() {
           if (response.preference) reminder = response.preference;
         } catch { /* Resumo indisponível; configurações continuam acessíveis. */ }
       }
-      if (active) setData({ projects, reminder });
-    }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+      if (active) setData(current => ({ projects: projects ?? current.projects, reminder: reminder ?? current.reminder }));
+      if (active) setLoading(false);
+    }
+    const handleImported = () => { void refreshOverview(); };
+    window.addEventListener("kivai:video-studies-imported", handleImported);
+    void refreshOverview();
+    return () => { active = false; window.removeEventListener("kivai:video-studies-imported", handleImported); };
   }, []);
 
   const recent = data.projects?.slice().sort((a, b) =>
