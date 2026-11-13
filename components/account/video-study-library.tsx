@@ -136,7 +136,7 @@ export function VideoStudyLibrary(){
       const p=data.projects.find(v=>v.id===entry.project_id);
       if(!p)return null;
       return <div key={entry.project_id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted/40 p-2 text-sm">
-       <div className="min-w-0 flex-1"><Link className="font-medium underline-offset-4 hover:underline" href={`/ferramentas/transcrever-resumir-video?project=${p.id}`}>{p.title}</Link><p className="text-xs text-muted-foreground">{hasAudio(p.id)?"Áudio disponível":"Sem áudio ou expirado"}</p></div>
+       <div className="min-w-0 flex-1"><Link className="font-medium underline-offset-4 hover:underline" href={`/ferramentas/resumir-video-youtube?project=${p.id}`}>{p.title}</Link><p className="text-xs text-muted-foreground">{hasAudio(p.id)?"Áudio disponível":"Sem áudio ou expirado"}</p></div>
        <div className="flex gap-1">
         <Button size="sm" variant="outline" disabled={!hasAudio(p.id)} onClick={()=>void playAt(entries.map(x=>x.project_id).filter(hasAudio),entries.map(x=>x.project_id).filter(hasAudio).indexOf(p.id))}>Ouvir</Button>
         <Button size="sm" variant="ghost" disabled={busy} onClick={()=>void mutate(`/api/account/video-studies/playlists?id=${list.id}&projectId=${p.id}`,"DELETE")}>Retirar</Button>
@@ -155,7 +155,7 @@ export function VideoStudyLibrary(){
   {data.projects.length>0&&<div className="space-y-2">
    <h3 className="text-sm font-semibold">Resumos recentes</h3>
    {data.projects.slice(0,8).map(p=><div key={p.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2">
-    <Link href={`/ferramentas/transcrever-resumir-video?project=${p.id}`} className="text-sm font-medium underline-offset-4 hover:underline">{p.title}</Link>
+    <Link href={`/ferramentas/resumir-video-youtube?project=${p.id}`} className="text-sm font-medium underline-offset-4 hover:underline">{p.title}</Link>
     {hasAudio(p.id)?<Button size="sm" variant="outline" onClick={()=>void playAt([p.id],0)}>Ouvir</Button>:<span className="text-xs text-muted-foreground">Somente texto</span>}
    </div>)}
   </div>}
