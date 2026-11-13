@@ -14,10 +14,9 @@ export async function POST(request:Request){
   const body=await request.json() as {name?:string};
   const name=body.name?.trim()??"";
   if(!name||name.length>80)return fail("Informe um nome de até 80 caracteres.");
-  const plan=await supabaseRest<"free"|"pro"|"agency">("rpc/kivai_effective_plan",{method:"POST",body:JSON.stringify({p_user_id:user.id})});
-  const cap=plan==="agency"?100:plan==="pro"?20:3;
+  const cap=20; // Gratuito para todas as contas. Limite somente de organização.
   const current=await supabaseRest<List[]>(`video_study_playlists?select=id,user_id,name&user_id=eq.${user.id}&limit=${cap+1}`);
-  if(current.length>=cap)return fail("Limite de playlists deste plano atingido.",409);
+  if(current.length>=cap)return fail("Capacidade de playlists atingida. Exclua uma lista para criar outra.",409);
   const list=await supabaseRest<List[]>("video_study_playlists",{method:"POST",body:JSON.stringify({user_id:user.id,name})});
   return Response.json({playlist:list[0]},{headers,status:201});
  }catch(error){return fail(error instanceof Error&&error.message==="UNAUTHORIZED"?"Entre na sua conta.":"Não foi possível criar a playlist.",503);}
