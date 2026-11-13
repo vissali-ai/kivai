@@ -94,7 +94,7 @@ export async function POST(request: Request) {
       return fail("Faça login novamente para continuar.",401);
     }
   }
-  // Anonymous preview: 12 attempts per IP, 30 globally per day, at most 3 successful analyses per IP.
+  // Anonymous homologation uses no account or success-count entitlement. Server-side operational safety ceiling remains.
   const ip = request.headers.get("x-real-ip") || request.headers.get("x-vercel-forwarded-for")?.split(",")[0] || "unknown";
   const key = createHash("sha256")
     .update(`${process.env.ADMIN_AUTH_SECRET ?? "preview"}:${ip}`)
