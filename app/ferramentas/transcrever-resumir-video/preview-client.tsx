@@ -247,29 +247,22 @@ export default function YoutubeVideoPreviewClient(){
   catch{setError("Não foi possível copiar o resumo.");}
  }
  return <div className="space-y-5">
-  <nav aria-label="Etapas" className="grid grid-cols-3 gap-2">
-   {([["1","Gerar resumo"],["2","Resultado"],["3","Ouvir o resumo"]] as const).map(([number,title])=>
-    <div key={number} className="rounded-xl border border-border bg-card p-3 text-center">
-     <span className="mx-auto flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{number}</span>
-     <p className="mt-2 text-xs font-semibold sm:text-sm">{title}</p>
-    </div>)}
-  </nav>
   <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="step-one">
-   <h2 id="step-one" className="text-lg font-semibold">1. Gerar resumo</h2>
+   <h2 id="step-one" className="text-lg font-semibold">Resumir vídeo do YouTube</h2>
    <p className="text-sm text-muted-foreground">Cole um link público do YouTube.</p>
    <label htmlFor="youtube-link" className="sr-only">Link do YouTube</label>
    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
     <input ref={urlInputRef} id="youtube-link" type="url" inputMode="url" value={url} onChange={e=>setUrl(e.target.value)} onPaste={handleLinkPaste} disabled={busy} autoComplete="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="https://www.youtube.com/watch?v=..." className="w-full min-w-0 rounded-lg border border-border bg-background px-3 py-3 text-base sm:text-sm" maxLength={300}/>
     <Button type="button" variant="outline" disabled={busy} onClick={()=>void pasteYoutubeLink()}>Colar link</Button>
    </div>
-   <Button disabled={busy||audioBusy||!url.trim()} onClick={()=>void generateSummary()}>{busy?"Analisando vídeo...":audioBusy?"Gerando narração...":"Gerar resumo e áudio"}</Button>
-   {busy&&<p role="status" className="text-sm text-muted-foreground">Estamos preparando seu resumo. Mantenha esta página aberta.</p>}
+   <Button disabled={busy||audioBusy||!url.trim()} onClick={()=>void generateSummary()}>{busy||audioBusy?"Processando vídeo...":"Gerar resumo e áudio"}</Button>
   </section>
+  {(busy||audioBusy)&&<div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/[0.04] p-4" role="status" aria-live="polite"><span className="size-5 shrink-0 animate-spin rounded-full border-2 border-primary/25 border-t-primary" aria-hidden="true"/><div className="min-w-0"><p className="text-sm font-semibold">Estamos processando seu vídeo</p><p className="mt-1 text-sm text-muted-foreground">{busy?"Analisando o conteúdo e preparando seu resumo...":"Resumo pronto. Estamos gerando a narração em áudio automaticamente..."}</p></div></div>}
   {error&&<p role="alert" className="rounded-xl border border-destructive/40 bg-card p-4 text-sm">{error}</p>}
   {notice&&<p role="status" className="rounded-xl border border-border bg-card p-4 text-sm">{notice}</p>}
   <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="step-two">
-   <div><h2 id="step-two" className="text-lg font-semibold">2. Resultado</h2>
-    <p className="mt-1 text-sm text-muted-foreground">O resumo aparece primeiro. A narração é preparada automaticamente em seguida.</p></div>
+   <div><h2 id="step-two" className="text-lg font-semibold">Seu resumo e áudio</h2>
+    <p className="mt-1 text-sm text-muted-foreground">Texto e narração gerados a partir do vídeo.</p></div>
    {!result?<p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Seu resumo aparecerá aqui.</p>:
    <>
     <p className="break-all text-xs text-muted-foreground">Vídeo original: <a className="underline" href={result.source} target="_blank" rel="noopener noreferrer">{result.source}</a></p>
@@ -291,17 +284,10 @@ export default function YoutubeVideoPreviewClient(){
     </div>}
     <div className="whitespace-pre-wrap break-words rounded-lg border border-border bg-background p-4 text-sm leading-7">{result.text}</div>
     <p className="text-xs text-muted-foreground">Confira as informações importantes com o vídeo original.</p>
-   </>}
-  </section>
-  <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="step-three">
-   <div><h2 id="step-three" className="text-lg font-semibold">3. Ouvir o resumo</h2>
-    <p className="mt-1 text-sm text-muted-foreground">A narração é gerada automaticamente assim que o resumo fica pronto.</p></div>
-   {!result?<p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">O áudio estará disponível após o resumo.</p>:
-    <>
-     {audioBusy&&<p className="rounded-lg bg-muted/50 p-3 text-sm" role="status">Resumo concluído. Estamos gerando sua narração automaticamente...</p>}
+    <div className="border-t border-border pt-4">
+     <h3 className="mb-3 text-sm font-semibold">Narração em áudio</h3>
      {!audioUrl&&!audioBusy&&<Button variant="outline" disabled={result.text.length>8000} onClick={()=>void generateAudio()}>Tentar gerar áudio novamente</Button>}
      {result.text.length>8000&&<p className="text-xs text-muted-foreground">Este resumo excede o limite de 8.000 caracteres para narração automática.</p>}
-     {audioBusy&&<p className="text-sm text-muted-foreground" role="status">Preparando sua narração. Mantenha esta página aberta.</p>}
      {audioUrl&&<div className="space-y-2"><audio src={audioUrl} controls controlsList="nodownload" preload="metadata" className="w-full"/>
       {audioExpires&&<p className="text-xs text-muted-foreground">Áudio disponível na sua biblioteca até {new Date(audioExpires).toLocaleDateString("pt-BR")}.</p>}
      </div>}
@@ -315,7 +301,9 @@ export default function YoutubeVideoPreviewClient(){
      </div>}
      {audioUrl&&!audioStored&&saved&&!saved.guest&&audioBlob&&<Button variant="outline" disabled={saving} onClick={()=>void saveSummary()}>Salvar áudio na biblioteca</Button>}
      <p className="text-xs text-muted-foreground"><Link href="/conta/projetos" className="underline underline-offset-2">Organize seus resumos em playlists na Minha Biblioteca</Link>.</p>
-    </>}
+    </div>
+   </>}
   </section>
+
  </div>;
 }
