@@ -29,7 +29,7 @@ async function uploadNarration(id:string,blob:Blob,proof:string,sha:string){
  const first=await accountRequest("/api/account/video-studies/audio/stage","POST",payload);
  const upload=await fetch(first.url,{method:"PUT",body:blob,headers:{"Content-Type":"audio/wav"},cache:"no-store"});
  if(!upload.ok)throw new Error("Não foi possível guardar o áudio. Tente novamente.");
- await accountRequest("/api/account/video-studies/audio/complete","POST",payload);
+ return await accountRequest("/api/account/video-studies/audio/complete","POST",payload) as {expiresAt?:string};
 }
 export default function YoutubeVideoPreviewClient(){
  const [url,setUrl]=useState("");
@@ -55,17 +55,22 @@ export default function YoutubeVideoPreviewClient(){
    const project=response.project as {id:string;revision:number;title:string};
    const blob=await getGuestAudio(guest.id).catch(()=>null);
    if(blob){
-    const proof=audioProof,sha=audioSha;
-    // Audio proofs are intentionally not persisted. If the user generated audio before
-    // authenticating, keep the local copy and ask for a fresh narration after login.
+    const proofData=JSON.parse(localStorage.getItem(`kivai_video_audio_proof_${guest.id}`)||"null") as {proof?:string;sha?:string}|null;
     setAudioBlob(blob);
     setAudioUrl(current=>current||URL.createObjectURL(blob));
+    if(proofData?.proof&&proofData.sha){
+     const savedAudio=await uploadNarration(project.id,blob,proofData.proof,proofData.sha);
+     setAudioStored(true);
+     setAudioExpires(savedAudio.expiresAt||"");
+     localStorage.removeItem(`kivai_video_audio_proof_${guest.id}`);
+     await deleteGuestAudio(guest.id).catch(()=>{});
+    }
    }
    storeGuestStudies(guestStudies().filter(x=>x.id!==guest.id));
    if(!blob)await deleteGuestAudio(guest.id).catch(()=>{});
    setSaved({id:project.id,revision:project.revision,title:project.title,guest:false});
    setNotice(blob
-    ?"Resumo importado para sua conta. O áudio continua disponível nesta página; gere uma nova narração para salvá-la na biblioteca."
+    ?"Resumo e áudio importados para sua conta."
     :"Resumo salvo automaticamente na sua conta.");
    window.history.replaceState({}, "", "/ferramentas/resumir-video-youtube");
   }catch(e){
@@ -170,7 +175,9 @@ export default function YoutubeVideoPreviewClient(){
    setAudioProof(proof);setAudioSha(sha);setAudioBlob(blob);
    setAudioUrl(URL.createObjectURL(blob));setAudioExpires("");
    if(saved?.guest){
-    await putGuestAudio(saved.id,blob);setNotice("Áudio pronto e salvo neste dispositivo.");
+    await putGuestAudio(saved.id,blob);
+    localStorage.setItem(`kivai_video_audio_proof_${saved.id}`,JSON.stringify({proof,sha}));
+    setNotice("Áudio pronto e mantido nesta sessão. Entre para salvar o resumo e a narração na sua conta.");
    }else if(saved&&!saved.guest){
     try{await uploadNarration(saved.id,blob,proof,sha);setAudioStored(true);setNotice("Áudio pronto e salvo na sua biblioteca.");}
     catch{setNotice("Áudio pronto para ouvir. Salve novamente o resumo para tentar guardá-lo na biblioteca.");}
@@ -238,7 +245,7 @@ export default function YoutubeVideoPreviewClient(){
      </div>}
      {audioUrl&&saved?.guest&&<div className="rounded-xl border border-primary/25 bg-primary/[0.04] p-4">
       <p className="text-sm font-semibold">Seu áudio está pronto!</p>
-      <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para salvar o resumo na biblioteca. O áudio gerado nesta sessão poderá ser ouvido aqui; para armazená-lo na biblioteca, gere uma nova narração depois de entrar.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para salvar o resumo e esta narração na sua biblioteca.</p>
       <div className="mt-3 flex flex-wrap gap-2">
        <Button asChild><Link href={`/conta/login?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Entrar para salvar</Link></Button>
        <Button asChild variant="outline"><Link href={`/conta/cadastro?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Criar conta</Link></Button>
