@@ -128,7 +128,7 @@ async def compress_video(
 
         returncode, _, conversion_error = await run_ffmpeg_cancellable(request, *command, timeout=1800)
         if returncode != 0 or not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
-            raise RuntimeError(f"FFmpeg conversion failed: exit_code={returncode}; output_exists={os.path.exists(output_path)}; output_size={os.path.getsize(output_path) if os.path.exists(output_path) else 0}; stderr={conversion_error.decode(chr(117)+chr(116)+chr(102)+chr(45)+chr(56), errors=chr(114)+chr(101)+chr(112)+chr(108)+chr(97)+chr(99)+chr(101))[-2000:]}")
+            raise RuntimeError(f"FFmpeg conversion failed: exit_code={returncode}; output_exists={os.path.exists(output_path)}; output_size={os.path.getsize(output_path) if os.path.exists(output_path) else 0}; stderr={conversion_error.decode("utf-8", errors="replace")[-2000:]}")
         verification_code, _, verification_error = await run_ffmpeg(
             ffmpeg, "-v", "error", "-i", output_path, "-f", "null", "-", timeout=180
         )
