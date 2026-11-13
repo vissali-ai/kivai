@@ -159,6 +159,7 @@ export interface Tool {
 }
 
 export const INDEXABLE_TOOL_SLUGS = [
+  "resumir-video-youtube",
   "criador-de-curriculo-online",
   "imprimir-frente-e-verso",
   "descompactar-zip",
@@ -253,6 +254,15 @@ export function isToolIndexable(slug: string) {
 }
 
 export const tools: Tool[] = [
+  {
+    slug: "resumir-video-youtube",
+    name: "Resumir Vídeo do YouTube com IA",
+    description: "Transforme vídeos públicos do YouTube em resumos claros, ouça a narração e organize os conteúdos em playlists.",
+    category: "video", hubFilter: "Resumir", badge: "IA", icon: Video, available: true,
+    seoTitle: "Resumir Vídeo do YouTube com IA Online | Kivai",
+    seoDescription: "Resuma vídeos do YouTube com inteligência artificial, leia os pontos principais, gere áudio do resumo e salve estudos em playlists.",
+    keywords: ["resumir vídeo do youtube", "resumo de vídeo com IA", "resumo de youtube", "resumidor de vídeo", "ouvir resumo", "resumo em áudio", "estudar com vídeos"],
+  },
   {
     slug: "kivai-connect", name: "Kivai Connect",
     description: "Conheça sua TV com diagnóstico local gratuito e orientações opcionais com IA. Requer auxiliar Windows e pareamento autorizado.",
