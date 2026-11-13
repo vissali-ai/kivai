@@ -34,7 +34,7 @@ export async function POST(request:Request){
     method:"POST",body:JSON.stringify({p_visitor_key:visitor,p_kind:"audio"})
    });
   }
-  if(!reserved)return fail("Você atingiu a quantidade de narrações deste mês. Consulte os planos para continuar.",429);
+  if(!reserved)return fail(userId?"Você atingiu a quantidade de narrações deste mês. Consulte os planos para continuar.":"Sua narração gratuita já foi utilizada. Crie sua conta Kivai para continuar.",429);
   const apiKey=process.env.GEMINI_API_KEY;
   if(!apiKey)return fail("Não foi possível preparar o áudio agora.",503);
   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/interactions",{
