@@ -17,7 +17,7 @@ export default function AccountProjectsPage() {
             <p className="mt-2 text-sm text-muted-foreground">Encontre seus trabalhos salvos, filtre por cliente e acesse as ferramentas.</p>
           </div>
           <VideoStudyLibrary previewGuest={process.env.VERCEL_ENV === "preview"} />
-          <SavedProjects />
+          {process.env.VERCEL_ENV !== "preview" ? <SavedProjects /> : null}
         </div>
       </div>
     </main>
