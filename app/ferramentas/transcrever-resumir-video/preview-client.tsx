@@ -102,7 +102,7 @@ export default function YoutubeVideoPreviewClient(){
     setSaved({id:p.id,title:p.title,revision:p.revision,guest:false});
     setUrl(p.payload.source);
     setResult({text:p.payload.text,source:p.payload.source,mode:"summary",partial:p.payload.partial===true});
-    if(!requestedId)setNotice("Último resumo recuperado da sua biblioteca.");
+    setNotice("Resumo recuperado da sua biblioteca.");
     const asset=(data.audios as {project_id:string;expires_at:string}[]).find(x=>x.project_id===p.id&&Date.parse(x.expires_at)>Date.now());
     if(asset)void accountRequest(`/api/account/video-studies/audio?id=${id}`).then(a=>{
      if(active){setAudioUrl(a.url);setAudioExpires(a.expiresAt);setAudioStored(true);}
