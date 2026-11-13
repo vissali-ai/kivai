@@ -49,9 +49,9 @@ export default function YouTubeSummaryPage(){
     {label:"Resumo",value:"Texto com ideias principais do vídeo."},
     {label:"Áudio",value:"Narração em português brasileiro iniciada automaticamente após o resumo."},
     {label:"Biblioteca",value:"Salve resumos e organize playlists em sua conta Kivai."},
-    {label:"Duração",value:"Vídeos públicos de até 60 minutos, para todos."},
+    {label:"Duração",value:"Vídeos públicos de até 60 minutos."},
     {label:"Acesso",value:"Consulte os planos Kivai para conhecer os limites e benefícios disponíveis."},
-    {label:"Organização",value:"Biblioteca e playlists gratuitas para resumos salvos."}
+    {label:"Organização",value:"Biblioteca e playlists para organizar os conteúdos salvos."}
    ]}
    privacy="Para gerar o resumo, o endereço e o conteúdo público do vídeo são analisados por um serviço de inteligência artificial. Os vídeos originais não são armazenados no Kivai. O usuário escolhe quais resumos e narrações deseja guardar na própria biblioteca."
    limitations={[
@@ -66,7 +66,15 @@ export default function YouTubeSummaryPage(){
     {href:"/ferramentas/compressor-de-videos",label:"Compressor de Vídeos"},
     {href:"/ferramentas/planejador-de-conteudo-social-media",label:"Planejador de Conteúdo Social Media"}
    ]}
-   afterFaq={<AdSlot placement="tool-bottom"/>}
+   afterFaq={<>
+    <section className="rounded-2xl border border-primary/20 bg-primary/[0.035] p-6 sm:p-8">
+     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Conheça o Kivai</p>
+     <h2 className="mt-2 text-xl font-semibold">Transforme vídeos em conhecimento, com texto e áudio</h2>
+     <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Tenha mais recursos para organizar seus estudos, salvar projetos e aproveitar as ferramentas inteligentes do Kivai. Consulte os planos e escolha o que acompanha sua rotina.</p>
+     <a href="/planos" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Conhecer planos Kivai</a>
+    </section>
+    <AdSlot placement="tool-bottom"/>
+   </>}
   />
  </>;
 }
