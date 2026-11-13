@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         if(!metaResponse.ok)return fail("Não foi possível verificar a duração do vídeo pelo YouTube. Tente novamente mais tarde.",503);
         const meta=await metaResponse.json() as {items?:Array<{contentDetails?:{duration?:string}}>} ;
         const duration=meta.items?.[0]?.contentDetails?.duration??"";
-        const match=/^P(?:(\\d+)D)?T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?$/.exec(duration);
+        const match=/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(duration);
         if(!match)return fail("Não foi possível confirmar a duração deste vídeo.",422);
         const seconds=Number(match[1]??0)*86400+Number(match[2]??0)*3600+Number(match[3]??0)*60+Number(match[4]??0);
         if(seconds<1)return fail("Este vídeo não tem duração válida para análise.",422);
