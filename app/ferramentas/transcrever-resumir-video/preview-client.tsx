@@ -77,7 +77,7 @@ export default function YoutubeVideoPreviewClient() {
   lock.current=true;setBusy(true);setError("");setNotice("");setResult(null);setSaved(null);setAudioUrl("");
   try{
    const headers:Record<string,string>={"Content-Type":"application/json"};
-   const bearer=token();if(bearer)headers.Authorization=`Bearer ${bearer}`;
+   // Public preview deliberately runs without account entitlement.
    const response=await fetch("/api/ai/video-youtube-preview",{
     method:"POST",headers,body:JSON.stringify({url,mode,consent}),signal:AbortSignal.timeout(210000)
    });
@@ -92,22 +92,14 @@ export default function YoutubeVideoPreviewClient() {
   if(!result||saving)return;
   setSaving(true);setError("");
   try{
-   if(!token()){
-    const id=saved?.id??crypto.randomUUID();
+   {
+    const id=saved?.guest?saved.id:crypto.randomUUID();
     const title=saved?.title??titleOf(result);
     const studies=guestStudies();
     storeGuestStudies([{id,title,source:result.source,text:result.text,mode:result.mode,partial:result.partial,createdAt:new Date().toISOString()},...studies.filter(x=>x.id!==id)]);
     if(audioUrl.startsWith("blob:")){try{await putGuestAudio(id,await (await fetch(audioUrl)).blob());}catch{setNotice("Resumo salvo. O áudio não pôde ser armazenado, mas continua disponível nesta aba.");}}
     setSaved({id,revision:0,title,guest:true});
     setNotice("Resumo salvo no navegador de teste. Você já pode gerar o áudio e adicioná-lo a playlists.");
-   }else{
-    const json=await accountRequest("/api/account/video-studies","POST",{
-     id:saved?.id,title:saved?.title??titleOf(result),revision:saved?.revision??0,
-     text:result.text,source:result.source,mode:result.mode,partial:result.partial
-    });
-    const p=json.project as Saved;
-    setSaved({id:p.id,revision:p.revision,title:p.title});
-    setNotice("Resumo salvo na sua Biblioteca de Projetos.");
    }
   }catch(cause){setError(cause instanceof Error?cause.message:"Não foi possível salvar. Verifique se este navegador permite armazenamento local.");}
   finally{setSaving(false);}
@@ -116,11 +108,6 @@ export default function YoutubeVideoPreviewClient() {
   if(!result||result.mode!=="summary"||audioBusy)return;
   setAudioBusy(true);setError("");setNotice("");
   try{
-   if(saved&&!saved.guest&&token()){
-    const json=await accountRequest("/api/account/video-studies/audio","POST",{id:saved.id});
-    setAudioUrl(json.url);setAudioExpiry(json.expiresAt);
-    setNotice(json.reused?"Áudio salvo recuperado.":"Áudio narrado gerado e salvo na biblioteca.");
-   }else{
     const response=await fetch("/api/ai/video-guest-audio-preview",{
      method:"POST",headers:{"Content-Type":"application/json"},
      body:JSON.stringify({text:result.text,consent:true}),signal:AbortSignal.timeout(210000)
@@ -130,7 +117,6 @@ export default function YoutubeVideoPreviewClient() {
     if(saved?.guest)await putGuestAudio(saved.id,blob);
     setAudioUrl(URL.createObjectURL(blob));setAudioExpiry("");
     setNotice(saved?.guest?"Áudio criado e guardado neste navegador de teste.":"Áudio gerado. Salve o resumo no navegador para adicioná-lo a uma playlist.");
-   }
   }catch(cause){setError(cause instanceof Error?cause.message:"Falha ao gerar áudio.");}
   finally{setAudioBusy(false);}
  }
