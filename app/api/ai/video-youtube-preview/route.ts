@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
 import { supabaseRest } from "@/lib/blog/supabase";
+import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 240;
 
 const headers = { "Cache-Control": "private, no-store" };
 const fail = (error: string, status: number) => Response.json({ error }, { status, headers });
@@ -50,12 +51,30 @@ export async function POST(request: Request) {
   const instruction = mode === "summary"
     ? "Analise o vídeo fornecido. Produza em português do Brasil: título curto, resumo fiel em até 5 parágrafos, lista de 5 a 10 tópicos principais e, quando possível, referências temporais [mm:ss]. Não invente informações nem timestamps. Se o vídeo não puder ser acessado ou não houver informações suficientes, explique isso em vez de criar um resumo."
     : "Transcreva em português do Brasil a fala audível do vídeo inteiro, na sequência original. Preserve o máximo possível as palavras ditas, sem resumir nem acrescentar informações. Marque [mm:ss] apenas quando tiver segurança e identifique interlocutores somente quando for possível. Se houver trechos inaudíveis escreva [inaudível]. Se o vídeo for muito longo para uma transcrição completa, informe explicitamente que o resultado é parcial. Nunca invente falas. Responda somente com a transcrição e eventuais ressalvas.";
-  // 12 attempts per IP and 30 globally per day, but at most 3 successful analyses per IP.
+  // Authenticated visitors use monthly plan allowances; anonymous preview visitors retain the trial rate cap.
+  let quotaUserId: string | null = null;
+  let quotaReserved = false;
+  let completed = false;
+  if (request.headers.get("authorization")?.startsWith("Bearer ")) {
+    try {
+      const user = await authenticateBillingUser(request);
+      quotaUserId = user.id;
+      const allowed = await supabaseRest<boolean>("rpc/kivai_reserve_video_study_usage",{
+        method:"POST",body:JSON.stringify({p_user_id:user.id,p_kind:"summary"})
+      });
+      if (!allowed) return fail("Limite mensal de análises do seu plano atingido.",429);
+      quotaReserved = true;
+    } catch (error) {
+      if (quotaUserId) return fail("Não foi possível validar a franquia mensal.",503);
+      return fail("Faça login novamente para continuar.",401);
+    }
+  }
+  // Anonymous preview: 12 attempts per IP, 30 globally per day, at most 3 successful analyses per IP.
   const ip = request.headers.get("x-real-ip") || request.headers.get("x-vercel-forwarded-for")?.split(",")[0] || "unknown";
   const key = createHash("sha256")
     .update(`${process.env.ADMIN_AUTH_SECRET ?? "preview"}:${ip}`)
     .digest("hex");
-  try {
+  if (!quotaUserId) try {
     const allowed = await supabaseRest<boolean>("rpc/reserve_ai_video_preview", {
       method: "POST",
       body: JSON.stringify({ p_client_key: key }),
@@ -72,7 +91,7 @@ export async function POST(request: Request) {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       cache: "no-store",
-      signal: AbortSignal.timeout(48_000),
+      signal: AbortSignal.timeout(180_000),
       body: JSON.stringify({
         model,
         input: [
@@ -102,7 +121,7 @@ export async function POST(request: Request) {
       return fail("A IA respondeu, mas não gerou texto utilizável. Tente um vídeo público mais curto.", 503);
     }
     try {
-      const recorded = await supabaseRest<boolean>("rpc/record_ai_video_preview_success", {
+      const recorded = quotaUserId ? true : await supabaseRest<boolean>("rpc/record_ai_video_preview_success", {
         method: "POST",
         body: JSON.stringify({ p_client_key: key }),
       });
@@ -110,6 +129,7 @@ export async function POST(request: Request) {
     } catch {
       console.warn("[kivai-video-preview] quota completion record failed");
     }
+    completed = true;
     return Response.json({
       text: result,
       mode,
@@ -122,5 +142,11 @@ export async function POST(request: Request) {
       return fail("O Gemini excedeu o tempo de resposta do teste. Experimente um vídeo menor.", 504);
     console.error("[kivai-video-preview] video analysis request failed");
     return fail("Não foi possível concluir a análise. O serviço pode estar temporariamente indisponível.", 503);
+  } finally {
+    if (quotaUserId && quotaReserved && !completed) {
+      try { await supabaseRest("rpc/kivai_refund_video_study_usage",{method:"POST",body:JSON.stringify({p_user_id:quotaUserId,p_kind:"summary"})}); }
+      catch { console.warn("[kivai-video-preview] could not refund failed monthly analysis"); }
+    }
+
   }
 }
