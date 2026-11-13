@@ -24,7 +24,7 @@ function parseYoutubeUrl(raw: unknown): { url: string; videoId: string } | null 
 }
 function visitorHash(request:Request){
  const salt=process.env.ADMIN_AUTH_SECRET;
- const ip=request.headers.get("x-real-ip")||request.headers.get("x-vercel-forwarded-for")?.split(",")[0];
+ const ip=request.headers.get("x-vercel-forwarded-for")?.split(",")[0]||request.headers.get("x-real-ip");
  if(!salt||!ip)throw new Error("VISITOR_CHECK_UNAVAILABLE");
  return createHash("sha256").update(salt+":video-studies:"+ip).digest("hex");
 }
