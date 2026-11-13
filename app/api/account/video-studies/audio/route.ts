@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { supabaseRest, supabaseStorage } from "@/lib/blog/supabase";
 import { blogConfig } from "@/lib/blog/config";
@@ -37,9 +38,9 @@ export async function GET(request:Request){
  }catch(error){return fail(error instanceof Error&&error.message==="UNAUTHORIZED"?"Entre na sua conta.":"Não foi possível acessar o áudio.",503);}
 }
 export async function POST(request:Request){
- let userId:string|null=null;let reserved=false;
+ let visitor:string|null=null;let reserved=false;
  try{
-  const user=await authenticateBillingUser(request);userId=user.id;
+  const user=await authenticateBillingUser(request);
   const body=await request.json() as {id?:string};
   const id=body.id??"";
   if(!uuid.test(id))return fail("Resumo inválido.");
@@ -50,8 +51,14 @@ export async function POST(request:Request){
   if(!text||text.length>8000)return fail("O resumo precisa ter entre 1 e 8.000 caracteres para gerar áudio.",422);
   const old=await assetFor(user.id,id);
   if(old&&Date.parse(old.expires_at)>Date.now())return Response.json({url:await playUrl(old),expiresAt:old.expires_at,reused:true},{headers});
-  const allowed=await supabaseRest<boolean>("rpc/kivai_reserve_video_study_usage",{method:"POST",body:JSON.stringify({p_user_id:user.id,p_kind:"audio"})});
-  if(!allowed)return fail("Limite mensal de geração de áudios atingido.",429);
+  const salt=process.env.ADMIN_AUTH_SECRET;
+  const ip=request.headers.get("x-vercel-forwarded-for")?.split(",")[0]||request.headers.get("x-real-ip");
+  if(!salt||!ip)return fail("Serviço de áudio temporariamente indisponível.",503);
+  visitor=createHash("sha256").update(salt+":video-studies-free:"+ip).digest("hex");
+  const allowed=await supabaseRest<boolean>("rpc/kivai_reserve_free_video_request",{
+   method:"POST",body:JSON.stringify({p_fingerprint:visitor,p_kind:"audio"})
+  });
+  if(!allowed)return fail("O serviço de áudio está movimentado agora. Tente novamente mais tarde.",429);
   reserved=true;
   const apiKey=process.env.GEMINI_API_KEY;
   if(!apiKey)throw new Error("NO_GEMINI_KEY");
@@ -76,8 +83,7 @@ export async function POST(request:Request){
   await supabaseStorage(`object/video-study-audio/${path}`,{
    method:"POST",headers:{"Content-Type":"audio/wav","x-upsert":"true","cache-control":"private,max-age=0"},body:bytes
   });
-  const plan=await supabaseRest<"free"|"pro"|"agency">("rpc/kivai_effective_plan",{method:"POST",body:JSON.stringify({p_user_id:user.id})});
-  const days=plan==="agency"?180:plan==="pro"?90:30;
+  const days=90;
   const expiresAt=new Date(Date.now()+days*86400000).toISOString();
   await supabaseRest("video_study_audio?on_conflict=project_id",{
    method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},
@@ -86,7 +92,7 @@ export async function POST(request:Request){
   reserved=false;
   return Response.json({url:await playUrl({project_id:id,user_id:user.id,storage_path:path,size_bytes:bytes.byteLength,mime_type:"audio/wav",expires_at:expiresAt}),expiresAt,reused:false},{headers});
  }catch(error){
-  if(reserved&&userId)try{await supabaseRest("rpc/kivai_refund_video_study_usage",{method:"POST",body:JSON.stringify({p_user_id:userId,p_kind:"audio"})});}catch{console.warn("[video-study-tts] quota refund unavailable");}
+  if(reserved&&visitor)try{await supabaseRest("rpc/kivai_refund_free_video_request",{method:"POST",body:JSON.stringify({p_fingerprint:visitor,p_kind:"audio"})});}catch{console.warn("[video-study-tts] quota refund unavailable");}
   return fail(error instanceof Error&&error.message==="UNAUTHORIZED"?"Entre na sua conta para gerar áudio.":"Não foi possível gerar a narração. Tente novamente.",503);
  }
 }
