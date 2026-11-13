@@ -113,7 +113,7 @@ async def compress_video(
         if filters:
             command.extend(["-vf", ",".join(filters)])
         encoder = "libx264" if codec == "h264" else "libx265"
-        command.extend(["-c:v", encoder, "-preset", "medium", "-pix_fmt", "yuv420p"])
+        command.extend(["-c:v", encoder, "-preset", "veryfast", "-threads", "1", "-pix_fmt", "yuv420p"])
         if codec == "hevc":
             command.extend(["-tag:v", "hvc1"])
         if target_mb is not None or bitrate != "auto":
@@ -160,6 +160,6 @@ async def compress_video(
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=507, detail="Este vÃ­deo exige mais memÃ³ria do que o dispositivo pode disponibilizar. Tente reduzir o tamanho do arquivo ou utilizar outro dispositivo.")
     except Exception as error:
-        print(f"Erro ao comprimir vÃ­deo: {type(error).__name__}")
+        print(f"Erro ao comprimir vÃ­deo: {type(error).__name__}: {str(error)[:3000]}")
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="NÃ£o foi possÃ­vel comprimir este vÃ­deo. Tente novamente com outro arquivo ou configuraÃ§Ã£o.")
