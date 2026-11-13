@@ -81,8 +81,8 @@ export async function POST(request: Request) {
           "Este vídeo ultrapassa o limite de duração do seu plano ("+Math.floor(maximumSeconds/60)+" minutos).",422
         );
       } else {
-        // Before production rollout, configure a dedicated YouTube Data API key to enforce plan duration.
-        console.warn("[kivai-video-preview] YouTube duration verification not configured in preview");
+        // Never allow authenticated generation without enforceable plan duration.
+        return fail("A verificação da duração do vídeo não está configurada neste ambiente.", 503);
       }
       const allowed = await supabaseRest<boolean>("rpc/kivai_reserve_video_study_usage",{
         method:"POST",body:JSON.stringify({p_user_id:user.id,p_kind:"summary"})
