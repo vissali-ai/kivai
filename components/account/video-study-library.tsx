@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
+import { GuestVideoStudyLibrary } from "@/components/account/guest-video-study-library";
 
 type Project={id:string;title:string;payload:{source?:string;text?:string;mode?:string};updated_at:string};
 type Audio={project_id:string;expires_at:string;size_bytes:number};
@@ -89,7 +90,7 @@ export function VideoStudyLibrary(){
   void playAt(ordered,0);
  }
  if(!loaded)return <p className="text-sm text-muted-foreground">Carregando biblioteca de áudios...</p>;
- if(!getStoredSession()?.access_token)return <section className="rounded-xl border border-border bg-card p-4"><h2 className="text-lg font-semibold">Estudos e playlists</h2><p className="mt-2 text-sm text-muted-foreground">Entre na conta para organizar e escutar os resumos salvos.</p><Button asChild className="mt-3"><Link href="/conta/login?next=%2Fconta%2Fprojetos">Entrar</Link></Button></section>;
+ if(!getStoredSession()?.access_token)return <GuestVideoStudyLibrary/>;
  return <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-label="Playlists e resumos narrados">
   <div>
    <h2 className="text-xl font-semibold">Estudos e playlists</h2>
