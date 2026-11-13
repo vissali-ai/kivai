@@ -6,12 +6,12 @@ import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import VideoSummaryClient from "../transcrever-resumir-video/preview-client";
 
 const slug="resumir-video-youtube";
-const description="Resuma vídeos públicos do YouTube, leia as ideias principais, gere áudio do resumo e organize seus estudos em playlists.";
+const description="Transforme vídeos públicos do YouTube em resumos inteligentes e narrações em áudio geradas automaticamente. Leia, ouça e organize seus estudos em playlists."
 const faqs=[
- {question:"Como resumir um vídeo do YouTube?",answer:"Cole o link público do YouTube, clique em Gerar resumo inteligente e leia o resultado. Depois, você pode ouvir a narração ou salvar o conteúdo."},
- {question:"Posso ouvir o resumo em áudio?",answer:"Sim. Depois que o resumo estiver pronto, clique em Gerar áudio do resumo para ouvir diretamente na página."},
+ {question:"Como resumir um vídeo do YouTube?",answer:"Cole o link público do YouTube e clique em Gerar resumo e áudio. A IA prepara o texto e inicia automaticamente a narração, que aparece no player assim que estiver pronta."},
+ {question:"O áudio é gerado automaticamente?",answer:"Sim. Depois de gerar o resumo, o Kivai inicia automaticamente a criação da narração em português brasileiro. Você pode ler o texto enquanto o áudio é preparado."},
  {question:"Posso criar uma playlist de resumos?",answer:"Sim. Salve os resumos na Minha Biblioteca e reúna os conteúdos por assunto, para ouvir as narrações em sequência."},
- {question:"Preciso pagar para gerar resumos e áudios?",answer:"Não. A ferramenta é gratuita para visitantes e usuários cadastrados, com vídeos públicos de até 60 minutos e medidas de uso justo para manter o serviço disponível."},
+ {question:"Como funciona o acesso à ferramenta?",answer:"O acesso e os limites de uso dependem do plano Kivai contratado. Consulte a página de planos para conhecer as opções disponíveis."},
  {question:"Quais vídeos podem ser resumidos?",answer:"A ferramenta aceita links públicos do YouTube com até 60 minutos de duração."},
  {question:"O resumo substitui assistir ao vídeo original?",answer:"Não. O texto destaca informações principais, mas pode omitir detalhes. Consulte o vídeo original para conferir informações importantes."},
 ];
@@ -23,13 +23,13 @@ export default function YouTubeSummaryPage(){
  });
  return <>
   <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema).replace(/</g,"\\u003c")}}/>
-  <ToolPageShell title="Resumir Vídeo do YouTube com IA" description="Crie resumos, ouça a narração e organize seus vídeos favoritos para estudar com mais praticidade." categoryName="Vídeos" categoryHref="/ferramentas/videos" showPrivacyNotice={false}>
+  <ToolPageShell title="Resumir Vídeo do YouTube com IA" description="Gere resumo e narração automaticamente em uma única operação. Leia, ouça e organize seus estudos com inteligência artificial." categoryName="Vídeos" categoryHref="/ferramentas/videos" showPrivacyNotice={false}>
    <VideoSummaryClient/>
   </ToolPageShell>
   <ToolEditorialLayout slug={slug}
    overview={[
     "O Resumidor de Vídeos do YouTube do Kivai ajuda você a transformar conteúdos públicos em resumos objetivos, organizados por ideias principais. É uma forma prática de revisar aulas, palestras, entrevistas e conteúdos educativos.",
-    "Depois de gerar o resumo, você pode ler o texto ou criar uma narração para ouvir diretamente no site. Salve conteúdos na Minha Biblioteca e organize playlists por tema para continuar seus estudos.",
+    "Com um único comando, o Kivai gera o resumo e inicia automaticamente a narração em português brasileiro. Você já pode ler o conteúdo enquanto o áudio é preparado. Depois, salve os dois resultados na Minha Biblioteca e organize playlists por tema.",
     "A análise destaca pontos importantes do vídeo, mas não substitui a fonte original. Consulte o vídeo para confirmar informações, números e referências."
    ]}
    useCases={[
@@ -39,19 +39,19 @@ export default function YouTubeSummaryPage(){
    ]}
    steps={[
     "Cole um link público do YouTube.",
-    "Clique em Gerar resumo inteligente e leia o resultado.",
-    "Clique em Gerar áudio do resumo para ouvir a narração.",
-    "Salve o conteúdo na Minha Biblioteca e organize playlists por tema."
+    "Clique em Gerar resumo e áudio. O texto será exibido primeiro e a narração começará automaticamente.",
+    "Leia o resumo enquanto o áudio é preparado e use o player para ouvir.",
+    "Entre ou crie sua conta para salvar o resumo e a narração na Minha Biblioteca."
    ]}
    specificationsTitle="Recursos disponíveis"
    specifications={[
     {label:"Vídeos",value:"Links públicos do YouTube."},
     {label:"Resumo",value:"Texto com ideias principais do vídeo."},
-    {label:"Áudio",value:"Narração disponível depois da geração do resumo."},
+    {label:"Áudio",value:"Narração em português brasileiro iniciada automaticamente após o resumo."},
     {label:"Biblioteca",value:"Salve resumos e organize playlists em sua conta Kivai."},
-    {label:"Duração",value:"Vídeos públicos de até 60 minutos, para todos."},
-    {label:"Acesso",value:"Resumos e narrações gratuitos, com ou sem conta."},
-    {label:"Organização",value:"Biblioteca e playlists gratuitas para resumos salvos."}
+    {label:"Duração",value:"Vídeos públicos de até 60 minutos."},
+    {label:"Acesso",value:"Consulte os planos Kivai para conhecer os limites e benefícios disponíveis."},
+    {label:"Organização",value:"Biblioteca e playlists para organizar os conteúdos salvos."}
    ]}
    privacy="Para gerar o resumo, o endereço e o conteúdo público do vídeo são analisados por um serviço de inteligência artificial. Os vídeos originais não são armazenados no Kivai. O usuário escolhe quais resumos e narrações deseja guardar na própria biblioteca."
    limitations={[
@@ -66,7 +66,15 @@ export default function YouTubeSummaryPage(){
     {href:"/ferramentas/compressor-de-videos",label:"Compressor de Vídeos"},
     {href:"/ferramentas/planejador-de-conteudo-social-media",label:"Planejador de Conteúdo Social Media"}
    ]}
-   afterFaq={<AdSlot placement="tool-bottom"/>}
+   afterFaq={<>
+    <section className="rounded-2xl border border-primary/20 bg-primary/[0.035] p-6 sm:p-8">
+     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Conheça o Kivai</p>
+     <h2 className="mt-2 text-xl font-semibold">Transforme vídeos em conhecimento, com texto e áudio</h2>
+     <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Tenha mais recursos para organizar seus estudos, salvar projetos e aproveitar as ferramentas inteligentes do Kivai. Consulte os planos e escolha o que acompanha sua rotina.</p>
+     <a href="/planos" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Conhecer planos Kivai</a>
+    </section>
+    <AdSlot placement="tool-bottom"/>
+   </>}
   />
  </>;
 }
