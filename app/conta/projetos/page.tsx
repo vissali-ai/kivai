@@ -16,7 +16,7 @@ export default function AccountProjectsPage() {
             <h1 className="text-3xl font-semibold tracking-tight">Biblioteca de Projetos</h1>
             <p className="mt-2 text-sm text-muted-foreground">Encontre seus trabalhos salvos, filtre por cliente e acesse as ferramentas.</p>
           </div>
-          <VideoStudyLibrary />
+          <VideoStudyLibrary previewGuest={process.env.VERCEL_ENV === "preview"} />
           <SavedProjects />
         </div>
       </div>
