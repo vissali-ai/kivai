@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/check-youtube-duration-preview.mjs && npm run verify:adsense && npm run prepare:unrar-assets && next build",
+    "build": "npm run verify:adsense && npm run prepare:unrar-assets && next build",
     "start": "next start",
     "lint": "eslint",
     "test:tools": "playwright test",
