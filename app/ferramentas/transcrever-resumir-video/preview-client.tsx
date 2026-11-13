@@ -85,7 +85,9 @@ export default function YoutubeVideoPreviewClient(){
  }
  useEffect(()=>{
   const session=Boolean(bearer());
-  const id=new URLSearchParams(window.location.search).get("project");
+  const requestedId=new URLSearchParams(window.location.search).get("project");
+  const latestGuest=guestStudies().slice().sort((a,b)=>Date.parse(b.createdAt)-Date.parse(a.createdAt))[0];
+  const id=requestedId || (session ? localStorage.getItem("kivai_last_imported_video_study_id") : null) || latestGuest?.id || null;
   if(!id||!/^[a-f\d-]{36}$/i.test(id))return;
   let active=true;
   const guest=guestStudies().find(x=>x.id===id);
@@ -93,7 +95,7 @@ export default function YoutubeVideoPreviewClient(){
    setSaved({id:guest.id,revision:0,title:guest.title,guest:true});
    setUrl(guest.source);
    setResult({text:guest.text,source:guest.source,mode:"summary",partial:guest.partial});
-   void getGuestAudio(guest.id).then(blob=>{if(active&&blob){setAudioBlob(blob);setAudioUrl(URL.createObjectURL(blob));}}).catch(()=>{});
+   void getGuestAudio(guest.id).then(blob=>{if(active&&blob){setAudioBlob(blob);setAudioUrl(URL.createObjectURL(blob));const proofData=JSON.parse(localStorage.getItem(`kivai_video_audio_proof_${guest.id}`)||"null") as {proof?:string;sha?:string}|null;if(proofData?.proof&&proofData.sha){setAudioProof(proofData.proof);setAudioSha(proofData.sha);}}}).catch(()=>{});
    if(session)void importGuestStudy(guest);
   }else if(session){
    void accountRequest("/api/account/video-studies").then(data=>{
