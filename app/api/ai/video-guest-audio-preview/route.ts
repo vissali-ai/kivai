@@ -27,7 +27,7 @@ export async function POST(request:Request){
    });
   }else{
    const salt=process.env.ADMIN_AUTH_SECRET;
-   const ip=request.headers.get("x-real-ip")||request.headers.get("x-vercel-forwarded-for")?.split(",")[0];
+   const ip=request.headers.get("x-vercel-forwarded-for")?.split(",")[0]||request.headers.get("x-real-ip");
    if(!salt||!ip)return fail("Não foi possível iniciar a narração agora.",503);
    visitor=createHash("sha256").update(salt+":video-studies:"+ip).digest("hex");
    reserved=await supabaseRest<boolean>("rpc/kivai_reserve_guest_video_study",{
