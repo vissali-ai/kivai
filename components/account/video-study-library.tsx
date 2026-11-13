@@ -21,7 +21,7 @@ async function api(path:string,method="GET",body?:unknown){
  return data;
 }
 
-export function VideoStudyLibrary(){
+export function VideoStudyLibrary({previewGuest=false}:{previewGuest?:boolean}){
  const [data,setData]=useState<Library>(empty);
  const [loaded,setLoaded]=useState(false);
  const [error,setError]=useState("");
@@ -89,6 +89,7 @@ export function VideoStudyLibrary(){
   if(!ordered.length){setPlayNotice("Esta playlist ainda não contém áudios disponíveis.");return;}
   void playAt(ordered,0);
  }
+ if(previewGuest)return <GuestVideoStudyLibrary/>;
  if(!loaded)return <p className="text-sm text-muted-foreground">Carregando biblioteca de áudios...</p>;
  if(!getStoredSession()?.access_token)return <GuestVideoStudyLibrary/>;
  return <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-label="Playlists e resumos narrados">
