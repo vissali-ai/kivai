@@ -8,7 +8,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { getToolHref, getToolsByCategory } from "@/lib/tools";
 
-const filters = ["Todos", "Gravar", "Baixar", "Edição", "Converter", "Otimizar"];
+const filters = ["Todos", "Resumir", "Gravar", "Baixar", "Edição", "Converter", "Otimizar"];
 const tools = getToolsByCategory("video");
 
 export default function VideosPage() {

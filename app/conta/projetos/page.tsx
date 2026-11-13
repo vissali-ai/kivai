@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AccountWorkspaceNav } from "@/components/account/account-workspace-nav";
 import { SavedProjects } from "@/components/account/saved-projects";
+import { VideoStudyLibrary } from "@/components/account/video-study-library";
 import { noIndexRobots } from "@/lib/seo";
 
 export const metadata: Metadata = { title: "Meus Projetos", robots: noIndexRobots };
@@ -15,6 +16,7 @@ export default function AccountProjectsPage() {
             <h1 className="text-3xl font-semibold tracking-tight">Biblioteca de Projetos</h1>
             <p className="mt-2 text-sm text-muted-foreground">Encontre seus trabalhos salvos, filtre por cliente e acesse as ferramentas.</p>
           </div>
+          <VideoStudyLibrary />
           <SavedProjects />
         </div>
       </div>
