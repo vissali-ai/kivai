@@ -45,23 +45,39 @@ function getPublicReadCache(path: string, options: RequestOptions) {
 export async function supabaseRest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   if (options.allowMissingConfig && !blogConfig.supabaseUrl) return [] as T;
   assertBlogDatabaseConfigured();
-  let response: Response;
+  let response: Response | null = null;
   const cacheOptions = getPublicReadCache(path, options);
+  const method = (options.method ?? "GET").toUpperCase();
+  // GET é idempotente: tentativas curtas absorvem resets/timeout transitórios
+  // sem repetir operações de escrita, RPCs ou consumo de créditos.
+  const maxAttempts = method === "GET" ? 3 : 1;
+  let lastNetworkError: unknown;
 
-  try {
-    response = await fetch(`${blogConfig.supabaseUrl}/rest/v1/${path}`, {
-      ...options,
-      ...cacheOptions,
-      headers: {
-        apikey: blogConfig.serviceRoleKey,
-        Authorization: `Bearer ${blogConfig.serviceRoleKey}`,
-        "Content-Type": "application/json",
-        Prefer: "return=representation",
-        ...options.headers,
-      },
-    });
-  } catch {
-    throw new Error("Não foi possível conectar ao Supabase. Copie novamente a Project URL no painel e reinicie o servidor.");
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      response = await fetch(`${blogConfig.supabaseUrl}/rest/v1/${path}`, {
+        ...options,
+        ...cacheOptions,
+        headers: {
+          apikey: blogConfig.serviceRoleKey,
+          Authorization: `Bearer ${blogConfig.serviceRoleKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+          ...options.headers,
+        },
+      });
+      if (response.ok || ![502, 503, 504].includes(response.status) || attempt === maxAttempts) break;
+    } catch (error) {
+      lastNetworkError = error;
+      if (attempt === maxAttempts) {
+        throw new Error("Não foi possível conectar ao Supabase após novas tentativas. Tente novamente em instantes.");
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+  }
+
+  if (!response) {
+    throw new Error(lastNetworkError instanceof Error ? lastNetworkError.message : "Não foi possível conectar ao Supabase.");
   }
   if (!response.ok) {
     const detail = await response.text();

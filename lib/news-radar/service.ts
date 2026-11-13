@@ -111,11 +111,11 @@ function rankCandidates(candidates: RankedCandidate[], nowDate: Date) {
   return selectDiverse([...today, ...last24Hours], newsRadarConfig.maxResults);
 }
 
-function cacheIsFresh(cache: Awaited<ReturnType<typeof getRadarCache>>) {
+function cacheIsFresh(cache: Awaited<ReturnType<typeof getRadarCache>> | null) {
   return Boolean(cache?.payload && cache.expires_at && new Date(cache.expires_at).getTime() > Date.now());
 }
 
-function cacheCanBeFallback(cache: Awaited<ReturnType<typeof getRadarCache>>) {
+function cacheCanBeFallback(cache: Awaited<ReturnType<typeof getRadarCache>> | null) {
   if (!cache?.payload || !cache.collected_at) return false;
   return new Date(cache.collected_at).getTime() >= Date.now() - newsRadarConfig.staleFallbackHours * 3_600_000;
 }
@@ -173,15 +173,29 @@ async function collectCategory(category: NewsRadarCategory, sources: RadarSource
 async function waitForSharedResult(category: NewsRadarCategory, previousCollectedAt?: string | null) {
   for (let attempt = 0; attempt < 30; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const cache = await getRadarCache(category);
-    if (cacheIsFresh(cache) && cache?.collected_at !== previousCollectedAt) return cache;
+    try {
+      const cache = await getRadarCache(category);
+      if (cacheIsFresh(cache) && cache?.collected_at !== previousCollectedAt) return cache;
+    } catch (error) {
+      // Uma falha de leitura durante a espera não encerra a tentativa de
+      // recuperar o resultado compartilhado nem impede o fallback controlado.
+      console.warn("[news-radar] Falha ao consultar coleta compartilhada", error instanceof Error ? error.message : "unknown");
+    }
   }
   return null;
 }
 
 export async function searchNewsRadar(category: NewsRadarCategory): Promise<RadarResponse> {
   if (!newsRadarConfig.enabled) throw new Error("O Radar está temporariamente pausado.");
-  const existing = await getRadarCache(category);
+  // Uma falha transitória na leitura do cache não deve impedir uma nova coleta.
+  // Se o Supabase continuar indisponível, o bloqueio/consulta seguinte retornará
+  // uma mensagem controlada pela rota, sem exibir notícias antigas como atuais.
+  let existing: Awaited<ReturnType<typeof getRadarCache>> | null = null;
+  try {
+    existing = await getRadarCache(category);
+  } catch (error) {
+    console.warn("[news-radar] Falha transitória ao consultar cache", error instanceof Error ? error.message : "unknown");
+  }
   if (cacheIsFresh(existing)) {
     const response = asResponse(existing!.payload, true);
     await recordSearch(response);
