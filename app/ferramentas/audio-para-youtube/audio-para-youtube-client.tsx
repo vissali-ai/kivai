@@ -34,6 +34,7 @@ export default function AudioParaYoutubeClient() {
   const coverImageRef = useRef<HTMLImageElement | null>(null);
   const dragRef = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState("");
   const [cover, setCover] = useState<{ file: File; url: string } | null>(null);
@@ -47,7 +48,7 @@ export default function AudioParaYoutubeClient() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<{ blob: Blob; url: string; name: string } | null>(null);
 
-  useEffect(() => () => { void audioContextRef.current?.close(); }, []);
+  useEffect(() => () => { audioSourceRef.current?.disconnect(); void audioContextRef.current?.close(); }, []);
 
   useEffect(() => {
     if (!cover) { coverImageRef.current = null; return; }
@@ -138,34 +139,147 @@ export default function AudioParaYoutubeClient() {
     }
   }
   async function createVideo() {
-    const audio=audioRef.current, canvas=canvasRef.current;
-    if (!file || !audio || !canvas || status==="processing") return;
-    if (!window.MediaRecorder || !canvas.captureStream) { setError("Seu navegador não oferece a codificação local necessária. Use Chrome, Edge ou Firefox atualizados."); setStatus("error"); return; }
-    const mimeType=supportedVideoType(); if (!mimeType) { setError("Este navegador não consegue gerar o vídeo WebM necessário."); setStatus("error"); return; }
-    setError(""); clearResult(); setStatus("processing"); setProgress(0);
+    const audio = audioRef.current;
+    const canvas = canvasRef.current;
+    if (!file || !audio || !canvas || status === "processing") return;
+    if (!window.MediaRecorder || !canvas.captureStream) {
+      setError("Seu navegador não oferece a codificação local necessária. Use Chrome, Edge ou Firefox atualizados.");
+      setStatus("error");
+      return;
+    }
+    const mimeType = supportedVideoType();
+    if (!mimeType) {
+      setError("Este navegador não consegue gerar o vídeo WebM necessário.");
+      setStatus("error");
+      return;
+    }
+
+    setError("");
+    clearResult();
+    setStatus("processing");
+    setProgress(0);
+
+    let stream: MediaStream | null = null;
+    let recorder: MediaRecorder | null = null;
+    let destination: MediaStreamAudioDestinationNode | null = null;
+    let source: MediaElementAudioSourceNode | null = null;
+    let updateProgress: (() => void) | null = null;
+    let cleanupPlayback = () => {};
+    let stopped: Promise<Blob> | null = null;
+
     try {
       await drawCover(canvas);
-      const AudioContextConstructor=window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      const AudioContextConstructor = window.AudioContext
+        ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextConstructor) throw new Error("Seu navegador não consegue processar esta faixa de áudio.");
-      const context=new AudioContextConstructor(); audioContextRef.current=context;
-      const source=context.createMediaElementSource(audio); const destination=context.createMediaStreamDestination();
-      source.connect(destination); await context.resume();
-      const stream=canvas.captureStream(1); destination.stream.getAudioTracks().forEach((track)=>stream.addTrack(track));
-      const recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:resolution==="1080"?2500000:1500000,audioBitsPerSecond:192000});
-      const chunks: BlobPart[]=[]; recorder.ondataavailable=(event)=>{if(event.data.size)chunks.push(event.data);};
-      const stopped=new Promise<Blob>((resolve,reject)=>{recorder.onerror=()=>reject(new Error("Não foi possível codificar o vídeo."));recorder.onstop=()=>resolve(new Blob(chunks,{type:mimeType}));});
-      const update=()=>setProgress(Math.min(99,(audio.currentTime/Math.max(audio.duration,0.01))*100));
-      audio.addEventListener("timeupdate",update); audio.currentTime=0; recorder.start(1000); await audio.play();
-      await new Promise<void>((resolve,reject)=>{audio.addEventListener("ended",()=>resolve(),{once:true});audio.addEventListener("error",()=>reject(new Error("O navegador não conseguiu reproduzir este formato de áudio.")),{once:true});});
-      if(recorder.state!=="inactive")recorder.stop(); const blob=await stopped; audio.removeEventListener("timeupdate",update);
-      source.disconnect(); destination.disconnect(); await context.close(); audioContextRef.current=null;
-      if(!blob.size)throw new Error("O vídeo gerado ficou vazio. Tente outro arquivo.");
-      setResult({blob,url:URL.createObjectURL(blob),name:safeOutputName(file.name)}); setProgress(100); setStatus("success");
+
+      // O mesmo elemento <audio> não pode receber createMediaElementSource mais de uma vez.
+      // Mantemos o AudioContext e o nó de origem durante a vida do componente para permitir
+      // novas tentativas e conversões sem gerar InvalidStateError.
+      let context = audioContextRef.current;
+      if (!context || context.state === "closed") {
+        context = new AudioContextConstructor();
+        audioContextRef.current = context;
+        audioSourceRef.current = null;
+      }
+      if (!audioSourceRef.current) {
+        audioSourceRef.current = context.createMediaElementSource(audio);
+        audioSourceRef.current.connect(context.destination);
+      }
+      source = audioSourceRef.current;
+      destination = context.createMediaStreamDestination();
+      source.connect(destination);
+      await context.resume();
+
+      stream = canvas.captureStream(1);
+      destination.stream.getAudioTracks().forEach((track) => stream?.addTrack(track));
+      recorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: resolution === "1080" ? 2500000 : 1500000,
+        audioBitsPerSecond: 192000,
+      });
+
+      const chunks: BlobPart[] = [];
+      let rejectRecording: (reason?: unknown) => void = () => {};
+      const recordingError = new Promise<never>((_, reject) => { rejectRecording = reject; });
+      stopped = new Promise<Blob>((resolve, reject) => {
+        recorder!.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+        recorder!.onerror = () => {
+          const failure = new Error("Não foi possível codificar o vídeo.");
+          reject(failure);
+          rejectRecording(failure);
+        };
+        recorder!.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
+      });
+
+      const playback = new Promise<void>((resolve, reject) => {
+        let settled = false;
+        const cleanup = () => {
+          audio.removeEventListener("ended", onEnded);
+          audio.removeEventListener("pause", onPause);
+          audio.removeEventListener("error", onPlaybackError);
+          cleanupPlayback = () => {};
+        };
+        const finish = (callback: () => void) => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          callback();
+        };
+        const onEnded = () => finish(resolve);
+        const onPause = () => {
+          if (!audio.ended) {
+            finish(() => reject(new Error("A reprodução foi pausada antes do fim. Inicie a conversão novamente para gerar o vídeo completo.")));
+          }
+        };
+        const onPlaybackError = () => finish(() => reject(new Error("O navegador não conseguiu reproduzir este formato de áudio.")));
+        cleanupPlayback = cleanup;
+        audio.addEventListener("ended", onEnded, { once: true });
+        audio.addEventListener("pause", onPause);
+        audio.addEventListener("error", onPlaybackError, { once: true });
+      });
+
+      updateProgress = () => setProgress(Math.min(99, (audio.currentTime / Math.max(audio.duration, 0.01)) * 100));
+      audio.addEventListener("timeupdate", updateProgress);
+      audio.currentTime = 0;
+      recorder.start(1000);
+
+      await Promise.race([
+        (async () => {
+          await audio.play();
+          await playback;
+        })(),
+        recordingError,
+      ]);
+
+      if (recorder.state !== "inactive") recorder.stop();
+      const blob = await stopped;
+      if (!blob.size) throw new Error("O vídeo gerado ficou vazio. Tente outro arquivo.");
+
+      setResult({ blob, url: URL.createObjectURL(blob), name: safeOutputName(file.name) });
+      setProgress(100);
+      setStatus("success");
     } catch (nextError) {
-      setError(nextError instanceof Error?nextError.message:"Não foi possível criar o vídeo."); setStatus("error");
-      try { await audioContextRef.current?.close(); } catch {} audioContextRef.current=null;
+      cleanupPlayback();
+      if (recorder && recorder.state !== "inactive") {
+        try { recorder.stop(); } catch { /* O gravador pode já ter sido encerrado pelo navegador. */ }
+      }
+      setError(nextError instanceof Error ? nextError.message : "Não foi possível criar o vídeo.");
+      setStatus("error");
+    } finally {
+      cleanupPlayback();
+      if (updateProgress) audio.removeEventListener("timeupdate", updateProgress);
+      if (recorder && recorder.state !== "inactive") {
+        try { recorder.stop(); } catch { /* Evita manter uma gravação ativa após falha. */ }
+      }
+      stream?.getTracks().forEach((track) => track.stop());
+      destination?.stream.getTracks().forEach((track) => track.stop());
+      if (source && destination) {
+        try { source.disconnect(destination); } catch { /* A conexão pode já ter sido removida. */ }
+      }
     }
   }
+
   function download() { if(!result)return; const link=document.createElement("a");link.href=result.url;link.download=result.name;link.click(); }
 
   return <ToolPageShell title="Áudio para YouTube" description="Transforme WAV, MP3 e outros arquivos de áudio em vídeo com capa, pronto para enviar ao YouTube." categoryName="Áudio" categoryHref="/ferramentas/audio" breadcrumbRootName="Início" breadcrumbRootHref="/" processingMode="local" privacyMessage="Seu áudio e sua capa são processados diretamente no navegador e não são enviados para servidores do Kivai.">
