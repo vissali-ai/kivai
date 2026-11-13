@@ -3,10 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 if __package__:
-    from .api import facebook, tiktok, background, html_pdf, instagram, pdf, video_compress, video_hevc, video_mov_mp4, video_mp4_avi, video_mp4_mov
+    from .api import facebook, tiktok, background, html_pdf, instagram, pdf, video_compress, video_hevc, video_mov_mp4, video_mp4_avi, video_mp4_mov, video_sources
     from .api.video_common import detailed_video_metadata  # Compatibility for existing callers.
 else:
-    from api import facebook, tiktok, background, html_pdf, instagram, pdf, video_compress, video_hevc, video_mov_mp4, video_mp4_avi, video_mp4_mov
+    from api import facebook, tiktok, background, html_pdf, instagram, pdf, video_compress, video_hevc, video_mov_mp4, video_mp4_avi, video_mp4_mov, video_sources
     from api.video_common import detailed_video_metadata
 
 app = FastAPI(
@@ -44,6 +44,6 @@ def health():
 
 for route_module in (
     instagram, facebook, tiktok, pdf, video_compress, video_mp4_mov, video_mp4_avi,
-    video_mov_mp4, video_hevc, html_pdf, background,
+    video_mov_mp4, video_hevc, html_pdf, background, video_sources,
 ):
     app.include_router(route_module.router)

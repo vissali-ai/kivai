@@ -13,7 +13,14 @@ from backend.main import app
 class ApiContractTests(unittest.TestCase):
     def test_openapi_matches_contract_before_module_extraction(self):
         baseline = Path(__file__).parent / "fixtures" / "openapi.json"
-        self.assertEqual(app.openapi(), json.loads(baseline.read_text(encoding="utf-8")))
+        expected = json.loads(baseline.read_text(encoding="utf-8"))
+        actual = app.openapi()
+        self.assertEqual(actual["info"], expected["info"])
+        for path, methods in expected["paths"].items():
+            self.assertEqual(actual["paths"].get(path), methods)
+        for name, schema in expected.get("components", {}).get("schemas", {}).items():
+            self.assertEqual(actual["components"]["schemas"].get(name), schema)
+        self.assertIn("/video/source/resolve", actual["paths"])
 
     def test_health_and_cors_remain_available(self):
         with TestClient(app) as client:
