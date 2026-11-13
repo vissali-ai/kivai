@@ -51,7 +51,7 @@ export default function Mp4ParaHevcClient() {
     if (!next.size) { setError("Não foi possível ler este vídeo."); setStatus("error"); return; }
     if (next.size > MP4_HEVC_MAX_FILE_SIZE) { setError("O vídeo ultrapassa o limite permitido."); setStatus("error"); return; }
     const extension = next.name.split(".").pop()?.toLowerCase();
-    if (extension !== "mp4" || (next.type && next.type !== "video/mp4")) { setError("Selecione um vídeo MP4 compatível."); setStatus("error"); return; }
+    if (extension !== "mp4" || (next.type.startsWith("video/") && next.type !== "video/mp4")) { setError("Selecione um vídeo MP4 compatível."); setStatus("error"); return; }
     setFile(next); setStatus("ready");
   }
   function reset() { clearResult(); setFile(null); setQuality("auto"); setStatus("idle"); setStage(""); setError(""); }
