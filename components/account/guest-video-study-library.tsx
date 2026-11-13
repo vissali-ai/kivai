@@ -47,7 +47,7 @@ export function GuestVideoStudyLibrary(){
   if(!src||!audioRef.current)return;
   const audio=audioRef.current;audio.load();void audio.play().catch(()=>setMessage("Clique em reproduzir para continuar a playlist."));
   if("mediaSession" in navigator&&current)try{
-   navigator.mediaSession.metadata=new MediaMetadata({title:current.title,artist:"Kivai",album:"Prévia de estudos"});
+   navigator.mediaSession.metadata=new MediaMetadata({title:current.title,artist:"Kivai",album:"Meus estudos"});
   }catch{/* optional */}
   return()=>{URL.revokeObjectURL(src);};
  },[src,current?.title]);
@@ -59,8 +59,8 @@ export function GuestVideoStudyLibrary(){
   await deleteGuestAudio(id);setAvailable(a=>({...a,[id]:false}));
  }
  return <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-label="Biblioteca temporária de estudos">
-  <div><h2 className="text-xl font-semibold">Estudos e playlists, modo de teste</h2>
-   <p className="mt-1 text-sm text-muted-foreground">Sem login. Seus resumos, listas e áudios ficam neste navegador. Não são sincronizados entre dispositivos nem armazenados na conta Kivai.</p></div>
+  <div><h2 className="text-xl font-semibold">Meus estudos e playlists</h2>
+   <p className="mt-1 text-sm text-muted-foreground">Os conteúdos salvos sem entrar na conta ficam neste dispositivo. Para acessar em outros aparelhos, entre na sua conta e salve seus estudos.</p></div>
   {message&&<p role="status" className="text-sm text-muted-foreground">{message}</p>}
   <div className="flex flex-wrap gap-3 text-xs text-muted-foreground"><span>{studies.length} resumos</span><span>{lists.length} playlists</span><span>{Object.values(available).filter(Boolean).length} áudios locais</span></div>
   <div className="flex flex-wrap gap-2">
