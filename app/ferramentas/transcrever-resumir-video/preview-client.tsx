@@ -54,23 +54,28 @@ export default function YoutubeVideoPreviewClient(){
    });
    const project=response.project as {id:string;revision:number;title:string};
    const blob=await getGuestAudio(guest.id).catch(()=>null);
+   let audioSaved=false;
    if(blob){
     const proofData=JSON.parse(localStorage.getItem(`kivai_video_audio_proof_${guest.id}`)||"null") as {proof?:string;sha?:string}|null;
     setAudioBlob(blob);
     setAudioUrl(current=>current||URL.createObjectURL(blob));
     if(proofData?.proof&&proofData.sha){
-     const savedAudio=await uploadNarration(project.id,blob,proofData.proof,proofData.sha);
-     setAudioStored(true);
-     setAudioExpires(savedAudio.expiresAt||"");
-     localStorage.removeItem(`kivai_video_audio_proof_${guest.id}`);
-     await deleteGuestAudio(guest.id).catch(()=>{});
+     setAudioProof(proofData.proof);setAudioSha(proofData.sha);
+     try{
+      const savedAudio=await uploadNarration(project.id,blob,proofData.proof,proofData.sha);
+      setAudioStored(true);setAudioExpires(savedAudio.expiresAt||"");
+      localStorage.removeItem(`kivai_video_audio_proof_${guest.id}`);
+      await deleteGuestAudio(guest.id).catch(()=>{});
+      audioSaved=true;
+     }catch{
+      setAudioStored(false);
+     }
     }
    }
    storeGuestStudies(guestStudies().filter(x=>x.id!==guest.id));
-   if(!blob)await deleteGuestAudio(guest.id).catch(()=>{});
    setSaved({id:project.id,revision:project.revision,title:project.title,guest:false});
    setNotice(blob
-    ?"Resumo e áudio importados para sua conta."
+    ?audioSaved?"Resumo e áudio importados para sua conta.":"Resumo salvo na sua conta. O áudio permanece disponível nesta página e pode ser salvo novamente."
     :"Resumo salvo automaticamente na sua conta.");
    window.history.replaceState({}, "", "/ferramentas/resumir-video-youtube");
   }catch(e){
@@ -99,6 +104,13 @@ export default function YoutubeVideoPreviewClient(){
     const asset=(data.audios as {project_id:string;expires_at:string}[]).find(x=>x.project_id===p.id&&Date.parse(x.expires_at)>Date.now());
     if(asset)void accountRequest(`/api/account/video-studies/audio?id=${id}`).then(a=>{
      if(active){setAudioUrl(a.url);setAudioExpires(a.expiresAt);setAudioStored(true);}
+    }).catch(()=>{});
+    else void getGuestAudio(id).then(blob=>{
+     if(active&&blob){
+      setAudioBlob(blob);setAudioUrl(URL.createObjectURL(blob));
+      const proofData=JSON.parse(localStorage.getItem(`kivai_video_audio_proof_${id}`)||"null") as {proof?:string;sha?:string}|null;
+      if(proofData?.proof&&proofData.sha){setAudioProof(proofData.proof);setAudioSha(proofData.sha);}
+     }
     }).catch(()=>{});
    }).catch(()=>{if(active)setError("Não foi possível abrir este resumo salvo.");});
   }
