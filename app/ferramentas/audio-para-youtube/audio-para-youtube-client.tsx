@@ -211,6 +211,9 @@ export default function AudioParaYoutubeClient() {
         };
         recorder!.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
       });
+      // O erro também é encaminhado ao Promise.race abaixo; este handler evita
+      // rejeição não tratada enquanto o fluxo de reprodução é encerrado.
+      void stopped.catch(() => {});
 
       const playback = new Promise<void>((resolve, reject) => {
         let settled = false;
