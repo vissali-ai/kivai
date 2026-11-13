@@ -89,7 +89,7 @@ export function GuestVideoStudyLibrary(){
      </div>
     </div>
     {items.map(item=><div key={item.id} className="flex flex-wrap items-center gap-2 rounded-md bg-muted/40 p-2">
-     <Link className="min-w-0 flex-1 text-sm underline-offset-4 hover:underline" href={`/ferramentas/transcrever-resumir-video?project=${item.id}`}>{item.title}</Link>
+     <Link className="min-w-0 flex-1 text-sm underline-offset-4 hover:underline" href={`/ferramentas/resumir-video-youtube?project=${item.id}`}>{item.title}</Link>
      <span className="text-xs text-muted-foreground">{available[item.id]?"Com áudio":"Somente texto"}</span>
      <Button variant="ghost" size="sm" onClick={()=>updateLists(lists.map(p=>p.id===list.id?{...p,ids:p.ids.filter(id=>id!==item.id)}:p))}>Retirar</Button>
     </div>)}
@@ -106,7 +106,7 @@ export function GuestVideoStudyLibrary(){
    <h3 className="text-sm font-semibold">Resumos armazenados neste navegador</h3>
    {studies.length===0?<p className="rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">Ainda não há resumos. Gere um na ferramenta e clique em Salvar resumo.</p>:studies.map(study=>
     <div key={study.id} className="flex flex-wrap items-center gap-2 border-b border-border py-2">
-     <Link href={`/ferramentas/transcrever-resumir-video?project=${study.id}`} className="min-w-0 flex-1 text-sm underline-offset-4 hover:underline">{study.title}</Link>
+     <Link href={`/ferramentas/resumir-video-youtube?project=${study.id}`} className="min-w-0 flex-1 text-sm underline-offset-4 hover:underline">{study.title}</Link>
      {available[study.id]?<Button size="sm" variant="outline" onClick={()=>void start([study.id],0)}>Ouvir</Button>:<span className="text-xs text-muted-foreground">Sem áudio</span>}
      <Button variant="ghost" size="sm" onClick={()=>void removeStudy(study.id)}>Excluir</Button>
     </div>)}
