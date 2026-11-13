@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
-import { guestStudies, storeGuestStudies, putGuestAudio, getGuestAudio } from "@/lib/video-studies/guest-preview";
+import { guestStudies, storeGuestStudies, putGuestAudio, getGuestAudio, deleteGuestAudio } from "@/lib/video-studies/guest-preview";
 
 type Summary={text:string;source:string;mode:"summary";partial:boolean};
 type Saved={id:string;revision:number;title:string;guest:boolean};
@@ -29,7 +29,7 @@ async function uploadNarration(id:string,blob:Blob,proof:string,sha:string){
  const first=await accountRequest("/api/account/video-studies/audio/stage","POST",payload);
  const upload=await fetch(first.url,{method:"PUT",body:blob,headers:{"Content-Type":"audio/wav"},cache:"no-store"});
  if(!upload.ok)throw new Error("Não foi possível guardar o áudio. Tente novamente.");
- await accountRequest("/api/account/video-studies/audio/complete","POST",payload);
+ return await accountRequest("/api/account/video-studies/audio/complete","POST",payload) as {expiresAt?:string};
 }
 export default function YoutubeVideoPreviewClient(){
  const [url,setUrl]=useState("");
@@ -47,6 +47,41 @@ export default function YoutubeVideoPreviewClient(){
  const [audioSha,setAudioSha]=useState("");
  const [audioStored,setAudioStored]=useState(false);
  const running=useRef(false);
+ async function importGuestStudy(guest:ReturnType<typeof guestStudies>[number]){
+  try{
+   const response=await accountRequest("/api/account/video-studies","POST",{
+    id:guest.id,title:guest.title,revision:0,text:guest.text,source:guest.source,mode:"summary",partial:guest.partial
+   });
+   const project=response.project as {id:string;revision:number;title:string};
+   const blob=await getGuestAudio(guest.id).catch(()=>null);
+   let audioSaved=false;
+   if(blob){
+    const proofData=JSON.parse(localStorage.getItem(`kivai_video_audio_proof_${guest.id}`)||"null") as {proof?:string;sha?:string}|null;
+    setAudioBlob(blob);
+    setAudioUrl(current=>current||URL.createObjectURL(blob));
+    if(proofData?.proof&&proofData.sha){
+     setAudioProof(proofData.proof);setAudioSha(proofData.sha);
+     try{
+      const savedAudio=await uploadNarration(project.id,blob,proofData.proof,proofData.sha);
+      setAudioStored(true);setAudioExpires(savedAudio.expiresAt||"");
+      localStorage.removeItem(`kivai_video_audio_proof_${guest.id}`);
+      await deleteGuestAudio(guest.id).catch(()=>{});
+      audioSaved=true;
+     }catch{
+      setAudioStored(false);
+     }
+    }
+   }
+   storeGuestStudies(guestStudies().filter(x=>x.id!==guest.id));
+   setSaved({id:project.id,revision:project.revision,title:project.title,guest:false});
+   setNotice(blob
+    ?audioSaved?"Resumo e áudio importados para sua conta.":"Resumo salvo na sua conta. O áudio permanece disponível nesta página e pode ser salvo novamente."
+    :"Resumo salvo automaticamente na sua conta.");
+   window.history.replaceState({}, "", "/ferramentas/resumir-video-youtube");
+  }catch(e){
+   setError(e instanceof Error?e.message:"Não foi possível transferir o resumo para sua conta.");
+  }
+ }
  useEffect(()=>{
   const session=Boolean(bearer());
   const id=new URLSearchParams(window.location.search).get("project");
@@ -58,6 +93,7 @@ export default function YoutubeVideoPreviewClient(){
    setUrl(guest.source);
    setResult({text:guest.text,source:guest.source,mode:"summary",partial:guest.partial});
    void getGuestAudio(guest.id).then(blob=>{if(active&&blob){setAudioBlob(blob);setAudioUrl(URL.createObjectURL(blob));}}).catch(()=>{});
+   if(session)void importGuestStudy(guest);
   }else if(session){
    void accountRequest("/api/account/video-studies").then(data=>{
     const p=(data.projects as AccountProject[]).find(x=>x.id===id);
@@ -68,6 +104,13 @@ export default function YoutubeVideoPreviewClient(){
     const asset=(data.audios as {project_id:string;expires_at:string}[]).find(x=>x.project_id===p.id&&Date.parse(x.expires_at)>Date.now());
     if(asset)void accountRequest(`/api/account/video-studies/audio?id=${id}`).then(a=>{
      if(active){setAudioUrl(a.url);setAudioExpires(a.expiresAt);setAudioStored(true);}
+    }).catch(()=>{});
+    else void getGuestAudio(id).then(blob=>{
+     if(active&&blob){
+      setAudioBlob(blob);setAudioUrl(URL.createObjectURL(blob));
+      const proofData=JSON.parse(localStorage.getItem(`kivai_video_audio_proof_${id}`)||"null") as {proof?:string;sha?:string}|null;
+      if(proofData?.proof&&proofData.sha){setAudioProof(proofData.proof);setAudioSha(proofData.sha);}
+     }
     }).catch(()=>{});
    }).catch(()=>{if(active)setError("Não foi possível abrir este resumo salvo.");});
   }
@@ -85,8 +128,15 @@ export default function YoutubeVideoPreviewClient(){
    });
    const data=await response.json().catch(()=>({}));
    if(!response.ok)throw new Error(data.error||"Não foi possível gerar o resumo.");
-   setResult(data as Summary);
-   setNotice("Resumo pronto. Você pode ler, salvar ou gerar o áudio.");
+   const summary=data as Summary;
+   setResult(summary);
+   if(!bearer()){
+    const id=crypto.randomUUID();
+    const title=titleOf(summary.text);
+    storeGuestStudies([{id,title,source:summary.source,text:summary.text,mode:"summary",partial:summary.partial,createdAt:new Date().toISOString()},...guestStudies().filter(x=>x.id!==id)]);
+    setSaved({id,revision:0,title,guest:true});
+   }
+   setNotice("Resumo pronto. Você pode entrar para salvá-lo na sua conta ou continuar e gerar o áudio.");
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível gerar o resumo.");}
   finally{setBusy(false);running.current=false;}
  }
@@ -112,7 +162,7 @@ export default function YoutubeVideoPreviewClient(){
     storeGuestStudies([{id,title,source:result.source,text:result.text,mode:"summary",partial:result.partial,createdAt:new Date().toISOString()},...studies.filter(x=>x.id!==id)]);
     if(audioBlob)await putGuestAudio(id,audioBlob);
     setSaved({id,revision:0,title,guest:true});
-    setNotice("Resumo salvo neste dispositivo. Entre na conta para manter seus estudos disponíveis em outros aparelhos.");
+    setNotice("Resumo mantido neste dispositivo. Entre na conta para guardá-lo na sua biblioteca.");
    }
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível salvar o resumo.");}
   finally{setSaving(false);}
@@ -137,7 +187,9 @@ export default function YoutubeVideoPreviewClient(){
    setAudioProof(proof);setAudioSha(sha);setAudioBlob(blob);
    setAudioUrl(URL.createObjectURL(blob));setAudioExpires("");
    if(saved?.guest){
-    await putGuestAudio(saved.id,blob);setNotice("Áudio pronto e salvo neste dispositivo.");
+    await putGuestAudio(saved.id,blob);
+    localStorage.setItem(`kivai_video_audio_proof_${saved.id}`,JSON.stringify({proof,sha}));
+    setNotice("Áudio pronto e mantido nesta sessão. Entre para salvar o resumo e a narração na sua conta.");
    }else if(saved&&!saved.guest){
     try{await uploadNarration(saved.id,blob,proof,sha);setAudioStored(true);setNotice("Áudio pronto e salvo na sua biblioteca.");}
     catch{setNotice("Áudio pronto para ouvir. Salve novamente o resumo para tentar guardá-lo na biblioteca.");}
@@ -178,8 +230,16 @@ export default function YoutubeVideoPreviewClient(){
     <div className="flex flex-wrap gap-2">
      <Button variant="outline" onClick={()=>void copyText()}>Copiar resumo</Button>
      <Button disabled={saving} onClick={()=>void saveSummary()}>{saving?"Salvando...":saved?"Atualizar resumo salvo":"Salvar resumo"}</Button>
-     {saved&&<Button asChild variant="outline"><Link href="/conta/projetos">Minha Biblioteca</Link></Button>}
+     {saved&&!saved.guest&&<Button asChild variant="outline"><Link href="/conta/projetos">Minha Biblioteca</Link></Button>}
     </div>
+    {saved?.guest&&<div className="rounded-xl border border-primary/25 bg-primary/[0.04] p-4">
+     <p className="text-sm font-semibold">Quer guardar este resumo na sua conta?</p>
+     <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para manter este resumo na sua biblioteca e acessá-lo em outros dispositivos. Você também pode gerar o áudio antes de entrar.</p>
+     <div className="mt-3 flex flex-wrap gap-2">
+      <Button asChild><Link href={`/conta/login?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Entrar para salvar</Link></Button>
+      <Button asChild variant="outline"><Link href={`/conta/cadastro?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Criar conta</Link></Button>
+     </div>
+    </div>}
     <div className="whitespace-pre-wrap break-words rounded-lg border border-border bg-background p-4 text-sm leading-7">{result.text}</div>
     <p className="text-xs text-muted-foreground">Confira as informações importantes com o vídeo original.</p>
    </>}
@@ -194,6 +254,14 @@ export default function YoutubeVideoPreviewClient(){
      {audioBusy&&<p className="text-sm text-muted-foreground" role="status">Preparando sua narração. Mantenha esta página aberta.</p>}
      {audioUrl&&<div className="space-y-2"><audio src={audioUrl} controls controlsList="nodownload" preload="metadata" className="w-full"/>
       {audioExpires&&<p className="text-xs text-muted-foreground">Áudio disponível na sua biblioteca até {new Date(audioExpires).toLocaleDateString("pt-BR")}.</p>}
+     </div>}
+     {audioUrl&&saved?.guest&&<div className="rounded-xl border border-primary/25 bg-primary/[0.04] p-4">
+      <p className="text-sm font-semibold">Seu áudio está pronto!</p>
+      <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para salvar o resumo e esta narração na sua biblioteca.</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+       <Button asChild><Link href={`/conta/login?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Entrar para salvar</Link></Button>
+       <Button asChild variant="outline"><Link href={`/conta/cadastro?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Criar conta</Link></Button>
+      </div>
      </div>}
      {audioUrl&&!audioStored&&saved&&!saved.guest&&audioBlob&&<Button variant="outline" disabled={saving} onClick={()=>void saveSummary()}>Salvar áudio na biblioteca</Button>}
      <p className="text-xs text-muted-foreground"><Link href="/conta/projetos" className="underline underline-offset-2">Organize seus resumos em playlists na Minha Biblioteca</Link>.</p>

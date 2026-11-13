@@ -72,16 +72,26 @@ export async function POST(request:Request){
   });
   if(!reserved)return fail("O serviço está muito movimentado agora. Tente novamente mais tarde.",429);
   const instruction="Analise este vídeo público do YouTube. Em português brasileiro, escreva um título claro, um resumo fiel em até cinco parágrafos e de cinco a dez tópicos principais. Inclua tempos [mm:ss] apenas quando puder verificá-los. Não invente afirmações ou tempos. Se o vídeo estiver inacessível, informe a limitação em vez de criar conteúdo fictício. Responda diretamente com o resumo.";
-  const response=await fetch("https://generativelanguage.googleapis.com/v1beta/interactions",{
-   method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":process.env.GEMINI_API_KEY},
-   cache:"no-store",signal:AbortSignal.timeout(180000),
-   body:JSON.stringify({model:"gemini-3.5-flash-lite",input:[{type:"text",text:instruction},{type:"video",uri:youtube.url}]})
-  });
-  if(!response.ok){
-   console.warn("[kivai-video-summary] provider HTTP",response.status);
-   if(response.status===429)return fail("O serviço está com muitas solicitações agora. Tente novamente.",429);
-   return fail("Não foi possível concluir o resumo agora. Tente novamente.",503);
+  const requestBody=JSON.stringify({model:"gemini-3.5-flash-lite",input:[{type:"text",text:instruction},{type:"video",uri:youtube.url}]});
+  let response:Response|null=null;
+  for(let attempt=1;attempt<=3;attempt++){
+   try{
+    response=await fetch("https://generativelanguage.googleapis.com/v1beta/interactions",{
+     method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":process.env.GEMINI_API_KEY},
+     cache:"no-store",signal:AbortSignal.timeout(180000),body:requestBody
+    });
+   }catch(error){
+    console.warn("[kivai-video-summary] provider network failure",attempt,error instanceof Error?error.name:"unknown");
+    if(attempt===3)throw error;
+   }
+   if(response?.ok)break;
+   const status=response?.status??503;
+   console.warn("[kivai-video-summary] provider HTTP",status,"attempt",attempt);
+   if(status===429)return fail("O serviço está com muitas solicitações agora. Tente novamente em alguns instantes.",429);
+   if(status!==503&&status!==502&&status!==504)return fail("Não foi possível concluir o resumo agora. Tente novamente.",503);
+   if(attempt<3)await new Promise(resolve=>setTimeout(resolve,700*attempt));
   }
+  if(!response?.ok)return fail("O serviço de resumo está temporariamente instável. Tente novamente em instantes.",503);
   const data=await response.json() as Interaction;
   const summary=data.steps?.filter(x=>x.type==="model_output").flatMap(x=>x.content||[])
    .filter(x=>x.type==="text"&&typeof x.text==="string").map(x=>x.text?.trim()||"").filter(Boolean).join("\n\n").trim()||"";
