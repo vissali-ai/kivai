@@ -11,7 +11,8 @@ const faqs=[
  {question:"Como resumir um vídeo do YouTube?",answer:"Cole o link público do YouTube, clique em Gerar resumo inteligente e leia o resultado. Depois, você pode ouvir a narração ou salvar o conteúdo."},
  {question:"Posso ouvir o resumo em áudio?",answer:"Sim. Depois que o resumo estiver pronto, clique em Gerar áudio do resumo para ouvir diretamente na página."},
  {question:"Posso criar uma playlist de resumos?",answer:"Sim. Salve os resumos na Minha Biblioteca e reúna os conteúdos por assunto, para ouvir as narrações em sequência."},
- {question:"Quais vídeos podem ser resumidos?",answer:"A ferramenta aceita links públicos do YouTube. No plano gratuito, cada vídeo pode ter até 12 minutos; os planos Pro e Agency oferecem limites maiores."},
+ {question:"Preciso pagar para gerar resumos e áudios?",answer:"Não. A ferramenta é gratuita para visitantes e usuários cadastrados, com vídeos públicos de até 60 minutos e medidas de uso justo para manter o serviço disponível."},
+ {question:"Quais vídeos podem ser resumidos?",answer:"A ferramenta aceita links públicos do YouTube com até 60 minutos de duração."},
  {question:"O resumo substitui assistir ao vídeo original?",answer:"Não. O texto destaca informações principais, mas pode omitir detalhes. Consulte o vídeo original para conferir informações importantes."},
 ];
 export async function generateMetadata(){return getToolMetadataAsync(slug);}
@@ -48,9 +49,9 @@ export default function YouTubeSummaryPage(){
     {label:"Resumo",value:"Texto com ideias principais do vídeo."},
     {label:"Áudio",value:"Narração disponível depois da geração do resumo."},
     {label:"Biblioteca",value:"Salve resumos e organize playlists em sua conta Kivai."},
-    {label:"Duração",value:"Até 12 minutos por vídeo no gratuito, 30 minutos no Pro e 60 minutos no Agency."},
-    {label:"Sem conta",value:"1 resumo e 1 narração para experimentar."},
-    {label:"Conta Free",value:"Até 3 resumos e 3 narrações por mês."}
+    {label:"Duração",value:"Vídeos públicos de até 60 minutos, para todos."},
+    {label:"Acesso",value:"Resumos e narrações gratuitos, com ou sem conta."},
+    {label:"Organização",value:"Biblioteca e playlists gratuitas para resumos salvos."}
    ]}
    privacy="Para gerar o resumo, o endereço e o conteúdo público do vídeo são analisados por um serviço de inteligência artificial. Os vídeos originais não são armazenados no Kivai. O usuário escolhe quais resumos e narrações deseja guardar na própria biblioteca."
    limitations={[

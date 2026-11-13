@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { signAudio } from "@/lib/video-studies/audio-proof";
 
@@ -10,7 +9,7 @@ const fail=(error:string,status=400)=>Response.json({error},{status,headers:noCa
 
 export async function POST(request:Request){
  if(!["preview","production"].includes(process.env.VERCEL_ENV||""))return fail("Não foi possível preparar o áudio agora.",503);
- let userId:string|null=null,visitor:string|null=null;
+ let visitor:string|null=null;
  let reserved=false,completed=false;
  try{
   const raw=await request.text();
@@ -18,23 +17,14 @@ export async function POST(request:Request){
   const data=JSON.parse(raw) as {text?:unknown};
   const text=typeof data.text==="string"?data.text.trim():"";
   if(!text||text.length>8000)return fail("Este resumo precisa ter até 8.000 caracteres para gerar áudio.",422);
-  const bearer=request.headers.get("authorization");
-  if(bearer?.startsWith("Bearer ")){
-   const user=await authenticateBillingUser(request);
-   userId=user.id;
-   reserved=await supabaseRest<boolean>("rpc/kivai_reserve_video_study_usage",{
-    method:"POST",body:JSON.stringify({p_user_id:userId,p_kind:"audio"})
-   });
-  }else{
-   const salt=process.env.ADMIN_AUTH_SECRET;
-   const ip=request.headers.get("x-vercel-forwarded-for")?.split(",")[0]||request.headers.get("x-real-ip");
-   if(!salt||!ip)return fail("Não foi possível iniciar a narração agora.",503);
-   visitor=createHash("sha256").update(salt+":video-studies:"+ip).digest("hex");
-   reserved=await supabaseRest<boolean>("rpc/kivai_reserve_guest_video_study",{
-    method:"POST",body:JSON.stringify({p_visitor_key:visitor,p_kind:"audio"})
-   });
-  }
-  if(!reserved)return fail(userId?"Você atingiu a quantidade de narrações deste mês. Consulte os planos para continuar.":"Sua narração gratuita já foi utilizada. Crie sua conta Kivai para continuar.",429);
+  const salt=process.env.ADMIN_AUTH_SECRET;
+  const ip=request.headers.get("x-vercel-forwarded-for")?.split(",")[0]||request.headers.get("x-real-ip");
+  if(!salt||!ip)return fail("O áudio não está disponível agora. Tente novamente.",503);
+  visitor=createHash("sha256").update(salt+":video-studies-free:"+ip).digest("hex");
+  reserved=await supabaseRest<boolean>("rpc/kivai_reserve_free_video_request",{
+   method:"POST",body:JSON.stringify({p_fingerprint:visitor,p_kind:"audio"})
+  });
+  if(!reserved)return fail("O serviço de áudio está movimentado agora. Tente novamente mais tarde.",429);
   const apiKey=process.env.GEMINI_API_KEY;
   if(!apiKey)return fail("Não foi possível preparar o áudio agora.",503);
   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/interactions",{
@@ -68,9 +58,10 @@ export async function POST(request:Request){
   console.warn("[video-narration] failed",error instanceof Error?error.name:"unknown");
   return fail("Não foi possível gerar o áudio agora. Tente novamente.",503);
  }finally{
-  if(reserved&&!completed)try{
-   if(userId)await supabaseRest("rpc/kivai_refund_video_study_usage",{method:"POST",body:JSON.stringify({p_user_id:userId,p_kind:"audio"})});
-   else if(visitor)await supabaseRest("rpc/kivai_refund_guest_video_study",{method:"POST",body:JSON.stringify({p_visitor_key:visitor,p_kind:"audio"})});
-  }catch{console.warn("[video-narration] quota refund failed");}
+  if(reserved&&!completed&&visitor)try{
+   await supabaseRest("rpc/kivai_refund_free_video_request",{
+    method:"POST",body:JSON.stringify({p_fingerprint:visitor,p_kind:"audio"})
+   });
+  }catch{console.warn("[video-narration] safety refund failed");}
  }
 }

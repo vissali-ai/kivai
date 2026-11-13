@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 import { supabaseRest } from "@/lib/blog/supabase";
-import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
@@ -26,7 +25,7 @@ function visitorHash(request:Request){
  const salt=process.env.ADMIN_AUTH_SECRET;
  const ip=request.headers.get("x-vercel-forwarded-for")?.split(",")[0]||request.headers.get("x-real-ip");
  if(!salt||!ip)throw new Error("VISITOR_CHECK_UNAVAILABLE");
- return createHash("sha256").update(salt+":video-studies:"+ip).digest("hex");
+ return createHash("sha256").update(salt+":video-studies-free:"+ip).digest("hex");
 }
 async function checkDuration(videoId:string,maximumSeconds:number){
  const key=process.env.YOUTUBE_DATA_API_KEY;
@@ -56,35 +55,22 @@ export async function POST(request:Request){
  const youtube=parseYoutubeUrl(input?.url);
  if(!youtube)return fail("Cole um link público válido do YouTube.",400);
  if(!process.env.GEMINI_API_KEY)return fail("Não foi possível iniciar o resumo agora.",503);
- let userId:string|null=null;
  let visitor:string|null=null;
  let reserved=false;
  let completed=false;
  try{
-  const authorization=request.headers.get("authorization");
-  if(authorization?.startsWith("Bearer ")){
-   const user=await authenticateBillingUser(request);
-   userId=user.id;
-  }
-  const plan=userId?await supabaseRest<"free"|"pro"|"agency">("rpc/kivai_effective_plan",{method:"POST",body:JSON.stringify({p_user_id:userId})}):"free";
-  const maxSeconds=plan==="agency"?3600:plan==="pro"?1800:720;
+  const maxSeconds=3600;
   try{await checkDuration(youtube.videoId,maxSeconds);}
   catch(error){
-   if(error instanceof Error&&error.message==="VIDEO_TOO_LONG")return fail(`Este vídeo ultrapassa o limite de ${Math.round(maxSeconds/60)} minutos do seu plano.`,422);
-   if(error instanceof Error&&error.message==="VIDEO_DURATION_UNKNOWN")return fail("Não foi possível identificar a duração desse vídeo. Escolha outro vídeo público.",422);
+   if(error instanceof Error&&error.message==="VIDEO_TOO_LONG")return fail("O vídeo deve ter até 60 minutos para gerar o resumo.",422);
+   if(error instanceof Error&&error.message==="VIDEO_DURATION_UNKNOWN")return fail("Não foi possível identificar a duração do vídeo. Escolha outro vídeo público.",422);
    return fail("Não foi possível verificar a duração do vídeo. Tente novamente.",503);
   }
-  if(userId){
-   reserved=await supabaseRest<boolean>("rpc/kivai_reserve_video_study_usage",{
-    method:"POST",body:JSON.stringify({p_user_id:userId,p_kind:"summary"})
-   });
-  }else{
-   visitor=visitorHash(request);
-   reserved=await supabaseRest<boolean>("rpc/kivai_reserve_guest_video_study",{
-    method:"POST",body:JSON.stringify({p_visitor_key:visitor,p_kind:"summary"})
-   });
-  }
-  if(!reserved)return fail(userId?"Você atingiu a quantidade de resumos deste mês. Consulte os planos para continuar.":"Você já utilizou seu resumo gratuito. Crie sua conta Kivai para continuar.",429);
+  visitor=visitorHash(request);
+  reserved=await supabaseRest<boolean>("rpc/kivai_reserve_free_video_request",{
+   method:"POST",body:JSON.stringify({p_fingerprint:visitor,p_kind:"summary"})
+  });
+  if(!reserved)return fail("O serviço está muito movimentado agora. Tente novamente mais tarde.",429);
   const instruction="Analise este vídeo público do YouTube. Em português brasileiro, escreva um título claro, um resumo fiel em até cinco parágrafos e de cinco a dez tópicos principais. Inclua tempos [mm:ss] apenas quando puder verificá-los. Não invente afirmações ou tempos. Se o vídeo estiver inacessível, informe a limitação em vez de criar conteúdo fictício. Responda diretamente com o resumo.";
   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/interactions",{
    method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":process.env.GEMINI_API_KEY},
@@ -109,10 +95,11 @@ export async function POST(request:Request){
   console.warn("[kivai-video-summary] failed",error instanceof Error?error.name:"unknown");
   return fail("Não foi possível gerar o resumo agora. Tente novamente.",503);
  }finally{
-  if(reserved&&!completed){
+  if(reserved&&!completed&&visitor){
    try{
-    if(userId)await supabaseRest("rpc/kivai_refund_video_study_usage",{method:"POST",body:JSON.stringify({p_user_id:userId,p_kind:"summary"})});
-    else if(visitor)await supabaseRest("rpc/kivai_refund_guest_video_study",{method:"POST",body:JSON.stringify({p_visitor_key:visitor,p_kind:"summary"})});
+    await supabaseRest("rpc/kivai_refund_free_video_request",{
+     method:"POST",body:JSON.stringify({p_fingerprint:visitor,p_kind:"summary"})
+    });
    }catch{console.warn("[kivai-video-summary] quota refund failed");}
   }
  }

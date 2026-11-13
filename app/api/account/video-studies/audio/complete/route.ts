@@ -22,10 +22,7 @@ export async function POST(request:Request){
   const bytes=Buffer.from(await uploaded.arrayBuffer());
   if(bytes.byteLength!==size||bytes.byteLength>30000000||bytes.toString("ascii",0,4)!=="RIFF"||createHash("sha256").update(bytes).digest("hex")!==sha)
    return fail("Não foi possível confirmar este áudio. Gere a narração novamente.",422);
-  const plan=await supabaseRest<"free"|"pro"|"agency">("rpc/kivai_effective_plan",{
-   method:"POST",body:JSON.stringify({p_user_id:user.id})
-  });
-  const days=plan==="agency"?180:plan==="pro"?90:30;
+  const days=90; // Armazenamento gratuito igual para todas as contas.
   const expiresAt=new Date(Date.now()+days*86400000).toISOString();
   await supabaseRest("video_study_audio?on_conflict=project_id",{
    method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},
