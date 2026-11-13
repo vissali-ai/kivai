@@ -192,7 +192,8 @@ export default function YoutubeVideoPreviewClient(){
     storeGuestStudies([{id,title,source:summary.source,text:summary.text,mode:"summary",partial:summary.partial,createdAt:new Date().toISOString()},...guestStudies().filter(x=>x.id!==id)]);
     setSaved({id,revision:0,title,guest:true});
    }
-   const guestId=saved?.id && saved.guest ? saved.id : guestStudies()[0]?.id;
+   const guestId=guestStudies()[0]?.id;
+   setBusy(false);
    if(guestId)await generateAudioFor(summary,guestId);
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível gerar o resumo.");}
   finally{setBusy(false);running.current=false;}
@@ -261,14 +262,14 @@ export default function YoutubeVideoPreviewClient(){
     <input ref={urlInputRef} id="youtube-link" type="url" inputMode="url" value={url} onChange={e=>setUrl(e.target.value)} onPaste={handleLinkPaste} disabled={busy} autoComplete="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} enterKeyHint="go" placeholder="https://www.youtube.com/watch?v=..." className="w-full min-w-0 rounded-lg border border-border bg-background px-3 py-3 text-base sm:text-sm" maxLength={300}/>
     <Button type="button" variant="outline" disabled={busy} onClick={()=>void pasteYoutubeLink()}>Colar link</Button>
    </div>
-   <Button disabled={busy||!url.trim()} onClick={()=>void generateSummary()}>{busy?"Gerando resumo...":"Gerar resumo inteligente"}</Button>
+   <Button disabled={busy||audioBusy||!url.trim()} onClick={()=>void generateSummary()}>{busy?"Analisando vídeo...":audioBusy?"Gerando narração...":"Gerar resumo e áudio"}</Button>
    {busy&&<p role="status" className="text-sm text-muted-foreground">Estamos preparando seu resumo. Mantenha esta página aberta.</p>}
   </section>
   {error&&<p role="alert" className="rounded-xl border border-destructive/40 bg-card p-4 text-sm">{error}</p>}
   {notice&&<p role="status" className="rounded-xl border border-border bg-card p-4 text-sm">{notice}</p>}
   <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="step-two">
    <div><h2 id="step-two" className="text-lg font-semibold">2. Resultado</h2>
-    <p className="mt-1 text-sm text-muted-foreground">Leia o resumo e salve na sua biblioteca quando quiser.</p></div>
+    <p className="mt-1 text-sm text-muted-foreground">O resumo aparece primeiro. A narração é preparada automaticamente em seguida.</p></div>
    {!result?<p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Seu resumo aparecerá aqui.</p>:
    <>
     <p className="break-all text-xs text-muted-foreground">Vídeo original: <a className="underline" href={result.source} target="_blank" rel="noopener noreferrer">{result.source}</a></p>
@@ -276,15 +277,15 @@ export default function YoutubeVideoPreviewClient(){
     <div className="flex flex-wrap gap-2">
      <Button variant="outline" onClick={()=>void copyText()}>Copiar resumo</Button>
      {bearer()
-      ?<Button disabled={saving} onClick={()=>void saveSummary()}>{saving?"Salvando...":saved&&!saved.guest?"Atualizar resumo salvo":"Salvar resumo"}</Button>
-      :<Button asChild disabled={saving}><Link href="/conta/login?next=%2Fconta">Salvar resumo</Link></Button>}
+      ?<Button disabled={saving||audioBusy} onClick={()=>void saveSummary()}>{saving?"Salvando...":audioBusy?"Aguardando narração...":saved&&!saved.guest?"Atualizar resumo e áudio":"Salvar resumo e áudio"}</Button>
+      :audioBusy?<Button disabled>Aguardando narração...</Button>:<Button asChild disabled={saving}><Link href="/conta/login?next=%2Fconta">Salvar resumo e áudio</Link></Button>}
      {saved&&!saved.guest&&<Button asChild variant="outline"><Link href="/conta/projetos">Minha Biblioteca</Link></Button>}
     </div>
     {saved?.guest&&<div className="rounded-xl border border-primary/25 bg-primary/[0.04] p-4">
-     <p className="text-sm font-semibold">Quer guardar este resumo na sua conta?</p>
-     <p className="mt-1 text-sm text-muted-foreground">Resumo e narração ficam disponíveis para salvar na sua biblioteca e acessar em outros dispositivos.</p>
+     <p className="text-sm font-semibold">Guarde o resumo e a narração na sua conta</p>
+     <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para manter os dois resultados na biblioteca e acessá-los em outros dispositivos.</p>
      <div className="mt-3 flex flex-wrap gap-2">
-      <Button asChild><Link href="/conta/login?next=%2Fconta">Entrar para salvar</Link></Button>
+      <Button asChild><Link href="/conta/login?next=%2Fconta">Entrar e salvar</Link></Button>
       <Button asChild variant="outline"><Link href="/conta/cadastro?next=%2Fconta">Criar conta</Link></Button>
      </div>
     </div>}
@@ -306,7 +307,7 @@ export default function YoutubeVideoPreviewClient(){
      </div>}
      {audioUrl&&saved?.guest&&<div className="rounded-xl border border-primary/25 bg-primary/[0.04] p-4">
       <p className="text-sm font-semibold">Seu áudio está pronto!</p>
-      <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para salvar o resumo e esta narração na sua biblioteca.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para guardar o resumo e a narração juntos na sua biblioteca.</p>
       <div className="mt-3 flex flex-wrap gap-2">
        <Button asChild><Link href="/conta/login?next=%2Fconta">Entrar para salvar</Link></Button>
        <Button asChild variant="outline"><Link href="/conta/cadastro?next=%2Fconta">Criar conta</Link></Button>
