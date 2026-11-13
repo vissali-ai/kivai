@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   const text=body.text?.trim()??"";
   const source=body.source??"";
   const mode=body.mode;
-  if (!title || title.length>120 || text.length>100000 || !text || !/^https:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9_-]{11}$/.test(source) || !["summary","transcript"].includes(mode??""))
+  if (!title || title.length>120 || text.length>100000 || !text || !/^https:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9_-]{11}$/.test(source) || mode!=="summary")
    return fail("Revise o título, o resumo e o link público.");
   if(body.id && !uuid.test(body.id))return fail("Projeto inválido.");
   const payload={ source,text,mode,partial:body.partial===true };
