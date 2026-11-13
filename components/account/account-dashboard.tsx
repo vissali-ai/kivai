@@ -26,6 +26,8 @@ const planLabels = { free: "Grátis", pro: "Pro", agency: "Agency" } as const;
 async function importPendingVideoStudies(){
  const token=getStoredSession()?.access_token;
  if(!token)return;
+ let imported=0;
+ let failed=0;
  const headers={Authorization:`Bearer ${token}`,"Content-Type":"application/json"};
  const pending=guestStudies();
  for(const study of pending){
@@ -36,7 +38,9 @@ async function importPendingVideoStudies(){
    if(!saved.ok)continue;
    const payload=await saved.json() as {project?:{id:string}};
    const projectId=payload.project?.id;
-   if(!projectId)continue;
+   if(!projectId){failed++;continue;}
+   localStorage.setItem("kivai_last_imported_video_study_id",projectId);
+   imported++;
    const blob=await getGuestAudio(study.id).catch(()=>null);
    if(blob){
     const proofData=JSON.parse(localStorage.getItem(`kivai_video_audio_proof_${study.id}`)||"null") as {proof?:string;sha?:string}|null;
@@ -55,9 +59,11 @@ async function importPendingVideoStudies(){
    }
    storeGuestStudies(guestStudies().filter(item=>item.id!==study.id));
   }catch{
+   failed++;
    // Keep local data so the next dashboard visit can retry without losing the generation.
   }
  }
+ window.dispatchEvent(new CustomEvent("kivai:video-studies-imported",{detail:{imported,failed}}));
 }
 
 export function AccountDashboard() {
