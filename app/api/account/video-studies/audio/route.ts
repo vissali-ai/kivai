@@ -19,7 +19,7 @@ async function assetFor(userId:string,projectId:string){
 }
 async function playUrl(asset:Asset){
  const resp=await supabaseStorage(`object/sign/video-study-audio/${asset.storage_path}`,{
-  method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expiresIn:300})
+  method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})
  });
  const data=await resp.json() as {signedURL?:string;signedUrl?:string};
  const relative=data.signedURL??data.signedUrl??"";
