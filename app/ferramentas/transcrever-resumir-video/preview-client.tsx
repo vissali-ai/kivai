@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getStoredSession } from "@/lib/user-auth";
+import { guestStudies,storeGuestStudies,putGuestAudio,getGuestAudio } from "@/lib/video-studies/guest-preview";
 
 type Mode = "summary" | "transcript";
 type Result = { text: string; mode: Mode; partial: boolean; source: string; model: string };
-type Saved = { id: string; revision: number; title: string };
+type Saved = { id: string; revision: number; title: string; guest?: boolean };
 type SavedRecord = { id:string; title:string; revision:number; payload: {source?:string;text?:string;mode?:Mode;partial?:boolean} };
 function token() { return getStoredSession()?.access_token ?? ""; }
 async function accountRequest(path:string, method="GET", body?:unknown) {
@@ -43,7 +44,16 @@ export default function YoutubeVideoPreviewClient() {
  useEffect(()=>{
   setLoggedIn(Boolean(token()));
   const query=new URLSearchParams(window.location.search).get("project");
-  if(!query||!/^[a-f\d-]{36}$/i.test(query)||!token())return;
+  if(!query||!/^[a-f\d-]{36}$/i.test(query))return;
+  if(!token()){
+   const guest=guestStudies().find(item=>item.id===query);
+   if(!guest)return;
+   setSaved({id:guest.id,revision:0,title:guest.title,guest:true});
+   setUrl(guest.source);setMode(guest.mode);setConsent(true);
+   setResult({text:guest.text,source:guest.source,mode:guest.mode,partial:guest.partial,model:"gemini-3.5-flash-lite"});
+   void getGuestAudio(guest.id).then(blob=>{if(blob)setAudioUrl(URL.createObjectURL(blob));}).catch(()=>{});
+   return;
+  }
   let active=true;
   void accountRequest("/api/account/video-studies").then(data=>{
    const project=(data.projects as SavedRecord[]).find(item=>item.id===query);
@@ -84,23 +94,44 @@ export default function YoutubeVideoPreviewClient() {
   if(!result||saving)return;
   setSaving(true);setError("");
   try{
-   const json=await accountRequest("/api/account/video-studies","POST",{
-    id:saved?.id,title:saved?.title??titleOf(result),revision:saved?.revision??0,
-    text:result.text,source:result.source,mode:result.mode,partial:result.partial
-   });
-   const p=json.project as Saved;
-   setSaved({id:p.id,revision:p.revision,title:p.title});
-   setNotice("Resumo salvo na sua Biblioteca de Projetos.");
-  }catch(cause){setError(cause instanceof Error?cause.message:"Não foi possível salvar.");}
+   if(!token()){
+    const id=saved?.id??crypto.randomUUID();
+    const title=saved?.title??titleOf(result);
+    const studies=guestStudies();
+    storeGuestStudies([{id,title,source:result.source,text:result.text,mode:result.mode,partial:result.partial,createdAt:new Date().toISOString()},...studies.filter(x=>x.id!==id)]);
+    setSaved({id,revision:0,title,guest:true});
+    setNotice("Resumo salvo no navegador de teste. Você já pode gerar o áudio e adicioná-lo a playlists.");
+   }else{
+    const json=await accountRequest("/api/account/video-studies","POST",{
+     id:saved?.id,title:saved?.title??titleOf(result),revision:saved?.revision??0,
+     text:result.text,source:result.source,mode:result.mode,partial:result.partial
+    });
+    const p=json.project as Saved;
+    setSaved({id:p.id,revision:p.revision,title:p.title});
+    setNotice("Resumo salvo na sua Biblioteca de Projetos.");
+   }
+  }catch(cause){setError(cause instanceof Error?cause.message:"Não foi possível salvar. Verifique se este navegador permite armazenamento local.");}
   finally{setSaving(false);}
  }
  async function generateAudio(){
-  if(!saved||!result||result.mode!=="summary"||audioBusy)return;
+  if(!result||result.mode!=="summary"||audioBusy)return;
   setAudioBusy(true);setError("");setNotice("");
   try{
-   const json=await accountRequest("/api/account/video-studies/audio","POST",{id:saved.id});
-   setAudioUrl(json.url);setAudioExpiry(json.expiresAt);
-   setNotice(json.reused?"Áudio salvo recuperado.":"Áudio narrado gerado e salvo na biblioteca.");
+   if(saved&&!saved.guest&&token()){
+    const json=await accountRequest("/api/account/video-studies/audio","POST",{id:saved.id});
+    setAudioUrl(json.url);setAudioExpiry(json.expiresAt);
+    setNotice(json.reused?"Áudio salvo recuperado.":"Áudio narrado gerado e salvo na biblioteca.");
+   }else{
+    const response=await fetch("/api/ai/video-guest-audio-preview",{
+     method:"POST",headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({text:result.text,consent:true}),signal:AbortSignal.timeout(210000)
+    });
+    if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error??"Não foi possível gerar o áudio.");}
+    const blob=await response.blob();
+    if(saved?.guest)await putGuestAudio(saved.id,blob);
+    setAudioUrl(URL.createObjectURL(blob));setAudioExpiry("");
+    setNotice(saved?.guest?"Áudio criado e guardado neste navegador de teste.":"Áudio gerado. Salve o resumo no navegador para adicioná-lo a uma playlist.");
+   }
   }catch(cause){setError(cause instanceof Error?cause.message:"Falha ao gerar áudio.");}
   finally{setAudioBusy(false);}
  }
@@ -143,7 +174,7 @@ export default function YoutubeVideoPreviewClient() {
    </label>
    <Button disabled={busy||!url.trim()||!consent} onClick={()=>void run()}>{busy?"Analisando vídeo...":mode==="summary"?"Gerar resumo":"Gerar transcrição"}</Button>
    {busy&&<p role="status" className="text-sm text-muted-foreground">O vídeo está sendo analisado. Mantenha esta aba aberta durante o processamento, que pode durar alguns minutos.</p>}
-   <p className="text-xs text-muted-foreground">Homologação, ainda sem publicação. Contas cadastradas terão franquia de uso por plano. A duração máxima por vídeo depende de validação dos metadados do YouTube.</p>
+   <p className="text-xs text-muted-foreground">Homologação livre para experimentar o fluxo. Sem necessidade de login; o armazenamento local é provisório e restrito a este navegador. Permanecem proteções técnicas contra uso abusivo.</p>
   </section>
 
   {error&&<p role="alert" className="rounded-xl border border-destructive/40 bg-card p-4 text-sm">{error}</p>}
@@ -151,16 +182,15 @@ export default function YoutubeVideoPreviewClient() {
 
   <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="video-step-two">
    <div><h2 id="video-step-two" className="text-lg font-semibold">2. Resultado do resumo</h2>
-    <p className="mt-1 text-sm text-muted-foreground">Leia o resultado e, se quiser, salve para acessar depois na sua conta.</p></div>
+    <p className="mt-1 text-sm text-muted-foreground">Leia o resultado e salve se quiser. Sem login, o resumo fica guardado somente neste navegador de teste.</p></div>
    {!result?<p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">O resultado aparecerá aqui depois da primeira etapa.</p>:
    <>
     <p className="break-all text-xs text-muted-foreground">Vídeo original: <a className="underline" href={result.source} target="_blank" rel="noopener noreferrer">{result.source}</a></p>
     {result.partial&&<p role="status" className="text-sm text-amber-700">O resultado pode estar incompleto. Não considere uma transcrição integral sem conferir.</p>}
     <div className="flex flex-wrap gap-2">
      <Button variant="outline" onClick={()=>void copy()}>Copiar texto</Button>
-     {loggedIn?<Button disabled={saving} onClick={()=>void save()}>{saving?"Salvando...":saved?"Atualizar resumo salvo":"Salvar na biblioteca"}</Button>:
-      <Button asChild variant="outline"><Link href="/conta/login?next=%2Fferramentas%2Ftranscrever-resumir-video">Entrar para salvar</Link></Button>}
-     {saved&&<Button asChild variant="outline"><Link href="/conta/projetos">Minha Biblioteca</Link></Button>}
+     <Button disabled={saving} onClick={()=>void save()}>{saving?"Salvando...":saved?"Atualizar resumo salvo":"Salvar resumo"}</Button>
+     {saved&&<Button asChild variant="outline"><Link href="/conta/projetos">Abrir biblioteca e playlists</Link></Button>}
     </div>
     <div className="whitespace-pre-wrap break-words rounded-lg border border-border bg-background p-4 text-sm leading-7">{result.text}</div>
     <p className="text-xs text-muted-foreground">Conteúdo elaborado por IA. Confira fatos e citações importantes com o vídeo original.</p>
@@ -169,15 +199,15 @@ export default function YoutubeVideoPreviewClient() {
 
   <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="video-step-three">
    <div><h2 id="video-step-three" className="text-lg font-semibold">3. Áudio do resumo</h2>
-    <p className="mt-1 text-sm text-muted-foreground">Opcional. Salve o resumo na conta e escolha gerar a narração. Se preferir só ler, não precisa gerar áudio.</p></div>
+    <p className="mt-1 text-sm text-muted-foreground">Opcional. Gere o áudio diretamente, sem login e sem precisar salvar o texto antes. Você também pode parar no resumo.</p></div>
    {result?.mode==="transcript"?<p className="text-sm text-muted-foreground">A narração está disponível para o modo Resumo inteligente. A transcrição pode ser lida e salva normalmente.</p>:
     !result?<p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">O botão de áudio aparece após a geração do resumo.</p>:
     <>
-     <Button disabled={!saved||audioBusy||result.text.length>8000} onClick={()=>void generateAudio()}>{audioBusy?"Gerando narração...":audioUrl?"Ouvir narração existente":"Gerar áudio do resumo"}</Button>
-     {!saved&&<p className="text-xs text-muted-foreground">Salve o resumo na sua conta para liberar o áudio.</p>}
+     <Button disabled={audioBusy||result.text.length>8000} onClick={()=>void generateAudio()}>{audioBusy?"Gerando narração...":audioUrl?"Ouvir narração existente":"Gerar áudio do resumo"}</Button>
+     {!saved&&<p className="text-xs text-muted-foreground">Para guardar o áudio numa playlist, salve também o resumo. Não é necessário para ouvir agora.</p>}
      {result.text.length>8000&&<p className="text-xs text-amber-700">Esta narração excede 8.000 caracteres. Será necessário dividir o texto em blocos em uma atualização futura.</p>}
      {audioBusy&&<p role="status" className="text-sm text-muted-foreground">A narração está sendo preparada pelo Gemini. Aguarde com esta aba aberta.</p>}
-     {audioUrl&&<div className="space-y-2"><audio key={audioUrl} controls preload="metadata" src={audioUrl} className="w-full" controlsList="nodownload"/><p className="text-xs text-muted-foreground">Áudio salvo na conta até {new Date(audioExpiry).toLocaleDateString("pt-BR")}. Sem opção de download na ferramenta.</p></div>}
+     {audioUrl&&<div className="space-y-2"><audio key={audioUrl} controls preload="metadata" src={audioUrl} className="w-full" controlsList="nodownload"/><p className="text-xs text-muted-foreground">{audioExpiry?`Áudio salvo até ${new Date(audioExpiry).toLocaleDateString("pt-BR")}.`:"Áudio disponível neste navegador de teste."} Sem opção de download na ferramenta.</p></div>}
      <p className="text-xs text-muted-foreground">Ouça também seus áudios em sequência na Biblioteca de Projetos.</p>
     </>}
   </section>
