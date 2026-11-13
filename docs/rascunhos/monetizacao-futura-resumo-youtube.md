@@ -1,29 +1,41 @@
-# Estratégia reservada: monetização do Resumidor de Vídeos
+# Oferta comercial: Resumidor de Vídeos do YouTube com IA
 
-**Status: RASCUNHO. NÃO IMPLEMENTAR OU EXIBIR ATÉ NOVA AUTORIZAÇÃO.**
+**Status: AUTORIZADO PARA POSICIONAMENTO COMERCIAL.** A geração conjunta de resumo e áudio é o principal diferencial da oferta.
 
-## Decisão atual
-O Resumidor de Vídeos do YouTube com IA é uma ferramenta de atração orgânica do Kivai, gratuita para visitantes e pessoas cadastradas. O resumo, a narração e as playlists não têm bloqueios comerciais por plano. Permanecem somente medidas operacionais de segurança, limites de duração e capacidade de armazenamento iguais para todos.
+## Proposta de valor
+Transforme um vídeo público do YouTube em dois formatos de estudo com um único comando: resumo escrito e narração em áudio em português brasileiro.
 
-## Experiência planejada para uma fase futura de monetização
-Este texto registra a ideia fornecida pelo proprietário, mas **não é copy ativa**.
+## Experiência do produto
+1. O usuário cola um link público do YouTube.
+2. Clica em **Gerar resumo e áudio**.
+3. O texto aparece assim que a análise termina.
+4. A narração começa automaticamente, sem um segundo clique.
+5. O player fica disponível quando o áudio termina de ser gerado.
+6. O usuário pode salvar o resumo e o áudio na biblioteca da conta Kivai.
 
-1. Na página da ferramenta, exibir um card pequeno e objetivo logo após a etapa 3, dedicada ao áudio.
-2. Informar que o primeiro resumo para quem está sem login é gratuito.
-3. Destacar, de forma breve, o valor do cadastro Free e dos planos Pro e Agency. Benefícios a mencionar: mais resumos, vídeos mais longos, narrações, biblioteca e playlists.
-4. Ao concluir a primeira geração de quem está sem login, mostrar um aviso vermelho, imediatamente abaixo do resultado, dizendo que a franquia de demonstração terminou.
-5. No próprio aviso, convidar a criar conta ou assinar, deixando clara a vantagem de cada opção, sem excesso de texto.
-6. Acompanhar o consumo pela identidade de conta nos usuários autenticados e usar mecanismos antifraude para visitantes sem login.
-7. Preservar o padrão visual, SEO, linguagem curta e profissional do Kivai, sem textos técnicos no produto.
+## Mensagem comercial
+**Do vídeo ao resumo e áudio, em um só passo.**
+Economize tempo na revisão de aulas, palestras, entrevistas e conteúdos educativos. Leia os principais pontos e ouça a narração enquanto realiza outras atividades.
 
-## Limites comerciais anteriores, apenas como referência histórica
+## Planos e monetização
+A ferramenta deve ser comercializada dentro da oferta Kivai, com chamada para conhecer os planos em /planos. Não publicar cotas ou promessas quantitativas até validar limites técnicos, custos de Gemini, armazenamento e regras de entitlement.
+
+Referências históricas de limites, ainda não aprovadas para oferta:
 - Sem login: 1 resumo e 1 áudio.
 - Free cadastrado: 3 resumos/áudios mensais, 12 minutos por vídeo.
 - Pro: 20 resumos/áudios mensais, 30 minutos por vídeo.
 - Agency: 60 resumos/áudios mensais, 60 minutos por vídeo.
-- Planos de biblioteca: Free 10 resumos/3 playlists; Pro 100/20; Agency 500/100.
+- Biblioteca: Free 10 resumos/3 playlists; Pro 100/20; Agency 500/100.
 
-**Nenhum número acima representa a oferta atual.** Antes de ativar, revisar custos reais do Gemini, custos de armazenamento, preços, taxas de conversão, transparência da oferta e contratos do site.
+**Importante:** esses números são apenas referências do rascunho anterior, não devem ser tratados como limites ativos ou divulgados como benefício comercial até revisão de custos e implementação das cotas por plano.
 
-## Critério de ativação
-Só reintroduzir cotas, card de conversão com benefícios pagos e alerta de limite depois de pedido explícito do proprietário. Recomenda-se flag comercial desligada por padrão e validação prévia antes da publicação.
+## Regras de experiência e confiabilidade
+- O resumo deve continuar disponível mesmo se a geração de áudio falhar.
+- A falha do áudio deve oferecer uma opção de nova tentativa.
+- O resultado deve ser preservado localmente durante a autenticação.
+- O login deve ocorrer antes do acesso ao painel, e a importação deve confirmar o salvamento do resumo e do áudio.
+- A biblioteca deve permitir recuperar o conteúdo salvo em outros dispositivos.
+- Não apresentar uma geração como salva na conta antes da confirmação do servidor.
+
+## SEO e comunicação
+Usar os termos: resumir vídeo do YouTube com IA, resumo de vídeo, gerar áudio do resumo, narração automática, resumo em áudio, estudar com vídeos.
