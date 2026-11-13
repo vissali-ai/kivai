@@ -257,10 +257,10 @@ export const tools: Tool[] = [
   {
     slug: "resumir-video-youtube",
     name: "Resumir Vídeo do YouTube com IA",
-    description: "Transforme vídeos públicos do YouTube em resumos claros, ouça a narração e organize os conteúdos em playlists.",
+    description: "Resuma vídeos do YouTube gratuitamente, ouça a narração e organize os conteúdos em playlists.",
     category: "video", hubFilter: "Resumir", badge: "IA", icon: Video, available: true,
     seoTitle: "Resumir Vídeo do YouTube com IA Online | Kivai",
-    seoDescription: "Resuma vídeos do YouTube com inteligência artificial, leia os pontos principais, gere áudio do resumo e salve estudos em playlists.",
+    seoDescription: "Resuma vídeos públicos do YouTube grátis com IA, ouça os pontos principais em áudio e organize estudos em playlists, com ou sem login.",
     keywords: ["resumir vídeo do youtube", "resumo de vídeo com IA", "resumo de youtube", "resumidor de vídeo", "ouvir resumo", "resumo em áudio", "estudar com vídeos"],
   },
   {
