@@ -166,7 +166,6 @@ export default function YoutubeVideoPreviewClient(){
    <input id="youtube-link" type="url" value={url} onChange={e=>setUrl(e.target.value)} disabled={busy} autoComplete="url" placeholder="https://www.youtube.com/watch?v=..." className="w-full min-w-0 rounded-lg border border-border bg-background px-3 py-3 text-sm" maxLength={300}/>
    <Button disabled={busy||!url.trim()} onClick={()=>void generateSummary()}>{busy?"Gerando resumo...":"Gerar resumo inteligente"}</Button>
    {busy&&<p role="status" className="text-sm text-muted-foreground">Estamos preparando seu resumo. Mantenha esta página aberta.</p>}
-   <p className="text-xs text-muted-foreground">Ao gerar, o conteúdo público do vídeo é analisado para criar seu resumo.</p>
   </section>
   {error&&<p role="alert" className="rounded-xl border border-destructive/40 bg-card p-4 text-sm">{error}</p>}
   {notice&&<p role="status" className="rounded-xl border border-border bg-card p-4 text-sm">{notice}</p>}
