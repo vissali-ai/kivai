@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUp, Building2, CheckCircle2, ChevronDown, Clock3, Crown, History, LayoutDashboard, LogOut, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredSession, signOut, supabaseUserFetch } from "@/lib/user-auth";
+import { guestStudies, storeGuestStudies, getGuestAudio, deleteGuestAudio } from "@/lib/video-studies/guest-preview";
 import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
 
 import { useAccountAccess } from "@/lib/billing/access-client";
@@ -21,6 +22,43 @@ type Snapshot = { id: string; analyzed_at: string; follower_count: number; follo
 type SocialAccount = { id: string; username: string };
 type SubscriptionRequest = { id: string; plan_code: "pro" | "agency"; billing_cycle: "monthly" | "annual"; amount_brl: number | string; status: "awaiting_payment" | "payment_reported"; payment_link: string; created_at: string };
 const planLabels = { free: "Grátis", pro: "Pro", agency: "Agency" } as const;
+
+async function importPendingVideoStudies(){
+ const token=getStoredSession()?.access_token;
+ if(!token)return;
+ const headers={Authorization:`Bearer ${token}`,"Content-Type":"application/json"};
+ const pending=guestStudies();
+ for(const study of pending){
+  try{
+   const saved=await fetch("/api/account/video-studies",{method:"POST",cache:"no-store",headers,body:JSON.stringify({
+    id:study.id,title:study.title,revision:0,text:study.text,source:study.source,mode:"summary",partial:study.partial
+   })});
+   if(!saved.ok)continue;
+   const payload=await saved.json() as {project?:{id:string}};
+   const projectId=payload.project?.id;
+   if(!projectId)continue;
+   const blob=await getGuestAudio(study.id).catch(()=>null);
+   if(blob){
+    const proofData=JSON.parse(localStorage.getItem(`kivai_video_audio_proof_${study.id}`)||"null") as {proof?:string;sha?:string}|null;
+    if(!proofData?.proof||!proofData.sha)continue;
+    const audioPayload={id:projectId,proof:proofData.proof,sha:proofData.sha,size:blob.size};
+    const stage=await fetch("/api/account/video-studies/audio/stage",{method:"POST",cache:"no-store",headers,body:JSON.stringify(audioPayload)});
+    if(!stage.ok)continue;
+    const staged=await stage.json() as {url?:string};
+    if(!staged.url)continue;
+    const uploaded=await fetch(staged.url,{method:"PUT",body:blob,headers:{"Content-Type":"audio/wav"},cache:"no-store"});
+    if(!uploaded.ok)continue;
+    const complete=await fetch("/api/account/video-studies/audio/complete",{method:"POST",cache:"no-store",headers,body:JSON.stringify(audioPayload)});
+    if(!complete.ok)continue;
+    localStorage.removeItem(`kivai_video_audio_proof_${study.id}`);
+    await deleteGuestAudio(study.id).catch(()=>{});
+   }
+   storeGuestStudies(guestStudies().filter(item=>item.id!==study.id));
+  }catch{
+   // Keep local data so the next dashboard visit can retry without losing the generation.
+  }
+ }
+}
 
 export function AccountDashboard() {
   const { access, loading: accessLoading, error: accessError } = useAccountAccess();
@@ -51,6 +89,7 @@ export function AccountDashboard() {
       if (!active) return;
       setEmail(user.email ?? "");
       setUserId(user.id);
+      void importPendingVideoStudies();
       const version = paymentVersion.current;
       const [profileResponse, accountsResponse, snapshotsResponse, requestResponse] = await Promise.all([
         supabaseUserFetch(`/rest/v1/user_profiles?select=full_name,avatar_url,plan_code&user_id=eq.${encodeURIComponent(user.id)}&limit=1`),

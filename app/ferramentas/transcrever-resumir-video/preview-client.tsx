@@ -229,15 +229,17 @@ export default function YoutubeVideoPreviewClient(){
     {result.partial&&<p role="status" className="text-sm text-muted-foreground">Alguns trechos podem não estar incluídos no resumo.</p>}
     <div className="flex flex-wrap gap-2">
      <Button variant="outline" onClick={()=>void copyText()}>Copiar resumo</Button>
-     <Button disabled={saving} onClick={()=>void saveSummary()}>{saving?"Salvando...":saved?"Atualizar resumo salvo":"Salvar resumo"}</Button>
+     {bearer()
+      ?<Button disabled={saving} onClick={()=>void saveSummary()}>{saving?"Salvando...":saved&&!saved.guest?"Atualizar resumo salvo":"Salvar resumo"}</Button>
+      :<Button asChild disabled={saving}><Link href="/conta/login?next=%2Fconta">Salvar resumo</Link></Button>}
      {saved&&!saved.guest&&<Button asChild variant="outline"><Link href="/conta/projetos">Minha Biblioteca</Link></Button>}
     </div>
     {saved?.guest&&<div className="rounded-xl border border-primary/25 bg-primary/[0.04] p-4">
      <p className="text-sm font-semibold">Quer guardar este resumo na sua conta?</p>
      <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para manter este resumo na sua biblioteca e acessá-lo em outros dispositivos. Você também pode gerar o áudio antes de entrar.</p>
      <div className="mt-3 flex flex-wrap gap-2">
-      <Button asChild><Link href={`/conta/login?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Entrar para salvar</Link></Button>
-      <Button asChild variant="outline"><Link href={`/conta/cadastro?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Criar conta</Link></Button>
+      <Button asChild><Link href="/conta/login?next=%2Fconta">Entrar para salvar</Link></Button>
+      <Button asChild variant="outline"><Link href="/conta/cadastro?next=%2Fconta">Criar conta</Link></Button>
      </div>
     </div>}
     <div className="whitespace-pre-wrap break-words rounded-lg border border-border bg-background p-4 text-sm leading-7">{result.text}</div>
@@ -259,8 +261,8 @@ export default function YoutubeVideoPreviewClient(){
       <p className="text-sm font-semibold">Seu áudio está pronto!</p>
       <p className="mt-1 text-sm text-muted-foreground">Entre ou crie sua conta para salvar o resumo e esta narração na sua biblioteca.</p>
       <div className="mt-3 flex flex-wrap gap-2">
-       <Button asChild><Link href={`/conta/login?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Entrar para salvar</Link></Button>
-       <Button asChild variant="outline"><Link href={`/conta/cadastro?next=${encodeURIComponent(`/ferramentas/resumir-video-youtube?project=${saved.id}`)}`}>Criar conta</Link></Button>
+       <Button asChild><Link href="/conta/login?next=%2Fconta">Entrar para salvar</Link></Button>
+       <Button asChild variant="outline"><Link href="/conta/cadastro?next=%2Fconta">Criar conta</Link></Button>
       </div>
      </div>}
      {audioUrl&&!audioStored&&saved&&!saved.guest&&audioBlob&&<Button variant="outline" disabled={saving} onClick={()=>void saveSummary()}>Salvar áudio na biblioteca</Button>}
