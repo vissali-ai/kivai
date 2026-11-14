@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Kivai Capturador de Página Inteira",
+  "version": "1.0.0",
+  "description": "Captura e une uma página web inteira em uma imagem PNG.",
+  "permissions": ["activeTab", "scripting", "downloads"],
+  "action": {
+    "default_title": "Capturar página inteira com Kivai",
+    "default_popup": "popup.html"
+  }
+}

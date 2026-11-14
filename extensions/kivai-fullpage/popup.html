@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kivai · Captura de página</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <div class="brand"><span class="brand-mark">K</span><span>Kivai</span></div>
+      <h1>Capturar página inteira</h1>
+      <p class="intro">A extensão percorre esta aba e junta as imagens em um único PNG.</p>
+      <button id="capture" type="button">Capturar página inteira</button>
+      <p id="status" role="status" aria-live="polite">A captura fica somente no seu dispositivo.</p>
+      <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+      <p class="footnote">Não funciona em páginas internas do navegador, como chrome:// e a Chrome Web Store.</p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
