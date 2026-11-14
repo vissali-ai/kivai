@@ -14,6 +14,7 @@ import {
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolPageBreadcrumb } from "@/components/tools/tool-page-breadcrumb";
 import { Button } from "@/components/ui/button";
+import { stripJpegMetadata } from "@/lib/image-tools/strip-jpeg-metadata";
 import {
   Card,
   CardContent,
@@ -321,7 +322,7 @@ export default function RemovedorDeMetadadosClient() {
       canvas.width = bitmap.width;
       canvas.height = bitmap.height;
 
-      const context = canvas.getContext("2d", { alpha: file.type !== "image/jpeg" });
+      const context = canvas.getContext("2d", { alpha: file.type !== "image/jpeg", colorSpace: "srgb" });
       if (!context) throw new Error("Canvas indisponível.");
 
       if (file.type === "image/jpeg") {
@@ -330,7 +331,8 @@ export default function RemovedorDeMetadadosClient() {
       }
 
       context.drawImage(bitmap, 0, 0);
-      const blob = await canvasToBlob(canvas, file.type);
+      const encodedBlob = await canvasToBlob(canvas, file.type);
+      const blob = file.type === "image/jpeg" ? await stripJpegMetadata(encodedBlob) : encodedBlob;
 
       if (blob.type !== file.type) {
         throw new Error("O navegador não oferece exportação no formato original.");

@@ -14,6 +14,7 @@ import {
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolPageBreadcrumb } from "@/components/tools/tool-page-breadcrumb";
 import { Button } from "@/components/ui/button";
+import { stripJpegMetadata } from "@/lib/image-tools/strip-jpeg-metadata";
 import {
   Card,
   CardContent,
@@ -93,57 +94,6 @@ function readAscii(bytes: Uint8Array, start: number, length: number) {
     value += String.fromCharCode(bytes[index]);
   }
   return value;
-}
-
-async function stripJpegIccProfile(blob: Blob) {
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return blob;
-
-  const chunks: Uint8Array[] = [bytes.subarray(0, 2)];
-  let offset = 2;
-  while (offset + 3 < bytes.length) {
-    if (bytes[offset] !== 0xff) {
-      chunks.push(bytes.subarray(offset));
-      break;
-    }
-
-    let markerOffset = offset;
-    while (markerOffset < bytes.length && bytes[markerOffset] === 0xff) markerOffset += 1;
-    const marker = bytes[markerOffset];
-    if (marker === 0xda || marker === 0xd9) {
-      chunks.push(bytes.subarray(offset));
-      break;
-    }
-
-    if (marker === 0x00 || marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7)) {
-      chunks.push(bytes.subarray(offset, markerOffset + 1));
-      offset = markerOffset + 1;
-      continue;
-    }
-
-    if (markerOffset + 2 >= bytes.length) {
-      chunks.push(bytes.subarray(offset));
-      break;
-    }
-
-    const length = (bytes[markerOffset + 1] << 8) | bytes[markerOffset + 2];
-    const segmentEnd = markerOffset + 1 + length;
-    if (length < 2 || segmentEnd > bytes.length) {
-      chunks.push(bytes.subarray(offset));
-      break;
-    }
-
-    const isIccProfile = marker === 0xe2 && readAscii(bytes, markerOffset + 3, 12).startsWith("ICC_PROFILE");
-    if (!isIccProfile) chunks.push(bytes.subarray(offset, segmentEnd));
-    offset = segmentEnd;
-  }
-
-  const segments = chunks.map((chunk) => {
-    const copy = new ArrayBuffer(chunk.byteLength);
-    new Uint8Array(copy).set(chunk);
-    return copy;
-  });
-  return new Blob(segments, { type: "image/jpeg" });
 }
 
 function verifyJpeg(bytes: Uint8Array) {
@@ -386,7 +336,7 @@ export default function RemovedorDeMetadadosClient() {
       context.drawImage(bitmap, 0, 0);
       // Re-encoding in an sRGB canvas avoids copying the source ICC chunk.
       const encodedBlob = await canvasToBlob(canvas, file.type);
-      const blob = file.type === "image/jpeg" ? await stripJpegIccProfile(encodedBlob) : encodedBlob;
+      const blob = file.type === "image/jpeg" ? await stripJpegMetadata(encodedBlob) : encodedBlob;
 
       if (blob.type !== file.type) {
         throw new Error("O navegador não oferece exportação no formato original.");
