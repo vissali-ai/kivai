@@ -16,7 +16,6 @@ export function uniformPages(doc: PDFDocument) {
 
 export async function prepareManual(bytes: Uint8Array, reverse: boolean, rotateBack: boolean) {
   const source = await loadPrintPdf(bytes);
-  if (!uniformPages(source)) throw new Error("Separe as páginas por tamanho e orientação antes de usar o modo manual.");
   const fronts = await PDFDocument.create();
   const backs = await PDFDocument.create();
   const count = source.getPageCount();

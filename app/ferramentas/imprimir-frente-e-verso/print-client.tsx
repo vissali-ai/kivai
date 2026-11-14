@@ -1,58 +1,126 @@
 "use client";
+
 import { useState } from "react";
+import { Download, FileText, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToolUploadArea } from "@/components/tools/tool-upload-area";
-import type { Printer } from "@/lib/duplex-print/catalog";
 
 const panel = "space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-7";
 const selectClass = "mt-2 min-h-12 w-full rounded-lg border border-input bg-background px-3";
+
 function download(bytes: Uint8Array, name: string) {
   const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/pdf" }));
-  const a = document.createElement("a"); a.href = url; a.download = name; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
-function Paper({ face, top }: { face: string; top: string }) {
-  return <figure className="flex flex-wrap items-center gap-6 rounded-xl bg-muted/40 p-5"><svg viewBox="0 0 200 175" className="h-44 w-48 shrink-0" role="img" aria-label={`Recoloque com a face impressa ${face === "up" ? "para cima" : "para baixo"} e o topo ${top === "first" ? "entrando primeiro" : "entrando por último"}`}><rect x="25" y="5" width="150" height="25" rx="5" fill="none" stroke="currentColor"/><text x="100" y="22" textAnchor="middle" fill="currentColor" fontSize="11">ENTRADA DO PAPEL</text><path d="M100 60 V36 m-7 7 7-7 7 7" fill="none" stroke="currentColor" strokeWidth="3"/><rect x="55" y="70" width="90" height="100" rx="3" fill="none" stroke="currentColor" strokeDasharray={face === "down" ? "5 3" : undefined}/><text x="100" y={top === "first" ? 89 : 156} textAnchor="middle" fill="currentColor" fontSize="12">TOPO</text><text x="100" y="117" textAnchor="middle" fill="currentColor" fontSize="11">{face === "up" ? "FRENTE VISÍVEL" : "FRENTE OCULTA"}</text></svg><figcaption className="max-w-sm text-sm leading-6">Face impressa <strong>{face === "up" ? "para cima" : "para baixo"}</strong>. Topo <strong>{top === "first" ? "entra primeiro" : "entra por último"}</strong>. Use a mesma bandeja e preserve a ordem da pilha.</figcaption></figure>;
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export default function DuplexClient({ printers }: { printers: Printer[] }) {
-  const [file, setFile] = useState<{ name: string; bytes: Uint8Array; count: number; uniform: boolean; landscape: boolean } | null>(null);
-  const [brand, setBrand] = useState(""); const [model, setModel] = useState("");
-  const [mode, setMode] = useState("manual"); const [edge, setEdge] = useState("long");
-  const [face, setFace] = useState("up"); const [top, setTop] = useState("first");
-  const [orientation, setOrientation] = useState(""); const [order, setOrder] = useState("");
-  const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+export default function DuplexClient() {
+  const [file, setFile] = useState<{ name: string; bytes: Uint8Array; count: number } | null>(null);
+  const [mode, setMode] = useState<"manual" | "auto">("manual");
+  const [reverseOrder, setReverseOrder] = useState(false);
+  const [rotateBack, setRotateBack] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const [result, setResult] = useState<{ fronts: Uint8Array; backs: Uint8Array } | null>(null);
-  const printer = printers.find(p => p.id === model);
-  function reset() { setOrientation(""); setOrder(""); setResult(null); }
-  async function run(action: () => Promise<void>) { setBusy(true); setError(""); try { await action(); } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível preparar o PDF."); } finally { setBusy(false); } }
+
   async function upload(files: File[]) {
-    const selected = files[0]; if (!selected) return;
-    setFile(null); reset();
-    await run(async () => {
+    const selected = files[0];
+    if (!selected) return;
+    setFile(null);
+    setResult(null);
+    setError("");
+    setBusy(true);
+    try {
       if (!/\.pdf$/i.test(selected.name)) throw new Error("Selecione somente arquivos PDF.");
       if (selected.size > 50 * 1024 * 1024) throw new Error("O limite é 50 MB.");
       const bytes = new Uint8Array(await selected.arrayBuffer());
-      const { loadPrintPdf, uniformPages } = await import("@/lib/duplex-print/pdf");
-      const doc = await loadPrintPdf(bytes); const page = doc.getPage(0); const size = page.getSize();
-      const rotated = Math.abs(page.getRotation().angle % 180) === 90;
-      setFile({ name: selected.name, bytes, count: doc.getPageCount(), uniform: uniformPages(doc), landscape: rotated ? size.height > size.width : size.width > size.height });
-    });
+      const { loadPrintPdf } = await import("@/lib/duplex-print/pdf");
+      const doc = await loadPrintPdf(bytes);
+      setFile({ name: selected.name, bytes, count: doc.getPageCount() });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível abrir este PDF.");
+    } finally {
+      setBusy(false);
+    }
   }
-  async function test(side: "front" | "back", count: number) { await run(async () => { const { testPdf } = await import("@/lib/duplex-print/pdf"); download(await testPdf(side, count, file?.landscape), `kivai-teste-${count}-${side}.pdf`); }); }
-  return <fieldset disabled={busy} aria-busy={busy} className="min-w-0 space-y-6">
-    <section className={panel}><h2 className="text-xl font-semibold">1. Selecione seu PDF</h2><ToolUploadArea accept=".pdf,application/pdf" formats="PDF" maxSizeLabel="50 MB · 500 páginas" disabled={busy} onFilesSelected={upload} />{file && <p className="break-words" role="status">{file.name} · {file.count} {file.count === 1 ? "página" : "páginas"} · {Math.ceil(file.count / 2)} folhas</p>}</section>
-    {file && <><section className={panel}><h2 className="text-xl font-semibold">2. Impressora e modo de impressão</h2><div className="grid gap-4 sm:grid-cols-2"><label>Marca<select className={selectClass} value={brand} onChange={e => { setBrand(e.target.value); setModel(""); setMode("manual"); reset(); }}><option value="">Escolha a marca</option>{["Epson", "HP", "Canon", "Brother"].map(b => <option key={b}>{b}</option>)}<option value="other">Outra marca / não sei</option></select></label><label>Modelo<select className={selectClass} value={model} onChange={e => { setModel(e.target.value); reset(); const p = printers.find(p => p.id === e.target.value); setMode(p?.duplex === "yes" ? "auto" : "manual"); }}><option value="">Não sei o modelo da minha impressora</option>{printers.filter(p => p.brand === brand).map(p => <option key={p.id} value={p.id}>{p.model}</option>)}<option value="missing">Não encontrei minha impressora</option></select></label></div>
-    <p className="text-sm text-muted-foreground">{printer?.duplex === "yes" ? "O modelo cadastrado suporta duplex automático. Confira papel e bandeja compatíveis no manual." : printer?.duplex === "no" ? "Este modelo está cadastrado sem duplex automático." : "Duplex não confirmado. Consulte o manual ou use o modo manual com os testes abaixo."}</p>
-    <label className="block">Como deseja imprimir?<select className={selectClass} value={mode} onChange={e => { setMode(e.target.value); reset(); }}><option value="manual">Quero imprimir frente e verso manualmente</option><option value="auto">Minha impressora faz frente e verso automaticamente</option></select></label>
-    <label className="block">Borda para virar as páginas<select className={selectClass} value={edge} onChange={e => { setEdge(e.target.value); reset(); }}><option value="long">Borda longa</option><option value="short">Borda curta</option></select></label><p className="text-sm">Em retrato, borda longa abre como livro e borda curta como calendário. Em paisagem, essa relação se inverte.</p>
-    {printer && <div className="space-y-2 rounded-lg border p-4"><strong>{printer.status === "confirmed" ? "Instruções verificadas" : "Instruções ainda não confirmadas"}</strong>{printer.status === "confirmed" && <><p>Bandeja: {printer.tray}</p><p>Saída: {printer.output}</p><p>{printer.firstPass}</p><p>{printer.reinsertion}</p><p>Borda recomendada: {printer.edge === "long" ? "longa" : "curta"}.</p></>}<p>{printer.notes}</p>{printer.source && <a className="block underline" href={printer.source} target="_blank" rel="noreferrer">Consultar fonte</a>}{printer.tutorialUrl && <a className="block underline" href={printer.tutorialUrl} target="_blank" rel="noreferrer">Ver tutorial</a>}</div>}
-    </section>
-    {mode === "auto" ? <section className={panel}><h2 className="text-xl font-semibold">3. Imprima com duplex automático</h2><ol className="list-decimal space-y-2 pl-5"><li>Baixe e abra o PDF em um leitor com impressão.</li><li>Selecione sua impressora e marque “Imprimir nos dois lados”.</li><li>Escolha borda {edge === "long" ? "longa" : "curta"}, uma página por folha e confira a prévia.</li></ol><p className="text-sm text-muted-foreground">O KIVAI não altera as configurações da impressora. No celular, use a opção Imprimir ou Compartilhar do leitor de PDF.</p><Button onClick={() => download(file.bytes, file.name)}>Baixar PDF original para imprimir</Button></section> : !file.uniform ? <p role="alert" className={panel}>Este PDF mistura tamanhos ou orientações. Separe as páginas em grupos uniformes antes de imprimir manualmente.</p> : <>
-    <section className={panel}><h2 className="text-xl font-semibold">3. Descobrir como minha impressora vira o papel</h2><p>Use uma única folha em branco. Nos testes e no documento, imprima uma cópia, uma página por folha, duplex desativado e ordem normal. Desative “ordem inversa” e “pular páginas em branco”.</p><div className="flex flex-wrap gap-3"><Button disabled={busy} variant="outline" onClick={() => test("front", 1)}>Baixar teste FRENTE</Button><Button disabled={busy} variant="outline" onClick={() => test("back", 1)}>Baixar teste VERSO</Button></div><ol className="list-decimal space-y-2 pl-5"><li>Imprima FRENTE e observe a seta TOPO.</li><li>Recoloque essa mesma folha. Registre abaixo a posição da face impressa e do topo na entrada da bandeja.</li><li>Imprima VERSO. Vire a folha pela borda {edge === "long" ? "longa" : "curta"} e confira o resultado.</li></ol><div className="grid gap-4 sm:grid-cols-2"><label>Face impressa ao recolocar<select className={selectClass} value={face} onChange={e => { setFace(e.target.value); reset(); }}><option value="up">Para cima</option><option value="down">Para baixo</option></select></label><label>Topo ao recolocar<select className={selectClass} value={top} onChange={e => { setTop(e.target.value); reset(); }}><option value="first">Entra primeiro</option><option value="last">Entra por último</option></select></label></div><Paper face={face} top={top}/><label className="block">Resultado do teste de orientação<select className={selectClass} value={orientation} onChange={e => { setOrientation(e.target.value); setOrder(""); setResult(null); }}><option value="">Selecione após imprimir</option><option value="correct">Imprimiu no verso corretamente</option><option value="upside">Imprimiu no verso, mas de cabeça para baixo</option><option value="same">Imprimiu novamente na mesma face</option><option value="same-upside">Imprimiu na mesma face e invertido</option></select></label>{orientation && orientation !== "correct" && <p role="status" className="rounded-lg bg-muted p-4">{orientation === "upside" ? "Mantenha a face escolhida e gire a folha 180° no plano da bandeja: troque o topo que entra primeiro pelo que entra por último." : "Troque a face para cima pela face para baixo (ou vice-versa). Depois verifique novamente o topo."} Atualize os campos e repita os dois testes com uma folha nova até obter o verso correto.</p>}</section>
-    {orientation === "correct" && <section className={panel}><h2 className="text-xl font-semibold">4. Confira a ordem com duas folhas</h2><p>Imprima as duas FRENTES em duas folhas novas. Recoloque a pilha inteira com a posição validada acima, sem reordenar folhas individualmente. Imprima os dois VERSOS em ordem normal. Confira os números e a orientação ao virar pela borda escolhida.</p><div className="flex flex-wrap gap-3"><Button disabled={busy} variant="outline" onClick={() => test("front", 2)}>Baixar duas FRENTES</Button><Button disabled={busy} variant="outline" onClick={() => test("back", 2)}>Baixar dois VERSOS</Button></div><label className="block">Resultado da pilha<select className={selectClass} value={order} onChange={e => { setOrder(e.target.value); setResult(null); }}><option value="">Selecione após conferir as duas folhas</option><option value="normal">Frente 1 com verso 1 e frente 2 com verso 2; orientação correta</option><option value="reverse">Frente 1 com verso 2 e frente 2 com verso 1; orientação correta</option><option value="fail">Face ou orientação incorreta</option></select></label>{order === "fail" && <p role="alert">Volte ao teste de uma folha e revise a posição. Não imprima o documento ainda.</p>}{(order === "normal" || order === "reverse") && <><p>{order === "reverse" ? "Vamos inverter a sequência dos versos para manter os pares corretos." : "A sequência dos versos será mantida."} Repita exatamente o movimento usado neste teste.</p><Button disabled={busy} onClick={() => run(async () => { setResult(null); const { prepareManual } = await import("@/lib/duplex-print/pdf"); setResult(await prepareManual(file.bytes, order === "reverse", false)); })}>{busy ? "Preparando..." : "Preparar PDFs para impressão"}</Button></>}</section>}
-    {result && <section className={panel}><h2 className="text-xl font-semibold">5. Imprima em duas etapas</h2><Paper face={face} top={top}/><p>Imprima todas as páginas de cada arquivo, uma cópia, uma página por folha e duplex desligado. Não selecione “somente pares/ímpares” nem “ordem inversa”: os arquivos já estão organizados.</p><Button className="min-h-12 w-full whitespace-normal" onClick={() => download(result.fronts, "kivai-1-frentes.pdf")}>Etapa 1 — Baixar frentes</Button><p>Espere a tinta secar. Recoloque toda a pilha como no teste, sem alterar sua ordem.</p><Button className="min-h-12 w-full whitespace-normal" onClick={() => download(result.backs, "kivai-2-versos.pdf")}>Etapa 2 — Baixar versos</Button>{file.count % 2 === 1 && <p>Incluímos um verso em branco para a última página. Desative a opção de pular páginas em branco.</p>}<p className="text-sm text-muted-foreground">Abra cada arquivo baixado no leitor de PDF e selecione Imprimir. Trocar a bandeja, a borda ou as opções do leitor exige repetir os testes.</p></section>}
-    </> }</>}
-    {error && <p role="alert" className="rounded-xl border border-destructive p-4 text-destructive">{error}</p>}
-  </fieldset>;
+
+  async function prepareManual() {
+    if (!file) return;
+    setBusy(true);
+    setError("");
+    try {
+      const { prepareManual: createPrintFiles } = await import("@/lib/duplex-print/pdf");
+      setResult(await createPrintFiles(file.bytes, reverseOrder, rotateBack));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível preparar os PDFs.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <fieldset disabled={busy} aria-busy={busy} className="min-w-0 space-y-6">
+      <section className={panel}>
+        <h2 className="text-xl font-semibold">1. Envie o PDF</h2>
+        <p className="text-sm text-muted-foreground">Envie um único arquivo. A ferramenta separa as páginas automaticamente.</p>
+        <ToolUploadArea accept=".pdf,application/pdf" formats="PDF" maxSizeLabel="50 MB · até 500 páginas" disabled={busy} onFilesSelected={upload} />
+        {file && <p className="break-words text-sm" role="status"><strong>{file.name}</strong> · {file.count} {file.count === 1 ? "página" : "páginas"}</p>}
+      </section>
+
+      {file && <>
+        <section className={panel}>
+          <h2 className="text-xl font-semibold">2. Como sua impressora imprime?</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className={`cursor-pointer rounded-xl border p-4 ${mode === "manual" ? "border-primary bg-primary/5" : "border-border"}`}>
+              <span className="flex items-start gap-3"><input type="radio" name="duplex-mode" value="manual" checked={mode === "manual"} onChange={() => { setMode("manual"); setResult(null); }} className="mt-1 size-4 accent-primary" /><span><strong className="block">Preciso virar as folhas</strong><span className="mt-1 block text-sm text-muted-foreground">Gera um PDF de frentes e outro de versos.</span></span></span>
+            </label>
+            <label className={`cursor-pointer rounded-xl border p-4 ${mode === "auto" ? "border-primary bg-primary/5" : "border-border"}`}>
+              <span className="flex items-start gap-3"><input type="radio" name="duplex-mode" value="auto" checked={mode === "auto"} onChange={() => { setMode("auto"); setResult(null); }} className="mt-1 size-4 accent-primary" /><span><strong className="block">Minha impressora faz frente e verso</strong><span className="mt-1 block text-sm text-muted-foreground">Baixa o PDF original para imprimir normalmente.</span></span></span>
+            </label>
+          </div>
+
+          {mode === "manual" ? <>
+            <div className="rounded-xl bg-muted/40 p-4 text-sm leading-6">
+              <p className="font-medium">Como imprimir</p>
+              <ol className="mt-2 list-decimal space-y-1 pl-5">
+                <li>Imprima o arquivo <strong>Frentes</strong>, uma cópia, sem duplex.</li>
+                <li>Recoloque a pilha na bandeja sem mudar a ordem.</li>
+                <li>Imprima o arquivo <strong>Versos</strong>, também sem duplex.</li>
+              </ol>
+              <p className="mt-3 text-muted-foreground">A posição de recolocar o papel varia por impressora. Faça primeiro um teste com poucas páginas.</p>
+            </div>
+
+            <details className="rounded-lg border border-border p-4">
+              <summary className="cursor-pointer font-medium">Ajustar à minha impressora (opcional)</summary>
+              <div className="mt-4 space-y-4">
+                <label className="flex items-start gap-3 text-sm leading-6"><input type="checkbox" checked={reverseOrder} onChange={event => { setReverseOrder(event.target.checked); setResult(null); }} className="mt-1 size-4 accent-primary" /><span><strong className="block">Minha impressora inverte a ordem das folhas</strong><span className="text-muted-foreground">Inverte a sequência do PDF de versos.</span></span></label>
+                <label className="flex items-start gap-3 text-sm leading-6"><input type="checkbox" checked={rotateBack} onChange={event => { setRotateBack(event.target.checked); setResult(null); }} className="mt-1 size-4 accent-primary" /><span><strong className="block">O verso sai de cabeça para baixo</strong><span className="text-muted-foreground">Gira as páginas do PDF de versos em 180°.</span></span></label>
+              </div>
+            </details>
+
+            <Button type="button" size="lg" className="w-full" onClick={() => void prepareManual()}>
+              <FileText className="size-5" />{busy ? "Preparando arquivos…" : "Preparar frentes e versos"}
+            </Button>
+          </> : <>
+            <p className="text-sm leading-6 text-muted-foreground">Baixe o PDF, abra em um leitor e ative “Imprimir nos dois lados”. Selecione a borda longa para abrir como livro ou a curta para abrir como calendário.</p>
+            <Button type="button" size="lg" className="w-full" onClick={() => download(file.bytes, file.name)}><Download className="size-5" />Baixar PDF para imprimir</Button>
+          </>}
+        </section>
+
+        {result && <section className={panel} aria-live="polite">
+          <h2 className="text-xl font-semibold">3. Seus arquivos estão prontos</h2>
+          <p className="text-sm text-muted-foreground">O PDF de frentes contém as páginas 1, 3, 5… O de versos contém as páginas 2, 4, 6…{file.count % 2 === 1 ? " Incluímos uma página em branco no final dos versos." : ""}</p>
+          <Button type="button" size="lg" className="w-full whitespace-normal" onClick={() => download(result.fronts, "frentes.pdf")}><Download className="size-5 shrink-0" />Baixar PDF de frentes</Button>
+          <Button type="button" size="lg" variant="outline" className="w-full whitespace-normal" onClick={() => download(result.backs, "versos.pdf")}><Download className="size-5 shrink-0" />Baixar PDF de versos</Button>
+        </section>}
+      </>}
+
+      {error && <p role="alert" className="rounded-xl border border-destructive p-4 text-destructive">{error}</p>}
+      {busy && <p role="status" className="sr-only">Preparando arquivo…</p>}
+      {file && <Button type="button" variant="ghost" onClick={() => { setFile(null); setResult(null); setError(""); }}><RotateCcw className="size-4" />Escolher outro PDF</Button>}
+    </fieldset>
+  );
 }

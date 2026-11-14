@@ -287,10 +287,10 @@ export const tools: Tool[] = [
   {
     slug: "imprimir-frente-e-verso",
     name: "Imprimir Frente e Verso",
-    description: "Prepare PDFs para impressão frente e verso automática ou manual, com testes de orientação e ordem das folhas.",
+    description: "Separe as páginas de um PDF em frentes e versos para imprimir frente e verso manualmente ou com duplex automático.",
     category: "pdf", hubFilter: "Editar", badge: "PDF", icon: FileText, available: true,
     seoTitle: "Como Imprimir PDF Frente e Verso Online | Kivai",
-    seoDescription: "Prepare seu PDF para imprimir frente e verso, com orientação para impressão automática ou manual e ordem correta das páginas.",
+    seoDescription: "Envie um PDF e separe suas páginas em frentes e versos para imprimir frente e verso manualmente ou com duplex automático.",
     keywords: ["imprimir frente e verso", "imprimir frente e verso PDF", "imprimir pdf frente e verso", "como imprimir frente e verso em pdf", "como virar a folha", "impressora sem duplex"],
   },
   {
