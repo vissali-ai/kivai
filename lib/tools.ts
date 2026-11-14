@@ -171,6 +171,7 @@ export const INDEXABLE_TOOL_SLUGS = [
   "baixar-video-facebook",
   "baixar-video-instagram",
   "baixar-video-tiktok",
+  "montar-video-camera-dupla",
   "calculadora-de-desconto",
   "calculadora-de-engajamento",
   "calculadora-de-margem",
