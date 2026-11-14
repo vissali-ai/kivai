@@ -1,8 +1,9 @@
 import { ToolCardLink } from "@/components/tools/tool-card-link";
 import { HorizontalToolCarousel } from "@/components/marketing/horizontal-tool-carousel";
-import { ArrowRight, Wrench } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getToolHref, tools } from "@/lib/tools";
 import { listPublishedFeaturedTools } from "@/lib/site-cms/repository";
+import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 
 export async function FeaturedToolsSection() {
   const mostUsedTools = (await listPublishedFeaturedTools()).map((content) => {
@@ -13,7 +14,7 @@ export async function FeaturedToolsSection() {
       description: content.shortDescription,
       badge: tool?.badge ?? "Ferramenta",
       available: content.technicalStatus === "ready",
-      icon: tool?.icon ?? Wrench,
+      category: tool?.category,
     };
   });
 
@@ -22,8 +23,6 @@ export async function FeaturedToolsSection() {
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <HorizontalToolCarousel>
           {mostUsedTools.map((tool) => {
-            const Icon = tool.icon;
-
             return (
               <ToolCardLink
                 toolTitle={tool.name}
@@ -33,9 +32,7 @@ export async function FeaturedToolsSection() {
               >
                 <div className="flex h-full min-h-[154px] flex-col">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#EBE9F7] text-[#5847AD]">
-                      <Icon aria-hidden="true" className="size-4" />
-                    </span>
+                    <ToolEditorialMark category={tool.category} slug={tool.slug} className="size-8 shrink-0" />
                     <span className="shrink-0 rounded-full border border-[#DFE4EB] bg-[#F1F3F7] px-2 py-0.5 text-[10px] text-[#5C6878]">
                       {tool.available ? tool.badge : "Em breve"}
                     </span>

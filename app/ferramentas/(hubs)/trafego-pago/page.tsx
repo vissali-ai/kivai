@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { ToolCardLink } from "@/components/tools/tool-card-link";
 import { getToolHref, getToolsByCategory } from "@/lib/tools";
+import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 
 const filters = ["Todos", "Gestão"] as const;
 type Filter = (typeof filters)[number];
@@ -63,13 +64,10 @@ export default function TrafegoPagoHub() {
 
           <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredTools.map((tool) => {
-              const Icon = tool.icon;
               const content = (
                 <div className="flex min-h-[152px] flex-col">
                   <div className="flex items-start justify-between">
-                    <span className="flex size-8 items-center justify-center text-indigo-700">
-                      <Icon className="size-4" aria-hidden="true" />
-                    </span>
+                    <ToolEditorialMark category={tool.category} slug={tool.slug} />
                     <span className="rounded-full border border-border bg-muted/70 px-2 py-0.5 text-[10px] text-muted-foreground">
                       {tool.available ? tool.badge : "Em breve"}
                     </span>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 import { getPageMetadata, SITE_URL } from "@/lib/seo";
+import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
 import { getToolCategoryAccentClass } from "@/lib/tool-category-visuals";
 import { getSiteHubBySlug, listPublishedSiteContentsByHub } from "@/lib/site-cms/repository";
@@ -72,7 +73,6 @@ export default async function FerramentasPage() {
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {visibleCategories.map((category) => {
-            const Icon = category.icon;
             const availableCount = category.slug === "smart-tv" ? tvContents.filter(item => item.contentType === "tool" && item.technicalStatus === "ready").length : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
@@ -81,9 +81,7 @@ export default async function FerramentasPage() {
                 href={category.href}
                 className={`group flex min-h-[180px] flex-col rounded-lg border border-l-2 border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/70 ${getToolCategoryAccentClass(category.slug)}`}
               >
-                <span className="flex size-8 items-center justify-center text-muted-foreground">
-                  <Icon className="size-4" />
-                </span>
+                <ToolEditorialMark category={category.slug} className="size-8 shrink-0" />
                 <h2 className="mt-3 text-base font-semibold">{category.name}</h2>
                 <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground">
                   {category.description}

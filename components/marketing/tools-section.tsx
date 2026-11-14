@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { toolCategories } from "@/lib/tools";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
+import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 
 const categories = [...toolCategories, ...plannedToolCategories];
 
@@ -37,7 +38,6 @@ export function ToolsSection() {
 
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {categories.map((category, index) => {
-            const Icon = category.icon;
             const accent = categoryAccents[index % categoryAccents.length];
 
             return (
@@ -49,12 +49,7 @@ export function ToolsSection() {
               >
                 <div className="flex h-full min-h-[172px] flex-col">
                   <div className="flex items-start justify-between gap-2">
-                    <span
-                      className="flex size-9 shrink-0 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: accent.soft, color: accent.color }}
-                    >
-                      <Icon aria-hidden="true" className="size-4" />
-                    </span>
+                    <ToolEditorialMark category={category.slug} className="size-8 shrink-0" />
                     <span className="shrink-0 rounded-full border border-[#E0E5EC] bg-[#F1F3F7] px-2 py-0.5 text-[10px] text-[#647081]">
                       Categoria
                     </span>
