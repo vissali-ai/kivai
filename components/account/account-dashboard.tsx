@@ -16,6 +16,7 @@ import { PaidQuickStart } from "@/components/account/paid-quick-start";
 import { SubscriptionRenewalNotice } from "@/components/account/subscription-renewal-notice";
 import { SupportBell } from "@/components/account/support-bell";
 import { Headset } from "lucide-react";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 type Profile = { full_name: string | null; avatar_url: string | null; plan_code: "free" | "pro" | "agency" };
 type Snapshot = { id: string; analyzed_at: string; follower_count: number; following_count: number; new_followers_count: number | null; unfollowers_count: number | null; social_account_id: string };
@@ -167,7 +168,7 @@ export function AccountDashboard() {
         </div>
         <div className="flex min-w-0 items-start gap-3 lg:shrink-0">
           <div className="min-w-0 pt-1 text-right">
-            <p className="text-sm font-semibold">{plan ? `Plano ${planLabels[plan]}` : "Plano indisponível"}</p>
+            <p className="text-sm font-semibold">{FREE_PUBLIC_MODE ? "Conta Kivai" : plan ? `Plano ${planLabels[plan]}` : "Plano indisponível"}</p>
             <p className="max-w-40 truncate text-xs text-muted-foreground sm:max-w-52">{email}</p>
           </div>
           <details className="group relative z-20 shrink-0">
@@ -179,9 +180,9 @@ export function AccountDashboard() {
               <div className="border-b border-border px-3 py-2">
                 <p className="truncate text-sm font-semibold">{displayName}</p>
                 <p className="truncate text-xs text-muted-foreground">{email}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{plan ? `Plano ${planLabels[plan]}` : "Plano indisponível"}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{FREE_PUBLIC_MODE ? "Todas as ferramentas gratuitas" : plan ? `Plano ${planLabels[plan]}` : "Plano indisponível"}</p>
               </div>
-              {plan === "free" ? <Link href="/planos" className="mt-2 flex min-h-10 items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"><Crown className="size-4" /> Fazer upgrade para Pro</Link> : plan === "pro" ? <Link href="/planos" className="mt-2 flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-accent"><Crown className="size-4" /> Conhecer Agency</Link> : null}
+              {!FREE_PUBLIC_MODE && plan === "free" ? <Link href="/planos" className="mt-2 flex min-h-10 items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"><Crown className="size-4" /> Fazer upgrade para Pro</Link> : !FREE_PUBLIC_MODE && plan === "pro" ? <Link href="/planos" className="mt-2 flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-accent"><Crown className="size-4" /> Conhecer Agency</Link> : null}
               <nav aria-label="Menu da conta" className="mt-1">
                 <Link href="/conta/dados" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent"><UserRound className="size-4" /> Meus Dados</Link>
                 <Link href="/conta/cobrancas" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent">Minha assinatura e pagamentos</Link>

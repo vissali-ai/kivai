@@ -3,6 +3,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { planPriceDisplay, withHomePlanFields } from "@/lib/billing/home-plan-content";
 import { plansContent } from "@/lib/billing/plans-content";
 import { getPublishedSiteContentByPath } from "@/lib/site-cms/repository";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 const cards = [
   { code: "free", name: "Grátis", caption: "Para começar sem compromisso.", action: "Criar conta grátis", href: "/conta/cadastro?next=%2Fconta" },
@@ -11,6 +12,7 @@ const cards = [
 ] as const;
 
 export async function HomePlansSection() {
+  if (FREE_PUBLIC_MODE) return null;
   // A mesma página de planos já é gerenciada pelo CMS. Não existe cadastro paralelo.
   const stored = await getPublishedSiteContentByPath("/planos");
   const fields = withHomePlanFields((stored ?? plansContent).customData.originalFields);

@@ -3,6 +3,7 @@ import { defaultPrinters, printersSchema } from "@/lib/duplex-print/catalog";
 import { plansContent } from "@/lib/billing/plans-content";
 import { withHomePlanFields } from "@/lib/billing/home-plan-content";
 import { creditsContent } from "@/lib/billing/credits-content";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 import { withAssistantFields, assistantFields } from "@/lib/ai/content-assistant-copy";
 
 import { sanitizePostHtml, plainText } from "@/lib/blog/sanitize";
@@ -191,7 +192,9 @@ export async function deleteSiteHub(id: string) {
 
 export async function listStoredSiteContents() {
   const rows = await supabaseRest<ContentRow[]>("site_contents?select=*&order=title.asc", { allowMissingConfig: true });
-  return rows.map(contentFromRow);
+  return rows.map(contentFromRow).map(item => FREE_PUBLIC_MODE && item.path === "/planos"
+    ? { ...item, status: "draft" as const, indexable: false, includeInSitemap: false }
+    : item);
 }
 
 export async function listManagedSiteContents(): Promise<ManagedSiteContent[]> {
@@ -227,6 +230,7 @@ export async function getSiteContentById(id: string) {
 }
 
 export async function getPublishedSiteContentByPath(path: string) {
+  if (FREE_PUBLIC_MODE && path === "/planos") return null;
   try {
     const rows = await supabaseRest<ContentRow[]>(`site_contents?select=*&path=eq.${encodeURIComponent(path)}&status=eq.published&limit=1`, { allowMissingConfig: true });
     return rows[0] ? contentFromRow(rows[0]) : null;
@@ -284,7 +288,7 @@ export async function listSitemapSiteContent() {
     supabaseRest<ContentRow[]>("site_contents?select=*&status=eq.published&indexable=eq.true&include_in_sitemap=eq.true", { allowMissingConfig: true }),
     supabaseRest<HubRow[]>("site_hubs?select=*&status=eq.published&indexable=eq.true&include_in_sitemap=eq.true", { allowMissingConfig: true }),
   ]);
-  return { contents: contents.map(contentFromRow), hubs: hubs.map(hubFromRow) };
+  return { contents: contents.filter(row => !(FREE_PUBLIC_MODE && row.path === "/planos")).map(contentFromRow), hubs: hubs.map(hubFromRow) };
 }
 
 export async function listPublishedFeaturedTools() {

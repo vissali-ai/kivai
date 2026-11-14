@@ -2,6 +2,7 @@ import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { buildAsaasRecurringCheckout } from "@/lib/billing/asaas-checkout";
 import { createAsaasSandboxCheckout } from "@/lib/billing/asaas-checkout-provider";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -14,6 +15,7 @@ type Claim = { id: string; external_reference: string; plan_code: "pro" | "agenc
 type Finalized = { id: string; provider_checkout_id: string; state: string };
 
 function sandboxEnabled() {
+  if (FREE_PUBLIC_MODE) return false;
   return process.env.VERCEL_ENV === "preview" &&
     process.env.ASAAS_ENVIRONMENT === "sandbox" &&
     process.env.KIVAI_ASAAS_SANDBOX_CHECKOUT === "true" &&

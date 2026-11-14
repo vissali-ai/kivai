@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ProjectShortcuts } from "@/components/account/project-shortcuts";
 import { getStoredSession } from "@/lib/user-auth";
 import { useAccountAccess, type AccountAccess } from "@/lib/billing/access-client";
-import { projectLimits } from "@/lib/billing/plan-benefits";
 import type { SavedProject } from "@/lib/projects/validation";
 
 type Props = { kind?: SavedProject["kind"]; payload?: unknown; onLoad?: (payload: unknown) => void; showInstagramHighlight?: boolean };
@@ -44,12 +43,11 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [projects, setProjects] = useState<SavedProject[]>([]);
   const [selected, setSelected] = useState<SavedProject | null>(null);
   const [title, setTitle] = useState("");
-  const [client, setClient] = useState("");
   const [filter, setFilter] = useState("");
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState("");
   const [sortOrder, setSortOrder] = useState<"recent" | "oldest" | "name">("recent");
-  const [view, setView] = useState<"cards" | "list">(() => access?.plan === "agency" ? "list" : "cards");
+  const [view, setView] = useState<"cards" | "list">("cards");
   const [loadingProjects, setLoadingProjects] = useState(Boolean(access?.userId));
   const [loadError, setLoadError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -73,7 +71,6 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
   const [opening, setOpening] = useState<SavedProject | null>(null);
   const [resumeProjectId, setResumeProjectId] = useState<string | null>(null);
   const handledResume = useRef(false);
-  const plan = access?.plan ?? "free";
   const userId = access?.userId;
   const loginHref = "/conta/login?next=%2Fconta";
   const viewStorageKey = userId ? `kivai:project-library-view:${userId}` : null;
@@ -186,14 +183,14 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
       const data = await requestProjects();
       const latest = data.projects.find(item => item.id === project.id);
       if (!latest) throw new Error("Este projeto foi excluído. Atualize a lista.");
-      setProjects(data.projects); onLoad?.(latest.payload); setSelected(latest); setTitle(latest.title); setClient(latest.client_name); setOpening(null); setResumeProjectId(null); setMessage("Projeto aberto. Salve suas alterações na conta quando terminar.");
+      setProjects(data.projects); onLoad?.(latest.payload); setSelected(latest); setTitle(latest.title); setOpening(null); setResumeProjectId(null); setMessage("Projeto aberto. Salve suas alterações na conta quando terminar.");
     } catch (err) { setMessage(err instanceof Error ? err.message : "Não foi possível abrir o projeto."); }
     finally { setBusy(false); }
   }
   async function save(copy: boolean) {
     setBusy(true); setMessage("");
     try {
-      const { project } = await requestProjects("POST", { id: copy ? null : selected?.id ?? null, kind, title, clientName: plan === "agency" ? client : "", payload, revision: selected?.revision });
+        const { project } = await requestProjects("POST", { id: copy ? null : selected?.id ?? null, kind, title, clientName: "", payload, revision: selected?.revision });
       setProjects(all => [project, ...all.filter(p => p.id !== project.id)]); setSelected(project); setMessage("Projeto salvo na sua conta. Disponível em outros dispositivos.");
     } catch (err) { setMessage(err instanceof Error ? err.message : "Falha ao salvar."); }
     finally { setBusy(false); }
@@ -217,7 +214,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
         id: null,
         kind: source.kind,
         title: duplicateTitle.trim(),
-        clientName: plan === "agency" ? source.client_name : "",
+        clientName: "",
         payload: source.payload,
       });
       setProjects(all => [project, ...all.filter(item => item.id !== project.id)]);
@@ -240,14 +237,9 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     const a = document.createElement("a"); a.href = url; a.download = `${project.kind}-${project.id}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
   }
   return <section className="my-6 space-y-4 rounded-2xl border border-primary/25 bg-card p-5" aria-label="Projetos salvos">
-    <div><h2 className="text-xl font-semibold">Meus projetos</h2><p className="mt-2 text-sm text-muted-foreground">{loadingProjects && userId ? "Consultando seus projetos..." : !userId ? "Faça login para salvar este projeto no seu painel." : loadError || accessError ? "Não foi possível consultar os projetos. Tente novamente." : kind ? `${projects.filter(item => item.kind !== "video_summary").length}/${projectLimits[plan]} projetos salvos. Salve na conta para continuar em outro dispositivo.` : `${projects.length}/${projectLimits[plan]} projetos salvos.`}</p>{!kind && !loadingProjects && !loadError && !accessError ? <p className="mt-3 text-sm text-muted-foreground">Ferramentas que você pode salvar e manter um histórico.</p> : null}</div>
-    {userId && !loadingProjects && !loadError && !accessError && plan !== "agency" && projects.filter(item => item.kind !== "video_summary").length >= Math.ceil(projectLimits[plan] * 0.8) ?
-      <p className="text-xs leading-5 text-muted-foreground">
-        {plan === "free" ? "Você está perto do limite de projetos gratuitos. O Pro permite salvar até 30 projetos." : "Precisa de mais espaço e organização por cliente? O Agency permite até 200 projetos."}
-        {" "}<Link href="/planos" className="font-medium text-primary underline-offset-4 hover:underline">Comparar planos</Link>
-      </p> : null}
+    <div><h2 className="text-xl font-semibold">Meus projetos</h2><p className="mt-2 text-sm text-muted-foreground">{loadingProjects && userId ? "Consultando seus projetos..." : !userId ? "Faça login para salvar este projeto no seu painel." : loadError || accessError ? "Não foi possível consultar os projetos. Tente novamente." : kind ? `${projects.filter(item => item.kind !== "video_summary").length} projetos salvos. Você pode remover um projeto antigo quando quiser liberar espaço.` : `${projects.length} projetos salvos.`}</p>{!kind && !loadingProjects && !loadError && !accessError ? <p className="mt-3 text-sm text-muted-foreground">Ferramentas que você pode salvar e manter um histórico.</p> : null}</div>
     {!userId ? <Button asChild><Link href={loginHref}>Entrar na conta</Link></Button> : null}
-    {kind && userId ? <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nome do projeto<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={120} value={title} onChange={e => setTitle(e.target.value)} /></label>{plan === "agency" ? <label className="text-sm">Cliente (opcional)<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={100} value={client} onChange={e => setClient(e.target.value)} /><span className="text-xs text-muted-foreground">Até 20 nomes de clientes em seus projetos.</span></label> : null}<div className="flex flex-wrap gap-2 sm:col-span-2"><Button disabled={busy || !title.trim() || !!accessError || (plan === "pro" && !!selected?.client_name)} onClick={() => save(false)}>Salvar na conta</Button><Button variant="outline" disabled={busy || !title.trim() || !!accessError} onClick={() => save(true)}>Salvar como novo projeto</Button></div></div> : null}
+    {kind && userId ? <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nome do projeto<input className="mt-1 block w-full rounded border bg-background p-2" maxLength={120} value={title} onChange={e => setTitle(e.target.value)} /></label><div className="flex flex-wrap gap-2 sm:col-span-2"><Button disabled={busy || !title.trim() || !!accessError} onClick={() => save(false)}>Salvar na conta</Button><Button variant="outline" disabled={busy || !title.trim() || !!accessError} onClick={() => save(true)}>Salvar como novo projeto</Button></div></div> : null}
     {!kind && userId ? <div className="space-y-3 rounded-xl border border-border bg-background/30 p-3 sm:p-4" aria-label="Pastas de projetos">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">Pastas</h3>
@@ -322,7 +314,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
     {!kind && duplicating ? <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation">
       <div role="dialog" aria-modal="true" aria-labelledby="duplicate-project-title" className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl sm:p-6">
         <h2 id="duplicate-project-title" className="text-xl font-semibold">Duplicar projeto</h2>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">Uma nova cópia de “{duplicating.title}” será salva na sua conta. O original não será alterado e a cópia contará para o limite do seu plano.</p>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">Uma nova cópia de “{duplicating.title}” será salva na sua conta. O original não será alterado.</p>
         <label className="mt-4 block text-sm font-medium">Nome da cópia
           <input autoFocus value={duplicateTitle} maxLength={120} onChange={event => setDuplicateTitle(event.target.value)} className="mt-2 block min-h-11 w-full rounded-lg border border-border bg-background px-3 py-2" />
         </label>
@@ -385,7 +377,7 @@ function ProjectLibrary({ kind, payload, onLoad, showInstagramHighlight, access,
             </span>
             <div className="min-w-0">
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="text-xs text-muted-foreground">Histórico e comparações no Pro e Agency</span>
+                <span className="text-xs text-muted-foreground">Histórico e comparações das suas análises</span>
               </div>
               <h3 className="text-base font-semibold leading-6 sm:text-lg">Analisador de Seguidores do Instagram</h3>
               <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted-foreground">Acompanhe suas análises, resultados e compare quem deixou de seguir você no instagram.</p>

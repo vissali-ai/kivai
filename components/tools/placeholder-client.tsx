@@ -54,8 +54,8 @@ export function PlaceholderClient() {
     setHostingError("");
     const token = getStoredSession()?.access_token;
     if (!token) { setHostingError("Entre na sua conta para hospedar o placeholder."); return; }
-    const maxBytes = hostingLimit(access?.plan ?? "free").maxBytes;
-    if (result.blob.size > maxBytes) { setHostingError("Arquivo acima do limite de hospedagem do seu plano."); return; }
+    const maxBytes = hostingLimit("agency").maxBytes;
+    if (result.blob.size > maxBytes) { setHostingError("Arquivo acima do limite técnico de hospedagem por arquivo."); return; }
     setHosting(true);
     try {
       const form = new FormData();
@@ -198,7 +198,7 @@ export function PlaceholderClient() {
             </div>
           )}
           <p className="mt-4 text-xs leading-5 text-muted-foreground">Faça login e mantenha o seu arquivo hospedado no Kivai.</p>
-          {hostingError && <p className="mt-3 text-sm text-destructive" role="alert">{hostingError} {hostingError.startsWith("Entre na sua conta") ? <Link className="underline" href="/conta/login?next=%2Fferramentas%2Fgerador-de-placeholder">Entrar na conta</Link> : <Link className="underline" href="/planos">Ver planos</Link>}</p>}
+          {hostingError && <p className="mt-3 text-sm text-destructive" role="alert">{hostingError} {hostingError.startsWith("Entre na sua conta") ? <Link className="underline" href="/conta/login?next=%2Fferramentas%2Fgerador-de-placeholder">Entrar na conta</Link> : null}</p>}
           {hostedUrl && <div className="mt-4 border border-border bg-muted/20 p-4"><p className="text-sm font-medium">Placeholder hospedado. Copie o link para usar no seu site.</p><p className="mt-2 break-all text-xs">{hostedUrl}</p><Button size="sm" variant="outline" className="mt-3" onClick={() => navigator.clipboard.writeText(hostedUrl)}><Copy />Copiar URL</Button></div>}
           {access?.userId && <div className="mt-5 space-y-3"><Button size="sm" variant="outline" disabled={refreshingFiles} onClick={refreshHosted}>Ver minhas hospedagens</Button>{hostedFiles.length > 0 && <ul className="space-y-2">{hostedFiles.map(item=><li key={item.id} className="flex flex-wrap items-center justify-between gap-2 border border-border p-3 text-xs"><a href={item.public_url} rel="noopener noreferrer" target="_blank" className="max-w-[75%] break-all underline">{item.public_url}</a><Button size="xs" variant="outline" onClick={() => removeHosted(item.id)}>Excluir</Button></li>)}</ul>}</div>}
           {error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}

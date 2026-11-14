@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bot, BookOpen, CreditCard, Coins, FolderTree, Images, LayoutDashboard, Headset, LogOut, MailPlus, Megaphone, Plus, PanelsTopLeft, Repeat2, UsersRound, Wrench } from "lucide-react";
+import { Bot, BookOpen, CreditCard, Coins, FolderTree, Images, LayoutDashboard, Headset, LogOut, MailPlus, Megaphone, Plus, PanelsTopLeft, Repeat2, UsersRound, Wrench, Database } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 
@@ -27,10 +27,10 @@ const navigation = [
     { href: "/admin/trafego", label: "Leads de tráfego", icon: UsersRound },
     { href: "https://trafego.kivai.com.br", label: "LP Tráfego Pago", icon: Megaphone, external: true },
   ]},
-  { label: "Sistema", links: [{ href: "/admin/blog/manutencao", label: "Manutenção", icon: Wrench }] },
+  { label: "Sistema", links: [{ href: "/admin/blog/manutencao", label: "Manutenção", icon: Wrench }, { href: "/admin/dados", label: "Dados e armazenamento", icon: Database }] },
 ];
 
-const originPanels = new Set(["/admin/blog", "/admin/blog/midias", "/admin/blog/categorias", "/admin/blog/agente", "/admin/site", "/admin/atendimento", "/admin/usuarios", "/admin/assinaturas", "/admin/creditos-ia", "/admin/marketing", "/admin/marketing/email-marketing", "/admin/marketing/fila", "/admin/trafego", "/admin/blog/manutencao"]);
+const originPanels = new Set(["/admin/blog", "/admin/blog/midias", "/admin/blog/categorias", "/admin/blog/agente", "/admin/site", "/admin/atendimento", "/admin/usuarios", "/admin/assinaturas", "/admin/creditos-ia", "/admin/marketing", "/admin/marketing/email-marketing", "/admin/marketing/fila", "/admin/trafego", "/admin/blog/manutencao", "/admin/dados"]);
 
 function isAdminSaveRequest(input: RequestInfo | URL, init?: RequestInit) {
   const method = String(init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();

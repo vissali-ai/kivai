@@ -7,6 +7,7 @@ import { sanitizePostHtml } from "@/lib/blog/sanitize";
 import { SITE_URL } from "@/lib/seo";
 import { cache } from "react";
 import { connection } from "next/server";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 const getContent = cache(async () => {
   await connection();
   return (await listStoredSiteContents()).find(item => item.path === "/planos") ?? plansContent;
@@ -16,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: { absolute: item.seoTitle || item.title }, description: item.seoDescription || item.shortDescription, alternates: { canonical: item.canonicalUrl || `${SITE_URL}/planos` }, robots: { index: item.status === "published" && item.indexable, follow: item.indexable } };
 }
 export default async function PlansPage() {
+  if (FREE_PUBLIC_MODE) notFound();
   const item = await getContent();
   if (item.status !== "published") notFound();
   const tutorial = String(item.customData.originalFields?.find(f => f.key === "tutorial-url")?.value ?? "");

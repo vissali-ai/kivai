@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { ProDashboard } from "@/components/account/pro-dashboard";
 import { noIndexRobots } from "@/lib/seo";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 export const metadata: Metadata = {
-  title: "Área Pro e Agency",
+  title: FREE_PUBLIC_MODE ? "Histórico do Instagram" : "Área Pro e Agency",
   robots: noIndexRobots,
 };
 

@@ -2,12 +2,13 @@ import "server-only";
 
 import { supabaseRest } from "@/lib/blog/supabase";
 
-export const FREE_AI_CREDITS_MONTHLY = 10;
+export const INITIAL_AI_CREDITS = 5;
 
 export type AiCreditBalance = {
   plan_code: "free" | "pro" | "agency";
   free_limit: number;
   free_remaining: number;
+  starter_remaining: number;
   purchased_remaining: number;
   total_remaining: number;
   renews_on: string;

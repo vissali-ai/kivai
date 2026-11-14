@@ -65,10 +65,10 @@ export default async function AdminAiCreditsPage({
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="border border-border p-4"><p className="text-xs text-muted-foreground">Saldo total</p><p className="text-3xl font-semibold">{balance.total_remaining}</p></div>
-          <div className="border border-border p-4"><p className="text-xs text-muted-foreground">Franquia mensal restante</p><p className="text-3xl font-semibold">{balance.free_remaining}</p></div>
-          <div className="border border-border p-4"><p className="text-xs text-muted-foreground">Avulsos e bônus restantes</p><p className="text-3xl font-semibold">{balance.purchased_remaining}</p></div>
+          <div className="border border-border p-4"><p className="text-xs text-muted-foreground">Créditos iniciais restantes</p><p className="text-3xl font-semibold">{balance.starter_remaining}</p></div>
+          <div className="border border-border p-4"><p className="text-xs text-muted-foreground">Créditos comprados restantes</p><p className="text-3xl font-semibold">{balance.purchased_remaining}</p></div>
         </div>
-        <p className="text-xs text-muted-foreground">A franquia renova em {new Date(balance.renews_on + "T12:00:00-03:00").toLocaleDateString("pt-BR")}. Créditos avulsos e bônus permanecem no saldo.</p>
+        <p className="text-xs text-muted-foreground">Os créditos iniciais são concedidos uma única vez. Créditos comprados permanecem no saldo.</p>
       </section>
 
       <section className="border border-border bg-card p-5">

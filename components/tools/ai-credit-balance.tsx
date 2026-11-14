@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 import { Coins } from "lucide-react";
 import { getStoredSession } from "@/lib/user-auth";
 
@@ -10,6 +11,7 @@ export type AiCreditsInfo = {
     plan_code: "free" | "pro" | "agency";
     free_limit: number;
     free_remaining: number;
+    starter_remaining: number;
     purchased_remaining: number;
     total_remaining: number;
     renews_on: string;
@@ -48,10 +50,6 @@ export function AiCreditBalance() {
     return () => window.removeEventListener("kivai:ai-credit-update", onUpdate);
   }, [refresh]);
 
-  const renewal = info?.wallet.renews_on
-    ? new Date(`${info.wallet.renews_on}T12:00:00`).toLocaleDateString("pt-BR")
-    : "";
-
   return (
     <div data-print-hide className="flex flex-wrap items-center justify-between gap-3 border border-border bg-card p-3 text-sm sm:p-4" aria-live="polite">
       <div className="flex min-w-0 items-start gap-2">
@@ -62,12 +60,10 @@ export function AiCreditBalance() {
             <>
               <p className="text-sm">
                 <strong>{info.wallet.total_remaining}</strong> disponíveis
-                <span className="text-muted-foreground">
-                  {" "}({info.wallet.free_remaining} do plano {info.wallet.plan_code === "agency" ? "Agency" : info.wallet.plan_code === "pro" ? "Pro" : "Free"} + {info.wallet.purchased_remaining} adicionais)
-                </span>
+                <span className="text-muted-foreground">{" "}({info.wallet.starter_remaining} iniciais + {info.wallet.purchased_remaining} comprados)</span>
               </p>
               <p className="text-xs leading-5 text-muted-foreground">
-                Seus {info.wallet.free_limit} créditos mensais renovam em {renewal} e não acumulam.
+                Você recebeu créditos iniciais de IA. Para continuar, compre créditos adicionais.
               </p>
             </>
           ) : <p className="text-xs text-muted-foreground">{message || "Consultando seu saldo..."}</p>}
@@ -77,8 +73,8 @@ export function AiCreditBalance() {
         <Link href="/creditos" className="inline-flex min-h-10 items-center justify-center border border-primary px-4 text-sm font-semibold text-primary hover:bg-primary/5">
           Comprar créditos
         </Link>
-        {info?.wallet.plan_code === "free" ? <Link href="/planos" className="text-xs font-medium text-primary underline-offset-4 hover:underline">Mais créditos por mês? Conheça Pro e Agency</Link> : null}
-        {info?.wallet.plan_code === "pro" ? <Link href="/planos#plano-agency" className="text-xs font-medium text-primary underline-offset-4 hover:underline">Precisa gerenciar clientes? Conheça o Agency</Link> : null}
+        {!FREE_PUBLIC_MODE && info?.wallet.plan_code === "free" ? <Link href="/planos" className="text-xs font-medium text-primary underline-offset-4 hover:underline">Conheça os planos</Link> : null}
+        <p className="max-w-56 text-xs leading-5 text-muted-foreground">A IA usa créditos para ajudar a cobrir os custos de manutenção da plataforma.</p>
       </div>
     </div>
   );

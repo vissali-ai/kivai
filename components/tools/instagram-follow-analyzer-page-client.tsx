@@ -8,6 +8,7 @@ import { InstagramFollowAnalyzer } from "@/components/tools/instagram-follow-ana
 import { useAccountAccess } from "@/lib/billing/access-client";
 import { getStoredSession } from "@/lib/user-auth";
 import type { InstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 type Plan = "free" | "pro" | "agency";
 
@@ -23,7 +24,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
   useEffect(() => {
     async function loadPaidExperience() {
       const session = getStoredSession();
-      if (!session?.access_token || plan === "free") { setConfig(freeConfig); return; }
+      if (!session?.access_token) { setConfig(freeConfig); return; }
       try {
         const response = await fetch("/api/account/instagram-analyzer-config", {
           headers: { Authorization: `Bearer ${session.access_token}` },
@@ -76,7 +77,7 @@ export function InstagramFollowAnalyzerPageClient({ freeConfig }: Props) {
         </div>
       </section> : null}
 
-      {show("plans") ? <details className="group mt-8 rounded-lg border border-border bg-card">
+      {!FREE_PUBLIC_MODE && show("plans") ? <details className="group mt-8 rounded-lg border border-border bg-card">
         <summary className="flex cursor-pointer items-center justify-between gap-3 p-4 text-sm font-semibold">Entenda os planos e benefícios<ChevronDown className="size-4 transition-transform group-open:rotate-180" /></summary>
         <div className="border-t border-border p-4">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{config.plansTitle}</h2>

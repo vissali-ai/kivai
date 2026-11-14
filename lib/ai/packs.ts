@@ -1,3 +1,5 @@
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
+
 export const AI_CREDIT_PACKS = {
   starter: { label: "Inicial", credits: 50, cents: 990 },
   professional: { label: "Profissional", credits: 150, cents: 1990 },
@@ -8,5 +10,5 @@ export function isAiCreditPackCode(input: unknown): input is AiCreditPackCode {
   return typeof input === "string" && Object.hasOwn(AI_CREDIT_PACKS, input);
 }
 export function aiCreditSalesEnabled() {
-  return process.env.AI_CREDIT_SALES_ENABLED === "true";
+  return FREE_PUBLIC_MODE || process.env.AI_CREDIT_SALES_ENABLED === "true";
 }

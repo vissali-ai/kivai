@@ -11,7 +11,7 @@ const faqs=[
  {question:"Como resumir um vídeo do YouTube?",answer:"Cole o link público do YouTube e clique em Gerar resumo e áudio. A IA prepara o texto e inicia automaticamente a narração, que aparece no player assim que estiver pronta."},
  {question:"O áudio é gerado automaticamente?",answer:"Sim. Depois de gerar o resumo, o Kivai inicia automaticamente a criação da narração em português brasileiro. Você pode ler o texto enquanto o áudio é preparado."},
  {question:"Posso criar uma playlist de resumos?",answer:"Sim. Salve os resumos na Minha Biblioteca e reúna os conteúdos por assunto, para ouvir as narrações em sequência."},
- {question:"Como funciona o acesso à ferramenta?",answer:"O acesso e os limites de uso dependem do plano Kivai contratado. Consulte a página de planos para conhecer as opções disponíveis."},
+ {question:"Como funciona o acesso à ferramenta?",answer:"Você pode gerar resumos gratuitamente. Entre na sua conta se quiser salvar resumos e narrações na sua biblioteca."},
  {question:"Quais vídeos podem ser resumidos?",answer:"A ferramenta aceita links públicos do YouTube com até 60 minutos de duração."},
  {question:"O resumo substitui assistir ao vídeo original?",answer:"Não. O texto destaca informações principais, mas pode omitir detalhes. Consulte o vídeo original para conferir informações importantes."},
 ];
@@ -50,7 +50,7 @@ export default function YouTubeSummaryPage(){
     {label:"Áudio",value:"Narração em português brasileiro iniciada automaticamente após o resumo."},
     {label:"Biblioteca",value:"Salve resumos e organize playlists em sua conta Kivai."},
     {label:"Duração",value:"Vídeos públicos de até 60 minutos."},
-    {label:"Acesso",value:"Consulte os planos Kivai para conhecer os limites e benefícios disponíveis."},
+    {label:"Acesso",value:"Ferramenta gratuita. Login opcional para salvar na biblioteca."},
     {label:"Organização",value:"Biblioteca e playlists para organizar os conteúdos salvos."}
    ]}
    privacy="Para gerar o resumo, o endereço e o conteúdo público do vídeo são analisados por um serviço de inteligência artificial. Os vídeos originais não são armazenados no Kivai. O usuário escolhe quais resumos e narrações deseja guardar na própria biblioteca."
@@ -70,8 +70,8 @@ export default function YouTubeSummaryPage(){
     <section className="rounded-2xl border border-primary/20 bg-primary/[0.035] p-6 sm:p-8">
      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Conheça o Kivai</p>
      <h2 className="mt-2 text-xl font-semibold">Transforme vídeos em conhecimento, com texto e áudio</h2>
-     <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Tenha mais recursos para organizar seus estudos, salvar projetos e aproveitar as ferramentas inteligentes do Kivai. Consulte os planos e escolha o que acompanha sua rotina.</p>
-     <a href="/planos" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Conhecer planos Kivai</a>
+     <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Todas as ferramentas Kivai são gratuitas. Entre para guardar seus estudos e acessar sua biblioteca em outros dispositivos.</p>
+     <a href="/ferramentas" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Explorar ferramentas</a>
     </section>
     <AdSlot placement="tool-bottom"/>
    </>}

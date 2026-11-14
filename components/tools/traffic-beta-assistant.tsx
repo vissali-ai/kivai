@@ -163,7 +163,7 @@ export function TrafficBetaAssistant({ snapshot }: {
           <Link href={loginUrl} className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium">
             Já tenho conta
           </Link>
-          <p className="text-xs leading-5 text-muted-foreground">Uma cota de 10 créditos por conta com e-mail confirmado.</p>
+          <p className="text-xs leading-5 text-muted-foreground">5 créditos iniciais de IA por conta com e-mail confirmado. Créditos adicionais podem ser comprados.</p>
         </div>
       ) : null}
       {wallet && !wallet.eligible ? (

@@ -30,7 +30,7 @@ export function SubscriptionRenewalNotice() {
         {currentlyPaid ? "Confira a situação do pagamento antes de contratar novamente." : "Se você já pagou, solicite a conferência para evitar uma cobrança duplicada."}
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
-        <Link href="/planos" className="inline-flex min-h-10 items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Ver planos e renovação</Link>
+        <Link href="/conta/cobrancas" className="inline-flex min-h-10 items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Ver cobrança e recorrência</Link>
         <Link href="/conta/atendimento" className="inline-flex min-h-10 items-center rounded-md border border-border px-4 py-2 text-sm font-medium">Falar com o atendimento</Link>
       </div>
       <p className="mt-3 text-xs leading-5 text-muted-foreground">O acesso é atualizado após a confirmação do pagamento. Se você autorizou cobranças recorrentes na InfinitePay, confira o pagamento antes de iniciar uma nova contratação.</p>

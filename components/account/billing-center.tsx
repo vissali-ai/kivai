@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getStoredSession } from "@/lib/user-auth";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 type Order = {
   id: string;
@@ -128,7 +129,7 @@ export function BillingCenter() {
             ? "A assinatura está vinculada ao Asaas. Alterações de cobrança exigem confirmação junto ao provedor."
             : "Seu plano atual foi registrado por um fluxo anterior. Não presuma que a cobrança recorrente foi cancelada ao mudar de plano no site."}</p>
       <div className="flex flex-wrap gap-3">
-        <Link href="/planos" className="inline-flex min-h-10 items-center bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Ver opções de plano</Link>
+        {!FREE_PUBLIC_MODE ? <Link href="/planos" className="inline-flex min-h-10 items-center bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Ver opções de plano</Link> : null}
         {!overview.testMode && overview.plan === "pro" && !overview.subscription?.test_access && <button type="button" disabled={working} onClick={() => void requestChange("upgrade")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar upgrade para Agency</button>}
         {!overview.testMode && overview.plan === "agency" && !overview.subscription?.test_access && <button type="button" disabled={working} onClick={() => void requestChange("downgrade")} className="min-h-10 border border-border px-4 py-2 text-sm font-medium disabled:opacity-50">Solicitar downgrade para Pro</button>}
         {!overview.testMode && overview.plan !== "free" && !overview.subscription?.test_access && <>

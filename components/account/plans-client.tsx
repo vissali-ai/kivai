@@ -102,6 +102,7 @@ export function PlansClient({ fields = plansContent.customData.originalFields ??
   const [asaasEnabled, setAsaasEnabled] = useState(false);
   const [asaasPilotOnly, setAsaasPilotOnly] = useState(false);
 
+
   useEffect(() => {
     const controller = new AbortController();
     const session = getStoredSession();

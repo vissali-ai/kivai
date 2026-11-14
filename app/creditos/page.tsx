@@ -9,9 +9,11 @@ import { creditsContent } from "@/lib/billing/credits-content";
 import { listStoredSiteContents } from "@/lib/site-cms/repository";
 import { sanitizePostHtml } from "@/lib/blog/sanitize";
 import { SITE_URL } from "@/lib/seo";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 const getContent = cache(async () => {
   await connection();
+  if (FREE_PUBLIC_MODE) return creditsContent;
   return (await listStoredSiteContents()).find(item => item.path === "/creditos") ?? creditsContent;
 });
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,7 +24,7 @@ export default async function CreditsPage() {
   const item = await getContent();
   if (item.status !== "published") notFound();
   return <main className="mx-auto min-h-[75vh] w-full max-w-5xl space-y-8 px-4 py-24 sm:px-6 lg:px-8">
-    <Link href="/planos" className="text-sm text-primary underline">Ver planos Pro e Agency</Link>
+    {!FREE_PUBLIC_MODE ? <Link href="/planos" className="text-sm text-primary underline">Ver planos Pro e Agency</Link> : null}
     <header className="space-y-3"><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{item.title}</h1><p className="max-w-3xl text-muted-foreground">{item.shortDescription}</p></header>
     <AiCreditBalance />
     <CreditPacksClient />

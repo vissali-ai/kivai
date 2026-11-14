@@ -50,7 +50,7 @@ export async function getAuthenticatedPlan(): Promise<{ userId: string; plan: Ki
 
 async function getOrCreateAccount(params: {
   userId: string;
-  plan: "pro" | "agency";
+  plan: KivaiPlanCode;
   username: string;
   followerCount: number;
   followingCount: number;
@@ -64,7 +64,7 @@ async function getOrCreateAccount(params: {
   const existing = accounts.find((item) => item.username.toLowerCase() === username);
   if (existing) return existing;
 
-  if (accounts.length >= ACCOUNT_LIMIT[params.plan]) {
+  if (params.plan !== "free" && accounts.length >= ACCOUNT_LIMIT[params.plan]) {
     throw new Error(`Seu plano ${params.plan === "pro" ? "Pro" : "Agency"} permite até ${ACCOUNT_LIMIT[params.plan]} contas do Instagram.`);
   }
 
@@ -133,7 +133,7 @@ function compare(previous: ProSnapshotPayload | null, current: ProSnapshotPayloa
 
 export async function saveProAnalysis(params: {
   userId: string;
-  plan: "pro" | "agency";
+  plan: KivaiPlanCode;
   instagramUsername: string;
   sourceFilename: string;
   followers: string[];
@@ -143,7 +143,7 @@ export async function saveProAnalysis(params: {
   notFollowedBackCount: number;
   interactionSummary?: Record<string, unknown>;
 }): Promise<ProHistoryComparison> {
-  const limit = FOLLOWER_LIMIT[params.plan];
+  const limit = params.plan === "free" ? null : FOLLOWER_LIMIT[params.plan];
   if (limit && params.followers.length > limit) {
     throw new Error(`O plano Pro analisa até ${limit.toLocaleString("pt-BR")} seguidores por perfil.`);
   }

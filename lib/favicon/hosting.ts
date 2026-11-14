@@ -5,4 +5,6 @@ export const FAVICON_HOSTING_LIMITS = {
   agency: { count: null, maxBytes: 500 * 1024 },
 } as const;
 export const FAVICON_BUCKET = "hosted-favicons";
-export function hostingLimit(plan: HostingPlan) { return FAVICON_HOSTING_LIMITS[plan]; }
+export function hostingLimit(plan: HostingPlan) {
+  return FAVICON_HOSTING_LIMITS[plan];
+}

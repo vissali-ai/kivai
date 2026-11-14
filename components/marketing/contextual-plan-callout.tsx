@@ -3,8 +3,10 @@ import { ArrowRight } from "lucide-react";
 import { getPublishedSiteContentByPath } from "@/lib/site-cms/repository";
 import { plansContent } from "@/lib/billing/plans-content";
 import { withHomePlanFields } from "@/lib/billing/home-plan-content";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 export async function ContextualPlanCallout({ location }: { location: "social-hub" | "social-tool" }) {
+  if (FREE_PUBLIC_MODE) return null;
   // O conteúdo é administrado em /planos, sem segunda fonte de dados comercial.
   const stored = await getPublishedSiteContentByPath("/planos");
   const fields = withHomePlanFields((stored ?? plansContent).customData.originalFields);

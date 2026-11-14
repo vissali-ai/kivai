@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { toolCategories } from "@/lib/tools";
 import { CookieSettingsButton } from "@/components/privacy/cookie-settings-button";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 const productLinks = [
   { label: "Ferramentas", href: "/ferramentas" },
@@ -78,7 +79,7 @@ export function Footer() {
               <h3 className="text-sm font-semibold text-foreground">Produto</h3>
 
               <ul className="mt-5 space-y-3">
-                {productLinks.map((link) => (
+                {productLinks.filter(link => !(FREE_PUBLIC_MODE && link.href === "/planos")).map((link) => (
                   <li key={`${link.label}-${link.href}`}>
                     <Link
                       href={link.href}

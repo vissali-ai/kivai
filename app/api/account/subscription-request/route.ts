@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest } from "@/lib/blog/supabase";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 type BillingCycle = "monthly" | "annual";
 type PaidPlanCode = "pro" | "agency";
@@ -54,6 +55,7 @@ function normalizeBilling(value: unknown): BillingCycle | null {
 }
 
 export async function POST(request: Request) {
+  if (FREE_PUBLIC_MODE) return NextResponse.json({ error: "As assinaturas estão temporariamente indisponíveis. Todas as ferramentas continuam gratuitas." }, { status: 503 });
   try {
     const user = await authenticate(request);
     const body = await request.json() as { plan?: unknown; billing?: unknown };

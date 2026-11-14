@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { getAccountAccess } from "@/lib/billing/access";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 import { approvalDraft } from "@/lib/agency/approval-schema";
 import { createApproval, listApprovals, changeOwnerApproval, getApprovalVersions, deleteOwnerApproval, getApprovalDetails } from "@/lib/agency/approvals";
 
@@ -9,7 +10,7 @@ const headers = { "Cache-Control": "private, no-store" };
 function fail(error: string, status: number) { return Response.json({ error }, { status, headers }); }
 async function agency(request: Request) {
   const user = await authenticateBillingUser(request);
-  if ((await getAccountAccess(user.id)).plan !== "agency") throw Error("AGENCY_REQUIRED");
+  if (!FREE_PUBLIC_MODE && (await getAccountAccess(user.id)).plan !== "agency") throw Error("AGENCY_REQUIRED");
   return user.id;
 }
 function accessError(error: unknown) {

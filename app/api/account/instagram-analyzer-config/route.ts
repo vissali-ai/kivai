@@ -3,6 +3,7 @@ import { blogConfig } from "@/lib/blog/config";
 import { getAccountAccess } from "@/lib/billing/access";
 import { getInstagramAnalyzerConfig } from "@/lib/instagram-follow-analyzer-config";
 import { getInstagramAnalyzerPlanVariants } from "@/lib/instagram-analyzer-plan-variants";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 type AuthUser = { id: string };
 
@@ -25,13 +26,13 @@ export async function GET(request: Request) {
   try {
     const user = await authenticate(request);
     const { plan } = await getAccountAccess(user.id);
-    if (plan !== "pro" && plan !== "agency") {
+    if (!FREE_PUBLIC_MODE && plan !== "pro" && plan !== "agency") {
       return NextResponse.json({ error: "Conteúdo exclusivo de plano pago." }, { status: 403 });
     }
 
     const base = await getInstagramAnalyzerConfig();
     const variants = await getInstagramAnalyzerPlanVariants(base);
-    const config = plan === "agency" ? variants.agency : variants.pro;
+    const config = FREE_PUBLIC_MODE ? variants.free : plan === "agency" ? variants.agency : variants.pro;
 
     return NextResponse.json({ plan, config }, {
       headers: { "Cache-Control": "private, no-store" },

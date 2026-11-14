@@ -2,6 +2,7 @@ import { authenticateBillingUser } from "@/lib/auth/authenticated-billing-user";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { buildAsaasRecurringCheckout } from "@/lib/billing/asaas-checkout";
 import { nextAsaasFirstDueDate } from "@/lib/billing/asaas-first-due-date";
+import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 import {
   createAsaasProductionCheckout,
   productionCheckoutConfigured,
@@ -63,6 +64,7 @@ function rolloutReady() {
       process.env.KIVAI_ASAAS_PUBLIC_UNVALIDATED_APPROVED === "true");
 }
 function checkoutReady() {
+  if (FREE_PUBLIC_MODE) return false;
   return productionCheckoutConfigured() &&
     process.env.KIVAI_ASAAS_PRODUCTION_ROUTE === "true" &&
     recurringProcessingConfigured() &&
