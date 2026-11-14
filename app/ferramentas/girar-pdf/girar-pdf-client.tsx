@@ -2,6 +2,7 @@
 
 import { openFilePicker } from "@/lib/browser/file-picker";
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { Download, FileText, RefreshCw, RotateCw, Trash2 } from "lucide-react";
 
 import { ToolUploadArea } from "@/components/tools/tool-upload-area";
@@ -16,7 +17,7 @@ import { formatFileSize } from "@/lib/tool-files";
 
 import { getPdfInfo, rotatePdf } from "./pdf-utils";
 
-type RotationAngle = 90 | 180 | 270;
+type RotationAngle = 0 | 90 | 180 | 270;
 
 function friendlyError(error: unknown) {
   const message = error instanceof Error ? error.message.toLowerCase() : "";
@@ -34,7 +35,8 @@ export default function GirarPdfClient() {
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState(0);
   const [size, setSize] = useState(0);
-  const [angle, setAngle] = useState<RotationAngle>(90);
+  const [angle, setAngle] = useState<RotationAngle>(0);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<ToolDownload | null>(null);
   const [status, setStatus] = useState<ToolStatus>("idle");
   const [stage, setStage] = useState("Lendo o PDF");
@@ -43,10 +45,12 @@ export default function GirarPdfClient() {
   function reset() {
     if (status === "processing") return;
     setResult(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
     setFile(null);
     setPages(0);
     setSize(0);
-    setAngle(90);
+    setAngle(0);
     setStatus("idle");
     setStage("Lendo o PDF");
     setError(null);
@@ -72,6 +76,21 @@ export default function GirarPdfClient() {
       setFile(selected);
       setPages(info.pages);
       setSize(info.size);
+      const pdfjs = await import("pdfjs-dist");
+      pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+      const loadingTask = pdfjs.getDocument({ data: new Uint8Array(await selected.arrayBuffer()) });
+      const pdf = await loadingTask.promise;
+      const firstPage = await pdf.getPage(1);
+      const viewport = firstPage.getViewport({ scale: 0.65 });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+      const context = canvas.getContext("2d", { alpha: false });
+      if (!context) throw new Error("preview-failed");
+      await firstPage.render({ canvas, canvasContext: context, viewport, background: "white" }).promise;
+      const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error("preview-failed")), "image/jpeg", 0.8));
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(URL.createObjectURL(blob));
+      await pdf.cleanup();
       setStatus("ready");
     } catch (reason) {
       setFile(null);
@@ -118,7 +137,7 @@ export default function GirarPdfClient() {
         <CardHeader>
           <CardTitle>Selecione um PDF</CardTitle>
           <CardDescription>
-            Selecione o arquivo que deseja girar.
+            Gire a visualização em intervalos de 90° e aplique o resultado a todas as páginas.
           </CardDescription>
         </CardHeader>
 
@@ -132,6 +151,7 @@ export default function GirarPdfClient() {
 
           {file && (
             <>
+              {previewUrl && <div className="flex min-h-64 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/20 p-6"><div className="relative h-[32rem] w-full max-w-2xl transition-transform duration-200" style={{ transform: `rotate(${angle}deg)` }}><Image src={previewUrl} alt="Prévia da primeira página girada" fill unoptimized className="object-contain" /></div></div>}
               <section
                 aria-label="PDF selecionado"
                 className="flex min-w-0 flex-col gap-4 rounded-lg border border-border p-4 sm:flex-row sm:items-center"
@@ -179,35 +199,17 @@ export default function GirarPdfClient() {
               </section>
 
               <fieldset disabled={status === "processing"} className="rounded-lg border border-border p-4 sm:p-5">
-                <legend className="px-2 font-heading font-medium">Ângulo da rotação</legend>
-
-                <div className="mt-2 grid gap-3 sm:grid-cols-3">
-                  {([90, 180, 270] as RotationAngle[]).map((value) => (
-                    <label
-                      key={value}
-                      className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 hover:bg-muted/30"
-                    >
-                      <input
-                        className="mt-1"
-                        type="radio"
-                        name="angle"
-                        checked={angle === value}
-                        onChange={() => { setAngle(value); setResult(null); setStatus("ready"); }}
-                      />
-                      <div>
-                        <p className="font-medium">{value}°</p>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                          Gira todas as páginas em {value} graus no sentido horário.
-                        </p>
-                      </div>
-                    </label>
-                  ))}
+                <legend className="px-2 font-heading font-medium">Girar visualização</legend>
+                <div className="flex flex-wrap gap-3">
+                  <Button type="button" variant="outline" onClick={() => { setAngle((current) => ((current + 90) % 360) as RotationAngle); setResult(null); setStatus("ready"); }}><RotateCw className="size-4" />Girar à direita</Button>
+                  <Button type="button" variant="outline" onClick={() => { setAngle((current) => ((current + 270) % 360) as RotationAngle); setResult(null); setStatus("ready"); }}><RotateCw className="size-4 -scale-x-100" />Girar à esquerda</Button>
+                  <Button type="button" variant="outline" onClick={() => { setAngle((current) => ((current + 180) % 360) as RotationAngle); setResult(null); setStatus("ready"); }}><RotateCw className="size-4" />Girar 180°</Button>
                 </div>
 
                 <div className="mt-4 flex gap-3 rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
                   <RotateCw className="mt-0.5 size-4 shrink-0 text-primary" />
                   <p className="leading-6">
-                    A rotação escolhida é aplicada a todas as páginas do documento. O conteúdo do PDF não é rasterizado nem convertido em imagem.
+                    A rotação mostrada na prévia será aplicada a todas as páginas do documento.
                   </p>
                 </div>
               </fieldset>

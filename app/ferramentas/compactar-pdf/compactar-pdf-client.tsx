@@ -11,6 +11,7 @@ import { ToolProcessingStatus, type ToolStatus } from "@/components/tools/tool-p
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatFileSize } from "@/lib/tool-files";
+import { ToolDownloadResult } from "@/components/tools/tool-download-result";
 
 import { compressPdf, getPdfInfo } from "./pdf-utils";
 
@@ -38,8 +39,10 @@ export default function CompactarPdfClient() {
   const [stage, setStage] = useState("Lendo o PDF");
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [result, setResult] = useState<{ blob: Blob; name: string } | null>(null);
 
   function reset() {
+    setResult(null);
     setFile(null);
     setPages(0);
     setSize(0);
@@ -89,18 +92,10 @@ export default function CompactarPdfClient() {
       new Uint8Array(arrayBuffer).set(bytes);
 
       const blob = new Blob([arrayBuffer], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `${file.name.replace(/\.pdf$/i, "")}-compactado.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setResult({ blob, name: `${file.name.replace(/\.pdf$/i, "")}-compactado.pdf` });
 
       setStatus("success");
-      setStage("PDF compactado e download iniciado");
+      setStage("PDF compactado e pronto para baixar");
     } catch (reason) {
       setError(friendlyError(reason));
       setStatus("error");
@@ -178,7 +173,7 @@ export default function CompactarPdfClient() {
           <ToolProcessingStatus status={status} message={stage} />
           <ToolErrorMessage message={error} />
 
-          {file && (
+          {file && !result && (
             <>
               <section
                 aria-label="PDF selecionado"
@@ -296,8 +291,18 @@ export default function CompactarPdfClient() {
               </ToolActionBar>
             </>
           )}
+          {result && file && <>
+            <div aria-label="Resultado da compactação" className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-3">
+              <Metric label="Tamanho original" value={formatFileSize(file.size)} />
+              <Metric label="Tamanho final" value={formatFileSize(result.blob.size)} />
+              <Metric label="Redução" value={result.blob.size < file.size ? `${((1 - result.blob.size / file.size) * 100).toFixed(1)}% (${formatFileSize(file.size - result.blob.size)})` : result.blob.size === file.size ? "0%" : `Arquivo ${formatFileSize(result.blob.size - file.size)} maior`} />
+            </div>
+            <ToolDownloadResult result={result} onReset={reset} />
+          </>}
         </CardContent>
       </Card>
     </ToolPageShell>
   );
 }
+
+function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-md bg-muted/30 p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 break-words font-medium">{value}</p></div>; }

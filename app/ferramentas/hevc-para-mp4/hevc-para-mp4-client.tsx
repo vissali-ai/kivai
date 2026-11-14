@@ -20,7 +20,7 @@ type Result = Metadata & { blob: Blob; url: string; name: string };
 
 function backendUrl() {
   if (typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname)) return "http://127.0.0.1:8000";
-  return (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_KIVAI_BACKEND_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_KIVAI_BACKEND_URL || (typeof window !== "undefined" && window.location.hostname === "kivai.com.br" ? "https://kivai-production.up.railway.app" : "http://127.0.0.1:8000")).replace(/\/$/, "");
 }
 
 function safeName(name: string) {
@@ -68,12 +68,11 @@ export default function HevcParaMp4Client() {
   async function convert() {
     if (!file || status === "processing") return;
     setError(""); setStatus("processing"); setStage("Lendo vídeo");
-    const stages = ["Analisando formato", "Preparando conversão", "Convertendo para MP4", "Finalizando arquivo"];
-    let index = 0;
-    const timer = window.setInterval(() => { if (index < stages.length) setStage(stages[index++]); }, 1600);
+    const timer = window.setTimeout(() => setStage("O serviço está processando o vídeo. Arquivos grandes podem levar alguns minutos."), 1800);
     try {
       const form = new FormData(); form.append("file", file, file.name); form.append("quality", quality);
-      const response = await fetch(`${backendUrl()}/video/hevc-to-mp4`, { method: "POST", body: form, cache: "no-store" });
+      setStage("Enviando vídeo para conversão segura...");
+      const response = await fetch(`${backendUrl()}/video/hevc-to-mp4`, { method: "POST", body: form, cache: "no-store", signal: AbortSignal.timeout(900_000) });
       if (!response.ok) throw new Error(await responseMessage(response));
       const blob = await response.blob();
       if (!blob.size || !blob.type.includes("video/mp4")) throw new Error("Não foi possível converter o vídeo para MP4. Tente novamente com outro arquivo.");
@@ -84,7 +83,7 @@ export default function HevcParaMp4Client() {
       const message = nextError instanceof Error ? nextError.message : "Não foi possível converter o vídeo para MP4. Tente novamente com outro arquivo.";
       setError(message.includes("Failed to fetch") ? "Não foi possível acessar o serviço de conversão. Verifique sua conexão e tente novamente." : message);
       setStatus("error"); setStage("");
-    } finally { window.clearInterval(timer); }
+    } finally { window.clearTimeout(timer); }
   }
 
   function download() { if (!result) return; const link = document.createElement("a"); link.href = result.url; link.download = result.name; link.click(); }

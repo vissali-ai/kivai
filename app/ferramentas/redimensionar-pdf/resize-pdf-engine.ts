@@ -1,5 +1,5 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import { degrees, rgb } from "pdf-lib";
+import { rgb } from "pdf-lib";
 
 import { PDF_PAGE_SIZES, RESIZE_PDF_MAX_PAGES, mmToPoints, pointsToMm, type BackgroundMode, type PageMargins, type PdfTargetSize, type ResizeMode, type ResizeOrientation } from "./config";
 
@@ -10,7 +10,7 @@ export type Placement = { pageWidth: number; pageHeight: number; sourceWidth: nu
 
 function resizeError(code: string) { return new Error(code); }
 function formatName(widthMm: number, heightMm: number) { const tolerance = 2; for (const [name, size] of Object.entries(PDF_PAGE_SIZES)) if ((Math.abs(widthMm - size.widthMm) <= tolerance && Math.abs(heightMm - size.heightMm) <= tolerance) || (Math.abs(widthMm - size.heightMm) <= tolerance && Math.abs(heightMm - size.widthMm) <= tolerance)) return name; return "personalizado"; }
-async function toBlob(canvas: HTMLCanvasElement) { return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(resizeError("render-failed")), "image/jpeg", 0.76)); }
+async function toBlob(canvas: HTMLCanvasElement, type: "image/jpeg" | "image/png" = "image/jpeg") { return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(resizeError("render-failed")), type, type === "image/jpeg" ? 0.9 : undefined)); }
 
 export async function inspectResizePdf(file: File, onStage: (stage: string) => void): Promise<ResizePdfInspection> {
   if (new TextDecoder("ascii").decode(await file.slice(0, 5).arrayBuffer()) !== "%PDF-") throw resizeError("invalid-pdf");
@@ -25,7 +25,10 @@ export function disposeResizeInspection(inspection: ResizePdfInspection | null) 
 
 export function calculatePlacement(page: ResizePageInfo, options: Omit<ResizeOptions, "pageNumbers">): Placement {
   const size = PDF_PAGE_SIZES[options.targetSize]; const keepLandscape = options.orientation === "original" ? page.orientation === "landscape" : options.orientation === "landscape"; const pageWidth = mmToPoints(keepLandscape ? size.heightMm : size.widthMm); const pageHeight = mmToPoints(keepLandscape ? size.widthMm : size.heightMm); const availableWidth = pageWidth - mmToPoints(options.margins.left + options.margins.right); const availableHeight = pageHeight - mmToPoints(options.margins.top + options.margins.bottom); if (availableWidth <= 5 || availableHeight <= 5) throw resizeError("invalid-margins");
-  const sourceWidth = page.widthPt; const sourceHeight = page.heightPt; let width = sourceWidth; let height = sourceHeight;
+  // PDF.js provides the visible page dimensions after intrinsic page rotation.
+  const sourceWidth = page.rotation % 180 ? page.heightPt : page.widthPt;
+  const sourceHeight = page.rotation % 180 ? page.widthPt : page.heightPt;
+  let width = sourceWidth; let height = sourceHeight;
   if (options.mode === "fit") { const scale = Math.min(availableWidth / sourceWidth, availableHeight / sourceHeight); width *= scale; height *= scale; }
   if (options.mode === "fill") { const scale = Math.max(availableWidth / sourceWidth, availableHeight / sourceHeight); width *= scale; height *= scale; }
   if (options.mode === "stretch") { width = availableWidth; height = availableHeight; }
@@ -36,7 +39,9 @@ function hex(value: string) { const safe = /^#[0-9a-f]{6}$/i.test(value) ? value
 
 export async function resizePdf(bytes: Uint8Array, pagesInfo: ResizePageInfo[], options: ResizeOptions, onStage: (stage: string) => void) {
   const { PDFDocument } = await import("pdf-lib"); let source; try { source = await PDFDocument.load(bytes.slice(), { ignoreEncryption: false, updateMetadata: false }); } catch { throw resizeError("protected-pdf"); } const output = await PDFDocument.create(); output.setProducer("Kivai"); onStage("Aplicando o novo tamanho");
-  for (let index = 0; index < pagesInfo.length; index++) { const info = pagesInfo[index]; if (!options.pageNumbers.includes(info.pageNumber)) { const [copied] = await output.copyPages(source, [index]); output.addPage(copied); continue; } const placement = calculatePlacement(info, options); const page = output.addPage([placement.pageWidth, placement.pageHeight]); if (options.background !== "transparent") page.drawRectangle({ x: 0, y: 0, width: placement.pageWidth, height: placement.pageHeight, color: options.background === "black" ? rgb(0, 0, 0) : options.background === "custom" ? hex(options.customColor) : rgb(1, 1, 1) }); const embedded = await output.embedPage(source.getPage(index)); onStage(`Processando página ${index + 1} de ${pagesInfo.length}`); const rotation = ((info.rotation % 360) + 360) % 360; if (rotation === 90) page.drawPage(embedded, { x: placement.x + placement.width, y: placement.y, width: placement.height, height: placement.width, rotate: degrees(90) }); else if (rotation === 180) page.drawPage(embedded, { x: placement.x + placement.width, y: placement.y + placement.height, width: placement.width, height: placement.height, rotate: degrees(180) }); else if (rotation === 270) page.drawPage(embedded, { x: placement.x, y: placement.y + placement.height, width: placement.height, height: placement.width, rotate: degrees(270) }); else page.drawPage(embedded, { x: placement.x, y: placement.y, width: placement.width, height: placement.height }); }
+  const pdfjs = await import("pdfjs-dist"); pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString(); const renderDocument = await pdfjs.getDocument({ data: bytes.slice(), enableXfa: false }).promise;
+  for (let index = 0; index < pagesInfo.length; index++) { const info = pagesInfo[index]; if (!options.pageNumbers.includes(info.pageNumber)) { const [copied] = await output.copyPages(source, [index]); output.addPage(copied); continue; } const placement = calculatePlacement(info, options); const page = output.addPage([placement.pageWidth, placement.pageHeight]); if (options.background !== "transparent") page.drawRectangle({ x: 0, y: 0, width: placement.pageWidth, height: placement.pageHeight, color: options.background === "black" ? rgb(0, 0, 0) : options.background === "custom" ? hex(options.customColor) : rgb(1, 1, 1) }); onStage(`Processando página ${index + 1} de ${pagesInfo.length}`); const pdfPage = await renderDocument.getPage(info.pageNumber); const viewport = pdfPage.getViewport({ scale: Math.min(2, 1800 / Math.max(placement.sourceWidth, placement.sourceHeight)) }); const canvas = window.document.createElement("canvas"); canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height); const context = canvas.getContext("2d", { alpha: options.background === "transparent", colorSpace: "srgb" }); if (!context) throw resizeError("render-failed"); await pdfPage.render({ canvas, canvasContext: context, viewport, background: options.background === "transparent" ? "rgba(0,0,0,0)" : "white" }).promise; const imageBlob = await toBlob(canvas, options.background === "transparent" ? "image/png" : "image/jpeg"); const imageBytes = new Uint8Array(await imageBlob.arrayBuffer()); const image = options.background === "transparent" ? await output.embedPng(imageBytes) : await output.embedJpg(imageBytes); page.drawImage(image, { x: placement.x, y: placement.y, width: placement.width, height: placement.height }); canvas.width = 1; canvas.height = 1; pdfPage.cleanup(); }
+  await renderDocument.cleanup();
   onStage("Gerando o PDF"); const result = await output.save({ useObjectStreams: true, addDefaultPage: false }); onStage("Finalizando o arquivo"); return new Blob([result as BlobPart], { type: "application/pdf" });
 }
 

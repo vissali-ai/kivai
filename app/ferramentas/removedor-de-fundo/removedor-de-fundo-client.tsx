@@ -70,6 +70,7 @@ export default function RemovedorDeFundoClient() {
   }
 
   function carregarArquivo(file: File) {
+    if (processando) return;
     const mensagemErro = validarArquivo(file);
 
     if (mensagemErro) {
@@ -149,6 +150,9 @@ function fazerOutraImagem() {
     limparResultado();
 
     const resultadoBlob = await removerFundoRmbg(previewUrl);
+    if (!resultadoBlob.size || resultadoBlob.type !== "image/png") {
+      throw new Error("A saída PNG não pôde ser criada.");
+    }
 
     const novaResultadoUrl = URL.createObjectURL(resultadoBlob);
 

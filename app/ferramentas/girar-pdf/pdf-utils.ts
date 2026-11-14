@@ -20,7 +20,7 @@ export async function getPdfInfo(
 
 export async function rotatePdf(
   file: File,
-  angle: 90 | 180 | 270
+  angle: 0 | 90 | 180 | 270
 ): Promise<Uint8Array> {
   const bytes = await file.arrayBuffer();
 

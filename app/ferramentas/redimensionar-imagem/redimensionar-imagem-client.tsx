@@ -57,6 +57,7 @@ export default function RedimensionarImagemClient() {
   const [naoAmpliar, setNaoAmpliar] = useState(false);
   const [formato, setFormato] = useState<FormatoSaida>("jpeg");
   const [qualidade, setQualidade] = useState(90);
+  const [preset, setPreset] = useState("custom");
   const [etapa, setEtapa] = useState("Preparando imagens...");
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
@@ -131,6 +132,7 @@ export default function RedimensionarImagemClient() {
   }
 
   function alterarLargura(novaLargura: number) {
+    setPreset("custom");
     setLargura(novaLargura);
     setDimensaoBase("largura");
 
@@ -143,6 +145,7 @@ export default function RedimensionarImagemClient() {
   }
 
   function alterarAltura(novaAltura: number) {
+    setPreset("custom");
     setAltura(novaAltura);
     setDimensaoBase("altura");
 
@@ -284,6 +287,8 @@ export default function RedimensionarImagemClient() {
                   <label className="text-xs font-medium">Largura (px)<input inputMode="numeric" type="number" min={1} value={largura} onChange={(event) => alterarLargura(Number(event.target.value))} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base" /></label>
                   <label className="text-xs font-medium">Altura (px)<input inputMode="numeric" type="number" min={1} value={altura} onChange={(event) => alterarAltura(Number(event.target.value))} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base" /></label>
                 </div> : <div className="mt-5 grid grid-cols-3 gap-2">{[25, 50, 75].map((valor) => <Button key={valor} type="button" variant={porcentagem === valor ? "default" : "outline"} className="min-h-11" onClick={() => { setPorcentagem(valor); limparResultados(); }}>{valor}% menor</Button>)}</div>}
+
+                {modo === "pixels" && <label className="mt-4 block text-xs font-medium">Tamanho rápido<select value={preset} onChange={(event) => { const value = event.target.value; setPreset(value); if (value !== "custom") { const [w, h] = value.split("x").map(Number); setLargura(w); setAltura(h); setDimensaoBase("largura"); setManterProporcao(true); limparResultados(); } }} className="mt-2 h-12 w-full border border-input bg-background px-3 text-base"><option value="custom">Personalizado</option><option value="1080x1080">Quadrado · 1080 × 1080</option><option value="1080x1350">Retrato · 1080 × 1350</option><option value="1080x1920">Story · 1080 × 1920</option><option value="1200x628">Paisagem · 1200 × 628</option><option value="1920x1080">Full HD · 1920 × 1080</option></select></label>}
 
                 {modo === "pixels" && <label className="mt-5 flex min-h-11 cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={manterProporcao} onChange={(event) => alterarManterProporcao(event.target.checked)} className="size-5 accent-[var(--primary)]" />Manter proporção</label>}
                 <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm"><input type="checkbox" checked={naoAmpliar} onChange={(event) => { setNaoAmpliar(event.target.checked); limparResultados(); }} className="size-5 accent-[var(--primary)]" />Não ampliar imagens menores</label>

@@ -15,7 +15,7 @@ let processorPromise: Promise<BackgroundProcessor> | null = null;
 async function carregarMotor() {
   if (!modelPromise) {
    modelPromise = AutoModel.from_pretrained(MODEL_ID, {
-  dtype: "fp32",
+  dtype: "q8",
 });
   }
 
