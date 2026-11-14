@@ -288,7 +288,7 @@ function fazerOutraImagem() {
                           Resultado
                         </p>
 
-                        <div className="flex min-h-64 items-center justify-center border border-border bg-[linear-gradient(45deg,#1f1f1f_25%,transparent_25%),linear-gradient(-45deg,#1f1f1f_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f1f1f_75%),linear-gradient(-45deg,transparent_75%,#1f1f1f_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0px] p-4">
+                        <div className="flex min-h-64 items-center justify-center border border-border bg-[linear-gradient(45deg,#e5e7eb_25%,transparent_25%),linear-gradient(-45deg,#e5e7eb_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e7eb_75%),linear-gradient(-45deg,transparent_75%,#e5e7eb_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0px] p-4">
                           {(
 // eslint-disable-next-line @next/next/no-img-element -- Local/generated preview: keep the original browser URL and intrinsic sizing; do not send user files to the image optimizer.
 <img
@@ -298,6 +298,9 @@ function fazerOutraImagem() {
                           />
 )}
                         </div>
+                        <p role="status" className="mt-2 text-center text-sm font-medium text-emerald-800">
+                          Fundo removido. O quadriculado indica transparência.
+                        </p>
                       </div>
                     )}
                   </div>
