@@ -8,6 +8,7 @@ import { Footer } from "@/components/marketing/footer";
 import { WhatsappSupportButton } from "@/components/marketing/whatsapp-support-button";
 import { ToolFavoriteControl } from "@/components/tools/tool-favorite-control";
 import { InstallKivaiPrompt } from "@/components/pwa/install-kivai-prompt";
+import { MobileFileSaveChooser } from "@/components/tools/mobile-file-save-chooser";
 import { CardFavoritesProvider } from "@/components/tools/tool-card-link";
 import { AuthReturnTracker } from "@/components/account/auth-return-tracker";
 import { Navbar } from "@/components/marketing/navbar";
@@ -128,6 +129,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <StructuredData />
+        <MobileFileSaveChooser />
 
         <Script id="google-consent-default" strategy="beforeInteractive">{`
           window.dataLayer = window.dataLayer || [];
