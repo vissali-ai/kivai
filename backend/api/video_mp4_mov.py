@@ -69,7 +69,7 @@ async def mp4_to_mov(
         use_remux = quality == "auto" and resolution == "original" and fps == "original" and can_remux_mp4_to_mov(metadata)
         command = [
             ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path,
-            "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
+            "-map", "0:v:0", "-map", "0:a?",
         ]
 
         final_width = metadata["width"]
@@ -94,8 +94,8 @@ async def mp4_to_mov(
                     filters.append(f"fps={requested_fps:g}")
             if filters:
                 command.extend(["-vf", ",".join(filters)])
-            crf, preset = {"auto": (20, "medium"), "high": (17, "slow"), "small": (26, "medium")}[quality]
-            command.extend(["-c:v", "libx264", "-preset", preset, "-crf", str(crf), "-pix_fmt", "yuv420p", "-tag:v", "avc1"])
+            crf = {"auto": 20, "high": 17, "small": 26}[quality]
+            command.extend(["-c:v", "libx264", "-threads", "1", "-preset", "veryfast", "-crf", str(crf), "-pix_fmt", "yuv420p", "-tag:v", "avc1"])
             output_video_codec = "h264"
             if metadata["hasAudio"]:
                 if metadata["audioCodec"] in MOV_COPY_AUDIO_CODECS:
@@ -104,7 +104,7 @@ async def mp4_to_mov(
                     command.extend(["-c:a", "aac", "-b:a", "192k"])
                     output_audio_codec = "aac"
 
-        command.extend(["-movflags", "+faststart+use_metadata_tags", "-f", "mov", output_path])
+        command.extend(["-movflags", "+faststart", "-f", "mov", output_path])
         returncode, _, conversion_error = await run_ffmpeg_cancellable(request, *command, timeout=1800)
         if returncode != 0 or not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
             raise RuntimeError(conversion_error.decode("utf-8", errors="replace")[-1000:])

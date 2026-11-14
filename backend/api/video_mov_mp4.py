@@ -69,7 +69,7 @@ async def mov_to_mp4(
         use_remux = quality == "auto" and resolution == "original" and fps == "original" and can_remux_mov_to_mp4(metadata)
         command = [
             ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path,
-            "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "0",
+            "-map", "0:v:0", "-map", "0:a?",
         ]
 
         if use_remux:
@@ -89,12 +89,12 @@ async def mov_to_mp4(
                     filters.append(f"fps={requested_fps:g}")
             if filters:
                 command.extend(["-vf", ",".join(filters)])
-            crf, preset = {"auto": (20, "medium"), "high": (17, "slow"), "small": (26, "medium")}[quality]
-            command.extend(["-c:v", "libx264", "-preset", preset, "-crf", str(crf), "-pix_fmt", "yuv420p", "-tag:v", "avc1"])
+            crf = {"auto": 20, "high": 17, "small": 26}[quality]
+            command.extend(["-c:v", "libx264", "-threads", "1", "-preset", "veryfast", "-crf", str(crf), "-pix_fmt", "yuv420p", "-tag:v", "avc1"])
             if metadata["hasAudio"]:
                 command.extend(["-c:a", "aac", "-b:a", "192k"])
 
-        command.extend(["-movflags", "+faststart+use_metadata_tags", "-f", "mp4", output_path])
+        command.extend(["-movflags", "+faststart", "-f", "mp4", output_path])
         returncode, _, conversion_error = await run_ffmpeg_cancellable(request, *command, timeout=1800)
         if returncode != 0 or not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
             raise RuntimeError(conversion_error.decode("utf-8", errors="replace")[-1000:])
@@ -145,6 +145,6 @@ async def mov_to_mp4(
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=507, detail="Este vídeo exige mais memória do que o dispositivo pode disponibilizar. Tente utilizar um arquivo menor.")
     except Exception as error:
-        print(f"Erro MOV para MP4: {type(error).__name__}")
+        print(f"Erro MOV para MP4: {type(error).__name__}: {str(error)[:1000]}")
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="Não foi possível converter este vídeo para MP4. Tente novamente com outro arquivo.")

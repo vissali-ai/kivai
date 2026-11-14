@@ -44,15 +44,15 @@ async def hevc_to_mp4(file: UploadFile = File(...), quality: str = Form(default=
         _, _, probe_error = await run_ffmpeg(ffmpeg, "-hide_banner", "-i", input_path, timeout=30)
         codec, duration, width, height, has_audio = video_metadata(probe_error.decode("utf-8", errors="replace"))
         if codec not in {"hevc", "h265"}:
-            raise HTTPException(status_code=415, detail="Não foi possível processar o codec deste arquivo.")
+            raise HTTPException(status_code=415, detail="Este arquivo não usa o codec HEVC/H.265. Selecione um vídeo HEVC/H.265 ou use o conversor do formato original.")
         if width is None or height is None:
             raise HTTPException(status_code=422, detail="Não foi possível ler este vídeo.")
         duration = duration or 0.0
 
-        crf, preset = {"auto": (23, "medium"), "high": (19, "slow"), "small": (28, "medium")}[quality]
+        crf = {"auto": 23, "high": 19, "small": 28}[quality]
         command = [
             ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path,
-            "-map", "0:v:0", "-map", "0:a?", "-c:v", "libx264", "-preset", preset,
+            "-map", "0:v:0", "-map", "0:a?", "-c:v", "libx264", "-threads", "1", "-preset", "veryfast",
             "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
         ]
         if has_audio:
@@ -90,7 +90,7 @@ async def hevc_to_mp4(file: UploadFile = File(...), quality: str = Form(default=
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=507, detail="Este vídeo exige mais memória do que o dispositivo pode disponibilizar. Tente utilizar um arquivo menor.")
     except Exception as error:
-        print(f"Erro HEVC para MP4: {type(error).__name__}")
+        print(f"Erro HEVC para MP4: {type(error).__name__}: {str(error)[:1000]}")
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="Não foi possível converter o vídeo para MP4. Tente novamente com outro arquivo.")
 
@@ -127,11 +127,12 @@ async def mp4_to_hevc(file: UploadFile = File(...), quality: str = Form(default=
             raise HTTPException(status_code=422, detail="Não foi possível ler este vídeo.")
         duration = duration or 0.0
 
-        crf, preset = {"auto": (28, "medium"), "high": (22, "slow"), "small": (32, "medium")}[quality]
+        crf = {"auto": 28, "high": 22, "small": 32}[quality]
         command = [
             ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", input_path,
             "-map", "0:v:0", "-map", "0:a?", "-c:v", "libx265", "-tag:v", "hvc1",
-            "-preset", preset, "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+            "-threads", "1", "-preset", "veryfast", "-x265-params", "pools=1:frame-threads=1:wpp=0",
+            "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart",
         ]
         if has_audio:
             command.extend(["-c:a", "aac", "-b:a", "192k"])
@@ -168,6 +169,6 @@ async def mp4_to_hevc(file: UploadFile = File(...), quality: str = Form(default=
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=507, detail="Este vídeo exige mais memória do que o serviço pode disponibilizar. Tente utilizar um arquivo menor.")
     except Exception as error:
-        print(f"Erro MP4 para HEVC: {type(error).__name__}")
+        print(f"Erro MP4 para HEVC: {type(error).__name__}: {str(error)[:1000]}")
         shutil.rmtree(workdir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="Não foi possível converter o vídeo para HEVC. Tente novamente com outro arquivo.")
