@@ -8,7 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 type Layout = "pip" | "side" | "stack";
 type Output = { blob: Blob; url: string; extension: string };
+type CanvasSize = { width: number; height: number };
 const mimeCandidates = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4;codecs=h264,aac", "video/mp4"];
+
+function getCanvasSize(width: number, height: number): CanvasSize {
+  const scale = Math.min(1, 1920 / Math.max(width, height));
+  return { width: Math.max(2, Math.round(width * scale)), height: Math.max(2, Math.round(height * scale)) };
+}
 
 function supportedMime() {
   if (typeof MediaRecorder === "undefined") return "";
@@ -36,6 +42,7 @@ export function DoubleVideoClient() {
   const [secondUrl, setSecondUrl] = useState("");
   const [mainReady, setMainReady] = useState(false);
   const [secondReady, setSecondReady] = useState(false);
+  const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width: 1280, height: 720 });
   const [layout, setLayout] = useState<Layout>("pip");
   const [pipPosition, setPipPosition] = useState("right-bottom");
   const [pipSize, setPipSize] = useState(32);
@@ -79,13 +86,16 @@ export function DoubleVideoClient() {
     const second = secondRef.current;
     const context = canvas?.getContext("2d");
     if (!canvas || !context || !main || !second || !main.videoWidth || !second.videoWidth) return;
-    const width = canvas.width; const height = canvas.height;
+    const width = canvasSize.width; const height = canvasSize.height;
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
     context.fillStyle = "#08080b"; context.fillRect(0, 0, width, height);
     if (layout === "pip") {
       drawCover(context, main, 0, 0, width, height);
-      const boxWidth = width * pipSize / 100;
-      const boxHeight = boxWidth * (second.videoHeight / second.videoWidth);
-      const margin = width * 0.035;
+      const margin = Math.min(width, height) * 0.035;
+      const aspect = second.videoWidth / second.videoHeight;
+      const boxWidth = Math.min(width * pipSize / 100, (height - margin * 2) * aspect);
+      const boxHeight = boxWidth / aspect;
       const x = pipPosition.includes("left") ? margin : width - boxWidth - margin;
       const y = pipPosition.includes("top") ? margin : height - boxHeight - margin;
       context.save(); context.shadowColor = "rgba(0,0,0,.38)"; context.shadowBlur = 18;
@@ -99,7 +109,7 @@ export function DoubleVideoClient() {
       drawCover(context, main, ...firstRect as [number, number, number, number]);
       drawCover(context, second, ...secondRect as [number, number, number, number]);
     }
-  }, [layout, pipPosition, pipSize]);
+  }, [canvasSize, layout, pipPosition, pipSize]);
 
   useEffect(() => { drawFrame(); }, [drawFrame, mainUrl, secondUrl]);
   useEffect(() => {
@@ -178,10 +188,10 @@ export function DoubleVideoClient() {
         <div className="grid gap-4 sm:grid-cols-2">
           {[{ key: "main" as const, title: "Vídeo principal", file: mainFile }, { key: "second" as const, title: "Segundo vídeo", file: secondFile }].map(({ key, title, file }) => <label key={key} className="flex min-h-36 cursor-pointer flex-col justify-center rounded-lg border border-dashed border-border bg-muted/20 p-5 hover:border-primary/50"><input type="file" accept="video/*" className="sr-only" onChange={(event) => selectFile(event, key)} /><span className="flex items-center gap-2 font-medium"><Upload className="size-4 text-primary" />{title}</span><span className="mt-2 break-all text-sm text-muted-foreground">{file?.name ?? "Toque para escolher um vídeo"}</span></label>)}
         </div>
-        <video ref={mainRef} src={mainUrl || undefined} playsInline muted className="hidden" onLoadedMetadata={() => setMainReady(true)} onLoadedData={drawFrame} onEnded={() => setPlaying(false)} />
+        <video ref={mainRef} src={mainUrl || undefined} playsInline muted className="hidden" onLoadedMetadata={() => { const main = mainRef.current; if (main?.videoWidth && main.videoHeight) setCanvasSize(getCanvasSize(main.videoWidth, main.videoHeight)); setMainReady(true); }} onLoadedData={drawFrame} onEnded={() => setPlaying(false)} />
         <video ref={secondRef} src={secondUrl || undefined} playsInline muted className="hidden" onLoadedMetadata={() => setSecondReady(true)} onLoadedData={drawFrame} />
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(240px,.7fr)]">
-          <div className="space-y-3"><div className="overflow-hidden rounded-lg border border-border bg-black"><canvas ref={canvasRef} width={1280} height={720} className="block aspect-video w-full" aria-label="Prévia da composição" /></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={!mainReady || !secondReady || exporting} onClick={() => void togglePreview()}><Play />{playing ? "Pausar prévia" : "Reproduzir prévia"}</Button><span className="self-center text-xs text-muted-foreground">A prévia mostra os dois vídeos juntos.</span></div></div>
+          <div className="space-y-3"><div className="overflow-hidden rounded-lg border border-border bg-black"><canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} style={{ aspectRatio: `${canvasSize.width} / ${canvasSize.height}` }} className="mx-auto block max-h-[75vh] w-full object-contain" aria-label="Prévia da composição" /></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={!mainReady || !secondReady || exporting} onClick={() => void togglePreview()}><Play />{playing ? "Pausar prévia" : "Reproduzir prévia"}</Button><span className="self-center text-xs text-muted-foreground">A prévia e o vídeo final seguem o formato {canvasSize.height > canvasSize.width ? "vertical" : "horizontal"} do vídeo principal.</span></div></div>
           <div className="space-y-4 rounded-lg border border-border p-4"><div><h2 className="font-semibold">2. Escolha a composição</h2><p className="mt-1 text-sm text-muted-foreground">Altere o formato e confira na prévia.</p></div>
             <div className="grid grid-cols-1 gap-2">{([{ id: "pip", label: "Imagem sobreposta" }, { id: "side", label: "Lado a lado" }, { id: "stack", label: "Um acima do outro" }] as const).map((option) => <Button key={option.id} type="button" variant={layout === option.id ? "default" : "outline"} className="justify-start" onClick={() => setLayout(option.id)}>{option.label}</Button>)}</div>
             {layout === "pip" && <div className="space-y-3"><label className="block text-sm font-medium">Posição do segundo vídeo<select className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={pipPosition} onChange={(event) => setPipPosition(event.target.value)}><option value="right-bottom">Inferior direita</option><option value="left-bottom">Inferior esquerda</option><option value="right-top">Superior direita</option><option value="left-top">Superior esquerda</option></select></label><label className="block text-sm font-medium">Tamanho da janela <span className="text-muted-foreground">{pipSize}%</span><input className="mt-2 w-full accent-primary" type="range" min="20" max="48" value={pipSize} onChange={(event) => setPipSize(Number(event.target.value))} /></label></div>}
