@@ -3,6 +3,7 @@ import { reserveAiCredits, finalizeAiCredits } from "@/lib/ai/credits";
 import { reserveAiRequest } from "@/lib/ai/limits";
 import { getSocialEvidence, parseSocialLink } from "@/lib/ai/post-link";
 import { analyzePostTextImages, analyzeYoutubeVideo, postAnalyzerInput } from "@/lib/ai/post-analyzer";
+import { GeminiRequestError } from "@/lib/ai/gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -90,8 +91,15 @@ export async function POST(request: Request) {
       result, network: link?.network || "rascunho", source: evidence.source, covered, limitations,
       cost,
     }, { headers });
-  } catch {
-    return fail("Não foi possível concluir a análise. A reserva de créditos será devolvida.", 503);
+  } catch (error) {
+    if (error instanceof GeminiRequestError) {
+      console.warn("[kivai-post-analyzer] Gemini request failed", error.status);
+      if (error.status === 429) return fail("A IA está com muitas solicitações no momento. Sua reserva de créditos será devolvida; aguarde alguns minutos e tente novamente.", 429);
+      if (error.status === 404) return fail("O modelo de IA está temporariamente indisponível. Sua reserva de créditos será devolvida; tente novamente mais tarde.", 503);
+      return fail("O serviço de IA está temporariamente indisponível. Sua reserva de créditos será devolvida; tente novamente em alguns minutos.", 503);
+    }
+    console.error("[kivai-post-analyzer] Analysis failed", error instanceof Error ? error.name : "UnknownError");
+    return fail("Não foi possível concluir a análise agora. Sua reserva de créditos será devolvida; tente novamente.", 503);
   } finally {
     if (reserved) {
       try { await finalizeAiCredits(userId, operationId, false); }

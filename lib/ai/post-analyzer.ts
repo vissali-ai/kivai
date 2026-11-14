@@ -31,6 +31,23 @@ export const postAnalyzerOutput = z.object({
 });
 export type PostAnalyzerOutput = z.infer<typeof postAnalyzerOutput>;
 
+const postAnalyzerResponseSchema = {
+  type: "OBJECT",
+  properties: {
+    summary: { type: "STRING" },
+    strengths: { type: "ARRAY", items: { type: "STRING" } },
+    issues: { type: "ARRAY", items: { type: "OBJECT", properties: {
+      problem: { type: "STRING" }, why: { type: "STRING" }, fix: { type: "STRING" },
+    }, required: ["problem", "why", "fix"] } },
+    improvedCaption: { type: "STRING" },
+    hooks: { type: "ARRAY", items: { type: "STRING" } },
+    cta: { type: "STRING" },
+    visualEdits: { type: "ARRAY", items: { type: "STRING" } },
+    nextSteps: { type: "ARRAY", items: { type: "STRING" } },
+  },
+  required: ["summary", "strengths", "issues", "improvedCaption", "hooks", "cta", "visualEdits", "nextSteps"],
+} as const;
+
 const instructions = `Você é um especialista em social media, copywriting e análise audiovisual do Kivai.
 Responda SOMENTE um objeto JSON válido em português brasileiro com as chaves:
 {"summary":"diagnóstico conciso","strengths":["ponto forte comprovável"],"issues":[{"problem":"problema","why":"por que importa","fix":"como corrigir"}],"improvedCaption":"proposta de legenda ou vazio se não houver texto suficiente","hooks":["até 4 aberturas"],"cta":"CTA sugerido","visualEdits":["edições visuais aplicáveis"],"nextSteps":["próximos testes"]}.
@@ -62,7 +79,7 @@ export function makePostPrompt(input: PostAnalyzerInput, evidence: SocialEvidenc
 export async function analyzePostTextImages(input: PostAnalyzerInput, evidence: SocialEvidence): Promise<PostAnalyzerOutput> {
   const parts: GeminiInputPart[] = [{ text: makePostPrompt(input, evidence, input.images.length) }];
   for (const img of input.images) parts.push({ inlineData: { mimeType: img.mimeType, data: img.data } });
-  const output = await requestGeminiJsonParts(instructions, parts, 4096);
+  const output = await requestGeminiJsonParts(instructions, parts, 4096, undefined, { responseSchema: postAnalyzerResponseSchema });
   return postAnalyzerOutput.parse(output);
 }
 
@@ -78,7 +95,7 @@ export async function analyzeYoutubeVideo(input: PostAnalyzerInput, evidence: So
         { fileData: { fileUri: youtubeUrl } },
         { text: makePostPrompt(input, evidence, 0) },
       ] }],
-      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 4096 },
+      generationConfig: { responseMimeType: "application/json", responseSchema: postAnalyzerResponseSchema, maxOutputTokens: 4096 },
     }),
     cache: "no-store",
     signal: AbortSignal.timeout(45_000),

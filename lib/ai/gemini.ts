@@ -16,6 +16,9 @@ type GeminiResponse = {
 };
 
 export type GeminiInputPart = { text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png" | "image/webp" | "application/pdf"; data: string } };
+type GeminiGenerationOptions = {
+  responseSchema?: Record<string, unknown>;
+};
 
 export async function requestGeminiJson(systemInstruction: string, payload: unknown): Promise<unknown> {
   return requestGeminiJsonParts(systemInstruction, [{ text: JSON.stringify(payload) }]);
@@ -26,6 +29,7 @@ export async function requestGeminiJsonParts(
   parts: GeminiInputPart[],
   maxOutputTokens = 2048,
   preferredModel?: string,
+  options: GeminiGenerationOptions = {},
 ): Promise<unknown> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new GeminiRequestError(503);
@@ -46,6 +50,7 @@ export async function requestGeminiJsonParts(
             contents: [{ role: "user", parts }],
             generationConfig: {
               responseMimeType: "application/json",
+              ...(options.responseSchema ? { responseSchema: options.responseSchema } : {}),
               maxOutputTokens: Math.min(Math.max(maxOutputTokens, 512), 4096),
             },
           }),
