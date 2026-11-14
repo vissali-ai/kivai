@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 
 import "./globals.css";
@@ -16,21 +15,6 @@ import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provi
 import StructuredData from "@/components/seo/structured-data";
 import { adsConfig } from "@/lib/ads/config";
 import { cn } from "@/lib/utils";
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.kivai.com.br"),
@@ -139,10 +123,7 @@ export default function RootLayout({
       className={cn(
         "h-full",
         "antialiased",
-        geistSans.variable,
-        geistMono.variable,
-        "font-mono",
-        jetbrainsMono.variable
+        "font-sans",
       )}
     >
       <body className="min-h-full flex flex-col">
