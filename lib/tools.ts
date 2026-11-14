@@ -279,6 +279,15 @@ export const tools: Tool[] = [
     keywords: ["imprimir frente e verso", "imprimir frente e verso PDF", "imprimir pdf frente e verso", "como imprimir frente e verso em pdf", "como virar a folha", "impressora sem duplex"],
   },
   {
+    slug: "montar-video-camera-dupla",
+    name: "Montar Vídeo com Câmera Dupla",
+    description: "Combine dois vídeos em tela dividida ou imagem sobreposta e crie um vídeo com duas perspectivas.",
+    category: "video", hubFilter: "Edição", badge: "Vídeo", icon: Video, available: true,
+    seoTitle: "Montar Vídeo com Câmera Dupla Online Grátis | Kivai",
+    seoDescription: "Junte dois vídeos em tela dividida ou imagem sobreposta. Ajuste posição e tamanho da janela, confira a prévia e exporte gratuitamente no navegador.",
+    keywords: ["montar vídeo câmera dupla", "juntar dois vídeos em um", "vídeo picture in picture", "vídeo tela dividida", "sobrepor vídeos online", "vídeo reação", "compor vídeos"],
+  },
+  {
     slug: "descompactar-zip",
     name: "Descompactar ZIP",
     description: "Abra arquivos ZIP, visualize o conteúdo e baixe os arquivos diretamente no navegador.",

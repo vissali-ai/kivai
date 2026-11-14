@@ -4,17 +4,22 @@ import {
   videoLocalToolEditorialContent,
   videoVariantToSlug,
   type VideoLocalVariant,
+  type VideoLocalEditorialContent,
 } from "@/lib/video-local-tool-editorial-content";
+import { doubleVideoEditorial } from "@/lib/double-video-editorial";
 import { buildToolPageSchema } from "@/lib/tool-page-schema";
 import { getToolBySlug } from "@/lib/tools";
 
-export function VideoToolSeoContent({ variant }: { variant: VideoLocalVariant }) {
-  const slug = videoVariantToSlug[variant];
-  const content = videoLocalToolEditorialContent[slug];
+export function VideoToolSeoContent({ variant, customSlug }: { variant?: VideoLocalVariant; customSlug?: string }) {
+  const slug = customSlug ?? (variant ? videoVariantToSlug[variant] : "");
+  const content: VideoLocalEditorialContent | undefined = customSlug === "montar-video-camera-dupla"
+    ? doubleVideoEditorial
+    : variant ? videoLocalToolEditorialContent[videoVariantToSlug[variant]] : undefined;
   const tool = getToolBySlug(slug);
 
   if (!tool) return null;
 
+  if (!content) return null;
   const schema = buildToolPageSchema({
     name: tool.name,
     slug,
@@ -58,3 +63,4 @@ export function VideoToolSeoContent({ variant }: { variant: VideoLocalVariant })
     </>
   );
 }
+
