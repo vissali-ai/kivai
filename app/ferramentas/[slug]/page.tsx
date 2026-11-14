@@ -8,6 +8,7 @@ import { getCmsHubMetadata, getCmsPageMetadata, getToolMetadataAsync } from "@/l
 import { getPublishedSiteContentByPath, getSiteHubBySlug, listPublishedSiteContentsByHub, listSiteHubs } from "@/lib/site-cms/repository";
 
 type Props = { params: Promise<{ slug: string }> };
+const REMOVED_TOOL_SLUGS = new Set(["kivai-connect", "smart-tv-tv-box"]);
 
 export function generateStaticParams() {
   // As ferramentas atuais possuem páginas literais. A rota dinâmica fica
@@ -17,6 +18,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const slug = (await params).slug;
+  if (REMOVED_TOOL_SLUGS.has(slug)) return { title: "Página não encontrada", robots: { index: false, follow: false } };
   if (getToolBySlug(slug)) return getToolMetadataAsync(slug);
   if (await getPublishedSiteContentByPath(`/ferramentas/${slug}`)) return getCmsPageMetadata(`/ferramentas/${slug}`);
   return getCmsHubMetadata(slug);
@@ -24,6 +26,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function SocialMediaToolPage({ params }: Props) {
   const { slug } = await params;
+  if (REMOVED_TOOL_SLUGS.has(slug)) notFound();
   const tool = getToolBySlug(slug);
   if (!tool) {
     const content = await getPublishedSiteContentByPath(`/ferramentas/${slug}`);

@@ -6,7 +6,6 @@ import { getPageMetadata, SITE_URL } from "@/lib/seo";
 import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
 import { getToolCategoryAccentClass } from "@/lib/tool-category-visuals";
-import { getSiteHubBySlug, listPublishedSiteContentsByHub } from "@/lib/site-cms/repository";
 import {
   getToolHref,
   getToolsByCategory,
@@ -48,9 +47,6 @@ const schema = {
 };
 
 export default async function FerramentasPage() {
-  const tvHub = await getSiteHubBySlug("smart-tv-tv-box");
-  const tvContents = tvHub?.status === "published" ? await listPublishedSiteContentsByHub(tvHub.id) : [];
-  const visibleCategories = categories.flatMap(category => category.slug !== "smart-tv" ? [category] : tvHub?.status === "published" ? [{ ...category, name: tvHub.name, description: tvHub.description, href: tvHub.path }] : []);
   return (
     <main className="min-h-screen bg-background pb-16 pt-24 text-foreground">
       <script
@@ -72,8 +68,8 @@ export default async function FerramentasPage() {
         </p>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visibleCategories.map((category) => {
-            const availableCount = category.slug === "smart-tv" ? tvContents.filter(item => item.contentType === "tool" && item.technicalStatus === "ready").length : getToolsByCategory(category.slug).filter((tool) => tool.available).length;
+          {categories.map((category) => {
+            const availableCount = getToolsByCategory(category.slug).filter((tool) => tool.available).length;
 
             return (
               <Link

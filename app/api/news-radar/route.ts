@@ -2,15 +2,15 @@ import { NextResponse } from "next/server";
 import { newsRadarConfig } from "@/lib/news-radar/config";
 import { consumeRadarRateLimit } from "@/lib/news-radar/repository";
 import { publicRadarError, radarRequestIdentifier } from "@/lib/news-radar/request";
-import { searchNewsRadar } from "@/lib/news-radar/service";
+import { searchAllNewsRadar, searchNewsRadar } from "@/lib/news-radar/service";
 import { isNewsRadarCategory } from "@/lib/news-radar/types";
 
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { category?: unknown };
-    if (!isNewsRadarCategory(body.category)) {
+    const body = await request.json() as { category?: unknown; all?: unknown };
+    if (body.all !== true && !isNewsRadarCategory(body.category)) {
       return NextResponse.json({ error: "Selecione uma categoria válida." }, { status: 400 });
     }
 
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json(await searchNewsRadar(body.category), {
+    return NextResponse.json(body.all === true ? await searchAllNewsRadar() : await searchNewsRadar(body.category as Parameters<typeof searchNewsRadar>[0]), {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {

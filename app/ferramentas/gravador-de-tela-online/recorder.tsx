@@ -84,8 +84,15 @@ export default function Recorder() {
         const url = URL.createObjectURL(new Blob(chunks, {type}));
         if (resultUrl.current) URL.revokeObjectURL(resultUrl.current);
         resultUrl.current = url;
-        setResult({url, filename:"gravacao-de-tela." + (type.includes("mp4") ? "mp4" : "webm")});
-        setMessage(interrupted ? "A captura foi interrompida. Confira o trecho disponível." : "Gravação pronta para baixar.");
+        const filename = "gravacao-de-tela." + (type.includes("mp4") ? "mp4" : "webm");
+        setResult({url, filename});
+        setMessage(interrupted ? "A captura foi interrompida. O download da gravação foi iniciado." : "Gravação concluída. O download foi iniciado.");
+        window.setTimeout(() => {
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename;
+          link.click();
+        }, 150);
         window.focus();
         window.setTimeout(() => resultSection.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
       };

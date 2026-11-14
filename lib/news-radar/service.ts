@@ -14,6 +14,7 @@ import {
   saveRadarCache,
 } from "@/lib/news-radar/repository";
 import {
+  NEWS_RADAR_CATEGORIES,
   radarCategoryLabel,
   type NewsRadarCategory,
   type RadarItem,
@@ -238,4 +239,34 @@ export async function searchNewsRadar(category: NewsRadarCategory): Promise<Rada
     await recordError(category);
     throw error;
   }
+}
+
+export async function searchAllNewsRadar(): Promise<RadarResponse> {
+  const results = await Promise.allSettled(NEWS_RADAR_CATEGORIES.map(({ slug }) => searchNewsRadar(slug)));
+  const fulfilled = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+  if (!fulfilled.length) throw new Error("As fontes de notícias estão temporariamente indisponíveis.");
+  const seen = new Set<string>();
+  const items = fulfilled
+    .flatMap((result) => result.items.map((item) => ({ ...item, category: result.category })))
+    .filter((item) => {
+      const key = item.url.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+    .slice(0, newsRadarConfig.maxResults * NEWS_RADAR_CATEGORIES.length);
+  const collectedAt = fulfilled.map((result) => result.collectedAt).sort().at(-1) ?? new Date().toISOString();
+  return {
+    category: NEWS_RADAR_CATEGORIES[0].slug,
+    categoryLabel: "Todos os temas",
+    items,
+    collectedAt,
+    expiresAt: fulfilled.map((result) => result.expiresAt).sort()[0] ?? new Date().toISOString(),
+    sourcesChecked: fulfilled.reduce((sum, result) => sum + result.sourcesChecked, 0),
+    sourcesSucceeded: fulfilled.reduce((sum, result) => sum + result.sourcesSucceeded, 0),
+    partial: fulfilled.length < NEWS_RADAR_CATEGORIES.length || fulfilled.some((result) => result.partial),
+    fromCache: fulfilled.every((result) => result.fromCache),
+    stale: fulfilled.some((result) => result.stale),
+  };
 }

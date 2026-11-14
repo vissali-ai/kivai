@@ -93,7 +93,7 @@ export function RadarDeTendenciasClient() {
       const response = await fetch("/api/news-radar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category }),
+        body: JSON.stringify({ all: true }),
       });
       const body = await response.json() as RadarResponse | { error?: string };
       if (!response.ok || !("items" in body)) throw new Error("error" in body ? body.error : "Falha na busca.");
@@ -121,29 +121,7 @@ export function RadarDeTendenciasClient() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <fieldset>
-          <legend className="text-sm font-medium">Selecione um tema</legend>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            {NEWS_RADAR_CATEGORIES.map((option) => (
-              <button
-                key={option.slug}
-                type="button"
-                aria-pressed={category === option.slug}
-                disabled={status === "loading"}
-                onClick={() => setCategory(option.slug)}
-                className={`border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  category === option.slug
-                    ? "border-primary bg-primary/10 text-foreground"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                }`}
-              >
-                <span className="block text-sm font-semibold">{option.label}</span>
-                <span className="mt-1 block text-xs leading-5">{option.description}</span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
+        <p className="text-sm leading-6 text-muted-foreground">Buscamos notícias recentes em todas as fontes de marketing, inteligência artificial e e-commerce.</p>
         <Button size="lg" onClick={() => void search()} disabled={status === "loading"}>
           {status === "loading" ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Search aria-hidden="true" />}
           {status === "loading" ? "Buscando notícias recentes..." : "Buscar notícias"}
@@ -152,7 +130,7 @@ export function RadarDeTendenciasClient() {
         <div aria-live="polite" aria-atomic="true">
           {status === "loading" ? (
             <div className="border border-primary/20 bg-primary/5 p-5 text-sm text-muted-foreground">
-              Consultando as fontes de {NEWS_RADAR_CATEGORIES.find((item) => item.slug === category)?.label}. Isso pode levar alguns segundos.
+              Consultando todas as fontes. Isso pode levar alguns segundos.
             </div>
           ) : null}
           {status === "error" ? (
@@ -182,6 +160,8 @@ export function RadarDeTendenciasClient() {
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <p>{result.stale
                   ? "As fontes não responderam agora. Exibimos a última coleta disponível, com o horário indicado acima."
+                  : result.categoryLabel === "Todos os temas"
+                    ? "Parte das fontes ou temas não respondeu. Exibimos todas as notícias disponíveis nesta busca."
                   : `Algumas fontes não responderam. A busca continuou com ${result.sourcesSucceeded} de ${result.sourcesChecked} fontes.`}</p>
               </div>
             ) : null}
@@ -189,21 +169,21 @@ export function RadarDeTendenciasClient() {
             {!result.items.length ? (
               <div className="border border-border bg-muted/15 p-8 text-center">
                 <h3 className="font-semibold">Nenhuma notícia recente encontrada</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">Não incluímos conteúdo antigo apenas para completar a lista. Tente novamente mais tarde ou escolha outro tema.</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">Não incluímos conteúdo antigo apenas para completar a lista. Tente novamente mais tarde.</p>
               </div>
             ) : null}
 
             {grouped.today.length ? (
               <div>
                 <h3 className="text-base font-semibold">Publicadas hoje</h3>
-                <div className="mt-3 grid gap-4 md:grid-cols-2">{grouped.today.map((item) => <NewsCard key={item.url} item={item} category={result.category} />)}</div>
+                <div className="mt-3 grid gap-4 md:grid-cols-2">{grouped.today.map((item) => <NewsCard key={item.url} item={item} category={item.category ?? result.category} />)}</div>
               </div>
             ) : null}
             {grouped.last24Hours.length ? (
               <div>
                 <h3 className="text-base font-semibold">Também nas últimas 24 horas</h3>
                 <p className="mt-1 text-xs text-muted-foreground">Separadas para não confundir publicações de ontem com as notícias de hoje.</p>
-                <div className="mt-3 grid gap-4 md:grid-cols-2">{grouped.last24Hours.map((item) => <NewsCard key={item.url} item={item} category={result.category} />)}</div>
+                <div className="mt-3 grid gap-4 md:grid-cols-2">{grouped.last24Hours.map((item) => <NewsCard key={item.url} item={item} category={item.category ?? result.category} />)}</div>
               </div>
             ) : null}
           </section>

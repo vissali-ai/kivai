@@ -227,12 +227,25 @@ export function InstagramFollowAnalyzer({ config }: { config: InstagramAnalyzerC
   ];
 
   return <div className="space-y-8">
-    {show("tutorial") ? <section className="border border-primary/20 bg-primary/[0.025]">
-      <button type="button" onClick={() => setTutorialOpen((value) => !value)} className="flex w-full items-center justify-between gap-4 p-6 text-left sm:p-8" aria-expanded={tutorialOpen}>
-        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{config.tutorialKicker}</p><h2 className="mt-2 text-xl font-semibold sm:text-2xl">{config.tutorialTitle}</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{config.tutorialDescription}</p></div>
-        <ChevronDown className={`size-5 shrink-0 text-primary transition ${tutorialOpen ? "rotate-180" : ""}`} />
-      </button>
-      {tutorialOpen ? <div className="border-t border-border px-6 pb-8 pt-6 sm:px-8">
+    {show("tutorial") ? <section className="border border-border bg-card p-5 sm:p-6">
+      <h2 className="text-lg font-semibold">Como começar</h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <article className="border border-border bg-background p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">1. Exporte seus dados</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Na Central de Contas da Meta, solicite uma cópia das informações do Instagram em formato JSON. Inclua “Seguidores e seguindo”.</p>
+          <a href={config.metaUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">Abrir Central de Contas<ExternalLink className="size-4" /></a>
+        </article>
+        <article className="border border-border bg-background p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">2. Envie o arquivo</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Quando a Meta enviar o arquivo, selecione o ZIP aqui abaixo. O Kivai mostra quem não segue você de volta.</p>
+        </article>
+      </div>
+      <details className="group mt-4 border-t border-border pt-3">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-2 text-sm font-medium text-muted-foreground" aria-expanded={tutorialOpen} onClick={(event) => { event.preventDefault(); setTutorialOpen((value) => !value); }}>
+        {config.tutorialTitle}<ChevronDown className={`size-4 shrink-0 transition ${tutorialOpen ? "rotate-180" : ""}`} />
+      </summary>
+      {tutorialOpen ? <div className="pb-4 pt-3">
+        <p className="mb-5 max-w-3xl text-sm leading-6 text-muted-foreground">{config.tutorialDescription}</p>
         {paid ? <div className="mb-6 border border-primary/25 bg-primary/[0.04] p-4"><div className="flex items-center gap-2"><Crown className="size-4 text-primary" /><strong className="text-sm">Exportação recomendada para o plano {plan === "pro" ? "Pro" : "Agency"}</strong></div>{plan === "pro" ? <p className="mt-2 text-sm leading-6 text-muted-foreground">Na opção “Algumas das suas informações”, selecione <strong>Seguidores e seguindo</strong>, <strong>Curtidas</strong>, <strong>Comentários</strong> e <strong>Interações com stories</strong>. Use JSON e intervalo “Desde o início”.</p> : <p className="mt-2 text-sm leading-6 text-muted-foreground">Para a análise Agency completa, selecione todas as informações disponíveis que deseja analisar, use JSON e intervalo “Desde o início”.</p>}</div> : null}
         <div className="flex justify-end"><a href={config.metaUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90">{config.metaButtonLabel}<ExternalLink className="size-4" /></a></div>
         <div className="mt-8 space-y-8">{config.tutorialSteps.map((step, index) => <article key={`${index}-${step.title}`} className={`grid gap-5 border-b border-border pb-8 last:border-b-0 last:pb-0 ${step.imageUrl ? "md:grid-cols-[minmax(0,1fr)_300px]" : ""} md:items-start`}><div className="md:pt-3"><span className="inline-flex border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Passo {index + 1} de {config.tutorialSteps.length}</span><h3 className="mt-3 text-lg font-semibold">{step.title}</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{step.description}</p></div>{step.imageUrl ? <button type="button" onClick={() => setExpandedScreenshot(index)} className="group relative mx-auto block w-full max-w-[300px] overflow-hidden border border-border bg-black text-left transition hover:border-primary/40" aria-label={`Ampliar imagem do passo ${index + 1}`}>{(
@@ -241,6 +254,7 @@ export function InstagramFollowAnalyzer({ config }: { config: InstagramAnalyzerC
 )}<span className="absolute inset-x-0 bottom-0 bg-black/75 px-3 py-2 text-center text-xs text-white opacity-0 transition group-hover:opacity-100">Clique para ampliar</span></button> : null}</article>)}</div>
         <div className="mt-8 flex flex-col items-center text-center"><p className="text-lg font-semibold">{config.finalCta}</p><ArrowDown className="mt-3 size-7 text-primary" aria-hidden="true" /></div>
       </div> : null}
+      </details>
     </section> : null}
 
     {show("upload") ? <section id="instagram-analyzer-upload" className="scroll-mt-24 border border-border bg-card p-6 sm:p-8"><div className="flex items-start gap-4"><div className="flex size-11 shrink-0 items-center justify-center border border-primary/30 bg-primary/10 text-primary"><Users className="size-5" /></div><div><h2 className="text-xl font-semibold">{config.uploadTitle}</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{config.uploadDescription}</p></div></div>

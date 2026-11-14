@@ -21,6 +21,7 @@ export type RadarItem = {
   window: "today" | "last-24-hours";
   coverageCount: number;
   score: number;
+  category?: NewsRadarCategory;
 };
 
 export type RadarPayload = {

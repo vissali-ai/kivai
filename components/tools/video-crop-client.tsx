@@ -2,9 +2,9 @@
 
 import { openFilePicker } from "@/lib/browser/file-picker";
 
-import { ChangeEvent, DragEvent, useRef, useState } from "react";
+import { ChangeEvent, DragEvent, PointerEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Download, RotateCcw, Scissors, Upload } from "lucide-react";
+import { Download, LoaderCircle, Play, RotateCcw, Scissors, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -32,35 +32,22 @@ export function VideoCropClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cropAreaRef = useRef<HTMLDivElement>(null);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
   const [source, setSource] = useState<{ file: File; url: string } | null>(null);
   const [crop, setCrop] = useState<Crop>(DEFAULT_CROP);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
   const [result, setResult] = useState<ExportedVideo | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState("");
 
   function revokeResult() {
     if (result) URL.revokeObjectURL(result.url);
   }
 
-  function normalizedCrop(next: Crop) {
-    const width = clamp(next.width, 1, 100);
-    const height = clamp(next.height, 1, 100);
-    return {
-      width,
-      height,
-      x: clamp(next.x, 0, 100 - width),
-      y: clamp(next.y, 0, 100 - height),
-    };
-  }
-
-  function updateCrop(key: keyof Crop, value: number) {
-    setCrop((current) => normalizedCrop({ ...current, [key]: value }));
-  }
-
-  function drawFrame() {
+  const drawFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || !dimensions || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
@@ -74,7 +61,7 @@ export function VideoCropClient() {
     const context = canvas.getContext("2d");
     if (!context) return;
     context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
-  }
+  }, [crop, dimensions]);
 
   function selectFile(file?: File) {
     if (!file) return;
@@ -89,7 +76,7 @@ export function VideoCropClient() {
     setResult(null);
     setCrop(DEFAULT_CROP);
     setDimensions(null);
-    setProgress(0);
+    setIsPlaying(false);
     setError("");
   }
 
@@ -110,6 +97,34 @@ export function VideoCropClient() {
     setDimensions({ width: video.videoWidth, height: video.videoHeight });
   }
 
+  function cropPointerDown(event: PointerEvent<HTMLDivElement>) {
+    const bounds = cropAreaRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+    const x = clamp(((event.clientX - bounds.left) / bounds.width) * 100, 0, 100);
+    const y = clamp(((event.clientY - bounds.top) / bounds.height) * 100, 0, 100);
+    dragStart.current = { x, y };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setCrop({ x, y, width: 1, height: 1 });
+  }
+
+  function cropPointerMove(event: PointerEvent<HTMLDivElement>) {
+    const start = dragStart.current;
+    const bounds = cropAreaRef.current?.getBoundingClientRect();
+    if (!start || !bounds) return;
+    const x = clamp(((event.clientX - bounds.left) / bounds.width) * 100, 0, 100);
+    const y = clamp(((event.clientY - bounds.top) / bounds.height) * 100, 0, 100);
+    const left = Math.min(start.x, x);
+    const top = Math.min(start.y, y);
+    setCrop({ x: left, y: top, width: Math.max(1, Math.abs(x - start.x)), height: Math.max(1, Math.abs(y - start.y)) });
+  }
+
+  function cropPointerUp(event: PointerEvent<HTMLDivElement>) {
+    dragStart.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+
+  useEffect(() => { drawFrame(); }, [drawFrame]);
+
   async function exportVideo() {
     const video = videoRef.current as CaptureVideo | null;
     const canvas = canvasRef.current;
@@ -129,7 +144,6 @@ export function VideoCropClient() {
     }
 
     setError("");
-    setProgress(0);
     setIsExporting(true);
     revokeResult();
     setResult(null);
@@ -153,7 +167,6 @@ export function VideoCropClient() {
       let animationFrame = 0;
       const render = () => {
         drawFrame();
-        setProgress(video.duration ? Math.min(100, (video.currentTime / video.duration) * 100) : 0);
         if (!video.paused && !video.ended) animationFrame = requestAnimationFrame(render);
       };
 
@@ -171,7 +184,6 @@ export function VideoCropClient() {
 
       const blob = await completed;
       setResult({ blob, url: URL.createObjectURL(blob) });
-      setProgress(100);
       video.currentTime = 0;
     } catch (exportError) {
       setError(exportError instanceof Error ? exportError.message : "Não foi possível exportar o vídeo.");
@@ -195,7 +207,7 @@ export function VideoCropClient() {
     setResult(null);
     setCrop(DEFAULT_CROP);
     setDimensions(null);
-    setProgress(0);
+    setIsPlaying(false);
     setError("");
   }
 
@@ -206,7 +218,7 @@ export function VideoCropClient() {
         <div className="mb-10 max-w-3xl"><p className="text-sm font-medium uppercase tracking-wider text-primary">Ferramenta de vídeo</p><h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Recortar vídeo</h1><p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Defina a área que deseja manter e exporte o vídeo recortado em WebM, sem enviar o arquivo a um servidor.</p></div>
 
         <div className="mx-auto max-w-4xl"><Card className="overflow-hidden"><CardHeader><CardTitle>Área de processamento</CardTitle><CardDescription>MP4 e WebM compatíveis com o navegador, até 200 MB por vídeo.</CardDescription></CardHeader><CardContent className="space-y-6"><input ref={inputRef} type="file" accept="video/*" className="hidden" onChange={handleFileChange} />
-          {!source ? <div onDragEnter={(event) => { event.preventDefault(); setIsDragging(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} className={`flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center ${isDragging ? "border-primary bg-primary/10" : "border-border bg-muted/20"}`}><div className="flex size-14 items-center justify-center border border-border bg-background"><Upload className="size-5" /></div><p className="mt-6 text-xl font-semibold">Envie seu vídeo</p><p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">Arraste e solte o arquivo nesta área ou selecione um vídeo diretamente do seu dispositivo.</p><Button className="mt-6" onClick={() => openFilePicker(inputRef.current)}>Selecionar vídeo</Button></div> : <div className="grid gap-6 lg:grid-cols-2"><div className="space-y-4"><div className="overflow-hidden rounded-xl border border-border bg-black"><video ref={videoRef} src={source.url} controls playsInline className="aspect-video w-full" onLoadedMetadata={handleLoadedMetadata} onTimeUpdate={drawFrame} onSeeked={drawFrame} onError={() => setError("Não foi possível abrir este vídeo no navegador.")} /></div><p className="text-sm text-muted-foreground">{source.file.name}{dimensions && ` · ${dimensions.width} × ${dimensions.height}px`}</p></div><div className="space-y-5 rounded-xl border border-border bg-muted/20 p-4 sm:p-5"><div><h2 className="font-semibold">Ajuste em porcentagem</h2><p className="mt-1 text-xs text-muted-foreground">Use 0 a 100 para definir a posição e o tamanho da área visível.</p></div><div className="grid grid-cols-2 gap-3">{([['x','X'],['y','Y'],['width','Largura'],['height','Altura']] as const).map(([key,label]) => <label key={key} className="text-sm font-medium">{label}<input type="number" min="0" max="100" value={crop[key]} onChange={(event) => updateCrop(key, Number(event.target.value))} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3" />%</label>)}</div><div><p className="mb-2 text-sm font-medium">Prévia do recorte</p><div className="flex min-h-40 items-center justify-center overflow-hidden rounded-lg border border-border bg-black p-2"><canvas ref={canvasRef} className="max-h-64 max-w-full object-contain" /></div></div><div className="flex flex-wrap gap-3"><Button onClick={exportVideo} disabled={isExporting || !dimensions}><Scissors />{isExporting ? `Exportando ${Math.round(progress)}%` : "Exportar vídeo"}</Button><Button variant="outline" onClick={clear}><RotateCcw />Limpar</Button></div>{isExporting && <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} /></div>}</div></div>}
+          {!source ? <div onDragEnter={(event) => { event.preventDefault(); setIsDragging(true); }} onDragOver={(event) => event.preventDefault()} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} className={`flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center ${isDragging ? "border-primary bg-primary/10" : "border-border bg-muted/20"}`}><div className="flex size-14 items-center justify-center border border-border bg-background"><Upload className="size-5" /></div><p className="mt-6 text-xl font-semibold">Envie seu vídeo</p><p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">Arraste e solte o arquivo nesta área ou selecione um vídeo diretamente do seu dispositivo.</p><Button className="mt-6" onClick={() => openFilePicker(inputRef.current)}>Selecionar vídeo</Button></div> : <div className="grid gap-6 lg:grid-cols-2"><div className="space-y-4"><div className="overflow-hidden rounded-xl border border-border bg-black"><div ref={cropAreaRef} className="relative w-full touch-none cursor-crosshair select-none" style={{ aspectRatio: dimensions ? `${dimensions.width} / ${dimensions.height}` : "16 / 9" }} onPointerDown={cropPointerDown} onPointerMove={cropPointerMove} onPointerUp={cropPointerUp} onPointerCancel={cropPointerUp}><video ref={videoRef} src={source.url} playsInline className="pointer-events-none absolute inset-0 size-full object-fill" onLoadedMetadata={handleLoadedMetadata} onLoadedData={drawFrame} onTimeUpdate={drawFrame} onSeeked={drawFrame} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onError={() => setError("Não foi possível abrir este vídeo no navegador.")} /><div className="pointer-events-none absolute inset-0"><div className="absolute inset-x-0 top-0 bg-black/45" style={{ height: `${crop.y}%` }} /><div className="absolute bg-black/45" style={{ left: 0, top: `${crop.y}%`, width: `${crop.x}%`, height: `${crop.height}%` }} /><div className="absolute bg-black/45" style={{ left: `${crop.x + crop.width}%`, top: `${crop.y}%`, right: 0, height: `${crop.height}%` }} /><div className="absolute inset-x-0 bottom-0 bg-black/45" style={{ height: `${100 - crop.y - crop.height}%` }} /></div><div className="pointer-events-none absolute border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.7)]" style={{ left: `${crop.x}%`, top: `${crop.y}%`, width: `${crop.width}%`, height: `${crop.height}%` }} /></div></div><div className="flex flex-wrap items-center gap-3"><Button type="button" variant="outline" onClick={() => { const video = videoRef.current; if (!video) return; if (video.paused) void video.play(); else video.pause(); }}>{isPlaying ? "Pausar prévia" : <><Play />Reproduzir prévia</>}</Button><span className="text-sm text-muted-foreground">Arraste sobre o vídeo para marcar a área que deseja manter.</span></div><p className="text-sm text-muted-foreground">{source.file.name}{dimensions && ` · ${dimensions.width} × ${dimensions.height}px`}</p></div><div className="space-y-5 rounded-xl border border-border bg-muted/20 p-4 sm:p-5"><div><h2 className="font-semibold">Prévia do recorte</h2><p className="mt-1 text-xs text-muted-foreground">A imagem abaixo mostra a área selecionada antes da exportação.</p></div><div className="flex min-h-40 items-center justify-center overflow-hidden rounded-lg border border-border bg-black p-2"><canvas ref={canvasRef} className="max-h-64 max-w-full object-contain" /></div><div className="flex flex-wrap gap-3"><Button onClick={exportVideo} disabled={isExporting || !dimensions}><Scissors />{isExporting ? <><LoaderCircle className="animate-spin" />Processando vídeo…</> : "Recortar e baixar vídeo"}</Button><Button variant="outline" onClick={clear}><RotateCcw />Limpar</Button></div>{isExporting && <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full w-1/3 animate-pulse bg-primary" /></div>}</div></div>}
           {error && <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
           {result && <section className="rounded-xl border border-border p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-semibold">Vídeo recortado</h2><p className="mt-1 text-sm text-muted-foreground">{(result.blob.size / 1024 / 1024).toFixed(2)} MB · WebM</p></div><Button onClick={downloadResult}><Download />Baixar WebM</Button></div><video src={result.url} controls playsInline className="mt-5 aspect-video w-full rounded-lg bg-black" /></section>}
         </CardContent></Card></div>
