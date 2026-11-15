@@ -7,7 +7,7 @@ import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 const productLinks = [
   { label: "Ferramentas", href: "/ferramentas" },
-  { label: "Música", href: "/musica" },
+  { label: "Música", href: "https://streaming.kivai.com.br" },
   { label: "Planos e benefícios", href: "/planos" },
   { label: "Serviços", href: "/servicos" },
   { label: "Blog", href: "/blog" },
@@ -84,6 +84,9 @@ export function Footer() {
                   <li key={`${link.label}-${link.href}`}>
                     <Link
                       href={link.href}
+                      target={link.label === "Música" ? "_blank" : undefined}
+                      rel={link.label === "Música" ? "noopener noreferrer" : undefined}
+                      aria-label={link.label === "Música" ? "Música independente — abre em nova aba" : undefined}
                       className="group inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
                     >
                       {link.label}
