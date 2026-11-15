@@ -4,16 +4,20 @@ import { notFound } from "next/navigation";
 import { getMusicCatalogByArtist } from "@/lib/music/repository";
 import { MusicArtistComments } from "@/components/music/music-artist-comments";
 import type { Metadata } from "next";
+import { listSiteHubs } from "@/lib/site-cms/repository";
 
 export async function generateMetadata({ params }: { params: Promise<{ artist: string }> }): Promise<Metadata> {
   const { artist: slug } = await params;
   const catalog = await getMusicCatalogByArtist(slug);
   if (!catalog) return { title: "Artista não encontrado | Kivai Música", robots: { index: false, follow: false } };
+  const hubs = await listSiteHubs();
+  const musicHub = hubs.find((hub) => hub.slug === "musica");
+  const hubIsIndexable = Boolean(musicHub && musicHub.status === "published" && musicHub.indexable);
   const { artist } = catalog;
   const canonical = `https://streaming.kivai.com.br/musica/${artist.slug}`;
   const title = `${artist.name} | Kivai Música`;
   const description = artist.bio?.slice(0, 300) || `Conheça ${artist.name} e ouça seus álbuns no Kivai Música.`;
-  return { title, description, alternates: { canonical }, robots: { index: artist.indexable, follow: true }, openGraph: { title, description, url: canonical, siteName: "Kivai Música", locale: "pt_BR", type: "profile", ...(artist.coverUrl || artist.photoUrl ? { images: [artist.coverUrl || artist.photoUrl] } : {}) } };
+  return { title, description, alternates: { canonical }, robots: { index: hubIsIndexable && artist.indexable, follow: true }, openGraph: { title, description, url: canonical, siteName: "Kivai Música", locale: "pt_BR", type: "profile", ...(artist.coverUrl || artist.photoUrl ? { images: [artist.coverUrl || artist.photoUrl] } : {}) };
 }
 
 export default async function ArtistPage({ params }: { params: Promise<{ artist: string }> }) {
