@@ -33,13 +33,13 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    remotePatterns: [{
-      protocol: "https",
+    remotePatterns: [blogBucket, "music-media"].map((bucket) => ({
+      protocol: "https" as const,
       hostname: supabaseHostname,
       port: "",
-      pathname: `/storage/v1/object/public/${blogBucket}/**`,
+      pathname: `/storage/v1/object/public/${bucket}/**`,
       search: "",
-    }],
+    })),
   },
 };
 
