@@ -6,7 +6,7 @@ import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import type { MusicTrack } from "@/lib/music/types";
 
 type Item = MusicTrack & { artistName: string; albumTitle: string; coverUrl: string };
-type State = { queue: Item[]; index: number; playing: boolean; play: (q: Item[], i: number) => void };
+type State = { queue: Item[]; index: number; playing: boolean; isStreamingHost: boolean; play: (q: Item[], i: number) => void };
 const C = createContext<State | null>(null);
 function fmt(n: number) {
   if (!Number.isFinite(n)) return "0:00";
@@ -18,7 +18,7 @@ export function useMusicPlayer() {
   return value;
 }
 
-export function MusicPlayerProvider({ children }: { children: React.ReactNode }) {
+export function MusicPlayerProvider({ children, isStreamingHost }: { children: React.ReactNode; isStreamingHost: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const queueRef = useRef<Item[]>([]);
   const indexRef = useRef(-1);
@@ -126,7 +126,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
     }
   }, [current, duration]);
 
-  const ctx = useMemo(() => ({ queue, index, playing, play }), [queue, index, playing, play]);
+  const ctx = useMemo(() => ({ queue, index, playing, isStreamingHost, play }), [queue, index, playing, isStreamingHost, play]);
   const nextTrack = () => {
     const nextIndex = indexRef.current + 1;
     if (nextIndex < queueRef.current.length) change(nextIndex);
