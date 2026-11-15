@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ADMIN_COOKIE = "kivai_admin_session";
 const TRAFEGO_HOST = "trafego.kivai.com.br";
+const STREAMING_HOST = "streaming.kivai.com.br";
 
 export function proxy(request: NextRequest) {
   const host = request.nextUrl.hostname.toLowerCase();
@@ -9,6 +10,12 @@ export function proxy(request: NextRequest) {
 
   const isTrafficMetadata = pathname === "/robots.txt" || pathname === "/sitemap.xml";
   const isTrafficApi = pathname.startsWith("/api/trafego/");
+
+  if (host === STREAMING_HOST && pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/musica";
+    return NextResponse.rewrite(url);
+  }
 
   if (host === TRAFEGO_HOST && pathname !== "/trafego" && !isTrafficApi && !isTrafficMetadata) {
     const url = request.nextUrl.clone();
@@ -30,3 +37,4 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
+

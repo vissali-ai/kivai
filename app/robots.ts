@@ -12,9 +12,18 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     };
   }
 
+  if (host === "streaming.kivai.com.br") {
+    return {
+      rules: [{ userAgent: "*", allow: "/", disallow: ["/api/"] }],
+      sitemap: "https://streaming.kivai.com.br/sitemap.xml",
+      host: "streaming.kivai.com.br",
+    };
+  }
+
   return {
     rules: [{ userAgent: "*", allow: "/", disallow: ["/api/admin/"] }],
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,
   };
 }
+
