@@ -5,6 +5,7 @@ import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest, supabaseStorage } from "@/lib/blog/supabase";
 import { plainText } from "@/lib/blog/sanitize";
 import { slugify } from "@/lib/blog/slug";
+import { getSiteHubBySlug } from "@/lib/site-cms/repository";
 import type { MusicAlbum, MusicArtist, MusicCatalog, MusicTrack } from "@/lib/music/types";
 
 type ArtistRow = { id:string;slug:string;name:string;bio:string;photo_url:string;cover_url:string;status:MusicArtist["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
@@ -17,6 +18,7 @@ const enc=encodeURIComponent;
 
 export async function listMusicArtists(includeDrafts=false) { const q=includeDrafts?"music_artists?select=*&order=name.asc":"music_artists?select=*&status=eq.published&order=name.asc"; return (await supabaseRest<ArtistRow[]>(q,{allowMissingConfig:true})).map(mapArtist); }
 export async function listMusicCatalog():Promise<MusicCatalog[]> {
+ const hub=await getSiteHubBySlug("musica",true);if(!hub)return [];
  const artists=await listMusicArtists(); if(!artists.length)return [];
  const albums=(await supabaseRest<AlbumRow[]>(`music_albums?select=*,artist:music_artists(name,slug)&artist_id=in.(${artists.map(a=>a.id).join(",")})&status=eq.published&order=release_date.desc.nullslast,title.asc`,{allowMissingConfig:true})).map(r=>{const artist=(r as AlbumRow & {artist?:{name:string;slug:string}}).artist;return mapAlbum({...r,artist_name:artist?.name,artist_slug:artist?.slug});});
  const tracks=albums.length?(await supabaseRest<TrackRow[]>(`music_tracks?select=*&album_id=in.(${albums.map(a=>a.id).join(",")})&status=eq.published&order=track_number.asc`,{allowMissingConfig:true})).map(mapTrack):[];
