@@ -43,6 +43,7 @@ export function proxy(request: NextRequest) {
       segments.length > 0 &&
       segments.length <= 2 &&
       firstSegment &&
+      !firstSegment.includes(".") &&
       !STREAMING_RESERVED_PATHS.has(firstSegment)
     ) {
       const url = request.nextUrl.clone();
