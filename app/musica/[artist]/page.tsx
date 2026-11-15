@@ -17,7 +17,21 @@ export async function generateMetadata({ params }: { params: Promise<{ artist: s
   const canonical = `https://streaming.kivai.com.br/musica/${artist.slug}`;
   const title = `${artist.name} | Kivai Música`;
   const description = artist.bio?.slice(0, 300) || `Conheça ${artist.name} e ouça seus álbuns no Kivai Música.`;
-  return { title, description, alternates: { canonical }, robots: { index: hubIsIndexable && artist.indexable, follow: true }, openGraph: { title, description, url: canonical, siteName: "Kivai Música", locale: "pt_BR", type: "profile", ...(artist.coverUrl || artist.photoUrl ? { images: [artist.coverUrl || artist.photoUrl] } : {}) };
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    robots: { index: hubIsIndexable && artist.indexable, follow: true },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      siteName: "Kivai Música",
+      locale: "pt_BR",
+      type: "profile",
+      ...(artist.coverUrl || artist.photoUrl ? { images: [artist.coverUrl || artist.photoUrl] } : {}),
+    },
+  };
 }
 
 export default async function ArtistPage({ params }: { params: Promise<{ artist: string }> }) {
