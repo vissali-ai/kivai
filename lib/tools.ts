@@ -281,12 +281,12 @@ export const tools: Tool[] = [
   },
   {
     slug: "montar-video-camera-dupla",
-    name: "Montar Vídeo com Câmera Dupla",
-    description: "Combine dois vídeos em tela dividida ou imagem sobreposta e crie um vídeo com duas perspectivas.",
+    name: "Juntar e Sincronizar Vídeos Grátis",
+    description: "Junte vídeos gravados no mesmo momento, sincronize pelo áudio e monte uma composição de câmera dupla grátis no navegador.",
     category: "video", hubFilter: "Edição", badge: "Vídeo", icon: Video, available: true,
-    seoTitle: "Montar Vídeo com Câmera Dupla Online Grátis | Kivai",
-    seoDescription: "Junte dois vídeos em tela dividida ou imagem sobreposta. Ajuste posição e tamanho da janela, confira a prévia e exporte gratuitamente no navegador.",
-    keywords: ["montar vídeo câmera dupla", "juntar dois vídeos em um", "vídeo picture in picture", "vídeo tela dividida", "sobrepor vídeos online", "vídeo reação", "compor vídeos"],
+    seoTitle: "Juntar Vídeos Online Grátis e Sincronizar Áudio | Kivai",
+    seoDescription: "Junte vídeos gravados no mesmo momento, sincronize pelo áudio e crie uma composição com duas câmeras. Ferramenta grátis, sem instalar programa e direto no navegador.",
+    keywords: ["juntar vídeos grátis", "sincronizar vídeos pelo áudio", "juntar vídeos gravados ao mesmo tempo", "montar vídeo câmera dupla", "sincronizar duas câmeras", "juntar vídeos de celulares", "vídeo tela dividida", "vídeo picture in picture", "sobrepor vídeos online", "compor vídeos"],
   },
   {
     slug: "descompactar-zip",
