@@ -10,5 +10,5 @@ export async function generateMetadata():Promise<Metadata>{
   const canonical = "https://streaming.kivai.com.br";
   return { ...metadata, alternates: { canonical }, openGraph: { ...metadata.openGraph, url: canonical } };
 }
-export default function MusicLayout({children}:{children:React.ReactNode}){return <MusicPlayerProvider>{children}</MusicPlayerProvider>;}
+export default async function MusicLayout({children}:{children:React.ReactNode}){const host=(await headers()).get("host")?.split(":")[0]?.toLowerCase();return <MusicPlayerProvider isStreamingHost={host==="streaming.kivai.com.br"}>{children}</MusicPlayerProvider>;}
 
