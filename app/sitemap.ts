@@ -24,8 +24,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         ? [{ url: "https://streaming.kivai.com.br", changeFrequency: "weekly" as const, priority: 1 }]
         : []),
       ...(hubAllowsIndexing ? musicCatalog.flatMap(({ artist, albums }) => [
-        ...(artist.indexable && artist.includeInSitemap ? [{ url: `https://streaming.kivai.com.br/musica/${artist.slug}`, lastModified: new Date(artist.updatedAt), changeFrequency: "weekly" as const, priority: 0.8 }] : []),
-        ...albums.filter((album) => album.indexable && album.includeInSitemap).map((album) => ({ url: `https://streaming.kivai.com.br/musica/${artist.slug}/${album.slug}`, lastModified: new Date(album.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })),
+        ...(artist.indexable && artist.includeInSitemap ? [{ url: `https://streaming.kivai.com.br/${artist.slug}`, lastModified: new Date(artist.updatedAt), changeFrequency: "weekly" as const, priority: 0.8 }] : []),
+        ...albums.filter((album) => album.indexable && album.includeInSitemap).map((album) => ({ url: `https://streaming.kivai.com.br/${artist.slug}/${album.slug}`, lastModified: new Date(album.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })),
       ]) : []),
     ];
   }
