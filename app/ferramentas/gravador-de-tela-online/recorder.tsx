@@ -55,7 +55,7 @@ export default function Recorder() {
       const screen = keep(await navigator.mediaDevices.getDisplayMedia({video:true, audio:sound}));
       const microphone = mic ? keep(await navigator.mediaDevices.getUserMedia({audio:true})) : null;
       const video = screen.getVideoTracks()[0];
-      const tracks = [video];
+      const tracks: MediaStreamTrack[] = [video];
       const audioInputs = [screen, microphone].filter((s): s is MediaStream => !!s?.getAudioTracks().length);
       if (audioInputs.length === 2) {
         const context = session.audio = new AudioContext();
