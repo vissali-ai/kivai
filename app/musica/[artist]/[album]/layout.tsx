@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ artist: s
   // Individual album settings cannot override the hub's CMS indexability setting.
   const hubIsIndexable = Boolean(musicHub && musicHub.status === "published" && musicHub.indexable);
   const { artist, album } = catalog;
-  const canonical = `https://streaming.kivai.com.br/musica/${artist.slug}/${album.slug}`;
+  const canonical = `https://streaming.kivai.com.br/${artist.slug}/${album.slug}`;
   const title = `${album.title} — ${artist.name} | Kivai Música`;
   const description = album.description?.slice(0, 300) || `Ouça ${album.title}, de ${artist.name}, no Kivai Música.`;
   return {
