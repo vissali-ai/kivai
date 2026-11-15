@@ -1,3 +1,14 @@
-import type {Metadata} from "next";import {MusicCatalogAdmin} from "@/components/admin/music-catalog-admin";import {noIndexRobots} from "@/lib/seo";
-export const metadata:Metadata={title:"Catálogo de música",robots:noIndexRobots};
-export default function AdminMusicPage(){return <main><header className="mb-6"><p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Site inteiro</p><h1 className="mt-1 text-3xl font-semibold">Catálogo de música</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Cadastre artistas, álbuns e faixas. A ordem numérica define a sequência do álbum; conteúdo publicado é exibido no hub.</p></header><MusicCatalogAdmin/></main>;}
+import type { Metadata } from "next";
+import { MusicCatalogAdmin } from "@/components/admin/music-catalog-admin";
+import { MusicCommentsAdmin } from "@/components/admin/music-comments-admin";
+import { noIndexRobots } from "@/lib/seo";
+
+export const metadata: Metadata = { title: "Catálogo de música", robots: noIndexRobots };
+
+export default function AdminMusicPage() {
+  return <main>
+    <header className="mb-6"><p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Site inteiro</p><h1 className="mt-1 text-3xl font-semibold">Catálogo de música</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Cadastre artistas, álbuns e faixas. A ordem numérica define a sequência do álbum; conteúdo publicado é exibido no hub.</p></header>
+    <MusicCatalogAdmin />
+    <MusicCommentsAdmin />
+  </main>;
+}
