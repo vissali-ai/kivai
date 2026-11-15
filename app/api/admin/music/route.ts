@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { assertAdminApi } from "@/lib/blog/auth";
 import { apiError } from "@/lib/blog/api";
-import { createMusicUploadUrl, listAdminMusicCatalog, saveMusicAlbum, saveMusicArtist, saveMusicTrack } from "@/lib/music/repository";
+import { createMusicUploadUrl, deleteMusicRecord, listAdminMusicCatalog, saveMusicAlbum, saveMusicArtist, saveMusicTrack } from "@/lib/music/repository";
 export async function GET(){try{await assertAdminApi();return NextResponse.json(await listAdminMusicCatalog());}catch(e){return apiError(e);}}
 export async function POST(request:Request){try{await assertAdminApi();const data=await request.json() as Record<string,unknown>;if(data.kind==="upload"){const upload=await createMusicUploadUrl(String(data.uploadKind??"image"),String(data.mime??""),Number(data.size));return NextResponse.json(upload,{status:201,headers:{"Cache-Control":"no-store"}});}const kind=String(data.kind);delete data.kind;const saved=kind==="artist"?await saveMusicArtist(data):kind==="album"?await saveMusicAlbum(data):kind==="track"?await saveMusicTrack(data):null;if(!saved)throw new Error("Tipo de cadastro inválido.");return NextResponse.json(saved,{status:201});}catch(e){return apiError(e);}}
 export async function PUT(request:Request){try{await assertAdminApi();const data=await request.json() as Record<string,unknown>;const kind=String(data.kind);delete data.kind;const saved=kind==="artist"?await saveMusicArtist(data):kind==="album"?await saveMusicAlbum(data):kind==="track"?await saveMusicTrack(data):null;if(!saved)throw new Error("Tipo de cadastro inválido.");return NextResponse.json(saved);}catch(e){return apiError(e);}}
+export async function DELETE(request:Request){try{await assertAdminApi();const data=await request.json() as {kind?:string;id?:string;confirm?:string};if(data.confirm!=="EXCLUIR DEFINITIVAMENTE")throw new Error("Confirme a exclusão definitiva.");return NextResponse.json(await deleteMusicRecord(String(data.kind??""),String(data.id??"")),{headers:{"Cache-Control":"no-store"}});}catch(e){return apiError(e);}}
+
