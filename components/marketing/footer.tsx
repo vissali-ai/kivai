@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { toolCategories } from "@/lib/tools";
 import { CookieSettingsButton } from "@/components/privacy/cookie-settings-button";
 import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
+import { FooterEcosystemLink } from "@/components/marketing/footer-ecosystem-link";
 
 const productLinks = [
   { label: "Ferramentas", href: "/ferramentas" },
@@ -61,6 +62,8 @@ export function Footer() {
               <span className="size-1.5 rounded-full bg-emerald-400" />
               Ferramentas inteligentes para resultados reais
             </div>
+
+            <FooterEcosystemLink />
 
             <a
               href="https://www.instagram.com/kivai_br"
