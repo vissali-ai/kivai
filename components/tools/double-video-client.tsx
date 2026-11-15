@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Layout = "pip" | "side" | "stack";
+type PipShape = "rectangle" | "circle" | "triangle" | "star";
 type Output = { blob: Blob; url: string; extension: string };
 type CanvasSize = { width: number; height: number };
 const mimeCandidates = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4;codecs=h264,aac", "video/mp4"];
@@ -29,6 +30,30 @@ function drawCover(context: CanvasRenderingContext2D, video: HTMLVideoElement, x
   context.drawImage(video, (video.videoWidth - sw) / 2, (video.videoHeight - sh) / 2, sw, sh, x, y, width, height);
 }
 
+function tracePipShape(context: CanvasRenderingContext2D, shape: PipShape, x: number, y: number, width: number, height: number) {
+  context.beginPath();
+  if (shape === "circle") {
+    context.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2);
+  } else if (shape === "triangle") {
+    context.moveTo(x + width / 2, y);
+    context.lineTo(x + width, y + height);
+    context.lineTo(x, y + height);
+    context.closePath();
+  } else if (shape === "star") {
+    const cx = x + width / 2; const cy = y + height / 2;
+    for (let point = 0; point < 10; point += 1) {
+      const radius = point % 2 === 0 ? width / 2 : width * 0.22;
+      const angle = -Math.PI / 2 + point * Math.PI / 5;
+      const px = cx + Math.cos(angle) * radius;
+      const py = cy + Math.sin(angle) * radius;
+      if (point === 0) context.moveTo(px, py); else context.lineTo(px, py);
+    }
+    context.closePath();
+  } else {
+    context.rect(x, y, width, height);
+  }
+}
+
 export function DoubleVideoClient() {
   const mainRef = useRef<HTMLVideoElement>(null);
   const secondRef = useRef<HTMLVideoElement>(null);
@@ -44,6 +69,7 @@ export function DoubleVideoClient() {
   const [secondReady, setSecondReady] = useState(false);
   const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width: 1280, height: 720 });
   const [layout, setLayout] = useState<Layout>("pip");
+  const [pipShape, setPipShape] = useState<PipShape>("rectangle");
   const [pipPosition, setPipPosition] = useState("right-bottom");
   const [pipSize, setPipSize] = useState(32);
   const [playing, setPlaying] = useState(false);
@@ -94,13 +120,18 @@ export function DoubleVideoClient() {
       drawCover(context, main, 0, 0, width, height);
       const margin = Math.min(width, height) * 0.035;
       const aspect = second.videoWidth / second.videoHeight;
-      const boxWidth = Math.min(width * pipSize / 100, (height - margin * 2) * aspect);
-      const boxHeight = boxWidth / aspect;
+      const squareShape = pipShape !== "rectangle";
+      const boxWidth = squareShape
+        ? Math.min(width * pipSize / 100, height - margin * 2)
+        : Math.min(width * pipSize / 100, (height - margin * 2) * aspect);
+      const boxHeight = squareShape ? boxWidth : boxWidth / aspect;
       const x = pipPosition.includes("left") ? margin : width - boxWidth - margin;
       const y = pipPosition.includes("top") ? margin : height - boxHeight - margin;
       context.save(); context.shadowColor = "rgba(0,0,0,.38)"; context.shadowBlur = 18;
-      context.fillStyle = "#fff"; context.fillRect(x - 3, y - 3, boxWidth + 6, boxHeight + 6);
-      context.restore(); drawCover(context, second, x, y, boxWidth, boxHeight);
+      tracePipShape(context, pipShape, x - 3, y - 3, boxWidth + 6, boxHeight + 6);
+      context.fillStyle = "#fff"; context.fill(); context.restore();
+      context.save(); tracePipShape(context, pipShape, x, y, boxWidth, boxHeight); context.clip();
+      drawCover(context, second, x, y, boxWidth, boxHeight); context.restore();
     } else {
       const horizontal = layout === "side";
       const gutter = 8;
@@ -109,7 +140,7 @@ export function DoubleVideoClient() {
       drawCover(context, main, ...firstRect as [number, number, number, number]);
       drawCover(context, second, ...secondRect as [number, number, number, number]);
     }
-  }, [canvasSize, layout, pipPosition, pipSize]);
+  }, [canvasSize, layout, pipPosition, pipShape, pipSize]);
 
   useEffect(() => { drawFrame(); }, [drawFrame, mainUrl, secondUrl]);
   useEffect(() => {
@@ -194,7 +225,7 @@ export function DoubleVideoClient() {
           <div className="space-y-3"><div className="overflow-hidden rounded-lg border border-border bg-black"><canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} style={{ aspectRatio: `${canvasSize.width} / ${canvasSize.height}` }} className="mx-auto block max-h-[75vh] w-full object-contain" aria-label="Prévia da composição" /></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={!mainReady || !secondReady || exporting} onClick={() => void togglePreview()}><Play />{playing ? "Pausar prévia" : "Reproduzir prévia"}</Button><span className="self-center text-xs text-muted-foreground">A prévia e o vídeo final seguem o formato {canvasSize.height > canvasSize.width ? "vertical" : "horizontal"} do vídeo principal.</span></div></div>
           <div className="space-y-4 rounded-lg border border-border p-4"><div><h2 className="font-semibold">2. Escolha a composição</h2><p className="mt-1 text-sm text-muted-foreground">Altere o formato e confira na prévia.</p></div>
             <div className="grid grid-cols-1 gap-2">{([{ id: "pip", label: "Imagem sobreposta" }, { id: "side", label: "Lado a lado" }, { id: "stack", label: "Um acima do outro" }] as const).map((option) => <Button key={option.id} type="button" variant={layout === option.id ? "default" : "outline"} className="justify-start" onClick={() => setLayout(option.id)}>{option.label}</Button>)}</div>
-            {layout === "pip" && <div className="space-y-3"><label className="block text-sm font-medium">Posição do segundo vídeo<select className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={pipPosition} onChange={(event) => setPipPosition(event.target.value)}><option value="right-bottom">Inferior direita</option><option value="left-bottom">Inferior esquerda</option><option value="right-top">Superior direita</option><option value="left-top">Superior esquerda</option></select></label><label className="block text-sm font-medium">Tamanho da janela <span className="text-muted-foreground">{pipSize}%</span><input className="mt-2 w-full accent-primary" type="range" min="20" max="48" value={pipSize} onChange={(event) => setPipSize(Number(event.target.value))} /></label></div>}
+            {layout === "pip" && <div className="space-y-3"><label className="block text-sm font-medium">Formato do segundo vídeo<select className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={pipShape} onChange={(event) => setPipShape(event.target.value as PipShape)}><option value="rectangle">Retangular</option><option value="circle">Redondo</option><option value="triangle">Triangular</option><option value="star">Estrela</option></select></label><label className="block text-sm font-medium">Posição do segundo vídeo<select className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={pipPosition} onChange={(event) => setPipPosition(event.target.value)}><option value="right-bottom">Inferior direita</option><option value="left-bottom">Inferior esquerda</option><option value="right-top">Superior direita</option><option value="left-top">Superior esquerda</option></select></label><label className="block text-sm font-medium">Tamanho da janela <span className="text-muted-foreground">{pipSize}%</span><input className="mt-2 w-full accent-primary" type="range" min="20" max="48" value={pipSize} onChange={(event) => setPipSize(Number(event.target.value))} /></label></div>}
             <Button className="w-full" disabled={!mainReady || !secondReady || exporting} onClick={() => void exportComposition()}><Video />{exporting ? <><LoaderCircle className="animate-spin" />Gerando vídeo…</> : "Gerar vídeo"}</Button>
             <Button variant="outline" className="w-full" disabled={!mainUrl && !secondUrl} onClick={clear}><RotateCcw />Limpar e começar de novo</Button>
             {exporting && <p role="status" className="text-sm text-muted-foreground">A composição está sendo gravada em tempo real no seu dispositivo. Mantenha a página aberta.</p>}
