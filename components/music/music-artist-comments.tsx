@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
+import { useMusicPlayer } from "@/components/music/music-player-provider";
 import { MessageCircle, Send, UserRound } from "lucide-react";
 import { getCurrentUser, getStoredSession } from "@/lib/user-auth";
-
-const subscribeToHost = () => () => {};
-const isStreamingHostSnapshot = () => typeof window !== "undefined" && window.location.hostname.toLowerCase() === "streaming.kivai.com.br";
 
 type Comment = { id: string; author_name: string; content: string; created_at: string };
 type CommentResponse = { comments?: Comment[]; error?: string };
@@ -18,7 +16,7 @@ export function MusicArtistComments({ artistSlug, artistName }: { artistSlug: st
   const [busy, setBusy] = useState(false);
   const [content, setContent] = useState("");
   const [message, setMessage] = useState("");
-  const isStreamingHost = useSyncExternalStore(subscribeToHost, isStreamingHostSnapshot, () => false);
+  const { isStreamingHost } = useMusicPlayer();
   const returnPath = isStreamingHost ? `/${artistSlug}` : `/musica/${artistSlug}`;
   const loginHref = `/conta/login?next=${encodeURIComponent(returnPath)}`;
   const signupHref = `/conta/cadastro?next=${encodeURIComponent(returnPath)}`;
