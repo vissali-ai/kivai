@@ -58,7 +58,7 @@ export default function ScreenshotEditor() {
     gesture.current = null;
   },[source,edits]);
 
-  async function take(selection: "full" | "area") {
+  async function take() {
     if (capture.current) return;
     if (!navigator.mediaDevices?.getDisplayMedia) {setMessage("Abra esta página em um navegador de computador que permita compartilhar a tela."); return;}
     const controller = new AbortController();
@@ -124,10 +124,8 @@ export default function ScreenshotEditor() {
       if (!usable) throw new Error("blank_capture");
       setSource(image);
       setEdits([]);
-      setMode(selection === "area" ? "Recortar" : "Desenhar");
-      setMessage(selection === "area"
-        ? "Captura concluída. Arraste sobre a imagem para marcar a parte que deseja manter."
-        : "Captura concluída. Confira o resultado e baixe o PNG.");
+      setMode("Desenhar");
+      setMessage("Captura concluída. Confira a tela capturada, faça anotações se quiser e baixe o PNG.");
     } catch (e) {
       if (!controller.signal.aborted) {
         const cancelled = e instanceof DOMException && e.name === "NotAllowedError";
@@ -172,28 +170,12 @@ export default function ScreenshotEditor() {
     window.setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   return <section className="space-y-4 rounded-xl border bg-card p-5 sm:p-7">
-    <div className="rounded-lg border border-primary/20 bg-primary/[0.035] p-4 sm:p-5">
-      <h2 className="font-semibold">Capturar uma página inteira</h2>
-      <p className="mt-1 text-sm leading-6 text-muted-foreground">Para capturar uma página longa como o GoFullPage, instale a extensão Kivai no Chrome ou Edge para computador. Depois, abra a página desejada e clique no ícone da extensão.</p>
-      <a href="/downloads/kivai-capturador-pagina-inteira.zip" download className="mt-3 inline-flex min-h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Baixar extensão para Chrome e Edge</a>
-      <details className="mt-3 text-sm">
-        <summary className="cursor-pointer font-medium">Como instalar</summary>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 leading-6 text-muted-foreground">
-          <li>Extraia o arquivo ZIP baixado.</li>
-          <li>Abra <code>chrome://extensions</code> ou <code>edge://extensions</code> no computador.</li>
-          <li>Ative o modo do desenvolvedor, clique em “Carregar sem compactação” e selecione a pasta extraída.</li>
-          <li>Abra a página que deseja capturar, clique no ícone da extensão Kivai e escolha “Capturar página inteira”.</li>
-        </ol>
-        <p className="mt-2 text-xs text-muted-foreground">A captura e a montagem do PNG são feitas no navegador. A página não é enviada ao Kivai.</p>
-      </details>
-    </div>
     <div>
-      <h2 className="font-semibold">Como deseja capturar?</h2>
-      <p className="mt-1 text-sm leading-6 text-muted-foreground">O navegador sempre mostra o seletor seguro de compartilhamento. Depois da captura, o Kivai encerra o compartilhamento e tenta devolver o foco para esta página.</p>
+      <h2 className="font-semibold">Capturar tela inteira</h2>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">Escolha uma tela, janela ou aba no seletor do navegador. A captura registra o conteúdo visível; páginas longas não podem ser roladas automaticamente pelo site. Ao terminar, o compartilhamento é encerrado e tentamos retornar para o Kivai.</p>
     </div>
     <div className="flex flex-wrap gap-3">
-      <Button onClick={()=>take("full")} disabled={busy}>{busy ? "Aguardando captura…" : "Capturar tela inteira"}</Button>
-      <Button variant="outline" onClick={()=>take("area")} disabled={busy}>{busy ? "Aguardando captura…" : "Escolher uma parte"}</Button>
+      <Button onClick={()=>take()} disabled={busy}>{busy ? "Aguardando captura…" : "Capturar tela inteira"}</Button>
     </div>
     <p role="status" className="text-sm">{message}</p>
     {source && <><div className="flex flex-wrap items-center gap-2">
