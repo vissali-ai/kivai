@@ -7,6 +7,7 @@ import { SITE_URL } from "@/lib/seo";
 import { isToolIndexable, tools } from "@/lib/tools";
 import { listSiteHubs, listSitemapSiteContent, listStoredSiteContents } from "@/lib/site-cms/repository";
 import { listSitemapSiteServices, listStoredSiteServices } from "@/lib/site-cms/service-repository";
+import { listMusicCatalog } from "@/lib/music/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +15,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
   if (host === "trafego.kivai.com.br") return [{ url: "https://trafego.kivai.com.br", changeFrequency: "weekly", priority: 1 }];
 
-  const [blogPosts, categories, blogSitemapSlugs, managedSitemap, storedSiteContents, allHubs, managedServices, storedServices] = await Promise.all([
-    listPublishedPosts(), listCategories(), listBlogSitemapSlugs(), listSitemapSiteContent(), listStoredSiteContents(), listSiteHubs(), listSitemapSiteServices(), listStoredSiteServices(),
+  const [blogPosts, categories, blogSitemapSlugs, managedSitemap, storedSiteContents, allHubs, managedServices, storedServices, musicCatalog] = await Promise.all([
+    listPublishedPosts(), listCategories(), listBlogSitemapSlugs(), listSitemapSiteContent(), listStoredSiteContents(), listSiteHubs(), listSitemapSiteServices(), listStoredSiteServices(), listMusicCatalog(),
   ]);
   const indexableBlogPosts = filterIndexablePosts(blogPosts).filter((post) => blogSitemapSlugs.has(post.slug));
   const hubSettings = new Map(allHubs.map((hub) => [hub.slug, hub]));
@@ -41,5 +42,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const managedPages: MetadataRoute.Sitemap = [...managedSitemap.hubs.filter((hub) => !removedTvPaths.has(hub.path)).map((hub) => ({ url: `${SITE_URL}${hub.path}`, lastModified: new Date(hub.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })), ...managedSitemap.contents.filter((item) => !removedTvPaths.has(item.path)).map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "weekly" as const, priority: item.contentType === "tool" ? 0.8 : 0.6 })), ...managedServices.filter((item) => item.slug !== "trafego-kivai").map((item) => ({ url: `${SITE_URL}${item.path}`, lastModified: new Date(item.updatedAt), changeFrequency: "monthly" as const, priority: 0.8 }))];
   const serviceOverrides = new Map(storedServices.filter((item) => item.existingServiceSlug).map((item) => [item.existingServiceSlug, item]));
   const allowedPages = pages.filter((item) => { if (item.url === `${SITE_URL}/planos`) { const planPage = storedSiteContents.find(content => content.path === "/planos"); return !planPage || (planPage.status === "published" && planPage.indexable && planPage.includeInSitemap); } const match = item.url.match(/\/servicos\/([^/]+)$/); if (!match) return true; const override = serviceOverrides.get(match[1]); return !override || (override.status === "published" && override.indexable && override.includeInSitemap); });
-  return [...new Map([...allowedPages, ...toolPages, ...managedPages].map((item) => [item.url, item])).values()];
+  const musicPages: MetadataRoute.Sitemap = musicCatalog.flatMap(({artist,albums}) => [
+    ...(artist.indexable && artist.includeInSitemap ? [{url:`${SITE_URL}/musica/${artist.slug}`,lastModified:new Date(artist.updatedAt),changeFrequency:"weekly" as const,priority:0.6}] : []),
+    ...albums.filter(album=>album.indexable&&album.includeInSitemap).map(album=>({url:`${SITE_URL}/musica/${artist.slug}/${album.slug}`,lastModified:new Date(album.updatedAt),changeFrequency:"weekly" as const,priority:0.5})),
+  ]);
+  return [...new Map([...allowedPages, ...toolPages, ...managedPages, ...musicPages].map((item) => [item.url, item])).values()];
 }

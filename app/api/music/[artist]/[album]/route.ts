@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";import {getMusicAlbum} from "@/lib/music/repository";
+export async function GET(_request:Request,{params}:{params:Promise<{artist:string;album:string}>}){const {artist,album}=await params;const result=await getMusicAlbum(artist,album);if(!result)return NextResponse.json({error:"Álbum não encontrado."},{status:404});return NextResponse.json({artist:result.artist,albums:[result.album]},{headers:{"Cache-Control":"public, s-maxage=120, stale-while-revalidate=300"}});}
