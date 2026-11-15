@@ -13,7 +13,7 @@ import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 const navItems = [
   { label: "Ferramentas", href: "/ferramentas" },
-  { label: "Música", href: "/musica" },
+  { label: "Música", href: "/" },
   { label: "Planos", href: "/planos" },
   { label: "Serviços", href: "/servicos" },
   { label: "Blog", href: "/blog" },
@@ -55,7 +55,7 @@ export function Navbar() {
 
   return <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background">
     <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-      <Link href={isStreamingHost ? "/musica" : "/"} className="group flex shrink-0 items-center gap-2" aria-label={isStreamingHost ? "Kivai Música — Início" : "Kivai — Página inicial"}><Image src="/logo.png" alt="Kivai" width={25} height={25} priority className="transition-transform duration-300 group-hover:scale-105" /><span className="hidden text-lg font-semibold tracking-tight text-foreground sm:inline">Kivai</span></Link>
+      <Link href="/" className="group flex shrink-0 items-center gap-2" aria-label={isStreamingHost ? "Kivai Música — Início" : "Kivai — Página inicial"}><Image src="/logo.png" alt="Kivai" width={25} height={25} priority className="transition-transform duration-300 group-hover:scale-105" /><span className="hidden text-lg font-semibold tracking-tight text-foreground sm:inline">Kivai</span></Link>
       {!isAdmin ? <nav className="ml-auto hidden items-center gap-5 lg:flex" aria-label="Navegação principal">{(isStreamingHost ? [{ label: "Música", href: "/musica" }] : navItems.filter(item => !(FREE_PUBLIC_MODE && item.href === "/planos"))).map((item) => <Link key={item.label} href={item.label === "Música" && !isStreamingHost ? STREAMING_URL : item.href} target={item.label === "Música" && !isStreamingHost ? "_blank" : undefined} rel={item.label === "Música" && !isStreamingHost ? "noopener noreferrer" : undefined} aria-label={item.label === "Música" && !isStreamingHost ? "Música independente — abre em nova aba" : undefined} className="whitespace-nowrap text-sm text-muted-foreground transition-colors hover:text-foreground">{item.label}</Link>)}{isStreamingHost ? <a href="https://www.kivai.com.br" className="whitespace-nowrap text-sm text-muted-foreground transition-colors hover:text-foreground">Site Kivai</a> : null}</nav> : <div className="ml-auto hidden text-xs font-semibold uppercase tracking-[0.18em] text-primary lg:block">Administração Kivai</div>}
       {!isAdmin ? <div className="ml-auto w-[min(48vw,240px)] sm:w-64 lg:ml-3 lg:w-72"><GlobalSearch /></div> : null}
       {!isAdmin ? <Button asChild variant={isLoggedIn ? "default" : "outline"} className="hidden h-9 lg:inline-flex"><Link href={isLoggedIn ? "/conta" : loginHref} onClick={handleLoginClick}>{isLoggedIn ? <LayoutDashboard /> : <UserRound />}{isLoggedIn ? "Meu painel" : "Entrar"}</Link></Button> : null}
