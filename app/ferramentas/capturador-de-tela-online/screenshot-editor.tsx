@@ -125,7 +125,7 @@ export default function ScreenshotEditor() {
       setSource(image);
       setEdits([]);
       setMode("Desenhar");
-      setMessage("Captura concluída. Confira a tela capturada, faça anotações se quiser e baixe o PNG.");
+      await downloadCanvas(image, true);
     } catch (e) {
       if (!controller.signal.aborted) {
         const cancelled = e instanceof DOMException && e.name === "NotAllowedError";
@@ -162,12 +162,16 @@ export default function ScreenshotEditor() {
     else edit.points[1] = position(e);
     preview(edit);
   }
-  async function download() {
-    const blob = await new Promise<Blob|null>(resolve=>base.current!.toBlob(resolve,"image/png"));
+  async function downloadCanvas(canvasToSave: HTMLCanvasElement | null, automatic = false) {
+    if (!canvasToSave) return;
+    const blob = await new Promise<Blob|null>(resolve=>canvasToSave.toBlob(resolve,"image/png"));
     if (!blob) {setMessage("Não foi possível gerar o PNG."); return;}
     const url = URL.createObjectURL(blob), link = document.createElement("a");
     link.href = url; link.download = "captura-de-tela.png"; link.click();
-    window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+    window.setTimeout(()=>URL.revokeObjectURL(url),30000);
+    setMessage(automatic
+      ? "Captura concluída e download iniciado. Você também pode editar a prévia e baixar a versão ajustada."
+      : "Download do PNG iniciado.");
   }
   return <section className="space-y-4 rounded-xl border bg-card p-5 sm:p-7">
     <div>
@@ -197,6 +201,6 @@ export default function ScreenshotEditor() {
         if (edit.mode !== "Desenhar" && (w<2 || h<2)) {preview();return;}
         setEdits(previous=>[...previous,edit]);
       }}/>
-    <Button onClick={download}>Baixar PNG</Button></>}
+    <Button onClick={()=>void downloadCanvas(base.current)}>Baixar PNG</Button></>}
   </section>;
 }
