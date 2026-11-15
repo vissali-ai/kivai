@@ -47,10 +47,10 @@ export async function saveMusicTrack(input:Record<string,unknown>) {
  const status=cleanStatus(input.status);const body={album_id:albumId,title,track_number:trackNumber,duration_seconds:Math.max(0,Math.floor(Number(input.durationSeconds)||0))||null,audio_url:audioUrl,status};
  const rows=await supabaseRest<TrackRow[]>(id?`music_tracks?id=eq.${enc(id)}`:"music_tracks",{method:id?"PATCH":"POST",body:JSON.stringify(body)});return mapTrack(rows[0]);
 }
-export async function uploadMusicFile(file:File,kind:string) {
- await assertAdminApi();const isAudio=kind==="audio",mime=file.type;const allowed=isAudio?["audio/mpeg","audio/mp3"]:["image/jpeg","image/png","image/webp"];
- const max=isAudio?100*1024*1024:8*1024*1024;if(!allowed.includes(mime))throw new Error(isAudio?"Envie um arquivo MP3.":"Envie JPG, PNG ou WebP.");if(file.size>max)throw new Error(`O arquivo excede o limite de ${Math.round(max/1024/1024)} MB.`);
+export async function createMusicUploadUrl(kind:string,mime:string,size:number) {
+ await assertAdminApi();const isAudio=kind==="audio";const allowed=isAudio?["audio/mpeg","audio/mp3"]:["image/jpeg","image/png","image/webp"];
+ const max=isAudio?100*1024*1024:8*1024*1024;if(!allowed.includes(mime))throw new Error(isAudio?"Envie um arquivo MP3.":"Envie JPG, PNG ou WebP.");if(!Number.isFinite(size)||size<1||size>max)throw new Error(`O arquivo deve ter até ${Math.round(max/1024/1024)} MB.`);
  const ext=isAudio?"mp3":mime.split("/")[1].replace("jpeg","jpg"),path=`${isAudio?"tracks":"artwork"}/${new Date().getUTCFullYear()}/${randomUUID()}.${ext}`;
- await supabaseStorage(`object/music-media/${path}`,{method:"POST",body:Buffer.from(await file.arrayBuffer()),headers:{"Content-Type":isAudio?"audio/mpeg":mime,"x-upsert":"false"}});
- return `${blogConfig.supabaseUrl}/storage/v1/object/public/music-media/${path}`;
+ const response=await supabaseStorage(`object/upload/sign/music-media/${path}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({upsert:false})});const data=await response.json() as {token?:string};if(!data.token)throw new Error("Não foi possível preparar o upload.");
+ return {uploadUrl:`${blogConfig.supabaseUrl}/storage/v1/object/upload/sign/music-media/${path}?token=${encodeURIComponent(data.token)}`,publicUrl:`${blogConfig.supabaseUrl}/storage/v1/object/public/music-media/${path}`};
 }
