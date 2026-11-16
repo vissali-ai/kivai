@@ -2,6 +2,7 @@ import { ArchiveRestore, Trash2 } from "lucide-react";
 import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { deleteCommunicationLog, deleteInboxMessage, restoreCommunicationLog, restoreInboxMessage } from "@/app/admin/marketing/log-actions";
+import { MailBulkProvider, MailBulkCheckbox } from "@/components/admin/mail-bulk-selection";
 
 export const dynamic = "force-dynamic";
 
@@ -54,9 +55,11 @@ export default async function DiscardedPage() {
         <p className="mt-2 text-xs leading-5 text-muted-foreground">Restaure um item para a caixa original ou exclua definitivamente.</p>
       </header>
 
+      <MailBulkProvider scope="discarded" values={items.map((item) => `${item.kind}:${item.id}`)}>
       <div className="divide-y divide-white/10">
         {items.map((item) => (
-          <article key={`${item.kind}-${item.id}`} className="grid items-center gap-3 p-4 sm:grid-cols-[110px_minmax(0,1fr)_auto]">
+          <article key={`${item.kind}-${item.id}`} className="grid items-center gap-3 p-4 sm:grid-cols-[auto_110px_minmax(0,1fr)_auto]">
+            <MailBulkCheckbox value={`${item.kind}:${item.id}`} />
             <div>
               <span className="border border-border px-2 py-1 text-[10px] font-semibold uppercase text-muted-foreground">
                 {item.kind === "inbox" ? "Recebido" : "Enviado"}
@@ -84,6 +87,7 @@ export default async function DiscardedPage() {
         ))}
         {!items.length ? <p className="p-8 text-center text-sm text-muted-foreground">Nenhum item descartado.</p> : null}
       </div>
+      </MailBulkProvider>
     </div>
   );
 }

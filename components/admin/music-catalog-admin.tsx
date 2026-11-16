@@ -160,7 +160,8 @@ export function MusicCatalogAdmin() {
     if (kind === "artist") {
       const artist = row as MusicArtist;
       const count = data.albums.filter(album => album.artistId === artist.id).length;
-      return `${statusLabels[artist.status]} · ${artist.slug} · ${count} ${count === 1 ? "álbum" : "álbuns"}`;
+      const plays = data.tracks.filter(track => data.albums.some(album => album.artistId === artist.id && album.id === track.albumId)).reduce((sum, track) => sum + (track.playCount ?? 0), 0);
+      return `${statusLabels[artist.status]} · ${artist.slug} · ${count} ${count === 1 ? "álbum" : "álbuns"} · ${plays.toLocaleString("pt-BR")} reproduções`;
     }
     if (kind === "album") {
       const album = row as MusicAlbum;
@@ -170,7 +171,7 @@ export function MusicCatalogAdmin() {
     }
     const track = row as MusicTrack;
     const album = data.albums.find(item => item.id === track.albumId);
-    return `${statusLabels[track.status]} · ${album?.title ?? "Álbum não identificado"} · faixa ${track.trackNumber}`;
+    return `${statusLabels[track.status]} · ${album?.title ?? "Álbum não identificado"} · faixa ${track.trackNumber} · ${(track.playCount ?? 0).toLocaleString("pt-BR")} reproduções`;
   }
 
   return (
@@ -207,7 +208,7 @@ export function MusicCatalogAdmin() {
 
       <form onSubmit={save} className="h-fit space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5 xl:sticky xl:top-6">
         <h2 className="font-semibold">{id ? "Editar" : "Novo"} {kindLabels[kind]}</h2>
-        {kind === "artist" ? <>{label("name", "Nome")}{label("slug", "Slug")}{label("bio", "Biografia")}{label("contactWhatsapp", "WhatsApp para contratação")}{label("contactEmail", "E-mail comercial", "email")}{label("contactMessage", "Mensagem inicial para WhatsApp")}{uploadField("photoUrl", "Foto do artista", "image/jpeg,image/png,image/webp", "photo")}{uploadField("coverUrl", "Capa do artista", "image/jpeg,image/png,image/webp", "cover")}</> : null}
+        {kind === "artist" ? <>{label("name", "Nome")}{label("slug", "Slug")}{label("bio", "Biografia")}{label("contactWhatsapp", "WhatsApp para contratação")}{label("contactMessage", "Mensagem inicial para WhatsApp")}{uploadField("photoUrl", "Foto do artista", "image/jpeg,image/png,image/webp", "photo")}{uploadField("coverUrl", "Capa do artista", "image/jpeg,image/png,image/webp", "cover")}</> : null}
         {kind === "album" ? <>
           <label className="block space-y-1 text-sm">Artista<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.artistId ?? ""} onChange={event => setFields(current => ({ ...current, artistId: event.target.value }))}><option value="">Selecione...</option>{data.artists.map(artist => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label>
           {label("title", "Título")}{label("slug", "Slug")}{label("description", "Descrição")}{label("releaseDate", "Data de lançamento", "date")}{uploadField("coverUrl", "Capa do álbum", "image/jpeg,image/png,image/webp", "cover")}

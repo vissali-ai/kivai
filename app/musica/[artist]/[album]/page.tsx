@@ -83,6 +83,7 @@ export default function AlbumPage() {
                   <span className="w-7 text-right text-xs tabular-nums text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
                   <button aria-label={isCurrent && player.playing ? `Pausar ${track.title}` : `Reproduzir ${track.title}`} onClick={() => isCurrent ? (player.playing ? document.querySelector("audio")?.pause() : document.querySelector("audio")?.play()) : player.play(queue, index)} className="rounded-full p-2 hover:bg-muted">{isCurrent && player.playing ? <Pause className="size-4" /> : <Play className="size-4" />}</button>
                   <span className={`min-w-0 flex-1 truncate text-sm ${isCurrent || isShared ? "font-semibold text-primary" : ""}`}>{track.title}{isShared ? <span className="ml-2 text-[10px] uppercase tracking-wide text-primary">Compartilhada</span> : null}</span>
+                  <span className="text-[11px] tabular-nums text-muted-foreground">{(track.playCount ?? 0).toLocaleString("pt-BR")} plays</span>
                   <span className="text-xs tabular-nums text-muted-foreground">{track.durationSeconds ? `${Math.floor(track.durationSeconds / 60)}:${String(track.durationSeconds % 60).padStart(2, "0")}` : "—"}</span>
                   <MusicShareButton compact title={`${track.title} | ${data.artist.name}`} text={`Ouça ${track.title}, de ${data.artist.name}, no Kivai Música.`} url={trackShareUrl} />
                   <MusicPlaylistAdd trackId={track.id} />

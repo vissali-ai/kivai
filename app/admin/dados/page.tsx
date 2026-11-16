@@ -1,4 +1,4 @@
-import { Database, HardDrive, Layers3, Image } from "lucide-react";
+import { Database, HardDrive, Layers3, Image, Activity, Wrench } from "lucide-react";
 import { VideoStudyStorageAdmin } from "@/components/admin/video-study-storage-admin";
 import { SavedProjectsStorageAdmin } from "@/components/admin/saved-projects-storage-admin";
 import { supabaseRest } from "@/lib/blog/supabase";
@@ -42,6 +42,19 @@ export default async function AdminDataPage() {
       </aside>
       <p className="text-xs leading-5 text-muted-foreground sm:col-span-2 xl:col-span-4">As métricas são agregadas. O inventário abaixo permite revisar e excluir projetos e estudos individualmente. Para excluir definitivamente uma conta e os dados vinculados, acesse <Link className="font-medium text-primary underline" href="/admin/usuarios">Usuários e assinaturas</Link>. Registros financeiros são preservados.</p>
     </section> : null}
+    <section className="grid gap-3 lg:grid-cols-2" aria-label="Infraestrutura e manutenção">
+      <section className="border border-border bg-card p-4">
+        <div className="flex items-center gap-2"><Activity className="size-4 text-primary" /><h2 className="font-semibold">Tráfego de reprodução (Egress)</h2></div>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">O Egress mede os dados transferidos pelo Supabase para os visitantes. Inclui músicas, imagens, consultas e outros serviços, não apenas o player. A cota é renovada por ciclo de cobrança; apagar arquivos não apaga o tráfego já consumido.</p>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">O painel conectado não disponibiliza aqui os valores reais de Egress e Cached Egress. Consulte o painel oficial para ver o consumo atualizado e a data de renovação.</p>
+        <a className="mt-3 inline-flex text-sm font-medium text-primary underline" href="https://supabase.com/dashboard/org/ziksnylnzvzptvafglsg/usage" target="_blank" rel="noreferrer">Abrir consumo de tráfego no Supabase</a>
+      </section>
+      <section className="border border-border bg-card p-4">
+        <div className="flex items-center gap-2"><Wrench className="size-4 text-primary" /><h2 className="font-semibold">Manutenção do sistema</h2></div>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">A página Manutenção reúne auditorias somente leitura de conteúdo, mídias, automações e orientações de diagnóstico/limpeza do projeto local. Ela não ativa nem desativa o site público.</p>
+        <a className="mt-3 inline-flex text-sm font-medium text-primary underline" href="/admin/blog/manutencao">Abrir painel de manutenção</a>
+      </section>
+    </section>
     <SavedProjectsStorageAdmin />
     <VideoStudyStorageAdmin />
   </main>;

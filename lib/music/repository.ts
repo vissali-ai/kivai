@@ -8,12 +8,12 @@ import { slugify } from "@/lib/blog/slug";
 import { getSiteHubBySlug } from "@/lib/site-cms/repository";
 import type { MusicAlbum, MusicArtist, MusicCatalog, MusicTrack } from "@/lib/music/types";
 
-type ArtistRow = { id:string;slug:string;name:string;bio:string;photo_url:string;cover_url:string;contact_whatsapp:string;contact_email:string;contact_message:string;status:MusicArtist["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
+type ArtistRow = { id:string;slug:string;name:string;bio:string;photo_url:string;cover_url:string;contact_whatsapp:string;contact_message:string;status:MusicArtist["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
 type AlbumRow = { id:string;artist_id:string;artist_name?:string;artist_slug?:string;slug:string;title:string;description:string;cover_url:string;release_date:string|null;status:MusicAlbum["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
-type TrackRow = { id:string;album_id:string;title:string;track_number:number;duration_seconds:number|null;audio_url:string;status:MusicTrack["status"] };
-const mapArtist=(r:ArtistRow):MusicArtist=>({id:r.id,slug:r.slug,name:r.name,bio:r.bio,photoUrl:r.photo_url,coverUrl:r.cover_url,contactWhatsapp:r.contact_whatsapp,contactEmail:r.contact_email,contactMessage:r.contact_message,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
+type TrackRow = { id:string;album_id:string;title:string;track_number:number;duration_seconds:number|null;audio_url:string;play_count:number;status:MusicTrack["status"] };
+const mapArtist=(r:ArtistRow):MusicArtist=>({id:r.id,slug:r.slug,name:r.name,bio:r.bio,photoUrl:r.photo_url,coverUrl:r.cover_url,contactWhatsapp:r.contact_whatsapp,contactMessage:r.contact_message,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
 const mapAlbum=(r:AlbumRow):MusicAlbum=>({id:r.id,artistId:r.artist_id,artistName:r.artist_name,artistSlug:r.artist_slug,slug:r.slug,title:r.title,description:r.description,coverUrl:r.cover_url,releaseDate:r.release_date,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
-const mapTrack=(r:TrackRow):MusicTrack=>({id:r.id,albumId:r.album_id,title:r.title,trackNumber:r.track_number,durationSeconds:r.duration_seconds,audioUrl:r.audio_url,status:r.status});
+const mapTrack=(r:TrackRow):MusicTrack=>({id:r.id,albumId:r.album_id,title:r.title,trackNumber:r.track_number,durationSeconds:r.duration_seconds,audioUrl:r.audio_url,playCount:Number(r.play_count??0),status:r.status});
 const enc=encodeURIComponent;
 
 export async function listMusicArtists(includeDrafts=false) { const q=includeDrafts?"music_artists?select=*&order=name.asc":"music_artists?select=*&status=eq.published&order=name.asc"; return (await supabaseRest<ArtistRow[]>(q,{allowMissingConfig:true})).map(mapArtist); }
@@ -35,7 +35,7 @@ function cleanStatus(value:unknown):MusicArtist["status"]{return ["draft","publi
 export async function saveMusicArtist(input:Record<string,unknown>) {
  const id=clean(input.id,64);const name=clean(input.name,120);const slug=slugify(clean(input.slug||name,120));if(name.length<2||!slug)throw new Error("Informe nome e slug válidos.");
  const status=cleanStatus(input.status);const indexable=status==="published"&&Boolean(input.indexable);const include=status==="published"&&indexable&&Boolean(input.includeInSitemap);
- const body={slug,name,bio:String(input.bio??"").slice(0,12000),photo_url:clean(input.photoUrl,1000),cover_url:clean(input.coverUrl,1000),contact_whatsapp:clean(input.contactWhatsapp,40),contact_email:clean(input.contactEmail,180),contact_message:clean(input.contactMessage,500),status,indexable,include_in_sitemap:include,published_at:status==="published"?new Date().toISOString():null};
+ const body={slug,name,bio:String(input.bio??"").slice(0,12000),photo_url:clean(input.photoUrl,1000),cover_url:clean(input.coverUrl,1000),contact_whatsapp:clean(input.contactWhatsapp,40),contact_message:clean(input.contactMessage,500),status,indexable,include_in_sitemap:include,published_at:status==="published"?new Date().toISOString():null};
  const rows=await supabaseRest<ArtistRow[]>(id?`music_artists?id=eq.${enc(id)}`:"music_artists",{method:id?"PATCH":"POST",body:JSON.stringify(body)});return mapArtist(rows[0]);
 }
 export async function saveMusicAlbum(input:Record<string,unknown>) {

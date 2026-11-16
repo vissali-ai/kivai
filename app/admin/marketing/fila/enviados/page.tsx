@@ -4,6 +4,7 @@ import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { retryCommunicationNow } from "@/app/admin/marketing/actions";
 import { discardCommunicationLog } from "@/app/admin/marketing/log-actions";
+import { MailBulkProvider, MailBulkCheckbox } from "@/components/admin/mail-bulk-selection";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ export default async function SentPage() {
         <Send className="size-6 text-primary" />
       </header>
 
+      <MailBulkProvider scope="sent" values={communications.map((item) => item.id)}>
       <div className="divide-y divide-white/10">
         {communications.map((item) => {
           const user = userMap.get(item.user_id);
@@ -53,7 +55,8 @@ export default async function SentPage() {
           const preview = item.message.replace(/\s+/g, " ").trim();
           return (
             <article key={item.id}>
-              <div className="grid items-center gap-3 p-4 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)_auto]">
+              <div className="grid items-center gap-3 p-4 sm:grid-cols-[auto_minmax(0,220px)_minmax(0,1fr)_auto]">
+                <MailBulkCheckbox value={item.id} />
                 <Link href={`/admin/marketing/fila/enviados/${item.id}`} className="min-w-0">
                   <p className="truncate text-sm font-semibold">{user?.fullName || user?.email || item.user_id}</p>
                   <p className="mt-1 truncate text-xs text-muted-foreground">{user?.email || "Destinatário não encontrado"}</p>
@@ -90,6 +93,7 @@ export default async function SentPage() {
         })}
         {!communications.length ? <p className="p-8 text-center text-sm text-muted-foreground">Nenhum e-mail enviado registrado.</p> : null}
       </div>
+      </MailBulkProvider>
     </div>
   );
 }

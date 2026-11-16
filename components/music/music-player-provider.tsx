@@ -53,7 +53,10 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
       audio.pause();
       return;
     }
-    void audio.play().then(() => setPlaying(true)).catch(() => {
+    void audio.play().then(() => {
+      setPlaying(true);
+      void fetch("/api/music/play", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trackId: next.id }) }).catch(() => undefined);
+    }).catch(() => {
       setPlaying(false);
       setPlaybackError(true);
     });

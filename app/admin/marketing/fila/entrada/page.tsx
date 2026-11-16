@@ -3,6 +3,7 @@ import { Inbox, MailOpen, Trash2 } from "lucide-react";
 import { listAdminCustomers } from "@/lib/admin/customer-users";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { discardInboxMessage, markInboxMessageRead } from "@/app/admin/marketing/log-actions";
+import { MailBulkProvider, MailBulkCheckbox } from "@/components/admin/mail-bulk-selection";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,7 @@ export default async function InboxPage() {
         <Inbox className="size-6 text-primary" />
       </header>
 
+      <MailBulkProvider scope="inbox" values={inbox.map((item) => item.id)}>
       <div className="divide-y divide-white/10">
         {inbox.map((item) => {
           const user = item.user_id ? userMap.get(item.user_id) : null;
@@ -56,7 +58,8 @@ export default async function InboxPage() {
           const preview = item.text_body?.replace(/\s+/g, " ").trim() || htmlPreview || "Mensagem recebida sem prévia de texto.";
           return (
             <article key={item.id} className={item.is_read ? "group" : "group bg-primary/[0.025]"}>
-              <div className="grid items-center gap-3 p-4 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)_auto]">
+              <div className="grid items-center gap-3 p-4 sm:grid-cols-[auto_minmax(0,220px)_minmax(0,1fr)_auto]">
+                <MailBulkCheckbox value={item.id} />
                 <Link href={`/admin/marketing/fila/entrada/${item.id}`} className="min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="truncate text-sm font-semibold">{item.from_name || user?.fullName || item.from_email}</p>
@@ -93,6 +96,7 @@ export default async function InboxPage() {
         })}
         {!inbox.length ? <p className="p-8 text-center text-sm text-muted-foreground">Nenhuma mensagem na caixa de entrada.</p> : null}
       </div>
+      </MailBulkProvider>
     </div>
   );
 }
