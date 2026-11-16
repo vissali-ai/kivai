@@ -1,11 +1,17 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  const isStreaming = host === "streaming.kivai.com.br";
+
   return {
     id: "/",
-    name: "Kivai | Ferramentas inteligentes",
-    short_name: "Kivai",
-    description: "Suas ferramentas online para imagens, PDFs, marketing e produtividade em um só lugar.",
+    name: isStreaming ? "Streaming Kivai" : "Kivai | Ferramentas inteligentes",
+    short_name: isStreaming ? "Streaming Kivai" : "Kivai",
+    description: isStreaming
+      ? "Ouça artistas independentes no Streaming Kivai."
+      : "Suas ferramentas online para imagens, PDFs, marketing e produtividade em um só lugar.",
     lang: "pt-BR",
     start_url: "/",
     scope: "/",
