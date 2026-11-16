@@ -68,8 +68,12 @@ export async function signInWithPassword(email: string, password: string) {
   return payload as KivaiAuthSession;
 }
 
-export async function signUpWithPassword(name: string, email: string, password: string, phone: string) {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ email, password, data: { full_name: name, phone } }) });
+export async function signUpWithPassword(name: string, email: string, password: string, phone: string, next = "/conta") {
+  const callback = typeof window === "undefined" ? undefined : new URL("/conta/callback", window.location.origin);
+  if (callback) callback.searchParams.set("next", next);
+  const signupUrl = new URL(`${SUPABASE_URL}/auth/v1/signup`);
+  if (callback) signupUrl.searchParams.set("redirect_to", callback.toString());
+  const response = await fetch(signupUrl.toString(), { method: "POST", headers: authHeaders(), body: JSON.stringify({ email, password, data: { full_name: name, phone } }) });
   const payload = await response.json();
   if (!response.ok) throw new Error(getErrorMessage(payload, "Não foi possível criar sua conta."));
   if (payload.access_token) saveSession(payload as KivaiAuthSession);

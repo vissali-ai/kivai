@@ -12,6 +12,8 @@ import { MobileFileSaveChooser } from "@/components/tools/mobile-file-save-choos
 import { CardFavoritesProvider } from "@/components/tools/tool-card-link";
 import { AuthReturnTracker } from "@/components/account/auth-return-tracker";
 import { Navbar } from "@/components/marketing/navbar";
+import { SiteChrome } from "@/components/marketing/site-chrome";
+import { MusicSiteHeader } from "@/components/music/music-site-header";
 import { CookieConsentProvider } from "@/components/privacy/cookie-consent-provider";
 import StructuredData from "@/components/seo/structured-data";
 import { adsConfig } from "@/lib/ads/config";
@@ -158,13 +160,11 @@ export default function RootLayout({
 
         <CookieConsentProvider>
           <CardFavoritesProvider>
-          <AuthReturnTracker />
-          <Navbar />
-          {children}
-          <Footer />
-          <WhatsappSupportButton />
-          <ToolFavoriteControl />
-          <InstallKivaiPrompt />
+          <SiteChrome
+            mainHeader={<><AuthReturnTracker /><Navbar /></>}
+            musicHeader={<MusicSiteHeader />}
+            mainFooter={<><Footer /><WhatsappSupportButton /><ToolFavoriteControl /><InstallKivaiPrompt /></>}
+          >{children}</SiteChrome>
           </CardFavoritesProvider>
         </CookieConsentProvider>
       </body>

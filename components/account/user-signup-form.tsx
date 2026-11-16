@@ -41,7 +41,7 @@ export function UserSignupForm({ next }: { next?: string }) {
     if (password !== confirmPassword) { setError("As senhas não coincidem."); return; }
     setPending(true);
     try {
-      const result = await signUpWithPassword(name, email, password, phone);
+      const result = await signUpWithPassword(name, email, password, phone, resolveAuthReturnPath(next));
       if (result.access_token) { router.push(resolveAuthReturnPath(next)); return; }
       setMessage("Conta criada. Confira seu e-mail para confirmar o cadastro e depois faça login pelo link abaixo.");
     } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível criar sua conta."); }

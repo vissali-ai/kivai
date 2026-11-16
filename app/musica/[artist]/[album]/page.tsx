@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Play, Pause } from "lucide-react";
 import { useMusicPlayer } from "@/components/music/music-player-provider";
 import { MusicShareButton } from "@/components/music/music-share-button";
+import { MusicPlaylistAdd } from "@/components/music/music-account-features";
 import type { MusicCatalog } from "@/lib/music/types";
 
 export default function AlbumPage() {
@@ -84,6 +85,7 @@ export default function AlbumPage() {
                   <span className={`min-w-0 flex-1 truncate text-sm ${isCurrent || isShared ? "font-semibold text-primary" : ""}`}>{track.title}{isShared ? <span className="ml-2 text-[10px] uppercase tracking-wide text-primary">Compartilhada</span> : null}</span>
                   <span className="text-xs tabular-nums text-muted-foreground">{track.durationSeconds ? `${Math.floor(track.durationSeconds / 60)}:${String(track.durationSeconds % 60).padStart(2, "0")}` : "—"}</span>
                   <MusicShareButton compact title={`${track.title} | ${data.artist.name}`} text={`Ouça ${track.title}, de ${data.artist.name}, no Kivai Música.`} url={trackShareUrl} />
+                  <MusicPlaylistAdd trackId={track.id} />
                 </li>
               );
             })}
