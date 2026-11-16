@@ -12,7 +12,7 @@ const STREAMING_RESERVED_PATHS = new Set([
   "manifest.webmanifest", "metodologia", "paginas", "pdf", "planos",
   "premium", "privacidade", "recursos", "robots.txt", "seguranca",
   "servicos", "sobre", "sitemap.xml", "termos", "trafego", "sw.js",
-  "opengraph-image", "twitter-image",
+  "opengraph-image", "twitter-image", "pwa-icon",
 ]);
 
 export function proxy(request: NextRequest) {
