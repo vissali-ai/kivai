@@ -210,10 +210,10 @@ export function MusicCatalogAdmin() {
 
       <form onSubmit={save} className="h-fit space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5 xl:sticky xl:top-6">
         <h2 className="font-semibold">{id ? "Editar" : "Novo"} {kindLabels[kind]}</h2>
-        {kind === "artist" ? <>{label("name", "Nome")}{label("slug", "Slug")}{label("bio", "Biografia")}{label("contactWhatsapp", "WhatsApp para contratação")}{label("contactMessage", "Mensagem inicial para WhatsApp")}{uploadField("photoUrl", "Foto do artista", "image/jpeg,image/png,image/webp", "photo")}{uploadField("coverUrl", "Capa do artista", "image/jpeg,image/png,image/webp", "cover")}</> : null}
+        {kind === "artist" ? <>{label("name", "Nome")}{label("slug", "Slug")}{label("bio", "Biografia")}{label("contactWhatsapp", "WhatsApp para contratação")}{label("contactMessage", "Mensagem inicial para WhatsApp")}{uploadField("photoUrl", "Foto do artista", "image/jpeg,image/png,image/webp", "photo", true)}{uploadField("coverUrl", "Capa do artista", "image/jpeg,image/png,image/webp", "cover")}</> : null}
         {kind === "album" ? <>
           <label className="block space-y-1 text-sm">Artista<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.artistId ?? ""} onChange={event => setFields(current => ({ ...current, artistId: event.target.value }))}><option value="">Selecione...</option>{data.artists.map(artist => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label>
-          {label("title", "Título")}{label("slug", "Slug")}{label("description", "Descrição")}{label("releaseDate", "Data de lançamento", "date")}{uploadField("coverUrl", "Capa do álbum", "image/jpeg,image/png,image/webp", "cover")}
+          {label("title", "Título")}{label("slug", "Slug")}{label("description", "Descrição")}{label("releaseDate", "Data de lançamento", "date")}{uploadField("coverUrl", "Capa do álbum", "image/jpeg,image/png,image/webp", "cover", true)}
         </> : null}
         {kind === "track" ? <>
           <label className="block space-y-1 text-sm">Álbum<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.albumId ?? ""} onChange={event => setFields(current => ({ ...current, albumId: event.target.value }))}><option value="">Selecione...</option>{data.albums.map(album => <option key={album.id} value={album.id}>{data.artists.find(artist => artist.id === album.artistId)?.name ?? "Artista"} · {album.title}</option>)}</select></label>
