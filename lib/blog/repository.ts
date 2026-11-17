@@ -15,7 +15,7 @@ type DbMedia = {
   content_hash: string; created_at: string;
 };
 type DbPost = {
-  id: string; title: string; subtitle: string | null; slug: string; excerpt: string;
+  id: string; publication_target?: Post["publicationTarget"]; title: string; subtitle: string | null; slug: string; excerpt: string;
   content: string; status: Post["status"]; author: string; source_name: string | null;
   source_url: string | null; original_published_at: string | null; category_id: string | null;
   cover_media_id: string | null; cover_alt: string | null; cover_caption: string | null;
@@ -54,7 +54,7 @@ function mapMedia(row: DbMedia): Media {
 
 function mapPost(row: DbPost): Post {
   return {
-    id: row.id, title: row.title, subtitle: row.subtitle ?? "", slug: row.slug,
+    id: row.id, publicationTarget: row.publication_target ?? "kivai_blog", title: row.title, subtitle: row.subtitle ?? "", slug: row.slug,
     excerpt: row.excerpt, content: row.content, status: row.status, author: row.author,
     sourceName: row.source_name ?? "", sourceUrl: row.source_url ?? "",
     originalPublishedAt: row.original_published_at, categoryId: row.category_id,
@@ -120,6 +120,8 @@ export async function listPosts(filters: DashboardFilters = {}) {
   if (!isBlogDatabaseConfigured()) return [];
   const rows = await supabaseRest<DbPost[]>(`blog_posts?select=${encode(postSelect)}&order=updated_at.desc`);
   let posts = rows.map(mapPost);
+  const target = filters.publicationTarget ?? "kivai_blog";
+  posts = posts.filter((post) => post.publicationTarget === target);
   if (filters.query) posts = posts.filter((post) => post.title.toLocaleLowerCase("pt-BR").includes(filters.query!.toLocaleLowerCase("pt-BR")));
   if (filters.status && filters.status !== "all") posts = posts.filter((post) => post.status === filters.status);
   if (filters.origin && filters.origin !== "all") posts = posts.filter((post) => post.origin === filters.origin);
@@ -129,10 +131,10 @@ export async function listPosts(filters: DashboardFilters = {}) {
   return posts.slice(start, start + pageSize);
 }
 
-export async function listAllPosts() {
+export async function listAllPosts(publicationTarget: Post["publicationTarget"] = "kivai_blog") {
   if (!isBlogDatabaseConfigured()) return [];
   const rows = await supabaseRest<DbPost[]>(`blog_posts?select=${encode(postSelect)}&order=updated_at.desc`);
-  return rows.map(mapPost);
+  return rows.map(mapPost).filter((post) => post.publicationTarget === publicationTarget);
 }
 
 export async function publishDueScheduledPosts() {
@@ -152,13 +154,13 @@ export async function publishDueScheduledPosts() {
   return eligible.length;
 }
 
-export async function listPublishedPosts() {
+export async function listPublishedPosts(publicationTarget: Post["publicationTarget"] = "kivai_blog") {
   await publishDueScheduledPosts();
   if (!isBlogDatabaseConfigured()) return [];
   const rows = await supabaseRest<DbPost[]>(
     `blog_posts?select=${encode(postSelect)}&status=eq.published&order=published_at.desc.nullslast,created_at.desc`,
   );
-  return rows.map(mapPost);
+  return rows.map(mapPost).filter((post) => post.publicationTarget === publicationTarget);
 }
 
 export async function listFeaturedPosts() {
@@ -175,12 +177,13 @@ export async function getPostById(id: string) {
   return rows[0] ? mapPost(rows[0]) : null;
 }
 
-export async function getPublishedPostBySlug(slug: string) {
+export async function getPublishedPostBySlug(slug: string, publicationTarget: Post["publicationTarget"] = "kivai_blog") {
   if (!isBlogDatabaseConfigured()) return null;
   const rows = await supabaseRest<DbPost[]>(
     `blog_posts?select=${encode(postSelect)}&status=eq.published&slug=eq.${encode(slug)}&limit=1`,
   );
-  return rows[0] ? mapPost(rows[0]) : null;
+  const post = rows[0] ? mapPost(rows[0]) : null;
+  return post?.publicationTarget === publicationTarget ? post : null;
 }
 
 export async function isSlugAvailable(slug: string, excludedId?: string) {
@@ -218,6 +221,7 @@ function toPostRow(input: PostInput) {
   const convertSuggestion = input.origin === "rss-agent" && ["published", "scheduled"].includes(input.status);
   const conversionDate = convertSuggestion ? new Date().toISOString() : null;
   return {
+    publication_target: input.publicationTarget ?? "kivai_blog",
     title: clean.title, subtitle: input.subtitle.trim() || null, slug: clean.slug,
     excerpt: clean.excerpt, content: clean.content, status: input.status, author: clean.author || "Kivai",
     source_name: input.sourceName.trim() || null, source_url: input.sourceUrl.trim() || null,
