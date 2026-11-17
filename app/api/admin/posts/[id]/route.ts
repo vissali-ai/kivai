@@ -9,8 +9,9 @@ type Context = { params: Promise<{ id: string }> };
 
 function revalidatePublication(slug?: string) {
   revalidatePath("/blog");
+  revalidatePath("/noticias");
   revalidatePath("/sitemap.xml");
-  if (slug) revalidatePath(`/blog/${slug}`);
+  if (slug) { revalidatePath(`/blog/${slug}`); revalidatePath(`/noticias/${slug}`); }
 }
 
 export async function GET(_request: Request, { params }: Context) {
