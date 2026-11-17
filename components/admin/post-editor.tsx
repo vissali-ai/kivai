@@ -78,7 +78,7 @@ export function PostEditor({ post, categories, tools, initialPublicationTarget =
     setMessage("Salvo");
     if (preview) window.open(`/admin/blog/${data.id}/preview`, "_blank", "noopener,noreferrer");
     if ((status === "published" || status === "scheduled") && !preview) {
-      router.push(`/admin/blog?status=${status}`);
+      router.push(`/admin/blog?status=${status}&channel=${form.publicationTarget ?? "kivai_blog"}`);
       router.refresh();
       return;
     }
