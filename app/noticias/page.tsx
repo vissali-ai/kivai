@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import { PostList } from "@/components/blog/post-list";
 import { filterIndexablePosts } from "@/lib/blog/indexing";
 import { listPublishedPosts } from "@/lib/blog/repository";
@@ -11,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function StreamingNewsPage() {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  if (host !== "streaming.kivai.com.br") notFound();
   const posts = filterIndexablePosts(await listPublishedPosts("kivai_streaming"));
   return <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-12 sm:px-6 lg:px-8">
     <header className="border-b border-border pb-8">
