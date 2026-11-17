@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (host === "trafego.kivai.com.br") return [{ url: "https://trafego.kivai.com.br", changeFrequency: "weekly", priority: 1 }];
 
   if (host === "streaming.kivai.com.br") {
-    const [musicCatalog, musicGenres, allHubs, streamingNews, streamingNewsSlugs] = await Promise.all([listMusicCatalog(), listMusicGenres(), listSiteHubs(), listPublishedPosts("kivai_streaming"), listBlogSitemapSlugs("kivai_streaming")]);
+    const [musicCatalog, musicGenres, allHubs, streamingNews, streamingNewsSlugs, streamingCategories] = await Promise.all([listMusicCatalog(), listMusicGenres(), listSiteHubs(), listPublishedPosts("kivai_streaming"), listBlogSitemapSlugs("kivai_streaming"), listCategories()]);
     const musicHub = allHubs.find((hub) => hub.slug === "musica");
     const hubAllowsIndexing = Boolean(musicHub && musicHub.status === "published" && musicHub.indexable && musicHub.includeInSitemap);
     return [
