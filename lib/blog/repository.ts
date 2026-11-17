@@ -118,7 +118,7 @@ export async function deleteCategory(id: string) {
 
 export async function listPosts(filters: DashboardFilters = {}) {
   if (!isBlogDatabaseConfigured()) return [];
-  const rows = await supabaseRest<DbPost[]>(`blog_posts?select=${encode(postSelect)}&order=updated_at.desc`);
+  const rows = await supabaseRest<DbPost[]>(`blog_posts?select=${encode(postSelect)}&publication_target=eq.${filters.publicationTarget ?? "kivai_blog"}&order=updated_at.desc`);
   let posts = rows.map(mapPost);
   const target = filters.publicationTarget ?? "kivai_blog";
   posts = posts.filter((post) => post.publicationTarget === target);
@@ -133,7 +133,7 @@ export async function listPosts(filters: DashboardFilters = {}) {
 
 export async function listAllPosts(publicationTarget: Post["publicationTarget"] = "kivai_blog") {
   if (!isBlogDatabaseConfigured()) return [];
-  const rows = await supabaseRest<DbPost[]>(`blog_posts?select=${encode(postSelect)}&order=updated_at.desc`);
+  const rows = await supabaseRest<DbPost[]>(`blog_posts?select=${encode(postSelect)}&publication_target=eq.${publicationTarget}&order=updated_at.desc`);
   return rows.map(mapPost).filter((post) => post.publicationTarget === publicationTarget);
 }
 
