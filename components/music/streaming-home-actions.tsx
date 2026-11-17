@@ -125,16 +125,16 @@ export function StreamingHomeActions({ compact = false }: { compact?: boolean })
     : null;
 
   return (
-    <div className="mt-5 flex flex-wrap items-center gap-3">
+    <div className={compact ? "flex items-center" : "mt-5 flex flex-wrap items-center gap-3"}>
       {whatsappHref ? (
         <a
           href={whatsappHref}
           target="_blank"
           rel="noopener noreferrer"
-          className={compact ? "inline-flex min-h-9 items-center gap-2 rounded-lg bg-[#16a34a] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#15803d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16a34a]" : "inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#16a34a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15803d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16a34a]"}
+          className={compact ? "inline-flex min-h-8 items-center gap-1.5 rounded-full border border-border bg-card/70 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:border-primary/50 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" : "inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#16a34a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15803d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16a34a]"}
         >
-          <MessageCircle className="size-4" aria-hidden="true" />
-          WhatsApp
+          <MessageCircle className={compact ? "size-3.5" : "size-4"} aria-hidden="true" />
+          {compact ? "É artista? Envie sua música" : "WhatsApp"}
         </a>
       ) : null}
 

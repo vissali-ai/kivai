@@ -17,13 +17,12 @@ export default async function MusicPage() {
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Kivai apresenta</p>
-            <h1 className="mt-1 font-heading text-3xl font-semibold sm:text-4xl">Explorar música</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Descubra artistas independentes, lançamentos e estilos musicais.</p>
+            <p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Streaming gratuito</p>
+            <h1 className="mt-1 font-heading text-3xl font-semibold sm:text-4xl">Ouça músicas sem interrupções e sem propaganda.</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground"></p>
           </div>
           {isStreamingHome ? (
-            <aside className="flex items-center gap-3 rounded-xl border border-border bg-card/60 px-3 py-2">
-              <div className="hidden sm:block"><p className="text-sm font-medium">Quer sua música aqui?</p><p className="text-xs text-muted-foreground">Fale com a gente</p></div>
+            <aside className="flex items-center">
               <StreamingHomeActions compact />
             </aside>
           ) : null}
@@ -34,13 +33,15 @@ export default async function MusicPage() {
           {recentAlbums.length ? (
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
               {recentAlbums.map(album => (
-                <Link key={album.id} href={musicPath(pathPrefix, album.artist.slug, album.slug)} className="group min-w-0">
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
-                    {album.coverUrl ? <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover transition-transform group-hover:scale-[1.03]" /> : null}
-                  </div>
-                  <h3 className="mt-2 truncate text-sm font-semibold">{album.title}</h3>
-                  <p className="truncate text-xs text-muted-foreground">{album.artist.name}</p>
-                </Link>
+                <article key={album.id} className="group min-w-0">
+                  <Link href={musicPath(pathPrefix, album.artist.slug, album.slug)} className="block">
+                    <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+                      {album.coverUrl ? <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover transition-transform group-hover:scale-[1.03]" /> : null}
+                    </div>
+                    <h3 className="mt-2 truncate text-sm font-semibold">{album.title}</h3>
+                  </Link>
+                  <Link href={musicPath(pathPrefix, album.artist.slug)} className="mt-1 block truncate text-xs text-muted-foreground hover:text-primary hover:underline">{album.artist.name}</Link>
+                </article>
               ))}
             </div>
           ) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Novos lançamentos serão exibidos aqui.</p>}
