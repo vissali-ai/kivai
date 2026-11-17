@@ -33,7 +33,7 @@ function getInstallInstructions() {
   return "No Chrome ou Edge, abra o menu do navegador e escolha Instalar Streaming Kivai. Em outros navegadores, procure Adicionar à tela inicial ou Criar atalho.";
 }
 
-export function StreamingHomeActions({ compact = false }: { compact?: boolean }) {
+export function StreamingHomeActions({ compact = false, compactLabel = "É artista? Envie sua música" }: { compact?: boolean; compactLabel?: string }) {
   const deferredPrompt = useRef<InstallPromptEvent | null>(null);
   const [installAvailable, setInstallAvailable] = useState(false);
   const [installed, setInstalled] = useState(false);
@@ -134,7 +134,7 @@ export function StreamingHomeActions({ compact = false }: { compact?: boolean })
           className={compact ? "inline-flex min-h-8 items-center gap-1.5 rounded-full border border-border bg-card/70 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:border-primary/50 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" : "inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#16a34a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15803d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16a34a]"}
         >
           <MessageCircle className={compact ? "size-3.5" : "size-4"} aria-hidden="true" />
-          {compact ? "É artista? Envie sua música" : "WhatsApp"}
+          {compact ? compactLabel : "WhatsApp"}
         </a>
       ) : null}
 
