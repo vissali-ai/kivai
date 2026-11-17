@@ -7,10 +7,10 @@ import type { MusicAlbum, MusicArtist, MusicTrack } from "@/lib/music/types";
 
 type MusicKind = "artist" | "album" | "track";
 type MusicRow = MusicArtist | MusicAlbum | MusicTrack;
-type Catalog = { artists: MusicArtist[]; albums: MusicAlbum[]; tracks: MusicTrack[] };
+type Catalog = { artists: MusicArtist[]; albums: MusicAlbum[]; tracks: MusicTrack[]; genres: { id: string; name: string }[] };
 type PendingDelete = { kind: MusicKind; id: string; label: string; impact: string };
 
-const blank: Catalog = { artists: [], albums: [], tracks: [] };
+const blank: Catalog = { artists: [], albums: [], tracks: [], genres: [] };
 const statusLabels = { draft: "Rascunho", published: "Publicado", archived: "Arquivado" };
 const kindLabels: Record<MusicKind, string> = { artist: "artista", album: "álbum", track: "faixa" };
 
@@ -86,7 +86,7 @@ export function MusicCatalogAdmin() {
       if (uploadKind !== "audio") uploadHeaders["x-upsert"] = "false";
       const sent = await fetch(signed.uploadUrl, { method: "PUT", headers: uploadHeaders, body: file });
       if (!sent.ok) throw new Error("O Storage não aceitou o arquivo. Tente novamente.");
-      const key = uploadKind === "audio" ? "audioUrl" : uploadKind === "photo" ? "photoUrl" : "coverUrl";
+      const key = uploadKind === "audio" ? "audioUrl" : uploadKind === "photo" ? "photoUrl" : uploadKind === "genre" ? "imageUrl" : "coverUrl";
       setFields(current => ({ ...current, [key]: signed.publicUrl }));
       setMessage("Upload concluído. Salve o cadastro para aplicar.");
     } catch (error) {
@@ -152,8 +152,28 @@ export function MusicCatalogAdmin() {
     <label className="block space-y-1 text-sm"><span>{title}</span><Input type={type} value={fields[key] ?? ""} onChange={event => setFields(current => ({ ...current, [key]: event.target.value }))} /></label>
   );
 
-  const uploadField = (key: string, title: string, accept: string, uploadKind: string) => (
-    <label className="block space-y-1 text-sm"><span>{title} · {fields[key] ? "arquivo definido" : "sem arquivo"}</span><Input type="file" accept={accept} disabled={busy} onChange={event => void upload(event.target.files?.[0], uploadKind)} /><small className="block break-all text-muted-foreground">{fields[key]}</small></label>
+  const uploadField = (key: string, title: string, accept: string, uploadKind: string, square = false) => (
+    <label className="block space-y-2 text-sm">
+      <span className="block font-medium">{title}</span>
+      {square ? (
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="relative aspect-square w-40 shrink-0 overflow-hidden rounded-xl border border-dashed border-border bg-muted">
+            {fields[key] ? <img src={fields[key]} alt={"Prévia: " + title} className="h-full w-full object-cover" /> : <div className="flex h-full flex-col items-center justify-center gap-2 p-3 text-center text-muted-foreground"><span className="text-3xl" aria-hidden="true">▧</span><span className="text-xs">Prévia quadrada 1:1</span></div>}
+          </div>
+          <div className="min-w-0 flex-1 space-y-2">
+            <Input type="file" accept={accept} disabled={busy} onChange={event => void upload(event.target.files?.[0], uploadKind)} />
+            <p className="text-xs text-muted-foreground">Proporção recomendada: 1:1 (quadrada). JPG, PNG ou WebP · até 8 MB.</p>
+            <small className="block break-all text-muted-foreground">{fields[key]}</small>
+          </div>
+        </div>
+      ) : (
+        <>
+          <span className="block text-xs text-muted-foreground">{fields[key] ? "Arquivo definido" : "Sem arquivo"}</span>
+          <Input type="file" accept={accept} disabled={busy} onChange={event => void upload(event.target.files?.[0], uploadKind)} />
+          <small className="block break-all text-muted-foreground">{fields[key]}</small>
+        </>
+      )}
+    </label>
   );
 
   const rows: MusicRow[] = kind === "artist" ? data.artists : kind === "album" ? data.albums : data.tracks;
@@ -210,7 +230,7 @@ export function MusicCatalogAdmin() {
 
       <form onSubmit={save} className="h-fit space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5 xl:sticky xl:top-6">
         <h2 className="font-semibold">{id ? "Editar" : "Novo"} {kindLabels[kind]}</h2>
-        {kind === "artist" ? <>{label("name", "Nome")}{label("slug", "Slug")}{label("bio", "Biografia")}{label("contactWhatsapp", "WhatsApp para contratação")}{label("contactMessage", "Mensagem inicial para WhatsApp")}{uploadField("photoUrl", "Foto do artista", "image/jpeg,image/png,image/webp", "photo", true)}{uploadField("coverUrl", "Capa do artista", "image/jpeg,image/png,image/webp", "cover")}</> : null}
+        {kind === "artist" ? <>{label("name", "Nome")}{label("slug", "Slug")}<label className="block space-y-1 text-sm">Estilo musical<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.genreId ?? ""} onChange={event => setFields(current => ({ ...current, genreId: event.target.value }))}><option value="">Sem estilo definido</option>{data.genres.map(genre => <option key={genre.id} value={genre.id}>{genre.name}</option>)}</select></label>{label("bio", "Biografia")}{label("contactWhatsapp", "WhatsApp para contratação")}{label("contactMessage", "Mensagem inicial para WhatsApp")}{uploadField("photoUrl", "Foto do artista", "image/jpeg,image/png,image/webp", "photo", true)}{uploadField("coverUrl", "Capa do artista", "image/jpeg,image/png,image/webp", "cover")}</> : null}
         {kind === "album" ? <>
           <label className="block space-y-1 text-sm">Artista<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.artistId ?? ""} onChange={event => setFields(current => ({ ...current, artistId: event.target.value }))}><option value="">Selecione...</option>{data.artists.map(artist => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label>
           {label("title", "Título")}{label("slug", "Slug")}{label("description", "Descrição")}{label("releaseDate", "Data de lançamento", "date")}{uploadField("coverUrl", "Capa do álbum", "image/jpeg,image/png,image/webp", "cover", true)}
