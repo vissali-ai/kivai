@@ -158,7 +158,7 @@ export async function listPublishedPosts(publicationTarget: Post["publicationTar
   await publishDueScheduledPosts();
   if (!isBlogDatabaseConfigured()) return [];
   const rows = await supabaseRest<DbPost[]>(
-    `blog_posts?select=${encode(postSelect)}&status=eq.published&order=published_at.desc.nullslast,created_at.desc`,
+    `blog_posts?select=${encode(postSelect)}&status=eq.published&publication_target=eq.${publicationTarget}&order=published_at.desc.nullslast,created_at.desc`,
   );
   return rows.map(mapPost).filter((post) => post.publicationTarget === publicationTarget);
 }
@@ -180,7 +180,7 @@ export async function getPostById(id: string) {
 export async function getPublishedPostBySlug(slug: string, publicationTarget: Post["publicationTarget"] = "kivai_blog") {
   if (!isBlogDatabaseConfigured()) return null;
   const rows = await supabaseRest<DbPost[]>(
-    `blog_posts?select=${encode(postSelect)}&status=eq.published&slug=eq.${encode(slug)}&limit=1`,
+    `blog_posts?select=${encode(postSelect)}&status=eq.published&slug=eq.${encode(slug)}&publication_target=eq.${publicationTarget}&limit=1`,
   );
   const post = rows[0] ? mapPost(rows[0]) : null;
   return post?.publicationTarget === publicationTarget ? post : null;
