@@ -9,7 +9,7 @@ const STREAMING_HOST = "streaming.kivai.com.br";
 const STREAMING_RESERVED_PATHS = new Set([
   "admin", "ads.txt", "ajuda", "api", "aprovar", "blog", "cadastro",
   "conta", "contato", "creditos", "dashboard", "ferramentas", "login",
-  "manifest.webmanifest", "metodologia", "paginas", "pdf", "planos",
+  "manifest.webmanifest", "metodologia", "noticias", "paginas", "pdf", "planos",
   "premium", "privacidade", "recursos", "robots.txt", "seguranca",
   "servicos", "sobre", "sitemap.xml", "termos", "trafego", "sw.js",
   "opengraph-image", "twitter-image", "pwa-icon",
