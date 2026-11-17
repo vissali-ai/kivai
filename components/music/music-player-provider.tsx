@@ -161,7 +161,16 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
           lastPlaybackTimeRef.current = null;
         }}
         onSeeking={(event) => {
-          lastPlaybackTimeRef.current = event.currentTarget.currentTime;
+          const audio = event.currentTarget;
+          const previousTime = lastPlaybackTimeRef.current ?? 0;
+          const activeTrack = queueRef.current[indexRef.current];
+          // A deliberate rewind to the beginning starts a new listening pass.
+          // Pause/resume and ordinary forward seeking do not reset the counted play.
+          if (audio.currentTime <= 1 && previousTime >= 15 && activeTrack && countedTrackRef.current === activeTrack.id) {
+            listenedSecondsRef.current = 0;
+            countedTrackRef.current = null;
+          }
+          lastPlaybackTimeRef.current = audio.currentTime;
         }}
         onSeeked={(event) => {
           lastPlaybackTimeRef.current = event.currentTarget.currentTime;
