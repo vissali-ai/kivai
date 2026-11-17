@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Archive, ArchiveRestore, Eye, FilePenLine, Send, Trash2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { PostStatus } from "@/lib/blog/types";
+import type { PostStatus, PublicationTarget } from "@/lib/blog/types";
 
-export function PostActions({ id, slug, status, mobileCompact = false }: { id: string; slug: string; status: PostStatus; mobileCompact?: boolean }) {
+export function PostActions({ id, slug, status, publicationTarget = "kivai_blog", mobileCompact = false }: { id: string; slug: string; status: PostStatus; publicationTarget?: PublicationTarget; mobileCompact?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   async function changeStatus(nextStatus: PostStatus) {
@@ -34,7 +34,7 @@ export function PostActions({ id, slug, status, mobileCompact = false }: { id: s
 
   return <div className="flex flex-wrap gap-1">
     <><Button asChild variant="ghost" size="icon-sm" title="Editar"><Link href={`/admin/blog/${id}`}><FilePenLine /></Link></Button>
-    {status === "published" ? <Button asChild variant="ghost" size="icon-sm" title="Visualizar"><Link href={`/blog/${slug}`} target="_blank"><Eye /></Link></Button> : <Button asChild variant="ghost" size="icon-sm" title="Pré-visualizar"><Link href={`/admin/blog/${id}/preview`} target="_blank"><Eye /></Link></Button>}
+    {status === "published" ? <Button asChild variant="ghost" size="icon-sm" title="Visualizar"><Link href={publicationTarget === "kivai_streaming" ? `https://streaming.kivai.com.br/noticias/${slug}` : `/blog/${slug}`} target="_blank"><Eye /></Link></Button> : <Button asChild variant="ghost" size="icon-sm" title="Pré-visualizar"><Link href={`/admin/blog/${id}/preview`} target="_blank"><Eye /></Link></Button>}
     {status === "published" ? <Button variant="ghost" size="icon-sm" disabled={busy} title="Despublicar" onClick={() => changeStatus("draft")}><Undo2 /></Button> : status === "archived" ? <Button variant="ghost" size="icon-sm" disabled={busy} title="Restaurar como rascunho" onClick={() => changeStatus("draft")}><ArchiveRestore /></Button> : <Button variant="ghost" size="icon-sm" disabled={busy} title="Publicar" onClick={() => changeStatus("published")}><Send /></Button>}</>
     {status !== "archived" ? <Button variant="ghost" size="icon-sm" disabled={busy} title="Arquivar" onClick={() => changeStatus("archived")}><Archive /></Button> : null}
     <Button variant="destructive" size="icon-sm" disabled={busy} title="Excluir" onClick={remove}><Trash2 /></Button>
