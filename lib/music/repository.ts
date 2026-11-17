@@ -7,6 +7,7 @@ import { plainText } from "@/lib/blog/sanitize";
 import { slugify } from "@/lib/blog/slug";
 import { getSiteHubBySlug } from "@/lib/site-cms/repository";
 import type { MusicAlbum, MusicArtist, MusicCatalog, MusicTrack } from "@/lib/music/types";
+import { createR2UploadUrl, deleteR2Object, getR2PublicUrl, r2ObjectKeyFromPublicUrl } from "@/lib/music/r2";
 
 type ArtistRow = { id:string;slug:string;name:string;bio:string;photo_url:string;cover_url:string;contact_whatsapp:string;contact_message:string;status:MusicArtist["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
 type AlbumRow = { id:string;artist_id:string;artist_name?:string;artist_slug?:string;slug:string;title:string;description:string;cover_url:string;release_date:string|null;status:MusicAlbum["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
@@ -63,9 +64,15 @@ function musicObjectPath(value:string) {
 }
 async function removeMusicObjects(urls:string[]) {
  const paths=[...new Set(urls.map(musicObjectPath).filter((path):path is string=>Boolean(path)))];
+ const r2Keys=[...new Set(urls.map(r2ObjectKeyFromPublicUrl).filter((key):key is string=>Boolean(key)))];
  let removedFiles=0,failedFiles=0;
  for(let i=0;i<paths.length;i+=10){
   const results=await Promise.allSettled(paths.slice(i,i+10).map(path=>supabaseStorage(`object/music-media/${path.split("/").map(encodeURIComponent).join("/")}`,{method:"DELETE"})));
+  removedFiles+=results.filter(result=>result.status==="fulfilled").length;
+  failedFiles+=results.filter(result=>result.status==="rejected").length;
+ }
+ for(let i=0;i<r2Keys.length;i+=10){
+  const results=await Promise.allSettled(r2Keys.slice(i,i+10).map(deleteR2Object));
   removedFiles+=results.filter(result=>result.status==="fulfilled").length;
   failedFiles+=results.filter(result=>result.status==="rejected").length;
  }
@@ -98,6 +105,7 @@ export async function createMusicUploadUrl(kind:string,mime:string,size:number) 
  await assertAdminApi();const isAudio=kind==="audio";const allowed=isAudio?["audio/mpeg","audio/mp3"]:["image/jpeg","image/png","image/webp"];
  const max=isAudio?100*1024*1024:8*1024*1024;if(!allowed.includes(mime))throw new Error(isAudio?"Envie um arquivo MP3.":"Envie JPG, PNG ou WebP.");if(!Number.isFinite(size)||size<1||size>max)throw new Error(`O arquivo deve ter até ${Math.round(max/1024/1024)} MB.`);
  const ext=isAudio?"mp3":mime.split("/")[1].replace("jpeg","jpg"),path=`${isAudio?"tracks":"artwork"}/${new Date().getUTCFullYear()}/${randomUUID()}.${ext}`;
+ if(isAudio) return {uploadUrl:createR2UploadUrl(path,mime),publicUrl:getR2PublicUrl(path)};
  const response=await supabaseStorage(`object/upload/sign/music-media/${path}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({upsert:false})});const data=await response.json() as {token?:string};if(!data.token)throw new Error("Não foi possível preparar o upload.");
  return {uploadUrl:`${blogConfig.supabaseUrl}/storage/v1/object/upload/sign/music-media/${path}?token=${encodeURIComponent(data.token)}`,publicUrl:`${blogConfig.supabaseUrl}/storage/v1/object/public/music-media/${path}`};
 }

@@ -82,7 +82,9 @@ export function MusicCatalogAdmin() {
       });
       const signed = await prepared.json();
       if (!prepared.ok) throw new Error(signed.error);
-      const sent = await fetch(signed.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type, "x-upsert": "false" }, body: file });
+      const uploadHeaders: Record<string, string> = { "Content-Type": file.type };
+      if (uploadKind !== "audio") uploadHeaders["x-upsert"] = "false";
+      const sent = await fetch(signed.uploadUrl, { method: "PUT", headers: uploadHeaders, body: file });
       if (!sent.ok) throw new Error("O Storage não aceitou o arquivo. Tente novamente.");
       const key = uploadKind === "audio" ? "audioUrl" : uploadKind === "photo" ? "photoUrl" : "coverUrl";
       setFields(current => ({ ...current, [key]: signed.publicUrl }));
