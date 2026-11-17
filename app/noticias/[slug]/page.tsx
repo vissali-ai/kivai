@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArticleView } from "@/components/blog/article-view";
 import { isPostIndexable } from "@/lib/blog/indexing";
@@ -11,6 +12,8 @@ const STREAMING_URL = "https://streaming.kivai.com.br";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  if (host !== "streaming.kivai.com.br") return { title: "Notícia não encontrada", robots: noIndexRobots };
   const slug = (await params).slug;
   const [post, controls] = await Promise.all([
     getPublishedPostBySlug(slug, "kivai_streaming"),
@@ -39,6 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function StreamingNewsArticle({ params }: Props) {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  if (host !== "streaming.kivai.com.br") notFound();
   const slug = (await params).slug;
   const [post, controls] = await Promise.all([
     getPublishedPostBySlug(slug, "kivai_streaming"),
