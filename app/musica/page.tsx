@@ -25,7 +25,7 @@ export default async function MusicPage() {
           {isStreamingHome ? (
             <aside className="flex items-center gap-3 rounded-xl border border-border bg-card/60 px-3 py-2">
               <div className="hidden sm:block"><p className="text-sm font-medium">Quer sua música aqui?</p><p className="text-xs text-muted-foreground">Fale com a gente</p></div>
-              <div className="scale-[.92] origin-right"><StreamingHomeActions /></div>
+              <StreamingHomeActions compact />
             </aside>
           ) : null}
         </header>
