@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/blog/post-card";
 import { filterIndexablePosts } from "@/lib/blog/indexing";
@@ -8,6 +9,8 @@ type Props = { params: Promise<{ slug: string }> };
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  if (host !== "streaming.kivai.com.br") return { robots: { index: false, follow: false } };
   const slug = (await params).slug;
   const category = (await listCategories()).find((item) => item.slug === slug);
   if (!category) return {};
@@ -19,6 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function StreamingNewsCategory({ params }: Props) {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  if (host !== "streaming.kivai.com.br") notFound();
   const slug = (await params).slug;
   const [categories, posts] = await Promise.all([listCategories(), listPublishedPosts("kivai_streaming")]);
   const category = categories.find((item) => item.slug === slug);
