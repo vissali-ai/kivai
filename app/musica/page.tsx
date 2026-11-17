@@ -6,7 +6,6 @@ import { StreamingHomeActions } from "@/components/music/streaming-home-actions"
 
 export default async function MusicPage() {
   const [catalog, genres, pathPrefix] = await Promise.all([listMusicCatalog(), listMusicGenres(), getMusicPathPrefix()]);
-  const artists = catalog;
   const recentAlbums = catalog.flatMap(({ artist, albums }) => albums.map(album => ({ ...album, artist })))
     .sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "")).slice(0, 8);
   const genreCounts = new Map<string, number>();
@@ -62,20 +61,6 @@ export default async function MusicPage() {
           ) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Os estilos musicais serão publicados em breve.</p>}
         </section>
 
-        <section className="mt-12">
-          <div className="mb-4"><h2 className="text-2xl font-semibold">Artistas</h2><p className="mt-1 text-sm text-muted-foreground">Conheça quem faz a música acontecer.</p></div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {artists.map(({ artist, albums }) => (
-              <Link key={artist.id} href={musicPath(pathPrefix, artist.slug)} className="group overflow-hidden rounded-2xl border border-border bg-card">
-                <div className="relative aspect-[16/9] bg-muted">
-                  {(artist.coverUrl || artist.photoUrl) ? <Image src={artist.coverUrl || artist.photoUrl} alt={`Imagem de ${artist.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover transition-transform group-hover:scale-[1.02]" /> : null}
-                </div>
-                <div className="p-5"><h3 className="text-xl font-semibold">{artist.name}</h3><p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{artist.bio}</p><p className="mt-4 text-xs text-primary">{albums.length} {albums.length === 1 ? "álbum" : "álbuns"}</p></div>
-              </Link>
-            ))}
-          </div>
-          {!artists.length ? <p className="mt-8 rounded-xl border border-dashed p-6 text-sm text-muted-foreground">Em breve, novos artistas no Kivai Música.</p> : null}
-        </section>
       </div>
     </main>
   );
