@@ -53,9 +53,9 @@ function scheduledLocalValue(value: string | null | undefined) {
   return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
 }
 
-export function PostEditor({ post, categories, tools }: { post?: Post | null; categories: Category[]; tools: ToolOption[] }) {
+export function PostEditor({ post, categories, tools, initialPublicationTarget = "kivai_blog" }: { post?: Post | null; categories: Category[]; tools: ToolOption[]; initialPublicationTarget?: "kivai_blog" | "kivai_streaming" }) {
   const router = useRouter();
-  const [form, setForm] = useState<PostInput>(() => fromPost(post));
+  const [form, setForm] = useState<PostInput>(() => ({ ...fromPost(post), publicationTarget: post?.publicationTarget ?? initialPublicationTarget }));
   const [tagText, setTagText] = useState(() => form.tagNames.join(", "));
   const [cover, setCover] = useState<Media | null>(post?.cover ?? null);
   const [saving, setSaving] = useState(false);
