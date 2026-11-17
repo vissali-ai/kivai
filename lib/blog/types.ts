@@ -63,7 +63,7 @@ export type MediaUsage = {
 
 export type Post = {
   id: string;
-  publicationTarget: PublicationTarget;
+  publicationTarget?: PublicationTarget;
   title: string;
   subtitle: string;
   slug: string;
