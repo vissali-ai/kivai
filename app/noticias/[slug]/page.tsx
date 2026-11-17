@@ -1,0 +1,62 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ArticleView } from "@/components/blog/article-view";
+import { isPostIndexable } from "@/lib/blog/indexing";
+import { getBlogPublicationControlsBySlug } from "@/lib/blog/publication-controls";
+import { getPublishedPostBySlug } from "@/lib/blog/repository";
+import { noIndexRobots } from "@/lib/seo";
+
+type Props = { params: Promise<{ slug: string }> };
+const STREAMING_URL = "https://streaming.kivai.com.br";
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const slug = (await params).slug;
+  const [post, controls] = await Promise.all([
+    getPublishedPostBySlug(slug, "kivai_streaming"),
+    getBlogPublicationControlsBySlug(slug),
+  ]);
+  if (!post) return { title: "Notícia não encontrada", robots: noIndexRobots };
+  const title = post.seoTitle || post.title;
+  const description = post.metaDescription || post.excerpt;
+  const canonical = post.canonicalUrl || `${STREAMING_URL}/noticias/${post.slug}`;
+  const image = post.ogImage || post.cover?.url;
+  const allowIndexing = isPostIndexable(post) && controls.indexable;
+  return {
+    title: { absolute: `${title.replace(/\\s*\\|\\s*Kivai$/i, "")} | Streaming Kivai` },
+    description,
+    alternates: { canonical },
+    robots: allowIndexing ? { index: true, follow: true } : noIndexRobots,
+    openGraph: {
+      type: "article", locale: "pt_BR", siteName: "Streaming Kivai", url: canonical,
+      title: post.ogTitle || title, description: post.ogDescription || description,
+      publishedTime: post.originalPublishedAt ?? post.publishedAt ?? undefined,
+      modifiedTime: post.updatedAt, authors: [post.author],
+      images: image ? [{ url: image, alt: post.coverAlt || post.title }] : undefined,
+    },
+    twitter: { card: "summary_large_image", title: post.ogTitle || title, description: post.ogDescription || description, images: image ? [image] : undefined },
+  };
+}
+
+export default async function StreamingNewsArticle({ params }: Props) {
+  const slug = (await params).slug;
+  const [post, controls] = await Promise.all([
+    getPublishedPostBySlug(slug, "kivai_streaming"),
+    getBlogPublicationControlsBySlug(slug),
+  ]);
+  if (!post) notFound();
+  const url = post.canonicalUrl || `${STREAMING_URL}/noticias/${post.slug}`;
+  const schema = {
+    "@context": "https://schema.org", "@type": "NewsArticle",
+    headline: post.title, description: post.excerpt,
+    datePublished: post.originalPublishedAt ?? post.publishedAt ?? post.scheduledAt,
+    dateModified: post.updatedAt, mainEntityOfPage: url,
+    author: { "@type": "Person", name: post.author },
+    publisher: { "@type": "Organization", name: "Streaming Kivai", url: STREAMING_URL },
+    ...(post.cover ? { image: [post.ogImage || post.cover.url] } : {}),
+  };
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} />
+    <ArticleView post={post} blockVisibility={controls.blockVisibility} sectionHref="/noticias" sectionLabel="Notícias" siteUrl={STREAMING_URL} />
+  </>;
+}
