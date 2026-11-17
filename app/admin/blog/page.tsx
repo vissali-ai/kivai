@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { isBlogDatabaseConfigured } from "@/lib/blog/config";
 import { listAllPosts, listCategories, listPosts, publishDueScheduledPosts } from "@/lib/blog/repository";
-import type { PostOrigin, PostStatus } from "@/lib/blog/types";
+import type { PostOrigin, PostStatus, PublicationTarget } from "@/lib/blog/types";
 import { editorialFitFromScore } from "@/lib/news-agent/candidate-ranking";
 
 const statusLabels: Record<PostStatus, string> = { draft: "Rascunho", published: "Publicada", scheduled: "Agendada", archived: "Arquivada" };
@@ -24,16 +24,17 @@ function formatDate(value: string | null) {
   return Number.isNaN(parsed.getTime()) ? "-" : date.format(parsed);
 }
 
-export default async function BlogAdmin({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; origin?: string; category?: string; page?: string }> }) {
+export default async function BlogAdmin({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; origin?: string; category?: string; page?: string; channel?: string }> }) {
   const params = await searchParams;
   const requestedPage = Number(params.page || 1);
   const visiblePage = Number.isFinite(requestedPage) ? Math.max(Math.floor(requestedPage), 1) : 1;
   const status = (["draft", "published", "scheduled", "archived", "all"].includes(params.status ?? "") ? params.status : "draft") as PostStatus | "all";
   const origin = (["manual", "rss-agent", "all"].includes(params.origin ?? "") ? params.origin : "all") as PostOrigin | "all";
+  const channel: PublicationTarget = params.channel === "kivai_streaming" ? "kivai_streaming" : "kivai_blog";
   await publishDueScheduledPosts();
   const [allPosts, posts, categories] = await Promise.all([
-    listAllPosts(),
-    listPosts({ query: params.q, status, origin, categoryId: params.category, page: visiblePage, pageSize: 10 }),
+    listAllPosts(channel),
+    listPosts({ query: params.q, status, origin, categoryId: params.category, publicationTarget: channel, page: visiblePage, pageSize: 10 }),
     listCategories(),
   ]);
   const stats = [
@@ -59,23 +60,24 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
     && (!params.category || post.categoryId === params.category),
   );
   const statusHref = (nextStatus: PostStatus | "all") => {
-    const query = new URLSearchParams({ status: nextStatus });
+    const query = new URLSearchParams({ status: nextStatus, channel });
     if (params.q) query.set("q", params.q);
     if (params.category) query.set("category", params.category);
     if (origin !== "all") query.set("origin", origin);
     return `/admin/blog?${query.toString()}`;
   };
   const totalPages = Math.max(1, Math.ceil(matchingPosts.length / 10));
-  const pageHref = (page: number) => { const query = new URLSearchParams({ status, page: String(page) }); if (params.q) query.set("q", params.q); if (params.category) query.set("category", params.category); if (origin !== "all") query.set("origin", origin); return `/admin/blog?${query.toString()}`; };
+  const pageHref = (page: number) => { const query = new URLSearchParams({ status, channel, page: String(page) }); if (params.q) query.set("q", params.q); if (params.category) query.set("category", params.category); if (origin !== "all") query.set("origin", origin); return `/admin/blog?${query.toString()}`; };
   return <main>
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Blog</p><h1 className="mt-1 text-3xl font-semibold">Painel editorial</h1><p className="mt-2 text-sm text-muted-foreground">Crie, revise e publique conteúdo no Kivai.</p></div><Button asChild className="h-9"><Link href="/admin/blog/nova"><Plus />Nova matéria</Link></Button></header>
+    <header className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Publicações Kivai</p><h1 className="mt-1 text-3xl font-semibold">Painel editorial</h1><p className="mt-2 text-sm text-muted-foreground">Gerencie os conteúdos de cada canal em um único CMS.</p></div><Button asChild className="h-9"><Link href="/admin/blog/nova"><Plus />Nova matéria</Link></Button></header>
+    <nav className="mb-5 flex flex-wrap gap-2"><Link href="/admin/blog?channel=kivai_blog" className={`border px-3 py-2 text-sm ${channel === "kivai_blog" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>Postar no kivai.com.br</Link><Link href="/admin/blog?channel=kivai_streaming" className={`border px-3 py-2 text-sm ${channel === "kivai_streaming" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>Postar no streaming.kivai.com.br</Link></nav>
     {!isBlogDatabaseConfigured() ? <div className="mb-6 border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100"><strong>Configuração pendente.</strong> Aplique <code>supabase/migrations/001_blog_cms.sql</code> e configure as variáveis descritas em <code>.env.example</code>.</div> : null}
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">{stats.map(({ label, value, icon: Icon }) => <Card key={label}><CardHeader className="flex-row items-center justify-between"><CardTitle>{label}</CardTitle><Icon className="size-4 text-primary" /></CardHeader><CardContent><p className="text-3xl font-semibold">{value}</p></CardContent></Card>)}</div>
     <Card className="mt-6"><CardHeader className="flex-row flex-wrap items-center justify-between gap-3"><CardTitle>Matérias</CardTitle><NewsAgentPanel canRun={isBlogDatabaseConfigured()} /></CardHeader><CardContent>
       <nav aria-label="Status das matérias" className="mb-4 flex flex-wrap gap-2 border-b border-border pb-3">{statusTabs.map((tab) => <Link key={tab.value} href={statusHref(tab.value)} className={`border px-3 py-2 text-xs font-medium transition ${status === tab.value ? "border-primary/40 bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/30 hover:text-foreground"}`}>{tab.label}<span className="ml-2 text-[10px] opacity-70">{tab.count}</span></Link>)}</nav>
       <form className="mb-4 grid gap-2 md:grid-cols-[1fr_190px_220px_auto]"><input type="hidden" name="status" value={status} /><Input name="q" defaultValue={params.q} placeholder="Buscar por título" /><select name="origin" defaultValue={origin} className="h-8 border border-input bg-background px-2 text-xs"><option value="all">Todas as origens</option><option value="manual">Editorial manual</option><option value="rss-agent">Pautas do agente</option></select><select name="category" defaultValue={params.category} className="h-8 border border-input bg-background px-2 text-xs"><option value="">Todas as categorias</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select><Button type="submit" variant="outline">Filtrar</Button></form>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{posts.map((post) => {
-        const titleUrl = post.sourceUrl || (post.status === "published" ? `/blog/${post.slug}` : `/admin/blog/${post.id}/preview`);
+        const titleUrl = post.sourceUrl || (post.status === "published" ? (post.publicationTarget === "kivai_streaming" ? `https://streaming.kivai.com.br/noticias/${post.slug}` : `/blog/${post.slug}`) : `/admin/blog/${post.id}/preview`);
         const fit = editorialFitFromScore(post.relevanceScore);
         return <article key={post.id} className="min-w-0 rounded-lg border border-border bg-background p-4"><Link href={titleUrl} target="_blank" rel="noopener noreferrer" className="line-clamp-3 break-words text-sm font-medium leading-snug hover:text-primary hover:underline">{post.title}</Link><div className="mt-2 flex flex-wrap items-center gap-2"><p className="text-xs text-muted-foreground">{post.category?.name ?? "Sem categoria"}</p><Badge variant="outline">{statusLabels[post.status]}</Badge>{post.origin === "rss-agent" ? <Badge variant="outline" title={fit.detail} className={fit.key === "aligned" ? "border-emerald-500/30 text-emerald-700" : fit.key === "review" ? "border-amber-500/30 text-amber-700" : "text-muted-foreground"}>{fit.label}</Badge> : null}</div>{post.status === "scheduled" && post.scheduledAt ? <p className="mt-2 flex items-center gap-1 text-xs font-medium text-primary"><CalendarClock className="size-3.5" />Publicação prevista: {formatDate(post.scheduledAt)} (Brasília)</p> : <p className="mt-2 text-[11px] text-muted-foreground">Atualizada em {formatDate(post.updatedAt)}</p>}<div className="mt-2 flex min-h-8 items-center gap-2">{post.needsCover ? <p className="text-[11px] text-amber-700">Aguardando foto</p> : null}<PostActions id={post.id} slug={post.slug} status={post.status} mobileCompact /></div></article>;
       })}</div>
