@@ -13,13 +13,6 @@ export default async function MusicPage() {
   return (
     <main className="min-h-screen bg-background px-4 pb-28 pt-40 text-foreground sm:px-6 sm:pt-24">
       <div className="mx-auto max-w-6xl">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Streaming gratuito</p>
-            <h1 className="mt-1 font-heading text-3xl font-semibold sm:text-4xl">Ouça músicas sem interrupções e sem propaganda.</h1>
-          </div>
-        </header>
-
         <section className="mt-9">
           <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-2xl font-semibold">Mais recentes</h2><p className="mt-1 text-sm text-muted-foreground">Álbuns e lançamentos adicionados ao catálogo.</p></div></div>
           {recentAlbums.length ? (
