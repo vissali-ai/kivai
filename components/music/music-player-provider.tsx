@@ -152,8 +152,8 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
         onError={() => { setPlaying(false); setPlaybackError(true); }}
         onEnded={nextTrack}
       />
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 px-3 py-2 shadow-2xl backdrop-blur sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center gap-3">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background px-3 py-2 shadow-2xl sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 sm:gap-3">
           <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
             {item?.coverUrl && <Image src={item.coverUrl} alt="" fill sizes="44px" className="object-cover" />}
           </div>
