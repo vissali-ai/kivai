@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const image = post.ogImage || post.cover?.url;
   const allowIndexing = isPostIndexable(post) && controls.indexable;
   return {
-    title: { absolute: `${title.replace(/\\s*\\|\\s*Kivai$/i, "")} | Streaming Kivai` },
+    title: { absolute: `${title.replace(/\s*\\|\s*Kivai$/i, "")} | Streaming Kivai` },
     description,
     alternates: { canonical },
     robots: allowIndexing ? { index: true, follow: true } : noIndexRobots,
