@@ -20,6 +20,9 @@ export function useMusicPlayer() {
 
 export function MusicPlayerProvider({ children, isStreamingHost }: { children: React.ReactNode; isStreamingHost: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const listenedSecondsRef = useRef(0);
+  const lastPlaybackTimeRef = useRef<number | null>(null);
+  const countedTrackRef = useRef<string | null>(null);
   const queueRef = useRef<Item[]>([]);
   const indexRef = useRef(-1);
   const [queue, setQueue] = useState<Item[]>([]);
@@ -41,6 +44,9 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
     setIndex(nextIndex);
     setCurrent(0);
     setDuration(0);
+    listenedSecondsRef.current = 0;
+    lastPlaybackTimeRef.current = null;
+    countedTrackRef.current = null;
     setPlaybackError(false);
 
     // Change the source and request playback in the same call path. This matters
@@ -55,7 +61,7 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
     }
     void audio.play().then(() => {
       setPlaying(true);
-      void fetch("/api/music/play", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trackId: next.id }) }).catch(() => undefined);
+      lastPlaybackTimeRef.current = audio.currentTime;
     }).catch(() => {
       setPlaying(false);
       setPlaybackError(true);
@@ -145,9 +151,39 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
       <audio
         ref={audioRef}
         preload="auto"
-        onPlay={() => { setPlaying(true); setPlaybackError(false); }}
-        onPause={() => setPlaying(false)}
-        onTimeUpdate={(event) => setCurrent(event.currentTarget.currentTime)}
+        onPlay={(event) => {
+          setPlaying(true);
+          setPlaybackError(false);
+          lastPlaybackTimeRef.current = event.currentTarget.currentTime;
+        }}
+        onPause={() => {
+          setPlaying(false);
+          lastPlaybackTimeRef.current = null;
+        }}
+        onSeeking={(event) => {
+          lastPlaybackTimeRef.current = event.currentTarget.currentTime;
+        }}
+        onSeeked={(event) => {
+          lastPlaybackTimeRef.current = event.currentTarget.currentTime;
+        }}
+        onTimeUpdate={(event) => {
+          const audio = event.currentTarget;
+          setCurrent(audio.currentTime);
+          const previous = lastPlaybackTimeRef.current;
+          lastPlaybackTimeRef.current = audio.currentTime;
+          if (audio.paused || audio.seeking || previous === null) return;
+          const elapsed = audio.currentTime - previous;
+          if (elapsed > 0 && elapsed <= 2) listenedSecondsRef.current += elapsed;
+          const activeTrack = queueRef.current[indexRef.current];
+          if (activeTrack && countedTrackRef.current !== activeTrack.id && listenedSecondsRef.current >= 15) {
+            countedTrackRef.current = activeTrack.id;
+            void fetch("/api/music/play", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ trackId: activeTrack.id }),
+            }).catch(() => undefined);
+          }
+        }}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
         onError={() => { setPlaying(false); setPlaybackError(true); }}
         onEnded={nextTrack}
