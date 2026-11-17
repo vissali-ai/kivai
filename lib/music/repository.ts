@@ -6,18 +6,22 @@ import { supabaseRest, supabaseStorage } from "@/lib/blog/supabase";
 import { plainText } from "@/lib/blog/sanitize";
 import { slugify } from "@/lib/blog/slug";
 import { getSiteHubBySlug } from "@/lib/site-cms/repository";
-import type { MusicAlbum, MusicArtist, MusicCatalog, MusicTrack } from "@/lib/music/types";
+import type { MusicAlbum, MusicArtist, MusicCatalog, MusicGenre, MusicTrack } from "@/lib/music/types";
 import { createR2UploadUrl, deleteR2Object, getR2PublicUrl, r2ObjectKeyFromPublicUrl } from "@/lib/music/r2";
 
 type ArtistRow = { id:string;slug:string;name:string;bio:string;photo_url:string;cover_url:string;contact_whatsapp:string;contact_message:string;status:MusicArtist["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
 type AlbumRow = { id:string;artist_id:string;artist_name?:string;artist_slug?:string;slug:string;title:string;description:string;cover_url:string;release_date:string|null;status:MusicAlbum["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
 type TrackRow = { id:string;album_id:string;title:string;track_number:number;duration_seconds:number|null;audio_url:string;play_count:number;status:MusicTrack["status"] };
-const mapArtist=(r:ArtistRow):MusicArtist=>({id:r.id,slug:r.slug,name:r.name,bio:r.bio,photoUrl:r.photo_url,coverUrl:r.cover_url,contactWhatsapp:r.contact_whatsapp,contactMessage:r.contact_message,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
+type GenreRow = { id:string;name:string;slug:string;description:string;image_url:string;status:MusicGenre["status"];created_at:string;updated_at:string };
+const mapArtist=(r:ArtistRow & {genre_id?:string|null}):MusicArtist=>({id:r.id,slug:r.slug,name:r.name,bio:r.bio,photoUrl:r.photo_url,coverUrl:r.cover_url,genreId:r.genre_id??null,contactWhatsapp:r.contact_whatsapp,contactMessage:r.contact_message,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
+const mapGenre=(r:GenreRow):MusicGenre=>({id:r.id,name:r.name,slug:r.slug,description:r.description,imageUrl:r.image_url,status:r.status,createdAt:r.created_at,updatedAt:r.updated_at});
 const mapAlbum=(r:AlbumRow):MusicAlbum=>({id:r.id,artistId:r.artist_id,artistName:r.artist_name,artistSlug:r.artist_slug,slug:r.slug,title:r.title,description:r.description,coverUrl:r.cover_url,releaseDate:r.release_date,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
 const mapTrack=(r:TrackRow):MusicTrack=>({id:r.id,albumId:r.album_id,title:r.title,trackNumber:r.track_number,durationSeconds:r.duration_seconds,audioUrl:r.audio_url,playCount:Number(r.play_count??0),status:r.status});
 const enc=encodeURIComponent;
 
-export async function listMusicArtists(includeDrafts=false) { const q=includeDrafts?"music_artists?select=*&order=name.asc":"music_artists?select=*&status=eq.published&order=name.asc"; return (await supabaseRest<ArtistRow[]>(q,{allowMissingConfig:true})).map(mapArtist); }
+export async function listMusicArtists(includeDrafts=false) { const q=includeDrafts?"music_artists?select=*&order=name.asc":"music_artists?select=*&status=eq.published&order=name.asc"; return (await supabaseRest<Array<ArtistRow & {genre_id?:string|null}>>(q,{allowMissingConfig:true})).map(mapArtist); }
+export async function listMusicGenres(includeDrafts=false):Promise<MusicGenre[]> { const q=includeDrafts?"music_genres?select=*&order=name.asc":"music_genres?select=*&status=eq.published&order=name.asc"; return (await supabaseRest<GenreRow[]>(q,{allowMissingConfig:true})).map(mapGenre); }
+export async function getMusicGenreBySlug(slug:string) { const genres=await listMusicGenres(); const genre=genres.find(item=>item.slug===slug); if(!genre)return null; const catalog=await listMusicCatalog(); return {genre,artists:catalog.filter(item=>item.artist.genreId===genre.id)}; }
 export async function listMusicCatalog():Promise<MusicCatalog[]> {
  const hub=await getSiteHubBySlug("musica",true);if(!hub)return [];
  const artists=await listMusicArtists(); if(!artists.length)return [];
@@ -28,15 +32,16 @@ export async function listMusicCatalog():Promise<MusicCatalog[]> {
 export async function getMusicCatalogByArtist(slug:string) { return (await listMusicCatalog()).find(c=>c.artist.slug===slug)??null; }
 export async function getMusicAlbum(artistSlug:string,albumSlug:string) { const catalog=await getMusicCatalogByArtist(artistSlug); if(!catalog)return null; const album=catalog.albums.find(a=>a.slug===albumSlug); return album?{artist:catalog.artist,album}:null; }
 export async function listAdminMusicCatalog() {
- const [artists,albums,tracks]=await Promise.all([supabaseRest<ArtistRow[]>("music_artists?select=*&order=created_at.desc"),supabaseRest<AlbumRow[]>("music_albums?select=*&order=created_at.desc"),supabaseRest<TrackRow[]>("music_tracks?select=*&order=track_number.asc")]);
- return {artists:artists.map(mapArtist),albums:albums.map(mapAlbum),tracks:tracks.map(mapTrack)};
+ const [artists,albums,tracks,genres]=await Promise.all([supabaseRest<Array<ArtistRow & {genre_id?:string|null}>>("music_artists?select=*&order=created_at.desc"),supabaseRest<AlbumRow[]>("music_albums?select=*&order=created_at.desc"),supabaseRest<TrackRow[]>("music_tracks?select=*&order=track_number.asc"),supabaseRest<GenreRow[]>("music_genres?select=*&order=name.asc")]);
+ return {artists:artists.map(mapArtist),albums:albums.map(mapAlbum),tracks:tracks.map(mapTrack),genres:genres.map(mapGenre)};
 }
 function clean(value:unknown,max:number){return plainText(String(value??"")).trim().slice(0,max);}
 function cleanStatus(value:unknown):MusicArtist["status"]{return ["draft","published","archived"].includes(String(value))?value as MusicArtist["status"]:"draft";}
 export async function saveMusicArtist(input:Record<string,unknown>) {
  const id=clean(input.id,64);const name=clean(input.name,120);const slug=slugify(clean(input.slug||name,120));if(name.length<2||!slug)throw new Error("Informe nome e slug válidos.");
  const status=cleanStatus(input.status);const indexable=status==="published"&&Boolean(input.indexable);const include=status==="published"&&indexable&&Boolean(input.includeInSitemap);
- const body={slug,name,bio:String(input.bio??"").slice(0,12000),photo_url:clean(input.photoUrl,1000),cover_url:clean(input.coverUrl,1000),contact_whatsapp:clean(input.contactWhatsapp,40),contact_message:clean(input.contactMessage,500),status,indexable,include_in_sitemap:include,published_at:status==="published"?new Date().toISOString():null};
+ const genreId=clean(input.genreId,64)||null;
+ const body={slug,name,bio:String(input.bio??"").slice(0,12000),photo_url:clean(input.photoUrl,1000),cover_url:clean(input.coverUrl,1000),genre_id:genreId,contact_whatsapp:clean(input.contactWhatsapp,40),contact_message:clean(input.contactMessage,500),status,indexable,include_in_sitemap:include,published_at:status==="published"?new Date().toISOString():null};
  const rows=await supabaseRest<ArtistRow[]>(id?`music_artists?id=eq.${enc(id)}`:"music_artists",{method:id?"PATCH":"POST",body:JSON.stringify(body)});return mapArtist(rows[0]);
 }
 export async function saveMusicAlbum(input:Record<string,unknown>) {
@@ -44,6 +49,20 @@ export async function saveMusicAlbum(input:Record<string,unknown>) {
  const status=cleanStatus(input.status),indexable=status==="published"&&Boolean(input.indexable),include=status==="published"&&indexable&&Boolean(input.includeInSitemap);
  const body={artist_id:artistId,slug,title,description:String(input.description??"").slice(0,8000),cover_url:clean(input.coverUrl,1000),release_date:clean(input.releaseDate,10)||null,status,indexable,include_in_sitemap:include,published_at:status==="published"?new Date().toISOString():null};
  const rows=await supabaseRest<AlbumRow[]>(id?`music_albums?id=eq.${enc(id)}`:"music_albums",{method:id?"PATCH":"POST",body:JSON.stringify(body)});return mapAlbum(rows[0]);
+}
+export async function saveMusicGenre(input:Record<string,unknown>) {
+ const id=clean(input.id,64),name=clean(input.name,80),slug=slugify(clean(input.slug||name,80));
+ if(name.length<2||!slug)throw new Error("Informe nome e slug válidos para o estilo.");
+ const status=cleanStatus(input.status);
+ const body={name,slug,description:String(input.description??"").slice(0,1200),image_url:clean(input.imageUrl,1000),status};
+ const path=id ? "music_genres?id=eq."+enc(id) : "music_genres";
+ const rows=await supabaseRest<GenreRow[]>(path,{method:id?"PATCH":"POST",body:JSON.stringify(body)});
+ return mapGenre(rows[0]);
+}
+export async function deleteMusicGenre(id:string) {
+ if(!musicUuid.test(id))throw new Error("Identificador inválido.");
+ await supabaseRest("music_genres?id=eq."+enc(id),{method:"DELETE"});
+ return {ok:true};
 }
 export async function saveMusicTrack(input:Record<string,unknown>) {
  const id=clean(input.id,64),albumId=clean(input.albumId,64),title=clean(input.title,160),trackNumber=Math.max(1,Math.floor(Number(input.trackNumber)||1)),audioUrl=clean(input.audioUrl,1200);if(!albumId||title.length<1||!audioUrl)throw new Error("Informe álbum, título e arquivo de áudio.");

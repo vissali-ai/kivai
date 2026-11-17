@@ -7,7 +7,7 @@ import { SITE_URL } from "@/lib/seo";
 import { isToolIndexable, tools } from "@/lib/tools";
 import { listSiteHubs, listSitemapSiteContent, listStoredSiteContents } from "@/lib/site-cms/repository";
 import { listSitemapSiteServices, listStoredSiteServices } from "@/lib/site-cms/service-repository";
-import { listMusicCatalog } from "@/lib/music/repository";
+import { listMusicCatalog, listMusicGenres } from "@/lib/music/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +16,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (host === "trafego.kivai.com.br") return [{ url: "https://trafego.kivai.com.br", changeFrequency: "weekly", priority: 1 }];
 
   if (host === "streaming.kivai.com.br") {
-    const [musicCatalog, allHubs] = await Promise.all([listMusicCatalog(), listSiteHubs()]);
+    const [musicCatalog, musicGenres, allHubs] = await Promise.all([listMusicCatalog(), listMusicGenres(), listSiteHubs()]);
     const musicHub = allHubs.find((hub) => hub.slug === "musica");
     const hubAllowsIndexing = Boolean(musicHub && musicHub.status === "published" && musicHub.indexable && musicHub.includeInSitemap);
     return [
       ...(hubAllowsIndexing
         ? [{ url: "https://streaming.kivai.com.br", changeFrequency: "weekly" as const, priority: 1 }]
         : []),
+      ...(hubAllowsIndexing ? musicGenres.filter((genre) => musicCatalog.some(({ artist }) => artist.genreId === genre.id)).map((genre) => ({
+        url: `https://streaming.kivai.com.br/estilo/${genre.slug}`, lastModified: new Date(genre.updatedAt), changeFrequency: "weekly" as const, priority: 0.7,
+      })) : []),
       ...(hubAllowsIndexing ? musicCatalog.flatMap(({ artist, albums }) => [
         ...(artist.indexable && artist.includeInSitemap ? [{ url: `https://streaming.kivai.com.br/${artist.slug}`, lastModified: new Date(artist.updatedAt), changeFrequency: "weekly" as const, priority: 0.8 }] : []),
         ...albums.filter((album) => album.indexable && album.includeInSitemap).map((album) => ({ url: `https://streaming.kivai.com.br/${artist.slug}/${album.slug}`, lastModified: new Date(album.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })),

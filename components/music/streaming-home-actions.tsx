@@ -33,7 +33,7 @@ function getInstallInstructions() {
   return "No Chrome ou Edge, abra o menu do navegador e escolha Instalar Streaming Kivai. Em outros navegadores, procure Adicionar à tela inicial ou Criar atalho.";
 }
 
-export function StreamingHomeActions() {
+export function StreamingHomeActions({ compact = false }: { compact?: boolean }) {
   const deferredPrompt = useRef<InstallPromptEvent | null>(null);
   const [installAvailable, setInstallAvailable] = useState(false);
   const [installed, setInstalled] = useState(false);
@@ -131,14 +131,14 @@ export function StreamingHomeActions() {
           href={whatsappHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#16a34a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15803d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16a34a]"
+          className={compact ? "inline-flex min-h-9 items-center gap-2 rounded-lg bg-[#16a34a] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#15803d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16a34a]" : "inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#16a34a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#15803d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16a34a]"}
         >
           <MessageCircle className="size-4" aria-hidden="true" />
           WhatsApp
         </a>
       ) : null}
 
-      {!installed ? (
+      {!compact && !installed ? (
         <button
           type="button"
           onClick={() => void handleInstall()}
