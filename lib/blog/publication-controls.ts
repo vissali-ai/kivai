@@ -14,7 +14,7 @@ type ControlsRow = {
   block_visibility: Record<string, boolean> | null;
 };
 
-type SitemapControlsRow = ControlsRow & { slug: string };
+type SitemapControlsRow = ControlsRow & { slug: string; publication_target?: "kivai_blog" | "kivai_streaming" };
 
 const DEFAULT_BLOCK_VISIBILITY = {
   header: true,
@@ -74,10 +74,10 @@ export async function getBlogPublicationControlsBySlug(slug: string): Promise<Bl
   }
 }
 
-export async function listBlogSitemapSlugs() {
+export async function listBlogSitemapSlugs(publicationTarget: "kivai_blog" | "kivai_streaming" = "kivai_blog") {
   try {
     const rows = await supabaseRest<SitemapControlsRow[]>(
-      "blog_posts?select=slug,indexable,include_in_sitemap,block_visibility&indexable=eq.true&include_in_sitemap=eq.true",
+      `blog_posts?select=slug,indexable,include_in_sitemap,block_visibility,publication_target&publication_target=eq.${publicationTarget}&indexable=eq.true&include_in_sitemap=eq.true`,
       { allowMissingConfig: true },
     );
     return new Set(rows.map((row) => row.slug));

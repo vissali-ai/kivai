@@ -7,10 +7,11 @@ import type { PostInput, PostStatus } from "@/lib/blog/types";
 
 type Context = { params: Promise<{ id: string }> };
 
-function revalidateBlog(slug?: string) {
+function revalidatePublication(slug?: string) {
   revalidatePath("/blog");
+  revalidatePath("/noticias");
   revalidatePath("/sitemap.xml");
-  if (slug) revalidatePath(`/blog/${slug}`);
+  if (slug) { revalidatePath(`/blog/${slug}`); revalidatePath(`/noticias/${slug}`); }
 }
 
 export async function GET(_request: Request, { params }: Context) {
@@ -27,8 +28,8 @@ export async function PUT(request: Request, { params }: Context) {
     const id = (await params).id;
     const previous = await getPostById(id);
     const post = await savePost({ ...(await request.json() as PostInput), id });
-    revalidateBlog(previous?.slug);
-    revalidateBlog(post?.slug);
+    revalidatePublication(previous?.slug);
+    revalidatePublication(post?.slug);
     return NextResponse.json(post);
   } catch (error) { return apiError(error); }
 }
@@ -41,8 +42,8 @@ export async function PATCH(request: Request, { params }: Context) {
     const { status } = await request.json() as { status: PostStatus };
     if (!(["draft", "published", "scheduled", "archived"] as string[]).includes(status)) throw new Error("Status inválido.");
     const post = await setPostStatus(id, status);
-    revalidateBlog(previous?.slug);
-    revalidateBlog(post?.slug);
+    revalidatePublication(previous?.slug);
+    revalidatePublication(post?.slug);
     return NextResponse.json(post);
   } catch (error) { return apiError(error); }
 }
@@ -53,7 +54,7 @@ export async function DELETE(_request: Request, { params }: Context) {
     const id = (await params).id;
     const post = await getPostById(id);
     await deletePost(id);
-    revalidateBlog(post?.slug);
+    revalidatePublication(post?.slug);
     return new NextResponse(null, { status: 204 });
   } catch (error) { return apiError(error); }
 }

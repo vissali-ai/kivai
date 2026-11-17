@@ -16,9 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (host === "trafego.kivai.com.br") return [{ url: "https://trafego.kivai.com.br", changeFrequency: "weekly", priority: 1 }];
 
   if (host === "streaming.kivai.com.br") {
-    const [musicCatalog, musicGenres, allHubs] = await Promise.all([listMusicCatalog(), listMusicGenres(), listSiteHubs()]);
+    const [musicCatalog, musicGenres, allHubs, streamingNews, streamingNewsSlugs, streamingCategories] = await Promise.all([listMusicCatalog(), listMusicGenres(), listSiteHubs(), listPublishedPosts("kivai_streaming"), listBlogSitemapSlugs("kivai_streaming"), listCategories()]);
     const musicHub = allHubs.find((hub) => hub.slug === "musica");
     const hubAllowsIndexing = Boolean(musicHub && musicHub.status === "published" && musicHub.indexable && musicHub.includeInSitemap);
+    const indexableStreamingNews = filterIndexablePosts(streamingNews).filter((post) => streamingNewsSlugs.has(post.slug));
     return [
       ...(hubAllowsIndexing
         ? [{ url: "https://streaming.kivai.com.br", changeFrequency: "weekly" as const, priority: 1 }]
@@ -30,6 +31,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         ...(artist.indexable && artist.includeInSitemap ? [{ url: `https://streaming.kivai.com.br/${artist.slug}`, lastModified: new Date(artist.updatedAt), changeFrequency: "weekly" as const, priority: 0.8 }] : []),
         ...albums.filter((album) => album.indexable && album.includeInSitemap).map((album) => ({ url: `https://streaming.kivai.com.br/${artist.slug}/${album.slug}`, lastModified: new Date(album.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })),
       ]) : []),
+      { url: "https://streaming.kivai.com.br/noticias", ...(indexableStreamingNews[0]?.updatedAt ? { lastModified: new Date(indexableStreamingNews[0].updatedAt) } : {}), changeFrequency: "daily" as const, priority: 0.8 },
+      ...indexableStreamingNews.map((post) => ({ url: `https://streaming.kivai.com.br/noticias/${post.slug}`, lastModified: new Date(post.updatedAt), changeFrequency: "weekly" as const, priority: 0.8 })),
+      ...streamingCategories.flatMap((category) => { const categoryPosts = indexableStreamingNews.filter((post) => post.categoryId === category.id); if (!categoryPosts.length) return []; const latest = categoryPosts.reduce((current, post) => new Date(post.updatedAt) > new Date(current.updatedAt) ? post : current); return [{ url: `https://streaming.kivai.com.br/noticias/categoria/${category.slug}`, lastModified: new Date(latest.updatedAt), changeFrequency: "weekly" as const, priority: 0.6 }]; }),
     ];
   }
 

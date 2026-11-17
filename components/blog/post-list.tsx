@@ -7,14 +7,14 @@ import type { Post } from "@/lib/blog/types";
 
 const PAGE_SIZE = 12;
 
-export function PostList({ posts }: { posts: Post[] }) {
+export function PostList({ posts, hrefPrefix = "/blog" }: { posts: Post[]; hrefPrefix?: string }) {
   const [page, setPage] = useState(1);
   const visiblePosts = posts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <>
       <div className="mt-6 grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {visiblePosts.map((post) => <FeaturedPostCard key={post.id} post={post} />)}
+        {visiblePosts.map((post) => <FeaturedPostCard key={post.id} post={post} hrefPrefix={hrefPrefix} />)}
       </div>
       <div className="mt-8"><PaginationControls page={page} totalItems={posts.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
     </>

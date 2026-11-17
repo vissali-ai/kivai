@@ -6,10 +6,10 @@ import type { Post } from "@/lib/blog/types";
 
 const date = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 
-export function FeaturedPostCard({ post }: { post: Post }) {
+export function FeaturedPostCard({ post, hrefPrefix = "/blog" }: { post: Post; hrefPrefix?: string }) {
   const publishedAt = post.publishedAt ?? post.scheduledAt ?? post.createdAt;
   return <article className="group overflow-hidden border border-border bg-card transition hover:border-primary/35">
-    <Link href={`/blog/${post.slug}`} className="grid h-full grid-cols-[112px_minmax(0,1fr)] sm:flex sm:flex-col">
+    <Link href={`${hrefPrefix}/${post.slug}`} className="grid h-full grid-cols-[112px_minmax(0,1fr)] sm:flex sm:flex-col">
       <div className="relative min-h-32 overflow-hidden bg-muted/70 sm:aspect-[16/9] sm:min-h-0">
         {post.cover ? <Image src={post.cover.url} alt={post.coverAlt || post.cover.alt} fill unoptimized sizes="(max-width: 640px) 112px, (max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-500 group-hover:scale-[1.025]" /> : <ToolGuideArtwork post={post} />}
         {post.category ? <span className="absolute left-2 top-2 hidden border border-primary/35 bg-background/85 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-primary backdrop-blur-md sm:block">{post.category.name}</span> : null}

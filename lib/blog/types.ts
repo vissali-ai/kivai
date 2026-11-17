@@ -1,5 +1,6 @@
 export type PostStatus = "draft" | "published" | "scheduled" | "archived";
 export type PostOrigin = "manual" | "rss-agent";
+export type PublicationTarget = "kivai_blog" | "kivai_streaming";
 export type ReviewStatus =
   | "not-required"
   | "collected"
@@ -62,6 +63,7 @@ export type MediaUsage = {
 
 export type Post = {
   id: string;
+  publicationTarget?: PublicationTarget;
   title: string;
   subtitle: string;
   slug: string;
@@ -108,14 +110,16 @@ export type Post = {
 
 export type PostInput = Omit<
   Post,
-  "id" | "category" | "tags" | "cover" | "createdAt" | "updatedAt" | "publishedAt"
+  "id" | "publicationTarget" | "category" | "tags" | "cover" | "createdAt" | "updatedAt" | "publishedAt"
 > & {
   id?: string;
+  publicationTarget?: PublicationTarget;
   tagNames: string[];
   publishedAt?: string | null;
 };
 
 export type DashboardFilters = {
+  publicationTarget?: PublicationTarget;
   query?: string;
   status?: PostStatus | "all";
   origin?: PostOrigin | "all";
