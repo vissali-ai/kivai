@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { listMusicCatalog, listMusicGenres } from "@/lib/music/repository";
 import { getMusicPathPrefix, musicPath } from "@/lib/music/paths";
-import { StreamingHomeActions } from "@/components/music/streaming-home-actions";
 
 export default async function MusicPage() {
   const [catalog, genres, pathPrefix] = await Promise.all([listMusicCatalog(), listMusicGenres(), getMusicPathPrefix()]);
@@ -10,22 +9,15 @@ export default async function MusicPage() {
     .sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "")).slice(0, 8);
   const genreCounts = new Map<string, number>();
   for (const item of catalog) if (item.artist.genreId) genreCounts.set(item.artist.genreId, (genreCounts.get(item.artist.genreId) ?? 0) + 1);
-  const isStreamingHome = pathPrefix === "";
 
   return (
-    <main className="min-h-screen bg-background px-4 pb-28 pt-24 text-foreground sm:px-6">
+    <main className="min-h-screen bg-background px-4 pb-28 pt-40 text-foreground sm:px-6 sm:pt-24">
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Streaming gratuito</p>
             <h1 className="mt-1 font-heading text-3xl font-semibold sm:text-4xl">Ouça músicas sem interrupções e sem propaganda.</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground"></p>
           </div>
-          {isStreamingHome ? (
-            <aside className="flex items-center">
-              <StreamingHomeActions compact />
-            </aside>
-          ) : null}
         </header>
 
         <section className="mt-9">
