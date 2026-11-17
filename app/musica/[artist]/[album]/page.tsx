@@ -46,15 +46,17 @@ export default function AlbumPage() {
   return (
     <main className="min-h-screen bg-background px-4 pb-28 pt-24 text-foreground sm:px-6">
       <div className="mx-auto max-w-5xl">
-        <Link href={artistHref} className="text-sm text-muted-foreground">← {data.artist.name}</Link>
+        <Link href={prefix || "/"} className="text-sm text-muted-foreground">← Voltar para músicas</Link>
         <section className="mt-5 grid gap-6 rounded-3xl border border-border bg-card p-5 sm:grid-cols-[240px_1fr] sm:p-8">
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
-            {album.coverUrl && <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 100vw, 240px" className="object-cover" />}
+          <div className="min-w-0">
+            <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
+              {album.coverUrl && <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 100vw, 240px" className="object-cover" />}
+            </div>
+            <Link href={artistHref} className="mt-3 inline-block text-sm font-semibold text-primary hover:underline">{data.artist.name}</Link>
           </div>
           <div className="flex flex-col justify-end">
             <p className="text-xs font-semibold uppercase tracking-[.18em] text-primary">Álbum</p>
             <h1 className="mt-2 text-3xl font-bold sm:text-5xl">{album.title}</h1>
-            <Link href={artistHref} className="mt-2 font-medium hover:underline">{data.artist.name}</Link>
             <p className="mt-2 text-sm text-muted-foreground">{album.tracks.length} faixas{album.releaseDate ? ` · ${new Date(`${album.releaseDate}T00:00:00`).toLocaleDateString("pt-BR")}` : ""}</p>
             {album.description && <p className="mt-4 whitespace-pre-line text-sm leading-6 text-muted-foreground">{album.description}</p>}
             <div className="mt-6 flex flex-wrap gap-2">
