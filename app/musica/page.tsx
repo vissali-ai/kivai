@@ -15,7 +15,7 @@ export default async function MusicPage() {
     <main className="min-h-screen bg-background px-4 pb-28 pt-24 text-foreground sm:px-6 sm:pt-20">
       <div className="mx-auto max-w-6xl">
         <section className="mt-4">
-          <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-2xl font-semibold">Mais recentes</h2><p className="mt-1 text-sm text-muted-foreground">Álbuns e lançamentos adicionados ao catálogo.</p></div></div>
+          <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-2xl font-semibold">Mais recentes</h2></div></div>
           {recentAlbums.length ? (
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
               {recentAlbums.map(album => (

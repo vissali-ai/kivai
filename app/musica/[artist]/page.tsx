@@ -59,6 +59,6 @@ export default async function ArtistPage({ params }: { params: Promise<{ artist:
     </section>
     <h2 className="mt-10 text-2xl font-semibold">Álbuns</h2>
     <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{albums.map((album) => <Link key={album.id} href={musicPath(pathPrefix, artist.slug, album.slug)} className="group flex min-w-0 gap-[9px] rounded-lg border border-border bg-card p-[9px]"><div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-muted"><span className="sr-only">Capa do álbum</span>{album.coverUrl && <Image src={album.coverUrl} alt={`Capa de ${album.title}`} fill sizes="56px" className="object-cover" />}</div><div className="min-w-0 self-center"><h3 className="truncate text-base font-semibold">{album.title}</h3><p className="mt-0.5 text-sm text-muted-foreground">{album.tracks.length} faixas</p><p className="mt-1 text-[13px] text-primary group-hover:underline">Ver álbum →</p></div></Link>)}</div>
-    <MusicArtistComments artistSlug={artist.slug} artistName={artist.name} />
+    <MusicArtistComments artistSlug={artist.slug} />
   </div></main>;
 }
