@@ -4,7 +4,7 @@ import type { PlanCode } from "@/lib/billing/plan-benefits";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const testUserId = "c07f6709-a9a3-45c0-9a89-22076649fd37";
+const testUserId = "72f2d037-1ef9-4175-98e0-d97250d4e201";
 const testEmail = "vissali@gmail.com";
 const headers = { "Cache-Control": "private, no-store" };
 const failure = (error: string, status = 400) => Response.json({ error }, { status, headers });
