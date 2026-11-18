@@ -10,12 +10,12 @@ import type { MusicAlbum, MusicArtist, MusicCatalog, MusicGenre, MusicTrack } fr
 import { createR2UploadUrl, deleteR2Object, getR2PublicUrl, r2ObjectKeyFromPublicUrl } from "@/lib/music/r2";
 
 type ArtistRow = { id:string;slug:string;name:string;bio:string;photo_url:string;cover_url:string;contact_whatsapp:string;contact_message:string;status:MusicArtist["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
-type AlbumRow = { id:string;artist_id:string;artist_name?:string;artist_slug?:string;slug:string;title:string;description:string;cover_url:string;release_date:string|null;created_at?:string;status:MusicAlbum["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
+type AlbumRow = { id:string;artist_id:string;artist_name?:string;artist_slug?:string;slug:string;title:string;description:string;cover_url:string;release_date:string|null;published_at?:string|null;created_at?:string;status:MusicAlbum["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
 type TrackRow = { id:string;album_id:string;title:string;track_number:number;duration_seconds:number|null;audio_url:string;play_count:number;status:MusicTrack["status"] };
 type GenreRow = { id:string;name:string;slug:string;description:string;image_url:string;status:MusicGenre["status"];created_at:string;updated_at:string };
 const mapArtist=(r:ArtistRow & {genre_id?:string|null}):MusicArtist=>({id:r.id,slug:r.slug,name:r.name,bio:r.bio,photoUrl:r.photo_url,coverUrl:r.cover_url,genreId:r.genre_id??null,contactWhatsapp:r.contact_whatsapp,contactMessage:r.contact_message,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
 const mapGenre=(r:GenreRow):MusicGenre=>({id:r.id,name:r.name,slug:r.slug,description:r.description,imageUrl:r.image_url,status:r.status,createdAt:r.created_at,updatedAt:r.updated_at});
-const mapAlbum=(r:AlbumRow):MusicAlbum=>({id:r.id,artistId:r.artist_id,artistName:r.artist_name,artistSlug:r.artist_slug,slug:r.slug,title:r.title,description:r.description,coverUrl:r.cover_url,releaseDate:r.release_date,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
+const mapAlbum=(r:AlbumRow):MusicAlbum=>({id:r.id,artistId:r.artist_id,artistName:r.artist_name,artistSlug:r.artist_slug,slug:r.slug,title:r.title,description:r.description,coverUrl:r.cover_url,releaseDate:r.release_date,publishedAt:r.published_at??r.created_at??null,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
 const mapTrack=(r:TrackRow):MusicTrack=>({id:r.id,albumId:r.album_id,title:r.title,trackNumber:r.track_number,durationSeconds:r.duration_seconds,audioUrl:r.audio_url,playCount:Number(r.play_count??0),status:r.status});
 const enc=encodeURIComponent;
 
@@ -47,7 +47,7 @@ export async function saveMusicArtist(input:Record<string,unknown>) {
 export async function saveMusicAlbum(input:Record<string,unknown>) {
  const id=clean(input.id,64),artistId=clean(input.artistId,64),title=clean(input.title,160),slug=slugify(clean(input.slug||title,160));if(!artistId||title.length<2||!slug)throw new Error("Informe artista, título e slug válidos.");
  const status=cleanStatus(input.status),indexable=status==="published"&&Boolean(input.indexable),include=status==="published"&&indexable&&Boolean(input.includeInSitemap);
- const body={artist_id:artistId,slug,title,description:String(input.description??"").slice(0,8000),cover_url:clean(input.coverUrl,1000),release_date:clean(input.releaseDate,10)||null,status,indexable,include_in_sitemap:include,published_at:status==="published"?new Date().toISOString():null};
+ const existing=id?await supabaseRest<Array<{published_at:string|null}>>(`music_albums?select=published_at&id=eq.${enc(id)}`):[];const publishedAt=status==="published"?(existing[0]?.published_at??new Date().toISOString()):null;const body={artist_id:artistId,slug,title,description:String(input.description??"").slice(0,8000),cover_url:clean(input.coverUrl,1000),release_date:clean(input.releaseDate,10)||null,status,indexable,include_in_sitemap:include,published_at:publishedAt};
  const rows=await supabaseRest<AlbumRow[]>(id?`music_albums?id=eq.${enc(id)}`:"music_albums",{method:id?"PATCH":"POST",body:JSON.stringify(body)});return mapAlbum(rows[0]);
 }
 export async function saveMusicGenre(input:Record<string,unknown>) {
