@@ -76,7 +76,6 @@ export function MusicArtistComments({ artistSlug }: { artistSlug: string }) {
 
   return <section id="comentarios" className="mt-10 scroll-mt-24 rounded-2xl border border-border bg-card p-5 sm:p-7" aria-labelledby="music-comments-title">
     <div className="flex items-center gap-2"><MessageCircle className="size-5 text-primary" /><h2 id="music-comments-title" className="text-xl font-semibold">Comentários</h2></div>
-    <p className="mt-1 text-sm text-muted-foreground"></p>
     {signedIn ? <form onSubmit={submit} className="mt-5 space-y-3">
       <label htmlFor="music-comment" className="sr-only">Escreva seu comentário</label>
       <textarea id="music-comment" value={content} onChange={(event) => setContent(event.target.value.slice(0, 1000))} maxLength={1000} minLength={3} required rows={4} placeholder="Escreva um comentário..." className="w-full resize-y rounded-lg border border-border bg-background p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" />
