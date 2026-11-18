@@ -265,3 +265,64 @@
     display: none;
   }
 }
+
+/* =========================================================
+   KIVAI STREAMING — identidade visual exclusiva do subdomínio
+   Mantém os tokens globais do ecossistema Kivai intactos.
+   ========================================================= */
+.kivai-streaming-theme {
+  color-scheme: dark;
+  --background: #6B0F8C;
+  --foreground: #FFFFFF;
+  --card: #751794;
+  --card-foreground: #FFFFFF;
+  --popover: #751794;
+  --popover-foreground: #FFFFFF;
+  --primary: #FFED15;
+  --primary-foreground: #3B0B4D;
+  --secondary: #F85418;
+  --secondary-foreground: #FFFFFF;
+  --muted: #7B2696;
+  --muted-foreground: #F0DDF5;
+  --accent: #FFED15;
+  --accent-foreground: #3B0B4D;
+  --destructive: #FF8A70;
+  --border: #8B42A2;
+  --input: #8B42A2;
+  --ring: #FFED15;
+  --chart-1: #FFED15;
+  --chart-2: #F85418;
+  --chart-3: #DCA8F0;
+  --chart-4: #FFFFFF;
+  --chart-5: #B85BD2;
+  --sidebar: #5F0B7D;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #FFED15;
+  --sidebar-primary-foreground: #3B0B4D;
+  --sidebar-accent: #7B2696;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #8B42A2;
+  --sidebar-ring: #FFED15;
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  font-family: var(--font-streaming-body), Inter, Arial, Helvetica, sans-serif;
+}
+
+.kivai-streaming-theme :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-streaming-heading), Poppins, Inter, Arial, Helvetica, sans-serif;
+}
+
+.kivai-streaming-theme :is(input[type="range"], progress) {
+  accent-color: #FFED15;
+}
+
+.kivai-streaming-theme ::selection {
+  background: #FFED15;
+  color: #3B0B4D;
+}
+
+.kivai-streaming-theme :is(a, button):focus-visible {
+  outline-color: #FFED15;
+}
+
