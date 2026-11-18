@@ -326,3 +326,19 @@
   outline-color: #FFED15;
 }
 
+
+
+/* Streaming host: synchronize the document canvas with the scoped React theme. */
+html.kivai-streaming-host,
+body.kivai-streaming-host {
+  color-scheme: dark;
+  background-color: #6B0F8C !important;
+  color: #FFFFFF;
+}
+
+body.kivai-streaming-host {
+  --background: #6B0F8C;
+  --foreground: #FFFFFF;
+  --primary: #FFED15;
+  --primary-foreground: #3B0B4D;
+}
