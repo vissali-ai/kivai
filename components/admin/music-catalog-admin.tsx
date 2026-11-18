@@ -274,6 +274,7 @@ export function MusicCatalogAdmin() {
         {pendingDelete && <div className="space-y-3 rounded-lg border border-destructive/40 p-4"><p className="text-sm font-semibold">Excluir definitivamente “{pendingDelete.label}”?</p><p className="text-sm">{pendingDelete.impact}</p><p className="text-xs text-muted-foreground">O cadastro e seus registros dependentes serão removidos, incluindo mídias Kivai vinculadas.</p><label className="block text-sm">Digite EXCLUIR DEFINITIVAMENTE<input value={confirm} onChange={event=>setConfirm(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2"/></label><div className="flex gap-2"><Button type="button" variant="destructive" disabled={busy||confirm!=="EXCLUIR DEFINITIVAMENTE"} onClick={()=>void remove()}>Excluir permanentemente</Button><Button type="button" variant="outline" onClick={()=>{setPendingDelete(null);setConfirm("");}}>Cancelar</Button></div></div>}
       </section>
 
+      <div className="space-y-4">
       <form onSubmit={save} className="h-fit space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5 xl:sticky xl:top-6">
         <h2 className="font-semibold">{id ? "Editar" : "Novo"} {kindLabels[kind]}</h2>
         {kind === "artist" ? <>{label("name", "Nome")}{label("slug", "Slug")}<label className="block space-y-1 text-sm">Estilo musical<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.genreId ?? ""} onChange={event => setFields(current => ({ ...current, genreId: event.target.value }))}><option value="">Sem estilo definido</option>{data.genres.map(genre => <option key={genre.id} value={genre.id}>{genre.name}</option>)}</select></label>{label("bio", "Biografia")}{label("contactWhatsapp", "WhatsApp para contratação")}{label("contactMessage", "Mensagem inicial para WhatsApp")}{uploadField("photoUrl", "Foto do artista", "image/jpeg,image/png,image/webp", "photo", true)}{uploadField("coverUrl", "Capa do artista", "image/jpeg,image/png,image/webp", "cover")}</> : null}
@@ -298,6 +299,7 @@ export function MusicCatalogAdmin() {
         {batchProgress.total>0&&<div className="space-y-1"><div className="flex justify-between text-xs"><span>{batchProgress.label||"Processamento"}</span><span>{batchProgress.current}/{batchProgress.total} · {batchProgress.percent}%</span></div><div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all" style={{width:`${batchProgress.percent}%`}}/></div></div>}
         <Button type="button" className="w-full" disabled={busy||!batchAlbumId||!batchFiles.length} onClick={()=>void uploadBatch()}>{busy?"Enviando músicas...":`Enviar ${batchFiles.length||""} música(s)`}</Button>
       </section>
+      </div>
     </div>
   );
 }
