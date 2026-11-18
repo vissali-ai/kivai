@@ -10,36 +10,31 @@ export function AccountDeletion() {
   const [feedback, setFeedback] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [requested, setRequested] = useState(false);
 
   async function handleDelete() {
     if (confirmation !== "EXCLUIR" || loading) return;
     const token = getStoredSession()?.access_token;
-    if (!token) {
-      setError("Sua sessão expirou. Entre novamente para continuar.");
-      return;
-    }
+    if (!token) return;
+
     setLoading(true);
-    setError("");
     try {
       const response = await fetch("/api/account/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ confirmation, feedback: feedback.trim() || null }),
       });
-      const payload = await response.json().catch(() => ({})) as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Não foi possível enviar sua solicitação. Tente novamente.");
+      if (!response.ok) throw new Error("account_deletion_request_failed");
       setRequested(true);
-      setLoading(false);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível excluir sua conta. Tente novamente.");
+    } catch {
+      // The request can be retried; avoid displaying a disruptive red inline error.
+    } finally {
       setLoading(false);
     }
   }
 
   return <>
-    <button type="button" onClick={() => { setOpen(true); setError(""); }} className="flex min-h-10 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10">
+    <button type="button" onClick={() => setOpen(true)} className="flex min-h-10 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10">
       <Trash2 className="size-4" /> Excluir minha conta
     </button>
     {open && typeof document !== "undefined" ? createPortal(
@@ -60,7 +55,6 @@ export function AccountDeletion() {
           <p className="mt-1 text-right text-xs text-muted-foreground">{feedback.length}/1000</p>
           <label htmlFor="account-delete-confirmation" className="mt-4 block text-sm font-medium">Para confirmar, digite EXCLUIR</label>
           <input id="account-delete-confirmation" value={confirmation} onChange={event => setConfirmation(event.target.value.toUpperCase().slice(0, 7))} autoComplete="off" className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" />
-          {error ? <p role="alert" className="mt-3 text-sm text-destructive">{error}</p> : null}
           <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" disabled={loading} onClick={() => setOpen(false)} className="min-h-10 rounded-xl border border-border px-4 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50">{requested ? "Fechar" : "Manter minha conta"}</button>
             {!requested ? <button type="button" disabled={loading || confirmation !== "EXCLUIR"} onClick={handleDelete} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50">
