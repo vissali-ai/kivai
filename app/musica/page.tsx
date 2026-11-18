@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { listMusicCatalog, listMusicGenres } from "@/lib/music/repository";
 import { getMusicPathPrefix, musicPath } from "@/lib/music/paths";
+import { getMusicGenreIcon } from "@/lib/music/genre-icon";
 
 export default async function MusicPage() {
   const [catalog, genres, pathPrefix] = await Promise.all([listMusicCatalog(), listMusicGenres(), getMusicPathPrefix()]);
@@ -35,14 +36,22 @@ export default async function MusicPage() {
         <section className="mt-12">
           <div className="mb-4"><h2 className="text-2xl font-semibold">Estilos musicais</h2><p className="mt-1 text-sm text-muted-foreground">Explore artistas por gênero musical.</p></div>
           {genres.length ? (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {genres.map(genre => (
-                <Link key={genre.id} href={musicPath(pathPrefix, "estilo", genre.slug)} className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-muted">
-                  {genre.imageUrl ? <Image src={genre.imageUrl} alt={`Estilo ${genre.name}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover transition-transform group-hover:scale-105" /> : null}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-4 text-white"><h3 className="text-lg font-semibold">{genre.name}</h3><p className="mt-1 text-xs text-white/80">{genreCounts.get(genre.id) ?? 0} {(genreCounts.get(genre.id) ?? 0) === 1 ? "artista" : "artistas"}</p></div>
-                </Link>
-              ))}
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+              {genres.map(genre => {
+                const GenreIcon = getMusicGenreIcon(genre.name);
+                const count = genreCounts.get(genre.id) ?? 0;
+                return (
+                  <Link key={genre.id} href={musicPath(pathPrefix, "estilo", genre.slug)} className="group flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 transition-colors hover:border-primary/40 hover:bg-muted/40 sm:px-3.5">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                      <GenreIcon className="size-5" strokeWidth={1.65} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">{genre.name}</span>
+                      <span className="mt-0.5 block text-[11px] text-muted-foreground">{count} {count === 1 ? "artista" : "artistas"}</span>
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           ) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Os estilos musicais serão publicados em breve.</p>}
         </section>
