@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Trash2, X, AlertTriangle } from "lucide-react";
-import { getStoredSession, clearSession } from "@/lib/user-auth";
+import { getStoredSession } from "@/lib/user-auth";
 
 export function AccountDeletion() {
   const [open, setOpen] = useState(false);
@@ -11,6 +11,7 @@ export function AccountDeletion() {
   const [confirmation, setConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [requested, setRequested] = useState(false);
 
   async function handleDelete() {
     if (confirmation !== "EXCLUIR" || loading) return;
@@ -29,8 +30,7 @@ export function AccountDeletion() {
       });
       const payload = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) throw new Error(payload.error || "Não foi possível excluir sua conta. Tente novamente.");
-      clearSession();
-      window.location.replace("/");
+      setRequested(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível excluir sua conta. Tente novamente.");
       setLoading(false);
@@ -51,7 +51,7 @@ export function AccountDeletion() {
             </div>
             <button type="button" aria-label="Fechar" disabled={loading} onClick={() => setOpen(false)} className="rounded-lg p-2 text-muted-foreground hover:bg-accent"><X className="size-4" /></button>
           </div>
-          <div className="mt-5 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm leading-6">
+          {requested ? <div className="mt-5 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm leading-6"><strong>Solicitação enviada.</strong><p className="mt-1">Nossa equipe recebeu seu pedido. Sua conta permanecerá ativa até a exclusão ser concluída pela administração. Você pode fechar esta janela.</p></div> : <><div className="mt-5 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm leading-6">
             Ao confirmar, seu acesso e cadastro de usuário serão excluídos. Os dados associados à conta serão removidos conforme as regras de integridade do banco. Se houver assinatura ou cobrança recorrente ativa, será necessário solicitar o cancelamento e aguardar a confirmação antes de excluir a conta.
           </div>
           <label htmlFor="account-delete-feedback" className="mt-5 block text-sm font-medium">Gostaria de contar por que está saindo? <span className="font-normal text-muted-foreground">(opcional)</span></label>
@@ -61,11 +61,11 @@ export function AccountDeletion() {
           <input id="account-delete-confirmation" value={confirmation} onChange={event => setConfirmation(event.target.value.toUpperCase().slice(0, 7))} autoComplete="off" className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" />
           {error ? <p role="alert" className="mt-3 text-sm text-destructive">{error}</p> : null}
           <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button type="button" disabled={loading} onClick={() => setOpen(false)} className="min-h-10 rounded-xl border border-border px-4 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50">Manter minha conta</button>
-            <button type="button" disabled={loading || confirmation !== "EXCLUIR"} onClick={handleDelete} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="button" disabled={loading} onClick={() => setOpen(false)} className="min-h-10 rounded-xl border border-border px-4 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50">{requested ? "Fechar" : "Manter minha conta"}</button>
+            {!requested ? <button type="button" disabled={loading || confirmation !== "EXCLUIR"} onClick={handleDelete} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50">
               <Trash2 className="size-4" /> {loading ? "Excluindo..." : "Excluir definitivamente"}
-            </button>
-          </div>
+            </button> : null}
+          </div></>}
         </section>
       </div>,
       document.body,
