@@ -10,7 +10,7 @@ import type { MusicAlbum, MusicArtist, MusicCatalog, MusicGenre, MusicTrack } fr
 import { createR2UploadUrl, deleteR2Object, getR2PublicUrl, r2ObjectKeyFromPublicUrl } from "@/lib/music/r2";
 
 type ArtistRow = { id:string;slug:string;name:string;bio:string;photo_url:string;cover_url:string;contact_whatsapp:string;contact_message:string;status:MusicArtist["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
-type AlbumRow = { id:string;artist_id:string;artist_name?:string;artist_slug?:string;slug:string;title:string;description:string;cover_url:string;release_date:string|null;status:MusicAlbum["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
+type AlbumRow = { id:string;artist_id:string;artist_name?:string;artist_slug?:string;slug:string;title:string;description:string;cover_url:string;release_date:string|null;created_at?:string;status:MusicAlbum["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
 type TrackRow = { id:string;album_id:string;title:string;track_number:number;duration_seconds:number|null;audio_url:string;play_count:number;status:MusicTrack["status"] };
 type GenreRow = { id:string;name:string;slug:string;description:string;image_url:string;status:MusicGenre["status"];created_at:string;updated_at:string };
 const mapArtist=(r:ArtistRow & {genre_id?:string|null}):MusicArtist=>({id:r.id,slug:r.slug,name:r.name,bio:r.bio,photoUrl:r.photo_url,coverUrl:r.cover_url,genreId:r.genre_id??null,contactWhatsapp:r.contact_whatsapp,contactMessage:r.contact_message,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
@@ -25,7 +25,7 @@ export async function getMusicGenreBySlug(slug:string) { const genres=await list
 export async function listMusicCatalog():Promise<MusicCatalog[]> {
  const hub=await getSiteHubBySlug("musica",true);if(!hub)return [];
  const artists=await listMusicArtists(); if(!artists.length)return [];
- const albums=(await supabaseRest<AlbumRow[]>(`music_albums?select=*,artist:music_artists(name,slug)&artist_id=in.(${artists.map(a=>a.id).join(",")})&status=eq.published&order=release_date.desc.nullslast,title.asc`,{allowMissingConfig:true})).map(r=>{const artist=(r as AlbumRow & {artist?:{name:string;slug:string}}).artist;return mapAlbum({...r,artist_name:artist?.name,artist_slug:artist?.slug});});
+ const albums=(await supabaseRest<AlbumRow[]>(`music_albums?select=*,artist:music_artists(name,slug)&artist_id=in.(${artists.map(a=>a.id).join(",")})&status=eq.published&order=created_at.desc,title.asc`,{allowMissingConfig:true})).map(r=>{const artist=(r as AlbumRow & {artist?:{name:string;slug:string}}).artist;return mapAlbum({...r,artist_name:artist?.name,artist_slug:artist?.slug});});
  const tracks=albums.length?(await supabaseRest<TrackRow[]>(`music_tracks?select=*&album_id=in.(${albums.map(a=>a.id).join(",")})&status=eq.published&order=track_number.asc`,{allowMissingConfig:true})).map(mapTrack):[];
  return artists.map(artist=>({artist,albums:albums.filter(a=>a.artistId===artist.id).map(album=>({...album,tracks:tracks.filter(t=>t.albumId===album.id)}))}));
 }
