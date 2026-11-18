@@ -118,7 +118,7 @@ export function MusicCatalogAdmin() {
       if (!prepared.ok) throw new Error(signed.error);
       await putMusicFile(signed.uploadUrl, file, mime);
       const key = uploadKind === "audio" ? "audioUrl" : uploadKind === "photo" ? "photoUrl" : uploadKind === "genre" ? "imageUrl" : "coverUrl";
-      setFields(current => ({ ...current, [key]: signed.publicUrl, ...(uploadKind === "audio" ? { durationSeconds: String(durationSeconds), title: current.title?.trim() ? current.title : file.name.replace(/\\.mp3$/i, "").replace(/[_-]+/g, " ") } : {}) }));
+      setFields(current => ({ ...current, [key]: signed.publicUrl, ...(uploadKind === "audio" ? { durationSeconds: String(durationSeconds), title: current.title?.trim() ? current.title : file.name.replace(/\.mp3$/i, "").replace(/[_-]+/g, " ") } : {}) }));
       setMessage(uploadKind === "audio" ? `Upload concluído. Duração identificada: ${formatDuration(durationSeconds)}.` : "Upload concluído. Salve o cadastro para aplicar.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Falha no upload."); }
     finally { setBusy(false); }
@@ -130,7 +130,7 @@ export function MusicCatalogAdmin() {
     const items = await Promise.all(selected.map(async file => {
       let duration = 0;
       try { duration = await readAudioDuration(file); } catch { /* exibimos a falha como duração indisponível */ }
-      return { file, title: file.name.replace(/\\.mp3$/i, "").replace(/[_-]+/g, " "), duration };
+      return { file, title: file.name.replace(/\.mp3$/i, "").replace(/[_-]+/g, " "), duration };
     }));
     setBatchFiles(items);
     if (items.length !== selected.length) setMessage("Alguns arquivos foram ignorados. Selecione somente MP3.");
@@ -151,7 +151,7 @@ export function MusicCatalogAdmin() {
         const signed = await prepared.json();
         if (!prepared.ok) throw new Error(signed.error ?? "Falha ao preparar upload.");
         await putMusicFile(signed.uploadUrl, item.file, mime, percent => setBatchProgress(current => ({ ...current, percent })));
-        const saved = await fetch("/api/admin/music", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "track", albumId: batchAlbumId, title: item.title.trim() || item.file.name.replace(/\\.mp3$/i, ""), trackNumber: nextNumber, durationSeconds: duration, audioUrl: signed.publicUrl, status: batchStatus }) });
+        const saved = await fetch("/api/admin/music", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "track", albumId: batchAlbumId, title: item.title.trim() || item.file.name.replace(/\.mp3$/i, ""), trackNumber: nextNumber, durationSeconds: duration, audioUrl: signed.publicUrl, status: batchStatus }) });
         const result = await saved.json();
         if (!saved.ok) throw new Error(result.error ?? "Falha ao salvar faixa.");
         nextNumber += 1;
