@@ -79,7 +79,7 @@ export default function AlbumPage() {
             {queue.map((track, index) => {
               const isCurrent = current?.id === track.id;
               const isShared = sharedTrackId === track.id;
-              const trackShareUrl = `${albumHref}?faixa=${encodeURIComponent(track.id)}`;
+              const trackShareUrl = `${albumHref}/${track.slug}`;
               return (
                 <li key={track.id} className={`flex items-center gap-2 rounded-lg px-3 py-2 ${isShared ? "bg-primary/10 ring-1 ring-primary/30" : isCurrent ? "bg-primary/10" : "hover:bg-muted/50"}`}>
                   <span className="w-7 text-right text-xs tabular-nums text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
