@@ -12,9 +12,11 @@ export function SiteChrome({ children, mainHeader, musicHeader, mainFooter }: {
   mainFooter: ReactNode;
 }) {
   const streaming = useSyncExternalStore(subscribe, isStreamingHost, () => false);
-  return <>
-    {streaming ? musicHeader : mainHeader}
-    {children}
-    {!streaming ? mainFooter : null}
-  </>;
+  return (
+    <div className={streaming ? "kivai-streaming-theme min-h-screen" : "contents"}>
+      {streaming ? musicHeader : mainHeader}
+      {children}
+      {!streaming ? mainFooter : null}
+    </div>
+  );
 }
