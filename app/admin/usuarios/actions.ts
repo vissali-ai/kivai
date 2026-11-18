@@ -120,6 +120,25 @@ export async function updateCustomerMarketing(formData: FormData) {
   revalidatePath("/admin/usuarios"); revalidatePath("/admin/marketing");
 }
 
+export async function processAccountDeletionRequest(formData: FormData) {
+  await assertAdminApi();
+  const requestId = String(formData.get("requestId") ?? "");
+  const userId = String(formData.get("userId") ?? "");
+  const confirmation = String(formData.get("confirmation") ?? "");
+  if (!requestId || !userId || confirmation !== "EXCLUIR") throw new Error("Confirmação de exclusão inválida.");
+  const requests = await supabaseRest<Array<{ id: string; user_id: string; status: string }>>(
+    "account_deletion_requests?select=id,user_id,status&id=eq." + encodeURIComponent(requestId) + "&limit=1",
+  );
+  const request = requests[0];
+  if (!request || request.user_id !== userId || request.status !== "pending") throw new Error("Solicitação não encontrada ou já processada.");
+  await deleteAuthCustomer(userId);
+  await supabaseRest("account_deletion_requests?id=eq." + encodeURIComponent(requestId), {
+    method: "PATCH",
+    body: JSON.stringify({ user_id: null, status: "completed", processed_at: new Date().toISOString(), processed_by: "admin" }),
+  });
+  revalidatePath("/admin/usuarios"); revalidatePath("/admin/assinaturas"); revalidatePath("/admin/marketing");
+}
+
 export async function deleteCustomerPermanently(formData: FormData) {
   await assertAdminApi(); const userId = String(formData.get("userId") ?? ""); const confirmation = String(formData.get("confirmation") ?? ""); if (!userId || confirmation !== "EXCLUIR") throw new Error("Confirmação de exclusão inválida.");
   await deleteAuthCustomer(userId); revalidatePath("/admin/usuarios"); revalidatePath("/admin/assinaturas"); revalidatePath("/admin/marketing");
