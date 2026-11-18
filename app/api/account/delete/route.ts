@@ -26,9 +26,13 @@ export async function POST(request: Request) {
       "user_subscriptions?select=id&user_id=eq." + encodeURIComponent(userId) +
       "&status=eq.active&or=(current_period_end.is.null,current_period_end.gt." + encodeURIComponent(new Date().toISOString()) + ")&limit=1",
     );
-    if (activeSubscriptions.length) {
+    const recurringLinks = await supabaseRest<Array<{ id: string }>>(
+      "kivai_recurring_provider_links?select=id&user_id=eq." + encodeURIComponent(userId) +
+      "&state=eq.active&limit=1",
+    );
+    if (activeSubscriptions.length || recurringLinks.length) {
       return Response.json({
-        error: "Existe uma assinatura ativa vinculada à sua conta. Solicite o cancelamento da renovação em Minha assinatura e pagamentos e aguarde a confirmação antes de excluir a conta.",
+        error: "Existe uma assinatura ou vínculo de cobrança ativo associado à sua conta. Solicite o cancelamento em Minha assinatura e pagamentos e aguarde a confirmação antes de excluir a conta.",
       }, { status: 409, headers });
     }
 
