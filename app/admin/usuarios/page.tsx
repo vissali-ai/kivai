@@ -1,7 +1,8 @@
 import { Crown, KeyRound, Search, ShieldAlert, Trash2, UserRound, UsersRound } from "lucide-react";
 import { listAdminCustomers } from "@/lib/admin/customer-users";
-import { deleteCustomerPermanently, grantProTest, sendCustomerPasswordReset, updateCustomerAccount } from "./actions";
+import { deleteCustomerPermanently, grantProTest, processAccountDeletionRequest, sendCustomerPasswordReset, updateCustomerAccount } from "./actions";
 import { CustomerAccessFields } from "@/components/admin/customer-access-fields";
+import { supabaseRest } from "@/lib/blog/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,10 @@ function isActiveTest(testAccess: boolean, periodEnd: string | null, subscriptio
 
 export default async function AdminUsuariosPage({ searchParams }: { searchParams: Promise<{ q?: string; plan?: string; status?: string }> }) {
   const params = await searchParams;
-  const all = await listAdminCustomers();
+  const [all, deletionRequests] = await Promise.all([
+    listAdminCustomers(),
+    supabaseRest<Array<{ id: string; user_id: string; feedback: string | null; requested_at: string }>>("account_deletion_requests?select=id,user_id,feedback,requested_at&status=eq.pending&order=requested_at.asc&limit=100").catch(() => []),
+  ]);
   const q = (params.q ?? "").trim().toLowerCase();
   const plan = params.plan ?? "all";
   const status = params.status ?? "all";
@@ -20,6 +24,14 @@ export default async function AdminUsuariosPage({ searchParams }: { searchParams
 
   return <div className="space-y-6">
     <section className="border border-border bg-card p-5 sm:p-6"><div className="flex items-start justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Clientes, planos e pagamentos</p><h1 className="mt-2 text-3xl font-semibold">Usuários e assinaturas</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Visão compacta para localizar rapidamente cada cliente. Abra apenas o usuário que precisar administrar.</p></div><UsersRound className="size-7 text-primary" /></div><div className="mt-5 grid gap-3 sm:grid-cols-4"><div className="border border-border p-3"><p className="text-xs text-muted-foreground">Total</p><p className="mt-1 text-xl font-semibold">{counts.total}</p></div><div className="border border-border p-3"><p className="text-xs text-muted-foreground">Grátis</p><p className="mt-1 text-xl font-semibold">{counts.free}</p></div><div className="border border-border p-3"><p className="text-xs text-muted-foreground">Pro</p><p className="mt-1 text-xl font-semibold text-primary">{counts.pro}</p></div><div className="border border-border p-3"><p className="text-xs text-muted-foreground">Agency</p><p className="mt-1 text-xl font-semibold">{counts.agency}</p></div></div></section>
+
+    {deletionRequests.length ? <section className="space-y-3 border border-red-500/25 bg-red-500/[0.03] p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-red-600">Solicitações recebidas</p><h2 className="mt-1 text-xl font-semibold">Pedidos de exclusão de conta</h2><p className="mt-1 text-xs text-muted-foreground">O usuário permanece ativo até você concluir a exclusão por aqui.</p></div><span className="border border-red-500/30 px-2 py-1 text-xs font-semibold text-red-600">{deletionRequests.length} pendente(s)</span></div>
+      {deletionRequests.map((request) => { const customer = all.find((item) => item.id === request.user_id); return <div key={request.id} className="grid gap-3 border border-border bg-card p-3 sm:grid-cols-[minmax(0,1fr)_220px]">
+        <div className="min-w-0"><p className="font-semibold">{customer?.fullName || "Usuário"}</p><p className="text-xs text-muted-foreground">{customer?.email || "Conta não localizada"} · Pedido em {new Date(request.requested_at).toLocaleString("pt-BR")}</p><p className="mt-2 text-sm">{request.feedback || "Nenhum motivo informado."}</p></div>
+        {customer ? <form action={processAccountDeletionRequest} className="flex flex-col gap-2"><input type="hidden" name="requestId" value={request.id} /><input type="hidden" name="userId" value={request.user_id} /><label className="text-xs text-muted-foreground">Digite EXCLUIR para confirmar<input name="confirmation" required placeholder="EXCLUIR" className="mt-1 h-9 w-full border border-red-500/30 bg-background px-2 text-sm" /></label><button className="h-9 bg-red-600 px-3 text-xs font-semibold text-white">Excluir conta definitivamente</button></form> : <p className="text-xs text-muted-foreground">Usuário não encontrado. Verifique a conta antes de processar.</p>}
+      </div>; })}
+    </section> : null}
 
     <form className="grid gap-3 border border-border bg-card p-4 md:grid-cols-[1fr_180px_180px_auto]"><label className="relative"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><input name="q" defaultValue={params.q} placeholder="Buscar nome, e-mail ou WhatsApp" className="h-10 w-full border border-border bg-background pl-9 pr-3 text-sm" /></label><select name="plan" defaultValue={plan} className="h-10 border border-border bg-background px-3 text-sm"><option value="all">Todos os planos</option><option value="free">Grátis</option><option value="pro">Pro</option><option value="agency">Agency</option></select><select name="status" defaultValue={status} className="h-10 border border-border bg-background px-3 text-sm"><option value="all">Todos os status</option><option value="active">Ativos</option><option value="expired">Vencidos</option></select><button className="h-10 bg-primary px-5 text-sm font-semibold text-primary-foreground">Filtrar</button></form>
 
