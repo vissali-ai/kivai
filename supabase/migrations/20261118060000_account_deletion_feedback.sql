@@ -17,5 +17,3 @@ create unique index if not exists account_deletion_requests_one_pending_per_user
 alter table public.account_deletion_requests enable row level security;
 revoke all on public.account_deletion_requests from public, anon, authenticated;
 grant select, insert, update on public.account_deletion_requests to service_role;
-
-drop table if exists public.account_deletion_feedback;
