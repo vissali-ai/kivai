@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getStoredSession, signOut, supabaseUserFetch } from "@/lib/user-auth";
 import { guestStudies, storeGuestStudies, getGuestAudio, deleteGuestAudio } from "@/lib/video-studies/guest-preview";
 import { AiCreditBalance } from "@/components/tools/ai-credit-balance";
+import { AccountDeletion } from "@/components/account/account-deletion";
 
 import { useAccountAccess } from "@/lib/billing/access-client";
 import { AccountWorkspaceNav } from "@/components/account/account-workspace-nav";
@@ -188,6 +189,7 @@ export function AccountDashboard() {
                 <Link href="/conta/cobrancas" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent">Minha assinatura e pagamentos</Link>
                 <Link href="/conta/atendimento" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent"><Headset className="size-4" /> Central de Atendimento</Link>
                 <Link href="/conta/rotinas" className="flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent"><Clock3 className="size-4" /> Minhas Rotinas</Link>
+              <AccountDeletion />
               </nav>
               <button type="button" onClick={handleLogout} className="mt-1 flex min-h-10 w-full items-center gap-2 rounded-lg border-t border-border px-3 py-2 text-left text-sm hover:bg-accent"><LogOut className="size-4" /> Sair da conta</button>
             </div>
