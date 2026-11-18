@@ -33,8 +33,9 @@ export async function POST(request: Request) {
       body: JSON.stringify({ user_id: userId, feedback: feedback || null, status: "pending" }),
     });
     return Response.json({ ok: true, requested: true }, { headers });
-  } catch {
-    console.error("account_deletion_request_failed");
-    return Response.json({ error: "Não foi possível enviar sua solicitação. Tente novamente." }, { status: 503, headers });
+  } catch (error) {
+    // Keep the technical cause in server logs without exposing database details to the client.
+    console.error("[account-deletion] request failed", error instanceof Error ? error.message : String(error));
+    return Response.json({ error: "Não foi possível processar a solicitação." }, { status: 503, headers });
   }
 }
