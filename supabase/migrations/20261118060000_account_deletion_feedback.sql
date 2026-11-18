@@ -1,6 +1,6 @@
 create table if not exists public.account_deletion_requests (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
+  user_id uuid,
   feedback text check (feedback is null or char_length(feedback) <= 1000),
   status text not null default 'pending' check (status in ('pending', 'completed', 'cancelled')),
   requested_at timestamptz not null default now(),
