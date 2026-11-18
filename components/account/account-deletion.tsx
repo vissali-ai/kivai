@@ -53,12 +53,12 @@ export function AccountDeletion() {
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <span className="rounded-xl bg-muted p-2 text-muted-foreground"><Trash2 className="size-5" /></span>
-              <div><h2 id="account-delete-title" className="text-lg font-semibold">Excluir sua conta Kivai</h2><p className="mt-1 text-sm text-muted-foreground">O pedido será encaminhado à equipe do Kivai para análise e execução.</p></div>
+              <div><h2 id="account-delete-title" className="text-lg font-semibold">Excluir sua conta Kivai</h2></div>
             </div>
             <button type="button" aria-label="Fechar" disabled={loading} onClick={() => setOpen(false)} className="rounded-lg p-2 text-muted-foreground hover:bg-accent"><X className="size-4" /></button>
           </div>
-          {requested ? <div className="mt-5 rounded-xl border border-border bg-muted/40 p-4 text-sm leading-6"><strong>Solicitação enviada.</strong><p className="mt-1">Nossa equipe recebeu seu pedido. Sua conta permanecerá ativa até a exclusão ser concluída pela administração. Você pode fechar esta janela.</p></div> : <>
-            <p className="mt-5 text-sm leading-6 text-muted-foreground">Sua conta continuará ativa até que a equipe conclua a exclusão. Se houver assinatura ou cobrança recorrente ativa, será necessário regularizá-la antes da exclusão definitiva.</p>
+          {requested ? <div className="mt-5 rounded-xl border border-border bg-muted/40 p-4 text-sm leading-6"><strong>Solicitação enviada.</strong></div> : <>
+            <p className="mt-5 text-sm leading-6 text-muted-foreground">Se houver assinatura ou cobrança recorrente ativa, será necessário regularizá-la antes da exclusão definitiva.</p>
             <label htmlFor="account-delete-feedback" className="mt-5 block text-sm font-medium">Gostaria de contar por que está saindo? <span className="font-normal text-muted-foreground">(opcional)</span></label>
             <textarea id="account-delete-feedback" value={feedback} onChange={event => setFeedback(event.target.value.slice(0, 1000))} rows={3} maxLength={1000} placeholder="Seu feedback nos ajuda a melhorar o Kivai." className="mt-2 w-full resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" />
             <p className="mt-1 text-right text-xs text-muted-foreground">{feedback.length}/1000</p>
