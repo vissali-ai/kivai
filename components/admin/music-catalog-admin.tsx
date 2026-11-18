@@ -10,6 +10,37 @@ type MusicRow = MusicArtist | MusicAlbum | MusicTrack;
 type Catalog = { artists: MusicArtist[]; albums: MusicAlbum[]; tracks: MusicTrack[]; genres: { id: string; name: string }[] };
 type PendingDelete = { kind: MusicKind; id: string; label: string; impact: string };
 
+function formatDuration(seconds: number) {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+function readAudioDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const audio = document.createElement("audio");
+    const url = URL.createObjectURL(file);
+    audio.preload = "metadata";
+    audio.onloadedmetadata = () => {
+      const duration = Number.isFinite(audio.duration) ? Math.round(audio.duration) : 0;
+      URL.revokeObjectURL(url);
+      audio.removeAttribute("src");
+      duration > 0 ? resolve(duration) : reject(new Error("Não foi possível identificar a duração do MP3."));
+    };
+    audio.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Não foi possível ler os metadados do MP3.")); };
+    audio.src = url;
+  });
+}
+function putMusicFile(url: string, file: File, mime: string, progress?: (value: number) => void): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url);
+    xhr.setRequestHeader("Content-Type", mime);
+    xhr.upload.onprogress = event => { if (event.lengthComputable) progress?.(Math.round(event.loaded / event.total * 100)); };
+    xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("O armazenamento não aceitou o MP3."));
+    xhr.onerror = () => reject(new Error("Falha de conexão durante o envio."));
+    xhr.send(file);
+  });
+}
+
+
 const blank: Catalog = { artists: [], albums: [], tracks: [], genres: [] };
 const statusLabels = { draft: "Rascunho", published: "Publicado", archived: "Arquivado" };
 const kindLabels: Record<MusicKind, string> = { artist: "artista", album: "álbum", track: "faixa" };
@@ -23,6 +54,11 @@ export function MusicCatalogAdmin() {
   const [busy, setBusy] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [confirm, setConfirm] = useState("");
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [batchAlbumId, setBatchAlbumId] = useState("");
+  const [batchFiles, setBatchFiles] = useState<Array<{ file: File; title: string; duration: number }>>([]);
+  const [batchStatus, setBatchStatus] = useState("draft");
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, percent: 0, label: "" });
 
   async function refresh() {
     const response = await fetch("/api/admin/music", { cache: "no-store" });
@@ -75,25 +111,58 @@ export function MusicCatalogAdmin() {
     if (!file) return;
     setBusy(true);
     try {
-      const prepared = await fetch("/api/admin/music", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: "upload", uploadKind, mime: file.type, size: file.size }),
-      });
+      const durationSeconds = uploadKind === "audio" ? await readAudioDuration(file) : 0;
+      const mime = uploadKind === "audio" ? (file.type === "audio/mp3" ? "audio/mp3" : "audio/mpeg") : file.type;
+      const prepared = await fetch("/api/admin/music", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "upload", uploadKind, mime, size: file.size }) });
       const signed = await prepared.json();
       if (!prepared.ok) throw new Error(signed.error);
-      const uploadHeaders: Record<string, string> = { "Content-Type": file.type };
-      if (uploadKind !== "audio") uploadHeaders["x-upsert"] = "false";
-      const sent = await fetch(signed.uploadUrl, { method: "PUT", headers: uploadHeaders, body: file });
-      if (!sent.ok) throw new Error("O Storage não aceitou o arquivo. Tente novamente.");
+      await putMusicFile(signed.uploadUrl, file, mime);
       const key = uploadKind === "audio" ? "audioUrl" : uploadKind === "photo" ? "photoUrl" : uploadKind === "genre" ? "imageUrl" : "coverUrl";
-      setFields(current => ({ ...current, [key]: signed.publicUrl }));
-      setMessage("Upload concluído. Salve o cadastro para aplicar.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Falha no upload.");
-    } finally {
-      setBusy(false);
+      setFields(current => ({ ...current, [key]: signed.publicUrl, ...(uploadKind === "audio" ? { durationSeconds: String(durationSeconds), title: current.title?.trim() ? current.title : file.name.replace(/\\.mp3$/i, "").replace(/[_-]+/g, " ") } : {}) }));
+      setMessage(uploadKind === "audio" ? `Upload concluído. Duração identificada: ${formatDuration(durationSeconds)}.` : "Upload concluído. Salve o cadastro para aplicar.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Falha no upload."); }
+    finally { setBusy(false); }
+  }
+
+  async function selectBatchFiles(files: FileList | null) {
+    if (!files) return;
+    const selected = Array.from(files).filter(file => file.name.toLowerCase().endsWith(".mp3"));
+    const items = await Promise.all(selected.map(async file => {
+      let duration = 0;
+      try { duration = await readAudioDuration(file); } catch { /* exibimos a falha como duração indisponível */ }
+      return { file, title: file.name.replace(/\\.mp3$/i, "").replace(/[_-]+/g, " "), duration };
+    }));
+    setBatchFiles(items);
+    if (items.length !== selected.length) setMessage("Alguns arquivos foram ignorados. Selecione somente MP3.");
+  }
+
+  async function uploadBatch() {
+    if (!batchAlbumId || !batchFiles.length || busy) return;
+    setBusy(true);
+    let nextNumber = Math.max(0, ...data.tracks.filter(track => track.albumId === batchAlbumId).map(track => track.trackNumber)) + 1;
+    const failed: typeof batchFiles = [];
+    let completed = 0;
+    for (const item of batchFiles) {
+      setBatchProgress({ current: completed + failed.length + 1, total: batchFiles.length, percent: 0, label: item.file.name });
+      try {
+        const duration = item.duration || await readAudioDuration(item.file);
+        const mime = item.file.type === "audio/mp3" ? "audio/mp3" : "audio/mpeg";
+        const prepared = await fetch("/api/admin/music", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "upload", uploadKind: "audio", mime, size: item.file.size }) });
+        const signed = await prepared.json();
+        if (!prepared.ok) throw new Error(signed.error ?? "Falha ao preparar upload.");
+        await putMusicFile(signed.uploadUrl, item.file, mime, percent => setBatchProgress(current => ({ ...current, percent })));
+        const saved = await fetch("/api/admin/music", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "track", albumId: batchAlbumId, title: item.title.trim() || item.file.name.replace(/\\.mp3$/i, ""), trackNumber: nextNumber, durationSeconds: duration, audioUrl: signed.publicUrl, status: batchStatus }) });
+        const result = await saved.json();
+        if (!saved.ok) throw new Error(result.error ?? "Falha ao salvar faixa.");
+        nextNumber += 1;
+        completed += 1;
+      } catch { failed.push(item); }
     }
+    await refresh();
+    setBatchFiles(failed);
+    setBatchProgress({ current: completed + failed.length, total: completed + failed.length, percent: 100, label: "" });
+    setMessage(failed.length ? `${completed} música(s) adicionada(s). ${failed.length} falharam e ficaram disponíveis para nova tentativa.` : `${completed} música(s) adicionada(s) ao álbum com duração identificada automaticamente.`);
+    setBusy(false);
   }
 
   async function save(event: React.FormEvent) {
@@ -176,56 +245,33 @@ export function MusicCatalogAdmin() {
     </label>
   );
 
-  const rows: MusicRow[] = kind === "artist" ? data.artists : kind === "album" ? data.albums : data.tracks;
-
-  function rowDetails(row: MusicRow) {
-    if (kind === "artist") {
-      const artist = row as MusicArtist;
-      const count = data.albums.filter(album => album.artistId === artist.id).length;
-      const plays = data.tracks.filter(track => data.albums.some(album => album.artistId === artist.id && album.id === track.albumId)).reduce((sum, track) => sum + (track.playCount ?? 0), 0);
-      return `${statusLabels[artist.status]} · ${artist.slug} · ${count} ${count === 1 ? "álbum" : "álbuns"} · ${plays.toLocaleString("pt-BR")} reproduções`;
-    }
-    if (kind === "album") {
-      const album = row as MusicAlbum;
-      const artist = data.artists.find(item => item.id === album.artistId);
-      const count = data.tracks.filter(track => track.albumId === album.id).length;
-      return `${statusLabels[album.status]} · ${artist?.name ?? "Artista não identificado"} · ${count} ${count === 1 ? "faixa" : "faixas"}`;
-    }
-    const track = row as MusicTrack;
-    const album = data.albums.find(item => item.id === track.albumId);
-    return `${statusLabels[track.status]} · ${album?.title ?? "Álbum não identificado"} · faixa ${track.trackNumber} · ${(track.playCount ?? 0).toLocaleString("pt-BR")} reproduções`;
-  }
+  const filteredArtists = data.artists.filter(artist => {
+    const term = catalogSearch.trim().toLocaleLowerCase("pt-BR");
+    if (!term) return true;
+    const albums = data.albums.filter(album => album.artistId === artist.id);
+    return artist.name.toLocaleLowerCase("pt-BR").includes(term) || albums.some(album => album.title.toLocaleLowerCase("pt-BR").includes(term) || data.tracks.some(track => track.albumId === album.id && track.title.toLocaleLowerCase("pt-BR").includes(term)));
+  });
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-      <section className="space-y-4" aria-label="Cadastros do catálogo de música">
-        <div className="grid grid-cols-3 gap-2">
-          {(["artist", "album", "track"] as const).map(type => (
-            <Button key={type} type="button" variant={kind === type ? "default" : "outline"} onClick={() => edit(type)}>
-              {type === "artist" ? `Artistas (${data.artists.length})` : type === "album" ? `Álbuns (${data.albums.length})` : `Faixas (${data.tracks.length})`}
-            </Button>
-          ))}
-        </div>
-        <div className="flex justify-end"><Button type="button" variant="outline" onClick={() => edit(kind)}>Novo cadastro</Button></div>
+      <section className="space-y-4" aria-label="Catálogo musical">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">Artistas e lançamentos</h2><p className="text-xs text-muted-foreground">Abra cada artista para visualizar os álbuns e suas músicas.</p></div><Button type="button" onClick={() => edit("artist")}>Novo artista</Button></div>
+        <Input value={catalogSearch} onChange={event => setCatalogSearch(event.target.value)} placeholder="Buscar artista, álbum ou música..." />
         {message && <p role="status" className="rounded-lg border border-border p-3 text-sm">{message}</p>}
-        <div className="space-y-2">
-          {rows.map(row => (
-            <article key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
-              <div className="min-w-0 flex-1"><p className="font-medium">{"name" in row ? row.name : row.title}</p><p className="text-xs text-muted-foreground">{rowDetails(row)}</p></div>
-              <div className="flex gap-2"><Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => edit(kind, row)}>Editar</Button><Button type="button" size="sm" variant="destructive" disabled={busy} onClick={() => askDelete(kind, row)}>Excluir</Button></div>
-            </article>
-          ))}
-          {!rows.length && <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Nenhum cadastro ainda.</p>}
-        </div>
-        {pendingDelete && (
-          <div className="space-y-3 rounded-lg border border-destructive/40 p-4" role="group" aria-label="Confirmar exclusão definitiva">
-            <p className="text-sm font-semibold">Excluir definitivamente “{pendingDelete.label}”?</p>
-            <p className="text-sm">{pendingDelete.impact}</p>
-            <p className="text-xs text-muted-foreground">O cadastro e os registros dependentes serão removidos. Os arquivos Kivai vinculados também serão apagados; links externos não são removidos.</p>
-            <label className="block text-sm">Digite EXCLUIR DEFINITIVAMENTE<input value={confirm} onChange={event => setConfirm(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2" /></label>
-            <div className="flex flex-wrap gap-2"><Button type="button" variant="destructive" disabled={busy || confirm !== "EXCLUIR DEFINITIVAMENTE"} onClick={() => void remove()}>Excluir permanentemente</Button><Button type="button" variant="outline" disabled={busy} onClick={() => { setPendingDelete(null); setConfirm(""); }}>Cancelar</Button></div>
-          </div>
-        )}
+        <div className="space-y-3">{filteredArtists.map(artist => {
+          const albums = data.albums.filter(album => album.artistId === artist.id);
+          const tracksCount = data.tracks.filter(track => albums.some(album => album.id === track.albumId)).length;
+          return <details key={artist.id} className="rounded-xl border border-border bg-card p-3">
+            <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2"><span><strong>{artist.name}</strong><small className="ml-2 text-muted-foreground">{albums.length} álbuns · {tracksCount} músicas</small></span><span className="flex gap-2"><Button type="button" size="sm" variant="outline" onClick={event => {event.preventDefault();edit("artist",artist);}}>Editar</Button><Button type="button" size="sm" variant="outline" onClick={event => {event.preventDefault();setId("");setKind("album");setFields({status:"draft",artistId:artist.id});}}>Novo álbum</Button></span></summary>
+            <div className="mt-3 space-y-2 border-l pl-3">{albums.map(album => {
+              const tracks = data.tracks.filter(track => track.albumId === album.id).sort((a,b)=>a.trackNumber-b.trackNumber);
+              return <details key={album.id} className="rounded-lg border border-border/70 p-3"><summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2"><span><strong className="text-sm">{album.title}</strong><small className="ml-2 text-muted-foreground">{tracks.length} músicas · {statusLabels[album.status]}</small></span><span className="flex gap-2"><Button type="button" size="sm" variant="outline" onClick={event=>{event.preventDefault();edit("album",album);}}>Editar álbum</Button><Button type="button" size="sm" onClick={event=>{event.preventDefault();setBatchAlbumId(album.id);}}>Adicionar músicas</Button></span></summary>
+                <div className="mt-2 space-y-1">{tracks.map(track=><div key={track.id} className="flex items-center justify-between gap-2 rounded bg-muted/40 px-2 py-1.5 text-sm"><span className="min-w-0 truncate">{String(track.trackNumber).padStart(2,"0")}. {track.title}</span><span className="flex shrink-0 items-center gap-1"><small className="text-muted-foreground">{track.durationSeconds?formatDuration(track.durationSeconds):"Duração indisponível"}</small><Button type="button" size="sm" variant="ghost" onClick={()=>edit("track",track)}>Editar</Button><Button type="button" size="sm" variant="destructive" onClick={()=>askDelete("track",track)}>Excluir</Button></span></div>)}</div>
+              </details>;
+            })}{!albums.length&&<p className="text-xs text-muted-foreground">Este artista ainda não possui álbuns.</p>}</div>
+          </details>;
+        })}{!filteredArtists.length&&<p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Nenhum artista ou álbum encontrado.</p>}</div>
+        {pendingDelete && <div className="space-y-3 rounded-lg border border-destructive/40 p-4"><p className="text-sm font-semibold">Excluir definitivamente “{pendingDelete.label}”?</p><p className="text-sm">{pendingDelete.impact}</p><p className="text-xs text-muted-foreground">O cadastro e seus registros dependentes serão removidos, incluindo mídias Kivai vinculadas.</p><label className="block text-sm">Digite EXCLUIR DEFINITIVAMENTE<input value={confirm} onChange={event=>setConfirm(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2"/></label><div className="flex gap-2"><Button type="button" variant="destructive" disabled={busy||confirm!=="EXCLUIR DEFINITIVAMENTE"} onClick={()=>void remove()}>Excluir permanentemente</Button><Button type="button" variant="outline" onClick={()=>{setPendingDelete(null);setConfirm("");}}>Cancelar</Button></div></div>}
       </section>
 
       <form onSubmit={save} className="h-fit space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5 xl:sticky xl:top-6">
@@ -237,12 +283,21 @@ export function MusicCatalogAdmin() {
         </> : null}
         {kind === "track" ? <>
           <label className="block space-y-1 text-sm">Álbum<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.albumId ?? ""} onChange={event => setFields(current => ({ ...current, albumId: event.target.value }))}><option value="">Selecione...</option>{data.albums.map(album => <option key={album.id} value={album.id}>{data.artists.find(artist => artist.id === album.artistId)?.name ?? "Artista"} · {album.title}</option>)}</select></label>
-          {label("title", "Título da faixa")}{label("trackNumber", "Ordem da faixa", "number")}{label("durationSeconds", "Duração (segundos)", "number")}{uploadField("audioUrl", "Arquivo MP3 · até 100 MB", "audio/mpeg,.mp3", "audio")}
+          {label("title", "Título da faixa")}{label("trackNumber", "Ordem da faixa", "number")}<p className="text-xs text-muted-foreground">A duração é identificada automaticamente pelo MP3.</p>{uploadField("audioUrl", "Arquivo MP3 · até 100 MB", "audio/mpeg,.mp3", "audio")}
         </> : null}
         <label className="block space-y-1 text-sm">Publicação<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.status ?? "draft"} onChange={event => setFields(current => ({ ...current, status: event.target.value }))}><option value="draft">Rascunho</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select></label>
         {kind !== "track" && <><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={fields.indexable === "true"} onChange={event => setFields(current => ({ ...current, indexable: String(event.target.checked) }))} />Indexável</label><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={fields.includeInSitemap === "true"} onChange={event => setFields(current => ({ ...current, includeInSitemap: String(event.target.checked) }))} />Incluir no sitemap</label></>}
         <Button type="submit" className="w-full" disabled={busy}>{busy ? "Salvando..." : "Salvar"}</Button>
       </form>
+      <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+        <div><h2 className="font-semibold">Adicionar músicas em lote</h2><p className="text-xs text-muted-foreground">Selecione o álbum e envie vários MP3 de uma só vez. Título inicial e duração são identificados automaticamente.</p></div>
+        <label className="block space-y-1 text-sm">Álbum de destino<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={batchAlbumId} onChange={event=>setBatchAlbumId(event.target.value)}><option value="">Selecione o álbum...</option>{data.albums.map(album=><option key={album.id} value={album.id}>{data.artists.find(artist=>artist.id===album.artistId)?.name??"Artista"} · {album.title}</option>)}</select></label>
+        <label className="block space-y-1 text-sm">Arquivos MP3<Input type="file" accept=".mp3,audio/mpeg,audio/mp3" multiple disabled={busy} onChange={event=>void selectBatchFiles(event.target.files)}/></label>
+        {batchFiles.length>0&&<div className="max-h-56 space-y-2 overflow-auto rounded-lg border p-2">{batchFiles.map((item,index)=><div key={item.file.name+index} className="grid grid-cols-[1fr_auto] items-center gap-2"><Input value={item.title} onChange={event=>setBatchFiles(current=>current.map((entry,i)=>i===index?{...entry,title:event.target.value}:entry))}/><small className="text-muted-foreground">{item.duration?formatDuration(item.duration):"Duração não lida"}</small></div>)}</div>}
+        <label className="block space-y-1 text-sm">Status inicial<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={batchStatus} onChange={event=>setBatchStatus(event.target.value)}><option value="draft">Rascunho</option><option value="published">Publicado</option></select></label>
+        {batchProgress.total>0&&<div className="space-y-1"><div className="flex justify-between text-xs"><span>{batchProgress.label||"Processamento"}</span><span>{batchProgress.current}/{batchProgress.total} · {batchProgress.percent}%</span></div><div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all" style={{width:`${batchProgress.percent}%`}}/></div></div>}
+        <Button type="button" className="w-full" disabled={busy||!batchAlbumId||!batchFiles.length} onClick={()=>void uploadBatch()}>{busy?"Enviando músicas...":`Enviar ${batchFiles.length||""} música(s)`}</Button>
+      </section>
     </div>
   );
 }
