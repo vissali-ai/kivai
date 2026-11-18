@@ -52,7 +52,7 @@ export function AccountDeletion() {
             <button type="button" aria-label="Fechar" disabled={loading} onClick={() => setOpen(false)} className="rounded-lg p-2 text-muted-foreground hover:bg-accent"><X className="size-4" /></button>
           </div>
           <div className="mt-5 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm leading-6">
-            Ao confirmar, seu acesso e cadastro de usuário serão excluídos. Os dados associados à conta vinculados por integridade referencial também serão removidos. Esta ação não cancela automaticamente cobranças ou contratos ativos.
+            Ao confirmar, seu acesso e cadastro de usuário serão excluídos. Os dados associados à conta serão removidos conforme as regras de integridade do banco. Se houver assinatura ou cobrança recorrente ativa, será necessário solicitar o cancelamento e aguardar a confirmação antes de excluir a conta.
           </div>
           <label htmlFor="account-delete-feedback" className="mt-5 block text-sm font-medium">Gostaria de contar por que está saindo? <span className="font-normal text-muted-foreground">(opcional)</span></label>
           <textarea id="account-delete-feedback" value={feedback} onChange={event => setFeedback(event.target.value.slice(0, 1000))} rows={3} maxLength={1000} placeholder="Seu feedback nos ajuda a melhorar o Kivai." className="mt-2 w-full resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" />
