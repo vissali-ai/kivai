@@ -7,7 +7,7 @@ import { getMusicGenreIcon } from "@/lib/music/genre-icon";
 export default async function MusicPage() {
   const [catalog, genres, pathPrefix] = await Promise.all([listMusicCatalog(), listMusicGenres(), getMusicPathPrefix()]);
   const recentAlbums = catalog.flatMap(({ artist, albums }) => albums.map(album => ({ ...album, artist })))
-    .sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "")).slice(0, 8);
+    .sort((a, b) => (a.publishedAt ?? "").localeCompare(b.publishedAt ?? "")).slice(0, 8);
   const genreCounts = new Map<string, number>();
   for (const item of catalog) if (item.artist.genreId) genreCounts.set(item.artist.genreId, (genreCounts.get(item.artist.genreId) ?? 0) + 1);
 
@@ -17,9 +17,9 @@ export default async function MusicPage() {
         <section className="mt-4">
           <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-2xl font-semibold">Mais recentes</h2><p className="mt-1 text-sm text-muted-foreground">Álbuns e lançamentos adicionados ao catálogo.</p></div></div>
           {recentAlbums.length ? (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+            <div dir="rtl" className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
               {recentAlbums.map(album => (
-                <article key={album.id} className="group min-w-0">
+                <article key={album.id} dir="ltr" className="group min-w-0">
                   <Link href={musicPath(pathPrefix, album.artist.slug, album.slug)} className="block">
                     <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
                       {album.coverUrl ? <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover transition-transform group-hover:scale-[1.03]" /> : null}
