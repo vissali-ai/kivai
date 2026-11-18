@@ -11,12 +11,12 @@ import { createR2UploadUrl, deleteR2Object, getR2PublicUrl, r2ObjectKeyFromPubli
 
 type ArtistRow = { id:string;slug:string;name:string;bio:string;photo_url:string;cover_url:string;contact_whatsapp:string;contact_message:string;status:MusicArtist["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
 type AlbumRow = { id:string;artist_id:string;artist_name?:string;artist_slug?:string;slug:string;title:string;description:string;cover_url:string;release_date:string|null;published_at?:string|null;created_at?:string;status:MusicAlbum["status"];indexable:boolean;include_in_sitemap:boolean;updated_at:string };
-type TrackRow = { id:string;album_id:string;title:string;track_number:number;duration_seconds:number|null;audio_url:string;play_count:number;status:MusicTrack["status"] };
+type TrackRow = { id:string;slug:string;album_id:string;title:string;track_number:number;duration_seconds:number|null;audio_url:string;play_count:number;status:MusicTrack["status"] };
 type GenreRow = { id:string;name:string;slug:string;description:string;image_url:string;status:MusicGenre["status"];created_at:string;updated_at:string };
 const mapArtist=(r:ArtistRow & {genre_id?:string|null}):MusicArtist=>({id:r.id,slug:r.slug,name:r.name,bio:r.bio,photoUrl:r.photo_url,coverUrl:r.cover_url,genreId:r.genre_id??null,contactWhatsapp:r.contact_whatsapp,contactMessage:r.contact_message,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
 const mapGenre=(r:GenreRow):MusicGenre=>({id:r.id,name:r.name,slug:r.slug,description:r.description,imageUrl:r.image_url,status:r.status,createdAt:r.created_at,updatedAt:r.updated_at});
 const mapAlbum=(r:AlbumRow):MusicAlbum=>({id:r.id,artistId:r.artist_id,artistName:r.artist_name,artistSlug:r.artist_slug,slug:r.slug,title:r.title,description:r.description,coverUrl:r.cover_url,releaseDate:r.release_date,publishedAt:r.published_at??r.created_at??null,status:r.status,indexable:r.indexable,includeInSitemap:r.include_in_sitemap,updatedAt:r.updated_at});
-const mapTrack=(r:TrackRow):MusicTrack=>({id:r.id,albumId:r.album_id,title:r.title,trackNumber:r.track_number,durationSeconds:r.duration_seconds,audioUrl:r.audio_url,playCount:Number(r.play_count??0),status:r.status});
+const mapTrack=(r:TrackRow):MusicTrack=>({id:r.id,slug:r.slug,albumId:r.album_id,title:r.title,trackNumber:r.track_number,durationSeconds:r.duration_seconds,audioUrl:r.audio_url,playCount:Number(r.play_count??0),status:r.status});
 const enc=encodeURIComponent;
 
 export async function listMusicArtists(includeDrafts=false) { const q=includeDrafts?"music_artists?select=*&order=name.asc":"music_artists?select=*&status=eq.published&order=name.asc"; return (await supabaseRest<Array<ArtistRow & {genre_id?:string|null}>>(q,{allowMissingConfig:true})).map(mapArtist); }
@@ -31,6 +31,10 @@ export async function listMusicCatalog():Promise<MusicCatalog[]> {
 }
 export async function getMusicCatalogByArtist(slug:string) { return (await listMusicCatalog()).find(c=>c.artist.slug===slug)??null; }
 export async function getMusicAlbum(artistSlug:string,albumSlug:string) { const catalog=await getMusicCatalogByArtist(artistSlug); if(!catalog)return null; const album=catalog.albums.find(a=>a.slug===albumSlug); return album?{artist:catalog.artist,album}:null; }
+export async function getMusicTrack(artistSlug:string,albumSlug:string,trackSlug:string) {
+ const result=await getMusicAlbum(artistSlug,albumSlug);if(!result)return null;
+ const track=result.album.tracks.find(item=>item.slug===trackSlug);return track?{...result,track}:null;
+}
 export async function listAdminMusicCatalog() {
  const [artists,albums,tracks,genres]=await Promise.all([supabaseRest<Array<ArtistRow & {genre_id?:string|null}>>("music_artists?select=*&order=created_at.desc"),supabaseRest<AlbumRow[]>("music_albums?select=*&order=created_at.desc"),supabaseRest<TrackRow[]>("music_tracks?select=*&order=track_number.asc"),supabaseRest<GenreRow[]>("music_genres?select=*&order=name.asc")]);
  return {artists:artists.map(mapArtist),albums:albums.map(mapAlbum),tracks:tracks.map(mapTrack),genres:genres.map(mapGenre)};
@@ -66,7 +70,10 @@ export async function deleteMusicGenre(id:string) {
 }
 export async function saveMusicTrack(input:Record<string,unknown>) {
  const id=clean(input.id,64),albumId=clean(input.albumId,64),title=clean(input.title,160),trackNumber=Math.max(1,Math.floor(Number(input.trackNumber)||1)),audioUrl=clean(input.audioUrl,1200);if(!albumId||title.length<1||!audioUrl)throw new Error("Informe álbum, título e arquivo de áudio.");
- const status=cleanStatus(input.status);const body={album_id:albumId,title,track_number:trackNumber,duration_seconds:Math.max(0,Math.floor(Number(input.durationSeconds)||0))||null,audio_url:audioUrl,status};
+ const status=cleanStatus(input.status);let slug=slugify(clean(input.slug||title,160));if(!slug)throw new Error("Informe um título válido para gerar a URL da música.");
+ const conflicts=await supabaseRest<Array<{id:string}>>(`music_tracks?select=id&album_id=eq.${enc(albumId)}&slug=eq.${enc(slug)}${id?`&id=neq.${enc(id)}`:""}`);
+ if(conflicts.length){let suffix=2;const base=slug;while((await supabaseRest<Array<{id:string}>>(`music_tracks?select=id&album_id=eq.${enc(albumId)}&slug=eq.${enc(`${base}-${suffix}`)}${id?`&id=neq.${enc(id)}`:""}`)).length)suffix++;slug=`${base}-${suffix}`;}
+ const body={album_id:albumId,slug,title,track_number:trackNumber,duration_seconds:Math.max(0,Math.floor(Number(input.durationSeconds)||0))||null,audio_url:audioUrl,status};
  const rows=await supabaseRest<TrackRow[]>(id?`music_tracks?id=eq.${enc(id)}`:"music_tracks",{method:id?"PATCH":"POST",body:JSON.stringify(body)});return mapTrack(rows[0]);
 }
 const musicUuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
