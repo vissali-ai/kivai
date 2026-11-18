@@ -24,9 +24,9 @@ export default async function MusicPage() {
                     <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
                       {album.coverUrl ? <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover transition-transform group-hover:scale-[1.03]" /> : null}
                     </div>
-                    <h3 className="mt-1 truncate text-xs font-semibold sm:text-sm">{album.title}</h3>
+                    <h3 className="mt-1 truncate text-[13px] font-semibold sm:text-[15px]">{album.title}</h3>
                   </Link>
-                  <Link href={musicPath(pathPrefix, album.artist.slug)} className="mt-0.5 block truncate text-[11px] text-muted-foreground hover:text-primary hover:underline sm:text-xs">{album.artist.name}</Link>
+                  <Link href={musicPath(pathPrefix, album.artist.slug)} className="mt-0.5 block truncate text-[12px] text-muted-foreground hover:text-primary hover:underline sm:text-[13px]">{album.artist.name}</Link>
                 </article>
               ))}
             </div>
