@@ -29,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })) : []),
       ...(hubAllowsIndexing ? musicCatalog.flatMap(({ artist, albums }) => [
         ...(artist.indexable && artist.includeInSitemap ? [{ url: `https://streaming.kivai.com.br/${artist.slug}`, lastModified: new Date(artist.updatedAt), changeFrequency: "weekly" as const, priority: 0.8 }] : []),
-        ...albums.filter((album) => album.indexable && album.includeInSitemap).map((album) => ({ url: `https://streaming.kivai.com.br/${artist.slug}/${album.slug}`, lastModified: new Date(album.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 })),
+        ...albums.filter((album) => album.indexable && album.includeInSitemap).flatMap((album) => [{ url: `https://streaming.kivai.com.br/${artist.slug}/${album.slug}`, lastModified: new Date(album.updatedAt), changeFrequency: "weekly" as const, priority: 0.7 }, ...album.tracks.map((track) => ({ url: `https://streaming.kivai.com.br/${artist.slug}/${album.slug}/${track.slug}`, lastModified: new Date(album.updatedAt), changeFrequency: "weekly" as const, priority: 0.6 }))]),
       ]) : []),
       { url: "https://streaming.kivai.com.br/noticias", ...(indexableStreamingNews[0]?.updatedAt ? { lastModified: new Date(indexableStreamingNews[0].updatedAt) } : {}), changeFrequency: "daily" as const, priority: 0.8 },
       ...indexableStreamingNews.map((post) => ({ url: `https://streaming.kivai.com.br/noticias/${post.slug}`, lastModified: new Date(post.updatedAt), changeFrequency: "weekly" as const, priority: 0.8 })),
