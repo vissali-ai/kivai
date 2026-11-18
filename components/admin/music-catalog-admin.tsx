@@ -28,6 +28,20 @@ function readAudioDuration(file: File): Promise<number> {
     audio.src = url;
   });
 }
+function readAudioDurationFromUrl(url: string): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const audio = document.createElement("audio");
+    audio.preload = "metadata";
+    audio.onloadedmetadata = () => {
+      const duration = Number.isFinite(audio.duration) ? Math.round(audio.duration) : 0;
+      audio.removeAttribute("src");
+      audio.load();
+      duration > 0 ? resolve(duration) : reject(new Error("Duração indisponível."));
+    };
+    audio.onerror = () => reject(new Error("Não foi possível ler a duração do áudio."));
+    audio.src = url;
+  });
+}
 function putMusicFile(url: string, file: File, mime: string, progress?: (value: number) => void): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -62,8 +76,30 @@ export function MusicCatalogAdmin() {
 
   async function refresh() {
     const response = await fetch("/api/admin/music", { cache: "no-store" });
-    if (response.ok) setData(await response.json());
-    else setMessage("Não foi possível carregar o catálogo. A migração precisa estar aplicada.");
+    if (!response.ok) {
+      setMessage("Não foi possível carregar o catálogo. A migração precisa estar aplicada.");
+      return;
+    }
+    const catalog = await response.json() as Catalog;
+    setData(catalog);
+
+    // Recupera automaticamente a duração de faixas antigas que foram cadastradas sem metadados.
+    const missingDurations = catalog.tracks.filter(track => !track.durationSeconds && track.audioUrl);
+    for (const track of missingDurations) {
+      try {
+        const durationSeconds = await readAudioDurationFromUrl(track.audioUrl);
+        const saved = await fetch("/api/admin/music", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "track", id: track.id, albumId: track.albumId, title: track.title, trackNumber: track.trackNumber, durationSeconds, audioUrl: track.audioUrl, status: track.status }),
+        });
+        if (saved.ok) {
+          setData(current => ({ ...current, tracks: current.tracks.map(item => item.id === track.id ? { ...item, durationSeconds } : item) }));
+        }
+      } catch {
+        // Mantém a faixa intacta quando o arquivo não disponibiliza metadados.
+      }
+    }
   }
 
   useEffect(() => { void refresh(); }, []);
@@ -275,7 +311,7 @@ export function MusicCatalogAdmin() {
       </section>
 
       <div className="space-y-4">
-      <form onSubmit={save} className="h-fit space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5 xl:sticky xl:top-6">
+      <form onSubmit={save} className="min-w-0 space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
         <h2 className="font-semibold">{id ? "Editar" : "Novo"} {kindLabels[kind]}</h2>
         {kind === "artist" ? <>{label("name", "Nome")}{label("slug", "Slug")}<label className="block space-y-1 text-sm">Estilo musical<select className="h-10 w-full rounded-md border border-input bg-background px-3" value={fields.genreId ?? ""} onChange={event => setFields(current => ({ ...current, genreId: event.target.value }))}><option value="">Sem estilo definido</option>{data.genres.map(genre => <option key={genre.id} value={genre.id}>{genre.name}</option>)}</select></label>{label("bio", "Biografia")}{label("contactWhatsapp", "WhatsApp para contratação")}{label("contactMessage", "Mensagem inicial para WhatsApp")}{uploadField("photoUrl", "Foto do artista", "image/jpeg,image/png,image/webp", "photo", true)}{uploadField("coverUrl", "Capa do artista", "image/jpeg,image/png,image/webp", "cover")}</> : null}
         {kind === "album" ? <>
