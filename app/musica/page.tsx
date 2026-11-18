@@ -17,16 +17,16 @@ export default async function MusicPage() {
         <section className="mt-4">
           <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-2xl font-semibold">Mais recentes</h2><p className="mt-1 text-sm text-muted-foreground">Álbuns e lançamentos adicionados ao catálogo.</p></div></div>
           {recentAlbums.length ? (
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
               {recentAlbums.map(album => (
                 <article key={album.id} className="group min-w-0">
                   <Link href={musicPath(pathPrefix, album.artist.slug, album.slug)} className="block">
                     <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
                       {album.coverUrl ? <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover transition-transform group-hover:scale-[1.03]" /> : null}
                     </div>
-                    <h3 className="mt-2 truncate text-sm font-semibold">{album.title}</h3>
+                    <h3 className="mt-1 truncate text-xs font-semibold sm:text-sm">{album.title}</h3>
                   </Link>
-                  <Link href={musicPath(pathPrefix, album.artist.slug)} className="mt-1 block truncate text-xs text-muted-foreground hover:text-primary hover:underline">{album.artist.name}</Link>
+                  <Link href={musicPath(pathPrefix, album.artist.slug)} className="mt-0.5 block truncate text-[11px] text-muted-foreground hover:text-primary hover:underline sm:text-xs">{album.artist.name}</Link>
                 </article>
               ))}
             </div>
