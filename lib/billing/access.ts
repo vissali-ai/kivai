@@ -6,7 +6,7 @@ export async function getAccountAccess(userId: string) {
   const [plan, subscriptions, testOverrides] = await Promise.all([
     supabaseRest<PlanCode>("rpc/kivai_effective_plan", { method: "POST", body: JSON.stringify({ p_user_id: userId }) }),
     supabaseRest<AccessSubscription[]>(`user_subscriptions?select=plan_code,status,current_period_start,current_period_end,billing_cycle,provider,test_access&user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc,created_at.desc,id.desc`),
-    userId === "c07f6709-a9a3-45c0-9a89-22076649fd37"
+    userId === "72f2d037-1ef9-4175-98e0-d97250d4e201"
       ? supabaseRest<Array<{plan_code:PlanCode}>>(`kivai_test_plan_settings?select=plan_code&user_id=eq.${encodeURIComponent(userId)}&limit=1`)
       : Promise.resolve([] as Array<{plan_code:PlanCode}>),
   ]);
