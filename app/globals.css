@@ -306,6 +306,11 @@
   background: var(--background);
   color: var(--foreground);
   min-height: 100vh;
+  font-family: var(--font-streaming-body), Inter, Arial, Helvetica, sans-serif;
+}
+
+.kivai-streaming-theme :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-streaming-heading), Poppins, Inter, Arial, Helvetica, sans-serif;
 }
 
 .kivai-streaming-theme :is(input[type="range"], progress) {
