@@ -1,10 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { toolCategories } from "@/lib/tools";
 import { CookieSettingsButton } from "@/components/privacy/cookie-settings-button";
 import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
-import { FooterEcosystemLink } from "@/components/marketing/footer-ecosystem-link";
 
 const productLinks = [
   { label: "Ferramentas", href: "/ferramentas" },
@@ -14,10 +12,6 @@ const productLinks = [
   { label: "Blog", href: "/blog" },
 ];
 
-const ecosystemLinks = toolCategories.map((category) => ({
-  label: category.name,
-  href: category.href,
-}));
 
 const companyLinks = [
   { label: "Sobre o Kivai", href: "/sobre" },
@@ -63,7 +57,6 @@ export function Footer() {
               Ferramentas inteligentes para resultados reais
             </div>
 
-            <FooterEcosystemLink />
 
             <a
               href="https://www.instagram.com/kivai_br"
@@ -100,23 +93,6 @@ export function Footer() {
               </ul>
             </div>
 
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">Ecossistema</h3>
-
-              <ul className="mt-5 space-y-3">
-                {ecosystemLinks.map((link) => (
-                  <li key={`${link.label}-${link.href}`}>
-                    <Link
-                      href={link.href}
-                      className="group inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
-                    >
-                      {link.label}
-                      <ArrowUpRight className="size-3 opacity-0 transition group-hover:opacity-100" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
 
             <div>
               <h3 className="text-sm font-semibold text-foreground">
