@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ artist: s
       siteName: "Kivai Música",
       locale: "pt_BR",
       type: "profile",
-      ...(artist.coverUrl || artist.photoUrl ? { images: [artist.coverUrl || artist.photoUrl] } : {}),
+      ...(artist.photoUrl ? { images: [artist.photoUrl] } : {}),
     },
   };
 }
@@ -58,7 +58,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ artist:
       {whatsappHref ? <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"><MessageCircle className="size-4" />Contratar artista</a> : null}
     </section>
     <h2 className="mt-10 text-2xl font-semibold">Álbuns</h2>
-    <div aria-label="Álbuns do artista" className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 [scrollbar-width:thin] sm:mx-0 sm:gap-4 sm:px-0">{albums.map((album) => <Link key={album.id} href={musicPath(pathPrefix, artist.slug, album.slug)} className="group flex w-[min(82vw,320px)] shrink-0 snap-start gap-[9px] rounded-lg border border-border bg-card p-[9px]"><div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-muted"><span className="sr-only">Capa do álbum</span>{album.coverUrl && <Image src={album.coverUrl} alt={`Capa de ${album.title}`} fill sizes="56px" className="object-cover" />}</div><div className="min-w-0 self-center"><h3 className="truncate text-base font-semibold">{album.title}</h3><p className="mt-0.5 text-sm text-muted-foreground">{album.tracks.length} faixas</p><p className="mt-1 text-[13px] text-primary group-hover:underline">Ver álbum →</p></div></Link>)}</div>
+    <div aria-label="Álbuns do artista" className="-mx-4 mt-4 flex snap-x snap-proximity touch-pan-x gap-3 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-4 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:gap-4 sm:px-0">{albums.map((album) => <Link key={album.id} href={musicPath(pathPrefix, artist.slug, album.slug)} className="group flex w-[min(72vw,270px)] shrink-0 snap-start gap-3 rounded-xl border border-border bg-card p-2.5 transition-colors hover:border-primary/40"><div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-muted"><span className="sr-only">Capa do álbum</span>{album.coverUrl && <Image src={album.coverUrl} alt={`Capa de ${album.title}`} fill sizes="56px" className="object-cover" />}</div><div className="min-w-0 self-center"><h3 className="truncate text-base font-semibold">{album.title}</h3><p className="mt-0.5 text-sm text-muted-foreground">{album.tracks.length} faixas</p><p className="mt-1 text-[13px] text-primary group-hover:underline">Ver álbum →</p></div></Link>)}</div>
     <MusicArtistComments artistSlug={artist.slug} />
   </div></main>;
 }
