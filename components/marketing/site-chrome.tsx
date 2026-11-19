@@ -16,7 +16,9 @@ export function SiteChrome({ children, mainHeader, musicHeader, mainFooter }: {
   const [streaming, setStreaming] = useState(false);
 
   useEffect(() => {
-    const active = window.location.hostname.toLowerCase() === "streaming.kivai.com.br";
+    const hostname = window.location.hostname.toLowerCase();
+    const previewStreaming = hostname.endsWith(".vercel.app") && window.location.pathname.startsWith("/musica");
+    const active = hostname === "streaming.kivai.com.br" || previewStreaming;
     setStreaming(active);
     document.documentElement.classList.toggle("kivai-streaming-host", active);
     document.body.classList.toggle("kivai-streaming-host", active);
