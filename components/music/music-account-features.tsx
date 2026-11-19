@@ -150,7 +150,7 @@ export function MusicLibraryDashboard() {
   async function logout() { await signOut(); window.location.replace("/"); }
   const total = playlists.reduce((sum, list) => sum + list.tracks.length, 0);
 
-  return <main className="mx-auto min-h-screen max-w-5xl px-4 pb-32 pt-24 text-foreground sm:px-6">
+  return <main className="mx-auto min-h-screen max-w-[1400px] px-4 pb-36 pt-24 text-foreground sm:px-6 xl:px-10">
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div><p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Kivai Música</p><h1 className="mt-2 text-3xl font-bold sm:text-4xl">Minha biblioteca</h1><p className="mt-2 text-sm text-muted-foreground">{playlists.length} playlists · {total} músicas salvas</p></div>
       <div className="flex gap-2"><Button asChild variant="outline"><Link href="/">Explorar</Link></Button><Button variant="ghost" onClick={logout}><LogOut className="size-4" />Sair</Button></div>
@@ -162,7 +162,7 @@ export function MusicLibraryDashboard() {
     {error ? <p role="alert" className="mt-4 rounded-lg border border-destructive/30 p-3 text-sm">{error}</p> : null}
     {loading ? <p className="mt-8 text-sm text-muted-foreground">Carregando biblioteca...</p> : null}
     {!loading && !playlists.length ? <section className="mt-8 rounded-2xl border border-dashed p-10 text-center"><h2 className="font-semibold">Sua primeira playlist começa aqui</h2><p className="mt-2 text-sm text-muted-foreground">Crie uma playlist e salve nela as faixas que deseja ouvir novamente.</p></section> : null}
-    <div className="mt-7 space-y-5">
+    <div className="mt-7 grid gap-5 xl:grid-cols-2">
       {playlists.map((list) => {
         const queue = list.tracks.map((track) => ({
           id: track.id, slug: track.slug, albumId: track.album_id, title: track.title, trackNumber: track.track_number,

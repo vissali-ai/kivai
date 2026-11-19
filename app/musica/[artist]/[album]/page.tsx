@@ -32,8 +32,8 @@ export default function AlbumPage() {
     setSharedTrackId(trackId || "");
   }, [params.artist, params.album]);
 
-  if (loading) return <main className="px-4 pb-28 pt-24">Carregando álbum...</main>;
-  if (!data) return <main className="px-4 pb-28 pt-24">Álbum não encontrado.</main>;
+  if (loading) return <main className="px-4 pb-36 pt-24">Carregando álbum...</main>;
+  if (!data) return <main className="px-4 pb-36 pt-24">Álbum não encontrado.</main>;
 
   const album = data.albums[0];
   const artistHref = `${prefix}/${data.artist.slug}`;
@@ -44,13 +44,13 @@ export default function AlbumPage() {
   const sharedTrack = sharedTrackIndex >= 0 ? queue[sharedTrackIndex] : null;
 
   return (
-    <main className="min-h-screen bg-background px-4 pb-28 pt-24 text-foreground sm:px-6">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-h-screen bg-background px-4 pb-36 pt-24 text-foreground sm:px-6">
+      <div className="mx-auto max-w-[1400px]">
         <Link href={prefix || "/"} className="text-sm text-muted-foreground">← Voltar para músicas</Link>
-        <section className="mt-5 grid gap-6 rounded-3xl border border-border bg-card p-5 sm:grid-cols-[240px_1fr] sm:p-8">
+        <section className="mt-5 grid gap-8 rounded-3xl border border-border bg-card p-6 sm:grid-cols-[320px_1fr] sm:p-10">
           <div className="min-w-0">
             <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
-              {album.coverUrl && <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 100vw, 240px" className="object-cover" />}
+              {album.coverUrl && <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 100vw, 320px" className="object-cover" />}
             </div>
             <Link href={artistHref} className="mt-3 inline-block text-sm font-semibold text-primary hover:underline">{data.artist.name}</Link>
           </div>

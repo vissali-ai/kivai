@@ -22,8 +22,8 @@ export default async function MusicGenrePage({ params }: { params: Promise<{ gen
   const data = await getMusicGenreBySlug(slug);
   if (!data) notFound();
   return (
-    <main className="min-h-screen bg-background px-4 pb-28 pt-24 text-foreground sm:px-6">
-      <div className="mx-auto max-w-6xl">
+    <main className="min-h-screen bg-background px-4 pb-36 pt-24 text-foreground sm:px-6">
+      <div className="mx-auto max-w-[1600px]">
         <Link href={prefix || "/"} className="text-sm text-muted-foreground hover:text-foreground">← Explorar música</Link>
         <header className="mt-5 relative flex min-h-56 items-end overflow-hidden rounded-3xl border border-border bg-muted p-6 sm:min-h-72 sm:p-10">
           {data.genre.imageUrl ? <Image src={data.genre.imageUrl} alt="" fill priority sizes="100vw" className="object-cover" /> : null}
@@ -33,7 +33,7 @@ export default async function MusicGenrePage({ params }: { params: Promise<{ gen
         <section className="mt-9">
           <h2 className="text-2xl font-semibold">Artistas de {data.genre.name}</h2>
           {data.artists.length ? (
-            <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {data.artists.map(({ artist, albums }) => (
                 <Link key={artist.id} href={musicPath(prefix, artist.slug)} className="group overflow-hidden rounded-2xl border border-border bg-card">
                   <div className="relative aspect-[16/9] bg-muted">{(artist.coverUrl || artist.photoUrl) ? <Image src={artist.coverUrl || artist.photoUrl} alt={`Imagem de ${artist.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover transition-transform group-hover:scale-[1.02]" /> : null}</div>

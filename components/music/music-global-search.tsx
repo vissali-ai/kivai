@@ -107,7 +107,7 @@ export function MusicGlobalSearch() {
 
   return (
     <div ref={containerRef} className="relative w-full">
-      <div className="flex h-8 items-center gap-2 rounded-lg border border-input bg-card px-3 transition-colors focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/15 sm:h-9">
+      <div className="flex h-8 items-center gap-2 rounded-lg border border-input bg-card px-3 transition-colors focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/15 sm:h-10">
         <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <Input
           ref={inputRef}
@@ -122,7 +122,7 @@ export function MusicGlobalSearch() {
           aria-autocomplete="list"
           aria-controls={showResults ? id : undefined}
           aria-activedescendant={showResults && results.length ? `${id}-option-${Math.min(selectedIndex, results.length - 1)}` : undefined}
-          className="h-7 min-w-0 flex-1 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 sm:text-sm"
+          className="h-7 min-w-0 flex-1 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 sm:h-8 sm:text-sm"
         />
         {loading ? <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" aria-label="Carregando catálogo" /> : null}
         {query ? <button type="button" onClick={() => { setQuery(""); setSelectedIndex(0); inputRef.current?.focus(); }} className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Limpar busca"><X className="size-3.5" /></button> : null}

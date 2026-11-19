@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
+import { Music2, Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import type { MusicTrack } from "@/lib/music/types";
 
 type Item = MusicTrack & { artistName: string; albumTitle: string; coverUrl: string };
@@ -197,25 +197,57 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
         onError={() => { setPlaying(false); setPlaybackError(true); }}
         onEnded={nextTrack}
       />
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background px-3 py-2 shadow-2xl sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center gap-2 sm:gap-3">
-          <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
-            {item?.coverUrl && <Image src={item.coverUrl} alt="" fill sizes="44px" className="object-cover" />}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 px-3 py-2 shadow-[0_-12px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:px-6 lg:py-3">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="flex items-center gap-2 sm:gap-3 lg:hidden">
+            <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+              {item?.coverUrl && <Image src={item.coverUrl} alt="" fill sizes="44px" className="object-cover" />}
+            </div>
+            <div className="min-w-0 w-28 sm:w-48">
+              <p className="truncate text-xs font-semibold">{item?.title ?? "Escolha uma música"}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{item?.artistName ?? "Kivai Música"}</p>
+            </div>
+            <button aria-label="Faixa anterior" className="rounded-full p-2 hover:bg-muted disabled:opacity-40" disabled={!item} onClick={previousTrack}><SkipBack className="size-4" /></button>
+            <button aria-label={playing ? "Pausar" : "Reproduzir"} className="rounded-full bg-primary p-2 text-primary-foreground" disabled={!item} onClick={toggle}>{playing ? <Pause className="size-4" /> : <Play className="size-4" />}</button>
+            <button aria-label="Próxima faixa" className="rounded-full p-2 hover:bg-muted disabled:opacity-40" disabled={!item || index >= queue.length - 1} onClick={nextTrack}><SkipForward className="size-4" /></button>
+            <span className="hidden text-[10px] tabular-nums text-muted-foreground sm:block">{fmt(current)}</span>
+            <input aria-label="Progresso da faixa" type="range" min="0" max={duration || 0} step="1" value={Math.min(current, duration || 0)} onChange={(event) => { if (audioRef.current) audioRef.current.currentTime = Number(event.target.value); }} disabled={!item || !duration} className="min-w-0 flex-1 accent-primary" />
+            <span className="hidden text-[10px] tabular-nums text-muted-foreground sm:block">{fmt(duration)}</span>
+            <Volume2 className="hidden size-4 text-muted-foreground sm:block" />
+            <input aria-label="Volume" type="range" min="0" max="1" step="0.05" defaultValue="1" onChange={(event) => { if (audioRef.current) audioRef.current.volume = Number(event.target.value); }} className="hidden w-20 accent-primary sm:block" />
           </div>
-          <div className="min-w-0 w-28 sm:w-48">
-            <p className="truncate text-xs font-semibold">{item?.title ?? "Escolha uma música"}</p>
-            <p className="truncate text-[11px] text-muted-foreground">{item?.artistName ?? "Kivai Música"}</p>
+
+          <div className="hidden grid-cols-[minmax(0,1fr)_minmax(360px,1.35fr)_minmax(0,1fr)] items-center gap-8 lg:grid">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-muted">
+                {item?.coverUrl ? <Image src={item.coverUrl} alt="" fill sizes="56px" className="object-cover" /> : <div className="grid h-full w-full place-items-center text-muted-foreground"><Music2 className="size-6" /></div>}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{item?.title ?? "Escolha uma música"}</p>
+                <p className="mt-1 truncate text-xs text-muted-foreground">{item?.artistName ?? "Kivai Música"}</p>
+              </div>
+            </div>
+
+            <div className="mx-auto flex w-full max-w-[720px] flex-col gap-2">
+              <div className="flex items-center justify-center gap-5">
+                <button aria-label="Faixa anterior" className="rounded-full p-2.5 text-foreground/80 transition hover:bg-muted hover:text-foreground disabled:opacity-40" disabled={!item} onClick={previousTrack}><SkipBack className="size-5" /></button>
+                <button aria-label={playing ? "Pausar" : "Reproduzir"} className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-md transition hover:scale-105 disabled:opacity-40" disabled={!item} onClick={toggle}>{playing ? <Pause className="size-5" /> : <Play className="size-5" />}</button>
+                <button aria-label="Próxima faixa" className="rounded-full p-2.5 text-foreground/80 transition hover:bg-muted hover:text-foreground disabled:opacity-40" disabled={!item || index >= queue.length - 1} onClick={nextTrack}><SkipForward className="size-5" /></button>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-9 text-right text-[11px] tabular-nums text-muted-foreground">{fmt(current)}</span>
+                <input aria-label="Progresso da faixa" type="range" min="0" max={duration || 0} step="1" value={Math.min(current, duration || 0)} onChange={(event) => { if (audioRef.current) audioRef.current.currentTime = Number(event.target.value); }} disabled={!item || !duration} className="h-1 min-w-0 flex-1 cursor-pointer accent-primary" />
+                <span className="w-9 text-[11px] tabular-nums text-muted-foreground">{fmt(duration)}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3">
+              <Volume2 className="size-4 shrink-0 text-muted-foreground" />
+              <input aria-label="Volume" type="range" min="0" max="1" step="0.05" defaultValue="1" onChange={(event) => { if (audioRef.current) audioRef.current.volume = Number(event.target.value); }} className="w-28 cursor-pointer accent-primary xl:w-36" />
+            </div>
           </div>
-          <button aria-label="Faixa anterior" className="rounded-full p-2 hover:bg-muted disabled:opacity-40" disabled={!item} onClick={previousTrack}><SkipBack className="size-4" /></button>
-          <button aria-label={playing ? "Pausar" : "Reproduzir"} className="rounded-full bg-primary p-2 text-primary-foreground" disabled={!item} onClick={toggle}>{playing ? <Pause className="size-4" /> : <Play className="size-4" />}</button>
-          <button aria-label="Próxima faixa" className="rounded-full p-2 hover:bg-muted disabled:opacity-40" disabled={!item || index >= queue.length - 1} onClick={nextTrack}><SkipForward className="size-4" /></button>
-          <span className="hidden text-[10px] tabular-nums text-muted-foreground sm:block">{fmt(current)}</span>
-          <input aria-label="Progresso da faixa" type="range" min="0" max={duration || 0} step="1" value={Math.min(current, duration || 0)} onChange={(event) => { if (audioRef.current) audioRef.current.currentTime = Number(event.target.value); }} disabled={!item || !duration} className="min-w-0 flex-1 accent-primary" />
-          <span className="hidden text-[10px] tabular-nums text-muted-foreground sm:block">{fmt(duration)}</span>
-          <Volume2 className="hidden size-4 text-muted-foreground sm:block" />
-          <input aria-label="Volume" type="range" min="0" max="1" step="0.05" defaultValue="1" onChange={(event) => { if (audioRef.current) audioRef.current.volume = Number(event.target.value); }} className="hidden w-20 accent-primary sm:block" />
         </div>
-        {playbackError && <p role="status" className="mx-auto mt-1 max-w-7xl text-xs text-destructive">O navegador interrompeu a reprodução. Toque em Reproduzir para continuar.</p>}
+        {playbackError && <p role="status" className="mx-auto mt-1 max-w-[1600px] px-2 text-xs text-destructive">O navegador interrompeu a reprodução. Toque em Reproduzir para continuar.</p>}
       </div>
     </C.Provider>
   );
