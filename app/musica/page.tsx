@@ -41,8 +41,8 @@ export default async function MusicPage() {
                 const GenreIcon = getMusicGenreIcon(genre.name);
                 const count = genreCounts.get(genre.id) ?? 0;
                 return (
-                  <Link key={genre.id} href={musicPath(pathPrefix, "estilo", genre.slug)} className="group flex w-[148px] shrink-0 snap-start flex-col items-start gap-2 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-muted/40 sm:w-[160px]">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                  <Link key={genre.id} href={musicPath(pathPrefix, "estilo", genre.slug)} className="group flex w-[138px] shrink-0 snap-start flex-col items-start gap-1.5 rounded-xl border border-border bg-card p-2.5 transition-colors hover:border-primary/40 hover:bg-muted/40 sm:w-[150px]">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
                       <GenreIcon className="size-[18px]" strokeWidth={1.65} />
                     </span>
                     <span className="min-w-0">

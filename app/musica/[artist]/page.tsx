@@ -49,9 +49,18 @@ export default async function ArtistPage({ params }: { params: Promise<{ artist:
   const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappMessage)}` : "";
   return <main className="min-h-screen bg-background px-4 pb-28 pt-24 text-foreground sm:px-6"><div className="mx-auto max-w-6xl">
     <Link href={musicHomePath} className="text-sm text-muted-foreground hover:text-foreground">← Música</Link>
-    <section className="mt-5 overflow-hidden rounded-3xl border border-border bg-card">
-      <div className="relative h-48 bg-muted sm:h-72">{artist.coverUrl && <Image src={artist.coverUrl} alt="" fill sizes="100vw" className="object-cover" />}<div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" /><div className="absolute bottom-5 left-5 flex items-end gap-4 sm:bottom-8 sm:left-8">{artist.photoUrl && <div className="relative size-20 overflow-hidden rounded-full border-2 border-white/70 sm:size-28"><Image src={artist.photoUrl} alt={`Foto de ${artist.name}`} fill sizes="112px" className="object-cover" /></div>}<div className="text-white"><p className="text-xs uppercase tracking-widest">Artista</p><h1 className="mt-1 text-3xl font-bold sm:text-5xl">{artist.name}</h1><p className="mt-1 text-xs text-white/80">{artistPlayCount.toLocaleString("pt-BR")} reproduções</p></div></div></div>
-      {artist.bio && <p className="max-w-4xl whitespace-pre-line p-5 leading-7 text-muted-foreground sm:p-8">{artist.bio}</p>}
+    <section className="mt-5 rounded-3xl border border-border bg-card p-5 sm:p-7">
+      <div className="flex items-center gap-4 sm:gap-5">
+        <div className="relative size-20 shrink-0 overflow-hidden rounded-full border border-border bg-muted sm:size-24">
+          {artist.photoUrl ? <Image src={artist.photoUrl} alt={`Foto de perfil de ${artist.name}`} fill sizes="96px" className="object-cover" /> : <span className="flex h-full w-full items-center justify-center text-2xl font-semibold text-muted-foreground">{artist.name.slice(0, 1).toUpperCase()}</span>}
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Artista</p>
+          <h1 className="mt-1 break-words text-2xl font-bold sm:text-3xl">{artist.name}</h1>
+          <p className="mt-1 text-xs text-muted-foreground">{artistPlayCount.toLocaleString("pt-BR")} reproduções</p>
+        </div>
+      </div>
+      {artist.bio && <p className="mt-5 max-w-4xl whitespace-pre-line border-t border-border pt-4 leading-7 text-muted-foreground">{artist.bio}</p>}
     </section>
     <section className="mt-5 flex flex-wrap items-center gap-3">
       <MusicShareButton title={`${artist.name} | Kivai Música`} text={`Conheça ${artist.name} no Kivai Música.`} />
