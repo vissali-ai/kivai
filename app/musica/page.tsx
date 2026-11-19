@@ -12,7 +12,7 @@ export default async function MusicPage() {
   for (const item of catalog) if (item.artist.genreId) genreCounts.set(item.artist.genreId, (genreCounts.get(item.artist.genreId) ?? 0) + 1);
 
   return (
-    <main className="min-h-screen bg-background px-4 pb-36 pt-24 text-foreground sm:px-6 sm:pt-28 xl:px-10">
+    <main className="min-h-screen bg-background px-4 pb-28 lg:pb-36 pt-24 text-foreground sm:px-6 sm:pt-20 lg:pt-28 xl:px-10">
       <div className="mx-auto max-w-[1600px]">
         <section id="recentes" className="mt-3">
           <div className="mb-5">
@@ -98,3 +98,4 @@ export default async function MusicPage() {
       </div>
     </main>
   );
+}

@@ -47,7 +47,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ artist:
   const whatsappDigits = artist.contactWhatsapp?.replace(/\D/g, "") ?? "";
   const whatsappMessage = artist.contactMessage || `Olá! Gostaria de informações sobre contratação de ${artist.name}.`;
   const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappMessage)}` : "";
-  return <main className="min-h-screen bg-background px-4 pb-36 pt-24 text-foreground sm:px-6"><div className="mx-auto max-w-[1600px]">
+  return <main className="min-h-screen bg-background px-4 pb-28 lg:pb-36 pt-24 text-foreground sm:px-6"><div className="mx-auto max-w-[1600px]">
     <Link href={musicHomePath} className="text-sm text-muted-foreground hover:text-foreground">← Música</Link>
     <section className="mt-5 rounded-3xl border border-border bg-card p-5 sm:p-7">
       <div className="flex items-center gap-4 sm:gap-5">

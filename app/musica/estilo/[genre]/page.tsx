@@ -22,7 +22,7 @@ export default async function MusicGenrePage({ params }: { params: Promise<{ gen
   const data = await getMusicGenreBySlug(slug);
   if (!data) notFound();
   return (
-    <main className="min-h-screen bg-background px-4 pb-36 pt-24 text-foreground sm:px-6">
+    <main className="min-h-screen bg-background px-4 pb-28 lg:pb-36 pt-24 text-foreground sm:px-6">
       <div className="mx-auto max-w-[1600px]">
         <Link href={prefix || "/"} className="text-sm text-muted-foreground hover:text-foreground">← Explorar música</Link>
         <header className="mt-5 relative flex min-h-56 items-end overflow-hidden rounded-3xl border border-border bg-muted p-6 sm:min-h-72 sm:p-10">

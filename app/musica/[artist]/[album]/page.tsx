@@ -32,8 +32,8 @@ export default function AlbumPage() {
     setSharedTrackId(trackId || "");
   }, [params.artist, params.album]);
 
-  if (loading) return <main className="px-4 pb-36 pt-24">Carregando álbum...</main>;
-  if (!data) return <main className="px-4 pb-36 pt-24">Álbum não encontrado.</main>;
+  if (loading) return <main className="px-4 pb-28 lg:pb-36 pt-24">Carregando álbum...</main>;
+  if (!data) return <main className="px-4 pb-28 lg:pb-36 pt-24">Álbum não encontrado.</main>;
 
   const album = data.albums[0];
   const artistHref = `${prefix}/${data.artist.slug}`;
@@ -44,7 +44,7 @@ export default function AlbumPage() {
   const sharedTrack = sharedTrackIndex >= 0 ? queue[sharedTrackIndex] : null;
 
   return (
-    <main className="min-h-screen bg-background px-4 pb-36 pt-24 text-foreground sm:px-6">
+    <main className="min-h-screen bg-background px-4 pb-28 lg:pb-36 pt-24 text-foreground sm:px-6">
       <div className="mx-auto max-w-[1400px]">
         <Link href={prefix || "/"} className="text-sm text-muted-foreground">← Voltar para músicas</Link>
         <section className="mt-5 grid gap-8 rounded-3xl border border-border bg-card p-6 sm:grid-cols-[320px_1fr] sm:p-10">

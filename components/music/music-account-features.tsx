@@ -150,7 +150,7 @@ export function MusicLibraryDashboard() {
   async function logout() { await signOut(); window.location.replace("/"); }
   const total = playlists.reduce((sum, list) => sum + list.tracks.length, 0);
 
-  return <main className="mx-auto min-h-screen max-w-[1400px] px-4 pb-36 pt-24 text-foreground sm:px-6 xl:px-10">
+  return <main className="mx-auto min-h-screen max-w-[1400px] px-4 pb-32 lg:pb-36 pt-24 text-foreground sm:px-6 xl:px-10">
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div><p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Kivai Música</p><h1 className="mt-2 text-3xl font-bold sm:text-4xl">Minha biblioteca</h1><p className="mt-2 text-sm text-muted-foreground">{playlists.length} playlists · {total} músicas salvas</p></div>
       <div className="flex gap-2"><Button asChild variant="outline"><Link href="/">Explorar</Link></Button><Button variant="ghost" onClick={logout}><LogOut className="size-4" />Sair</Button></div>
