@@ -169,6 +169,7 @@
 
   html {
     @apply bg-background;
+    scroll-padding-top: calc(4rem + env(safe-area-inset-top, 0px));
   }
 
   body {
@@ -341,4 +342,15 @@ body.kivai-streaming-host {
   --foreground: #FFFFFF;
   --primary: #FFED15;
   --primary-foreground: #3B0B4D;
+}
+
+
+/* Cabeçalhos fixos mais estáveis em navegadores móveis, especialmente Safari/iOS. */
+.kivai-fixed-header {
+  top: env(safe-area-inset-top, 0px);
+  isolation: isolate;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
 }

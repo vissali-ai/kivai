@@ -17,9 +17,9 @@ export default async function MusicPage() {
         <section className="mt-4">
           <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-2xl font-semibold">Mais recentes</h2></div></div>
           {recentAlbums.length ? (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+            <div aria-label="Álbuns recentes" className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 [scrollbar-width:thin] sm:mx-0 sm:gap-4 sm:px-0">
               {recentAlbums.map(album => (
-                <article key={album.id} dir="ltr" className="group min-w-0">
+                <article key={album.id} dir="ltr" className="group w-[42vw] max-w-[176px] shrink-0 snap-start sm:w-[180px] sm:max-w-none">
                   <Link href={musicPath(pathPrefix, album.artist.slug, album.slug)} className="block">
                     <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
                       {album.coverUrl ? <Image src={album.coverUrl} alt={`Capa do álbum ${album.title}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover transition-transform group-hover:scale-[1.03]" /> : null}

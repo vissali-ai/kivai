@@ -5,7 +5,6 @@ import { CookieSettingsButton } from "@/components/privacy/cookie-settings-butto
 import { FREE_PUBLIC_MODE } from "@/lib/billing/availability";
 
 const productLinks = [
-  { label: "Ferramentas", href: "/ferramentas" },
   { label: "Música", href: "https://streaming.kivai.com.br" },
   { label: "Planos e benefícios", href: "/planos" },
   { label: "Serviços", href: "/servicos" },
@@ -122,10 +121,6 @@ export function Footer() {
         <div className="flex flex-col gap-4 pt-7 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Kivai. Todos os direitos reservados.</p>
 
-          <p>
-            Transformando tarefas digitais em experiências simples, rápidas e
-            produtivas.
-          </p>
         </div>
       </div>
     </footer>
