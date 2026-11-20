@@ -20,6 +20,8 @@ export function useMusicPlayer() {
 
 export function MusicPlayerProvider({ children, isStreamingHost }: { children: React.ReactNode; isStreamingHost: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const playRequestRef = useRef(0);
+  const activeAudioUrlRef = useRef<string | null>(null);
   const listenedSecondsRef = useRef(0);
   const lastPlaybackTimeRef = useRef<number | null>(null);
   const countedTrackRef = useRef<string | null>(null);
@@ -38,10 +40,14 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
     const next = nextQueue[nextIndex];
     if (!audio || !next) return;
 
+    const requestId = ++playRequestRef.current;
+    const audioUrl = new URL(next.audioUrl, window.location.href).href;
     queueRef.current = nextQueue;
     indexRef.current = nextIndex;
+    activeAudioUrlRef.current = audioUrl;
     setQueue(nextQueue);
     setIndex(nextIndex);
+    setPlaying(false);
     setCurrent(0);
     setDuration(0);
     listenedSecondsRef.current = 0;
@@ -51,18 +57,20 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
 
     // Change the source and request playback in the same call path. This matters
     // on mobile browsers, which can reject play() after a deferred state/effect.
-    if (audio.src !== next.audioUrl) {
-      audio.src = next.audioUrl;
-      audio.load();
-    }
-    if (!start) {
-      audio.pause();
-      return;
-    }
+    // Stop the previous resource before changing tracks. Assigning src already
+    // starts resource selection; calling load() here can abort a pending play()
+    // request on Safari/iOS and leave the UI out of sync with the audio element.
+    audio.pause();
+    if (audio.src !== audioUrl) audio.src = audioUrl;
+    if (!start) return;
+
+    // Keep play() in the original user-gesture call stack for mobile browsers.
     void audio.play().then(() => {
-      setPlaying(true);
+      if (requestId !== playRequestRef.current || activeAudioUrlRef.current !== audioUrl) return;
+      setPlaying(!audio.paused);
       lastPlaybackTimeRef.current = audio.currentTime;
     }).catch(() => {
+      if (requestId !== playRequestRef.current || activeAudioUrlRef.current !== audioUrl) return;
       setPlaying(false);
       setPlaybackError(true);
     });
@@ -83,12 +91,19 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
     const audio = audioRef.current;
     if (!audio) return;
     if (audio.paused) {
+      const requestId = ++playRequestRef.current;
+      const audioUrl = activeAudioUrlRef.current;
       setPlaybackError(false);
-      void audio.play().then(() => setPlaying(true)).catch(() => {
+      void audio.play().then(() => {
+        if (requestId !== playRequestRef.current || activeAudioUrlRef.current !== audioUrl) return;
+        setPlaying(!audio.paused);
+      }).catch(() => {
+        if (requestId !== playRequestRef.current || activeAudioUrlRef.current !== audioUrl) return;
         setPlaying(false);
         setPlaybackError(true);
       });
     } else {
+      ++playRequestRef.current;
       audio.pause();
     }
   }, []);
@@ -152,11 +167,15 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
         ref={audioRef}
         preload="auto"
         onPlay={(event) => {
+          const audio = event.currentTarget;
+          if (activeAudioUrlRef.current && audio.currentSrc && audio.currentSrc !== activeAudioUrlRef.current) return;
           setPlaying(true);
           setPlaybackError(false);
-          lastPlaybackTimeRef.current = event.currentTarget.currentTime;
+          lastPlaybackTimeRef.current = audio.currentTime;
         }}
-        onPause={() => {
+        onPause={(event) => {
+          // Ignore a delayed pause event if a newer play request already resumed.
+          if (!event.currentTarget.paused) return;
           setPlaying(false);
           lastPlaybackTimeRef.current = null;
         }}
@@ -194,8 +213,17 @@ export function MusicPlayerProvider({ children, isStreamingHost }: { children: R
           }
         }}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
-        onError={() => { setPlaying(false); setPlaybackError(true); }}
-        onEnded={nextTrack}
+        onError={(event) => {
+          const audio = event.currentTarget;
+          if (activeAudioUrlRef.current && audio.currentSrc && audio.currentSrc !== activeAudioUrlRef.current) return;
+          ++playRequestRef.current;
+          setPlaying(false);
+          setPlaybackError(true);
+        }}
+        onEnded={(event) => {
+          const audio = event.currentTarget;
+          if (!activeAudioUrlRef.current || !audio.currentSrc || audio.currentSrc === activeAudioUrlRef.current) nextTrack();
+        }}
       />
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background px-3 py-2 shadow-2xl sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center gap-2 sm:gap-3">
