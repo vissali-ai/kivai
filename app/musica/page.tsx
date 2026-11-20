@@ -17,7 +17,7 @@ export default async function MusicPage() {
         <section className="mt-4">
           <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-2xl font-semibold">Mais recentes</h2></div></div>
           {recentAlbums.length ? (
-            <div aria-label="Álbuns recentes" className="-mx-4 flex snap-x snap-proximity touch-pan-x gap-3 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-4 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:gap-4 sm:px-0">
+            <div aria-label="Álbuns recentes" className="-mx-4 flex snap-x snap-proximity touch-pan-x gap-3 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-4 music-desktop-scroll [-webkit-overflow-scrolling:touch] sm:mx-0 sm:gap-4 sm:px-0">
               {recentAlbums.map(album => (
                 <article key={album.id} dir="ltr" className="group w-[38vw] max-w-[156px] shrink-0 snap-start sm:w-[168px] sm:max-w-none">
                   <Link href={musicPath(pathPrefix, album.artist.slug, album.slug)} className="block">
@@ -36,7 +36,7 @@ export default async function MusicPage() {
         <section className="mt-12">
           <div className="mb-4"><h2 className="text-2xl font-semibold">Estilos musicais</h2><p className="mt-1 text-sm text-muted-foreground">Explore artistas por gênero musical.</p></div>
           {genres.length ? (
-            <div aria-label="Estilos musicais" className="-mx-4 flex snap-x snap-proximity touch-pan-x gap-2.5 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-4 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:gap-3 sm:px-0">
+            <div aria-label="Estilos musicais" className="-mx-4 flex snap-x snap-proximity touch-pan-x gap-2.5 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-4 music-desktop-scroll [-webkit-overflow-scrolling:touch] sm:mx-0 sm:gap-3 sm:px-0">
               {genres.map(genre => {
                 const GenreIcon = getMusicGenreIcon(genre.name);
                 const count = genreCounts.get(genre.id) ?? 0;

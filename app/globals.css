@@ -354,3 +354,34 @@ body.kivai-streaming-host {
   -webkit-backface-visibility: hidden;
   will-change: transform;
 }
+
+
+/* Kivai Música: carrosséis continuam discretos no mobile e oferecem
+   uma barra horizontal visível e manipulável por mouse no desktop. */
+.music-desktop-scroll {
+  scrollbar-width: none;
+}
+.music-desktop-scroll::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 640px) {
+  .music-desktop-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 48%) transparent;
+    padding-bottom: 0.75rem;
+  }
+  .music-desktop-scroll::-webkit-scrollbar {
+    display: block;
+    height: 8px;
+  }
+  .music-desktop-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .music-desktop-scroll::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 42%);
+    border-radius: 9999px;
+  }
+  .music-desktop-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 68%);
+  }
+}
