@@ -7,7 +7,7 @@ import { getMusicGenreIcon } from "@/lib/music/genre-icon";
 export default async function MusicPage() {
   const [catalog, genres, pathPrefix] = await Promise.all([listMusicCatalog(), listMusicGenres(), getMusicPathPrefix()]);
   const recentAlbums = catalog.flatMap(({ artist, albums }) => albums.map(album => ({ ...album, artist })))
-    .sort((a, b) => (a.publishedAt ?? "").localeCompare(b.publishedAt ?? "")).slice(0, 8);
+    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "")).slice(0, 8);
   const genreCounts = new Map<string, number>();
   for (const item of catalog) if (item.artist.genreId) genreCounts.set(item.artist.genreId, (genreCounts.get(item.artist.genreId) ?? 0) + 1);
 
