@@ -42,6 +42,17 @@ export default async function MusicPage() {
                   <Link href={musicPath(pathPrefix, album.artist.slug)} className="mt-0.5 block truncate text-[12px] text-muted-foreground hover:text-primary hover:underline sm:text-[13px]">{album.artist.name}</Link>
                 </article>
               ))}
+              <article dir="ltr" className="w-[38vw] max-w-[156px] shrink-0 snap-start sm:w-[168px] sm:max-w-none">
+                <Link
+                  href={musicPath(pathPrefix, "lancamentos")}
+                  aria-label="Ver todos os álbuns"
+                  className="flex aspect-square flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-primary/50 bg-primary/[0.04] text-primary transition-colors hover:border-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  <span className="grid size-11 place-items-center rounded-full bg-primary/10 text-2xl font-light" aria-hidden="true">→</span>
+                  <span className="text-sm font-semibold">Ver mais</span>
+                </Link>
+                <p className="mt-1 truncate text-[12px] text-muted-foreground sm:text-[13px]">Todos os álbuns</p>
+              </article>
             </div>
           ) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Novos lançamentos serão exibidos aqui.</p>}
         </section>
