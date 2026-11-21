@@ -1,21 +1,34 @@
 import Link from "next/link";
 import Image from "next/image";
-import { listMusicCatalog, listMusicGenres } from "@/lib/music/repository";
+import { listMusicArtists, listRecentMusicAlbums, listMusicGenres } from "@/lib/music/repository";
 import { getMusicPathPrefix, musicPath } from "@/lib/music/paths";
 import { getMusicGenreIcon } from "@/lib/music/genre-icon";
 
 export default async function MusicPage() {
-  const [catalog, genres, pathPrefix] = await Promise.all([listMusicCatalog(), listMusicGenres(), getMusicPathPrefix()]);
-  const recentAlbums = catalog.flatMap(({ artist, albums }) => albums.map(album => ({ ...album, artist })))
-    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "")).slice(0, 8);
+  const [recentAlbums, artists, genres, pathPrefix] = await Promise.all([
+    listRecentMusicAlbums(8),
+    listMusicArtists(),
+    listMusicGenres(),
+    getMusicPathPrefix(),
+  ]);
   const genreCounts = new Map<string, number>();
-  for (const item of catalog) if (item.artist.genreId) genreCounts.set(item.artist.genreId, (genreCounts.get(item.artist.genreId) ?? 0) + 1);
+  for (const artist of artists) {
+    if (artist.genreId) genreCounts.set(artist.genreId, (genreCounts.get(artist.genreId) ?? 0) + 1);
+  }
 
   return (
     <main className="min-h-screen bg-background px-4 pb-28 pt-24 text-foreground sm:px-6 sm:pt-20">
       <div className="mx-auto max-w-6xl">
         <section className="mt-4">
-          <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-2xl font-semibold">Mais recentes</h2></div></div>
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div><h2 className="text-2xl font-semibold">Mais recentes</h2></div>
+            <Link
+              href={musicPath(pathPrefix, "lancamentos")}
+              className="shrink-0 text-sm font-semibold text-primary transition hover:underline"
+            >
+              Ver mais
+            </Link>
+          </div>
           {recentAlbums.length ? (
             <div aria-label="Álbuns recentes" className="-mx-4 flex snap-x snap-proximity touch-pan-x gap-3 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-4 music-desktop-scroll [-webkit-overflow-scrolling:touch] sm:mx-0 sm:gap-4 sm:px-0">
               {recentAlbums.map(album => (
@@ -55,7 +68,6 @@ export default async function MusicPage() {
             </div>
           ) : <p className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">Os estilos musicais serão publicados em breve.</p>}
         </section>
-
       </div>
     </main>
   );

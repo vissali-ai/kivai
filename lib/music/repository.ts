@@ -136,3 +136,57 @@ export async function createMusicUploadUrl(kind:string,mime:string,size:number) 
  return {uploadUrl:`${blogConfig.supabaseUrl}/storage/v1/object/upload/sign/music-media/${path}?token=${encodeURIComponent(data.token)}`,publicUrl:`${blogConfig.supabaseUrl}/storage/v1/object/public/music-media/${path}`};
 }
 
+export type MusicAlbumListingItem = MusicAlbum & {
+  artist: Pick<MusicArtist, "name" | "slug">;
+};
+
+export async function listMusicAlbumsPage(page = 1, pageSize = 15): Promise<{
+  albums: MusicAlbumListingItem[];
+  page: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
+}> {
+  const safePage = Math.max(1, Math.floor(page) || 1);
+  const safePageSize = Math.min(50, Math.max(1, Math.floor(pageSize) || 15));
+  const hub = await getSiteHubBySlug("musica", true);
+  if (!hub) {
+    return { albums: [], page: safePage, hasPrevious: safePage > 1, hasNext: false };
+  }
+
+  const start = (safePage - 1) * safePageSize;
+  const end = start + safePageSize;
+  const rows = await supabaseRest<Array<AlbumRow & {
+    artist: { name: string; slug: string; status: string };
+  }>>(
+    "music_albums?select=*,artist:music_artists!inner(name,slug,status)" +
+    "&status=eq.published&artist.status=eq.published" +
+    "&order=published_at.desc.nullslast,created_at.desc,id.desc",
+    {
+      headers: {
+        Range: `${start}-${end}`,
+        "Range-Unit": "items",
+      },
+    },
+  );
+
+  const albums = rows.slice(0, safePageSize).map((row) => ({
+    ...mapAlbum({
+      ...row,
+      artist_name: row.artist.name,
+      artist_slug: row.artist.slug,
+    }),
+    artist: { name: row.artist.name, slug: row.artist.slug },
+  }));
+
+  return {
+    albums,
+    page: safePage,
+    hasPrevious: safePage > 1,
+    hasNext: rows.length > safePageSize,
+  };
+}
+
+export async function listRecentMusicAlbums(limit = 8): Promise<MusicAlbumListingItem[]> {
+  const result = await listMusicAlbumsPage(1, Math.max(1, Math.min(50, limit)));
+  return result.albums;
+}
