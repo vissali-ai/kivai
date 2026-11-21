@@ -10,19 +10,22 @@ type Props = {
   compact?: boolean;
 };
 
-export function MusicShareButton({ title, text, url, compact = false }: Props) {
+export function MusicShareButton({ title, url, compact = false }: Props) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
     const shareUrl = new URL(url || window.location.href, window.location.origin).toString();
+
     if (navigator.share) {
       try {
-        await navigator.share({ title, text, url: shareUrl });
+        // Envie somente a URL. Não inclua título ou texto promocional no compartilhamento.
+        await navigator.share({ url: shareUrl });
         return;
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") return;
       }
     }
+
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
