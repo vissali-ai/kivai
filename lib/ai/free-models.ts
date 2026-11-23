@@ -35,6 +35,19 @@ export function geminiCandidates(task: GeminiTextTask, preferred?: unknown): str
   return task === "search" ? [...GEMINI_DEFAULT_SEARCH_MODELS] : [...GEMINI_DEFAULT_TEXT_MODELS];
 }
 
+/** Mantém o modelo escolhido como primeira opção, mas permite fallback
+ * somente para os modelos padrão já autorizados para a mesma tarefa.
+ * A função geminiCandidates permanece estrita para fluxos que exigem modelo único.
+ */
+export function geminiCandidatesWithFallback(task: GeminiTextTask, preferred?: unknown): string[] {
+  const defaults = geminiCandidates(task);
+  if (preferred === undefined || preferred === null || preferred === "" || preferred === "auto") {
+    return defaults;
+  }
+  const selected = geminiCandidates(task, preferred)[0];
+  return [selected, ...defaults.filter((model) => model !== selected)];
+}
+
 /** Erros transitórios do provedor para os quais outro modelo pode ser tentado. */
 export function isGeminiTransientFailure(status: number): boolean {
   return status === 502 || status === 503 || status === 504;
