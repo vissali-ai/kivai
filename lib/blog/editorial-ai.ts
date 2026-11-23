@@ -3,7 +3,7 @@ import "server-only";
 import { plainText, sanitizePostHtml } from "@/lib/blog/sanitize";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { interpretGeminiQuota, shortGeminiQuotaBackoff } from "@/lib/ai/gemini-quota";
-import { geminiCandidates, isGeminiTransientFailure } from "@/lib/ai/free-models";
+import { geminiCandidatesWithFallback, isGeminiTransientFailure } from "@/lib/ai/free-models";
 import { readPublicEditorialArticle } from "@/lib/blog/public-editorial-source";
 
 
@@ -204,7 +204,7 @@ async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: s
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("A chave Gemini não está configurada.");
   const deadline = Date.now() + 65_000;
-  const models = geminiCandidates("url", preferredModel);
+  const models = geminiCandidatesWithFallback("url", preferredModel);
   let lastRetrievalError = "A fonte não pôde ser lida pelo Gemini. Confira se o artigo é público e não exige cadastro.";
   for (const [index, model] of models.entries()) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
