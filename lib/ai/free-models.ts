@@ -34,3 +34,8 @@ export function geminiCandidates(task: GeminiTextTask, preferred?: unknown): str
   }
   return task === "search" ? [...GEMINI_DEFAULT_SEARCH_MODELS] : [...GEMINI_DEFAULT_TEXT_MODELS];
 }
+
+/** Erros transitórios do provedor para os quais outro modelo pode ser tentado. */
+export function isGeminiTransientFailure(status: number): boolean {
+  return status === 502 || status === 503 || status === 504;
+}
