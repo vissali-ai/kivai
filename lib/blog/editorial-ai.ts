@@ -3,7 +3,7 @@ import "server-only";
 import { plainText, sanitizePostHtml } from "@/lib/blog/sanitize";
 import { supabaseRest } from "@/lib/blog/supabase";
 import { interpretGeminiQuota, shortGeminiQuotaBackoff } from "@/lib/ai/gemini-quota";
-import { geminiCandidates } from "@/lib/ai/free-models";
+import { geminiCandidatesWithFallback, isGeminiTransientFailure } from "@/lib/ai/free-models";
 import { readPublicEditorialArticle } from "@/lib/blog/public-editorial-source";
 
 
@@ -204,7 +204,7 @@ async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: s
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("A chave Gemini não está configurada.");
   const deadline = Date.now() + 65_000;
-  const models = geminiCandidates("url", preferredModel);
+  const models = geminiCandidatesWithFallback("url", preferredModel);
   let lastRetrievalError = "A fonte não pôde ser lida pelo Gemini. Confira se o artigo é público e não exige cadastro.";
   for (const [index, model] of models.entries()) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -225,13 +225,22 @@ async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: s
           deadline, 55_000, "url", model,
         );
       } catch (error) {
-        console.warn("[kivai-editorial] Falha ao consultar Gemini para leitura de URL", {
-          model, reason: error instanceof Error ? error.message.slice(0, 120) : "unknown",
-        });
-        throw error instanceof Error ? error : new Error("Falha de comunicação com o Gemini.");
+        const reason = error instanceof Error ? error.message.slice(0, 120) : "unknown";
+        console.warn("[kivai-editorial] Falha ao consultar Gemini para leitura de URL", { model, reason });
+        if (Date.now() >= deadline) throw new Error("O Gemini não respondeu a tempo de preparar a reportagem.");
+        lastRetrievalError = "O serviço Gemini apresentou uma falha de conexão. O Kivai tentou outro modelo disponível.";
+        // Uma falha de rede não deve impedir o fallback para o próximo modelo.
+        break;
       }
       if (response.status === 404) {
         console.warn("[kivai-editorial] Modelo sem suporte ou indisponível para leitura de URL", { model, status: 404 });
+        break;
+      }
+      if (isGeminiTransientFailure(response.status)) {
+        lastRetrievalError = "O serviço Gemini está temporariamente indisponível nos modelos disponíveis.";
+        console.warn("[kivai-editorial] Modelo Gemini indisponível após retry; acionando próximo modelo", {
+          model, status: response.status,
+        });
         break;
       }
       if (response.status === 429) {
@@ -282,6 +291,7 @@ async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: s
     });
     throw new Error(lastRetrievalError + " Também não foi possível obter texto público completo da fonte diretamente.");
   }
+  let publicTextFailure = "Nenhum modelo Gemini conseguiu processar o texto público da reportagem.";
   for (const model of models) {
     if (Date.now() >= deadline) throw new Error("Tempo limite atingido para gerar a reportagem. Repita a tentativa.");
     let response: Response;
@@ -301,9 +311,20 @@ async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: s
         deadline, 30_000, "public-text", model,
       );
     } catch (error) {
-      throw error instanceof Error ? error : new Error("Falha de comunicação com o Gemini ao processar o conteúdo público.");
+      if (Date.now() >= deadline) throw new Error("Tempo limite atingido ao processar o conteúdo público.");
+      publicTextFailure = "Falha de conexão com o Gemini ao processar o conteúdo público.";
+      console.warn("[kivai-editorial] Falha no modelo ao processar texto público; tentando próximo modelo", {
+        model, reason: error instanceof Error ? error.message.slice(0, 120) : "unknown",
+      });
+      continue;
     }
-    if (response.status === 404) continue;
+    if (response.status === 404 || isGeminiTransientFailure(response.status)) {
+      publicTextFailure = "O Gemini está temporariamente indisponível para processar o texto público.";
+      console.warn("[kivai-editorial] Modelo indisponível para texto público; tentando próximo modelo", {
+        model, status: response.status,
+      });
+      continue;
+    }
     if (response.status === 429) throw await interpretGeminiQuota(response, "draft", model);
     if (!response.ok) throw new Error("Falha ao gerar reportagem a partir do conteúdo público (HTTP " + response.status + ").");
     let raw: GeminiResult;
@@ -317,7 +338,7 @@ async function callGeminiWithUrl(url: string, prompt: string, preferredModel?: s
     console.info("[kivai-editorial] Reportagem gerada com fonte HTML pública", { model });
     return { generated: extractJson(resultText), model };
   }
-  throw new Error("Nenhum modelo Gemini disponível para processar o texto público da reportagem.");
+  throw new Error(publicTextFailure);
 }
 export async function generateEditorialBase(input: {
   sourceUrl: string; sourceTitle: string; sourceName: string; excerpt?: string; model?: string;

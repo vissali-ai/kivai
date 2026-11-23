@@ -1,5 +1,5 @@
 import "server-only";
-import { geminiCandidates } from "@/lib/ai/free-models";
+import { geminiCandidatesWithFallback, isGeminiTransientFailure } from "@/lib/ai/free-models";
 
 
 export class GeminiRequestError extends Error {
@@ -34,7 +34,8 @@ export async function requestGeminiJsonParts(
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new GeminiRequestError(503);
 
-  const models = geminiCandidates("text", preferredModel);
+  const models = geminiCandidatesWithFallback("text", preferredModel);
+  let lastStatus = 404;
   for (const [index, model] of models.entries()) {
     let response: Response;
     try {
@@ -57,20 +58,24 @@ export async function requestGeminiJsonParts(
         },
       );
     } catch {
-      throw new GeminiRequestError(503);
+      // A network failure on one model must not block the next eligible model.
+      lastStatus = 503;
+      console.warn("[kivai-ai] Gemini connection failed; trying next model", model);
+      continue;
     }
 
     if (!response.ok) {
       // Never log provider response bodies, API keys, prompts or user data.
       console.warn("[kivai-ai] Gemini model/status", model, response.status);
+      lastStatus = response.status === 404 ? 404 : response.status === 429 ? 429 : 503;
 
-      // Model access can differ by API project. Try one other free model only
-      // for "not found"; never circumvent provider quota or billing errors.
-      if (response.status === 404 && index < models.length - 1) continue;
-
-      throw new GeminiRequestError(
-        response.status === 404 ? 404 : response.status === 429 ? 429 : 503,
-      );
+      // 404 means this API project cannot access that model. 502/503/504
+      // are transient provider failures; try the next configured free model.
+      // Never rotate around quota (429), billing, or other client errors.
+      if ((response.status === 404 || isGeminiTransientFailure(response.status)) && index < models.length - 1) continue;
+      if (response.status === 429) throw new GeminiRequestError(429);
+      if (isGeminiTransientFailure(response.status)) throw new GeminiRequestError(503);
+      throw new GeminiRequestError(response.status === 404 ? 404 : 503);
     }
 
     let json: GeminiResponse;
@@ -99,5 +104,5 @@ export async function requestGeminiJsonParts(
     }
   }
 
-  throw new GeminiRequestError(404);
+  throw new GeminiRequestError(lastStatus);
 }
