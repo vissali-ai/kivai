@@ -1,5 +1,5 @@
 import "server-only";
-import { geminiCandidates, isGeminiTransientFailure } from "@/lib/ai/free-models";
+import { geminiCandidatesWithFallback, isGeminiTransientFailure } from "@/lib/ai/free-models";
 
 
 export class GeminiRequestError extends Error {
@@ -34,7 +34,7 @@ export async function requestGeminiJsonParts(
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new GeminiRequestError(503);
 
-  const models = geminiCandidates("text", preferredModel);
+  const models = geminiCandidatesWithFallback("text", preferredModel);
   let lastStatus = 404;
   for (const [index, model] of models.entries()) {
     let response: Response;
