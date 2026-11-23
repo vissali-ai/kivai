@@ -11,7 +11,7 @@ const compiled = ts.transpileModule(readFileSync(path, "utf8"), {
 }).outputText;
 const common = { exports: {} };
 runInNewContext(compiled, { module: common, exports: common.exports });
-const { GEMINI_FREE_TEXT_MODELS, geminiCandidates } = common.exports;
+const { GEMINI_FREE_TEXT_MODELS, geminiCandidates, isGeminiTransientFailure } = common.exports;
 
 test("Catalog includes only named and unique text models", () => {
   assert.equal(GEMINI_FREE_TEXT_MODELS.length, 8);
@@ -34,4 +34,13 @@ test("Reject unsupported paid model and using text-only models for paid groundin
   assert.throws(() => geminiCandidates("search", "gemini-3.5-flash-lite"));
   assert.throws(() => geminiCandidates("search", "gemini-2.5-pro"));
   assert.throws(() => geminiCandidates("url", "gemini-3.1-flash-lite-image"));
+});
+
+test("Transient Gemini provider failures are eligible for model fallback", () => {
+  assert.equal(isGeminiTransientFailure(502), true);
+  assert.equal(isGeminiTransientFailure(503), true);
+  assert.equal(isGeminiTransientFailure(504), true);
+  assert.equal(isGeminiTransientFailure(400), false);
+  assert.equal(isGeminiTransientFailure(404), false);
+  assert.equal(isGeminiTransientFailure(429), false);
 });
