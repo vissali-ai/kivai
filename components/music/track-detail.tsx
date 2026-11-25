@@ -54,6 +54,7 @@ export function TrackDetail({ artistSlug, albumSlug, trackSlug }: { artistSlug: 
           </div>
         </section>
         <p className="mt-4 text-sm text-muted-foreground">A reprodução continua pela fila do álbum. Ao terminar, o player poderá avançar para a próxima faixa.</p>
+        {track.fullAudio && track.description.trim() ? <section className="mt-6 rounded-2xl border border-border bg-card p-5"><p className="text-xs font-semibold uppercase tracking-[.18em] text-primary">Áudio completo (EP/LP)</p><div className="mt-3 whitespace-pre-line text-sm leading-7 text-muted-foreground">{track.description}</div></section> : null}
       </div>
     </main>
   );

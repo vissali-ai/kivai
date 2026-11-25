@@ -11,7 +11,7 @@ import { useMusicPlayer } from "@/components/music/music-player-provider";
 
 type Playlist = { id: string; name: string; created_at?: string };
 type Entry = { playlist_id: string; track_id: string; position: number };
-type TrackRow = { id: string; slug: string; album_id: string; title: string; track_number: number; duration_seconds: number | null; audio_url: string; status: "draft" | "published" | "archived"; album: { title: string; cover_url: string | null; artist: { name: string; slug: string } | null } | null };
+type TrackRow = { id: string; slug: string; album_id: string; title: string; track_number: number; duration_seconds: number | null; audio_url: string; full_audio: boolean; description: string; status: "draft" | "published" | "archived"; album: { title: string; cover_url: string | null; artist: { name: string; slug: string } | null } | null };
 
 export function MusicPlaylistAdd({ trackId }: { trackId: string }) {
   const [items, setItems] = useState<Playlist[]>([]);
@@ -90,7 +90,7 @@ export function MusicLibraryDashboard() {
       let tracks: TrackRow[] = [];
       if (trackIds.length) {
         const params = new URLSearchParams({
-          select: "id,slug,album_id,title,track_number,duration_seconds,audio_url,status,album:music_albums(title,cover_url,artist:music_artists(name,slug))",
+          select: "id,slug,album_id,title,track_number,duration_seconds,audio_url,full_audio,description,status,album:music_albums(title,cover_url,artist:music_artists(name,slug))",
           id: `in.(${trackIds.join(",")})`, status: "eq.published",
         });
         const trackResponse = await supabaseUserFetch(`/rest/v1/music_tracks?${params.toString()}`);
@@ -166,7 +166,7 @@ export function MusicLibraryDashboard() {
       {playlists.map((list) => {
         const queue = list.tracks.map((track) => ({
           id: track.id, slug: track.slug, albumId: track.album_id, title: track.title, trackNumber: track.track_number,
-          durationSeconds: track.duration_seconds, audioUrl: track.audio_url, status: track.status,
+          durationSeconds: track.duration_seconds, audioUrl: track.audio_url, fullAudio: track.full_audio, description: track.description, status: track.status,
           artistName: track.album?.artist?.name ?? "Artista", albumTitle: track.album?.title ?? "Álbum",
           coverUrl: track.album?.cover_url ?? "",
         }));
