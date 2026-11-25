@@ -66,14 +66,6 @@ export default function AlbumPage() {
           </div>
         </section>
 
-        {album.tracks.filter(track => track.fullAudio && track.description?.trim()).map(track => (
-          <section key={track.id} className="mt-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[.18em] text-primary">Repertório completo</p>
-            <h2 className="mt-2 text-lg font-semibold">{track.title}</h2>
-            <div className="mt-3 whitespace-pre-line text-sm leading-7 text-muted-foreground">{track.description}</div>
-          </section>
-        ))}
-
         {sharedTrack ? (
           <section className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4">
             <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-wide text-primary">Música compartilhada</p><p className="truncate font-semibold">{sharedTrack.title}</p><p className="text-xs text-muted-foreground">{data.artist.name} · {album.title}</p></div>
@@ -102,7 +94,16 @@ export default function AlbumPage() {
             })}
           </ol>
         </section>
-      </div>
+
+        {album.tracks.filter(track => track.fullAudio && track.description?.trim()).map(track => (
+          <section key={track.id} className="mt-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[.18em] text-primary">Repertório completo</p>
+            <h2 className="mt-2 text-lg font-semibold">{track.title}</h2>
+            <div className="mt-3 whitespace-pre-line text-sm leading-7 text-muted-foreground">{track.description}</div>
+          </section>
+        ))}
+
+        </div>
     </main>
   );
 }
