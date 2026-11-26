@@ -11,7 +11,6 @@ import type { MusicCatalog } from "@/lib/music/types";
 
 export function MusicAlbumDetail({ data }: { data: MusicCatalog }) {
   const [sharedTrackId, setSharedTrackId] = useState("");
-  const [sharedTrackId, setSharedTrackId] = useState("");
   const player = useMusicPlayer();
   const prefix = player.isStreamingHost ? "" : "/musica";
 
