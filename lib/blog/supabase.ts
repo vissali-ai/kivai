@@ -50,7 +50,7 @@ export async function supabaseRest<T>(path: string, options: RequestOptions = {}
   const method = (options.method ?? "GET").toUpperCase();
   // GET é idempotente: tentativas curtas absorvem resets/timeout transitórios
   // sem repetir operações de escrita, RPCs ou consumo de créditos.
-  const maxAttempts = method === "GET" ? 3 : 1;
+  const maxAttempts = method === "GET" ? 4 : 1;
   let lastNetworkError: unknown;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -73,7 +73,10 @@ export async function supabaseRest<T>(path: string, options: RequestOptions = {}
         throw new Error("Não foi possível conectar ao Supabase após novas tentativas. Tente novamente em instantes.");
       }
     }
-    await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+    // Aumenta o intervalo entre tentativas para permitir a renovação de sockets
+    // encerrados pelo gateway sem multiplicar chamadas de escrita.
+    const retryDelays = [350, 800, 1600];
+    await new Promise((resolve) => setTimeout(resolve, retryDelays[attempt - 1] ?? 1600));
   }
 
   if (!response) {
