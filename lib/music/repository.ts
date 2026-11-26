@@ -116,9 +116,23 @@ export async function saveMusicTrack(input:Record<string,unknown>) {
  const status=cleanStatus(input.status);let slug=slugify(clean(input.slug||title,160));if(!slug)throw new Error("Informe um título válido para gerar a URL da música.");
  const conflicts=await supabaseRest<Array<{id:string}>>(`music_tracks?select=id&album_id=eq.${enc(albumId)}&slug=eq.${enc(slug)}${id?`&id=neq.${enc(id)}`:""}`);
  if(conflicts.length){let suffix=2;const base=slug;while((await supabaseRest<Array<{id:string}>>(`music_tracks?select=id&album_id=eq.${enc(albumId)}&slug=eq.${enc(`${base}-${suffix}`)}${id?`&id=neq.${enc(id)}`:""}`)).length)suffix++;slug=`${base}-${suffix}`;}
- const body={album_id:albumId,slug,title,track_number:trackNumber,duration_seconds:Math.max(0,Math.floor(Number(input.durationSeconds)||0))||null,audio_url:audioUrl,full_audio:input.fullAudio===true||input.fullAudio==="true",description:String(input.description??"").slice(0,8000),status};
+ let restoredPlayCount=0;
+ if(!id){
+  const albums=await supabaseRest<Array<{slug:string;artist:{slug:string}|null}>>(`music_albums?select=slug,artist:music_artists!inner(slug)&id=eq.${enc(albumId)}&limit=1`);
+  const album=albums[0];
+  if(album?.artist?.slug){
+   const titleKey=title.toLowerCase().trim().replace(/\s+/g," ");
+   const history=await supabaseRest<Array<{track_number:number;play_count:number}>>(
+    `music_track_play_history?select=track_number,play_count&artist_slug=eq.${enc(album.artist.slug)}&album_slug=eq.${enc(album.slug)}&track_title_key=eq.${enc(titleKey)}&order=track_number.asc`,
+   );
+   const match=history.find(row=>Number(row.track_number)===trackNumber)??(history.length===1?history[0]:undefined);
+   restoredPlayCount=Math.max(0,Math.floor(Number(match?.play_count)||0));
+  }
+ }
+ const body={album_id:albumId,slug,title,track_number:trackNumber,duration_seconds:Math.max(0,Math.floor(Number(input.durationSeconds)||0))||null,audio_url:audioUrl,full_audio:input.fullAudio===true||input.fullAudio==="true",description:String(input.description??"").slice(0,8000),status,...(!id?{play_count:restoredPlayCount}:{})};
  const rows=await supabaseRest<TrackRow[]>(id?`music_tracks?id=eq.${enc(id)}`:"music_tracks",{method:id?"PATCH":"POST",body:JSON.stringify(body)});return mapTrack(rows[0]);
 }
+
 const musicUuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function musicObjectPath(value:string) {
  if(!value)return null;
