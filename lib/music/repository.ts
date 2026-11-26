@@ -29,13 +29,48 @@ export async function listMusicCatalog():Promise<MusicCatalog[]> {
  const tracks=albums.length?(await supabaseRest<TrackRow[]>(`music_tracks?select=*&album_id=in.(${albums.map(a=>a.id).join(",")})&status=eq.published&order=track_number.asc`,{allowMissingConfig:true})).map(mapTrack):[];
  return artists.map(artist=>({artist,albums:albums.filter(a=>a.artistId===artist.id).map(album=>({...album,tracks:tracks.filter(t=>t.albumId===album.id)}))}));
 }
-export async function getMusicCatalogByArtist(slug:string) { return (await listMusicCatalog()).find(c=>c.artist.slug===slug)??null; }
+export async function getMusicCatalogByArtist(slug:string):Promise<MusicCatalog|null> {
+ const artistRows=await supabaseRest<Array<ArtistRow & {genre_id?:string|null}>>(
+  `music_artists?select=*&slug=eq.${enc(slug)}&status=eq.published&limit=1`,
+  {allowMissingConfig:true},
+ );
+ const artistRow=artistRows[0];
+ if(!artistRow)return null;
+ const artist=mapArtist(artistRow);
+ const albumRows=await supabaseRest<AlbumRow[]>(
+  `music_albums?select=*&artist_id=eq.${enc(artist.id)}&status=eq.published&order=created_at.desc,title.asc`,
+  {allowMissingConfig:true},
+ );
+ const albums=albumRows.map(row=>mapAlbum({...row,artist_name:artist.name,artist_slug:artist.slug}));
+ const tracks=albums.length
+  ? (await supabaseRest<TrackRow[]>(
+     `music_tracks?select=*&album_id=in.(${albums.map(album=>album.id).join(",")})&status=eq.published&order=track_number.asc`,
+     {allowMissingConfig:true},
+    )).map(mapTrack)
+  : [];
+ return {artist,albums:albums.map(album=>({...album,tracks:tracks.filter(track=>track.albumId===album.id)}))};
+}
 
 export async function getMusicAlbum(artistSlug:string,albumSlug:string) {
- const catalog=await getMusicCatalogByArtist(artistSlug);
- if(!catalog)return null;
- const album=catalog.albums.find(a=>a.slug===albumSlug);
- return album?{artist:catalog.artist,album}:null;
+ const artistRows=await supabaseRest<Array<ArtistRow & {genre_id?:string|null}>>(
+  `music_artists?select=*&slug=eq.${enc(artistSlug)}&status=eq.published&limit=1`,
+  {allowMissingConfig:true},
+ );
+ const artistRow=artistRows[0];
+ if(!artistRow)return null;
+ const artist=mapArtist(artistRow);
+ const albumRows=await supabaseRest<AlbumRow[]>(
+  `music_albums?select=*&artist_id=eq.${enc(artist.id)}&slug=eq.${enc(albumSlug)}&status=eq.published&limit=1`,
+  {allowMissingConfig:true},
+ );
+ const albumRow=albumRows[0];
+ if(!albumRow)return null;
+ const trackRows=await supabaseRest<TrackRow[]>(
+  `music_tracks?select=*&album_id=eq.${enc(albumRow.id)}&status=eq.published&order=track_number.asc`,
+  {allowMissingConfig:true},
+ );
+ const album={...mapAlbum({...albumRow,artist_name:artist.name,artist_slug:artist.slug}),tracks:trackRows.map(mapTrack)};
+ return {artist,album};
 }
 export async function getMusicTrack(artistSlug:string,albumSlug:string,trackSlug:string) {
  const result=await getMusicAlbum(artistSlug,albumSlug);
