@@ -32,6 +32,25 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return {
+      // No dominio do streaming, os links publicos de album e faixa nao
+      // possuem o prefixo interno /musica usado pela estrutura do App Router.
+      // afterFiles preserva rotas publicas ja existentes, como noticias.
+      afterFiles: [
+        {
+          source: "/:artist/:album/:track",
+          destination: "/musica/:artist/:album/:track",
+          has: [{ type: "host", value: "streaming.kivai.com.br" }],
+        },
+        {
+          source: "/:artist/:album",
+          destination: "/musica/:artist/:album",
+          has: [{ type: "host", value: "streaming.kivai.com.br" }],
+        },
+      ],
+    };
+  },
   images: {
     remotePatterns: [blogBucket, "music-media"].map((bucket) => ({
       protocol: "https" as const,
