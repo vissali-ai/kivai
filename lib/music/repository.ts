@@ -31,35 +31,15 @@ export async function listMusicCatalog():Promise<MusicCatalog[]> {
 }
 export async function getMusicCatalogByArtist(slug:string) { return (await listMusicCatalog()).find(c=>c.artist.slug===slug)??null; }
 
-async function getPublishedAlbumRecord(artistSlug:string, albumSlug:string) {
- const hub=await getSiteHubBySlug("musica",true);
- if(!hub || hub.status!=="published") return null;
- const rows=await supabaseRest<Array<AlbumRow & {artist:ArtistRow & {genre_id?:string|null}}>>(
-  "music_albums?select=*,artist:music_artists!inner(*)" +
-  "&slug=eq."+enc(albumSlug) +
-  "&artist.slug=eq."+enc(artistSlug) +
-  "&status=eq.published&artist.status=eq.published&limit=1",
-  {allowMissingConfig:true}
- );
- const row=rows[0];
- if(!row?.artist) return null;
- const tracks=await supabaseRest<TrackRow[]>(
-  "music_tracks?select=*&album_id=eq."+enc(row.id)+"&status=eq.published&order=track_number.asc",
-  {allowMissingConfig:true}
- );
- return {
-  artist:mapArtist(row.artist),
-  album:{...mapAlbum({...row,artist_name:row.artist.name,artist_slug:row.artist.slug}),tracks:tracks.map(mapTrack)}
- };
-}
-
 export async function getMusicAlbum(artistSlug:string,albumSlug:string) {
- return getPublishedAlbumRecord(artistSlug,albumSlug);
+ const catalog=await getMusicCatalogByArtist(artistSlug);
+ if(!catalog)return null;
+ const album=catalog.albums.find(a=>a.slug===albumSlug);
+ return album?{artist:catalog.artist,album}:null;
 }
-
 export async function getMusicTrack(artistSlug:string,albumSlug:string,trackSlug:string) {
- const result=await getPublishedAlbumRecord(artistSlug,albumSlug);
- if(!result) return null;
+ const result=await getMusicAlbum(artistSlug,albumSlug);
+ if(!result)return null;
  const track=result.album.tracks.find(item=>item.slug===trackSlug);
  return track?{...result,track}:null;
 }
