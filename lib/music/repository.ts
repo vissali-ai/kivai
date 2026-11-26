@@ -30,10 +30,38 @@ export async function listMusicCatalog():Promise<MusicCatalog[]> {
  return artists.map(artist=>({artist,albums:albums.filter(a=>a.artistId===artist.id).map(album=>({...album,tracks:tracks.filter(t=>t.albumId===album.id)}))}));
 }
 export async function getMusicCatalogByArtist(slug:string) { return (await listMusicCatalog()).find(c=>c.artist.slug===slug)??null; }
-export async function getMusicAlbum(artistSlug:string,albumSlug:string) { const catalog=await getMusicCatalogByArtist(artistSlug); if(!catalog)return null; const album=catalog.albums.find(a=>a.slug===albumSlug); return album?{artist:catalog.artist,album}:null; }
+
+async function getPublishedAlbumRecord(artistSlug:string, albumSlug:string) {
+ const hub=await getSiteHubBySlug("musica",true);
+ if(!hub || hub.status!=="published") return null;
+ const rows=await supabaseRest<Array<AlbumRow & {artist:ArtistRow & {genre_id?:string|null}}>>(
+  "music_albums?select=*,artist:music_artists!inner(*)" +
+  "&slug=eq."+enc(albumSlug) +
+  "&artist.slug=eq."+enc(artistSlug) +
+  "&status=eq.published&artist.status=eq.published&limit=1",
+  {allowMissingConfig:true}
+ );
+ const row=rows[0];
+ if(!row?.artist) return null;
+ const tracks=await supabaseRest<TrackRow[]>(
+  "music_tracks?select=*&album_id=eq."+enc(row.id)+"&status=eq.published&order=track_number.asc",
+  {allowMissingConfig:true}
+ );
+ return {
+  artist:mapArtist(row.artist),
+  album:{...mapAlbum({...row,artist_name:row.artist.name,artist_slug:row.artist.slug}),tracks:tracks.map(mapTrack)}
+ };
+}
+
+export async function getMusicAlbum(artistSlug:string,albumSlug:string) {
+ return getPublishedAlbumRecord(artistSlug,albumSlug);
+}
+
 export async function getMusicTrack(artistSlug:string,albumSlug:string,trackSlug:string) {
- const result=await getMusicAlbum(artistSlug,albumSlug);if(!result)return null;
- const track=result.album.tracks.find(item=>item.slug===trackSlug);return track?{...result,track}:null;
+ const result=await getPublishedAlbumRecord(artistSlug,albumSlug);
+ if(!result) return null;
+ const track=result.album.tracks.find(item=>item.slug===trackSlug);
+ return track?{...result,track}:null;
 }
 export async function listAdminMusicCatalog() {
  const [artists,albums,tracks,genres]=await Promise.all([supabaseRest<Array<ArtistRow & {genre_id?:string|null}>>("music_artists?select=*&order=created_at.desc"),supabaseRest<AlbumRow[]>("music_albums?select=*&order=created_at.desc"),supabaseRest<TrackRow[]>("music_tracks?select=*&order=track_number.asc"),supabaseRest<GenreRow[]>("music_genres?select=*&order=name.asc")]);
