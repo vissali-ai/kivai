@@ -29,8 +29,9 @@ export function proxy(request: NextRequest) {
       return NextResponse.rewrite(url);
     }
 
-    // Keep old shared-hub URLs working while exposing clean artist and album
-    // slugs on the streaming domain.
+    // Keep clean artist, album and track URLs on the streaming domain.
+    // This proxy is the single rewrite layer for public music paths; do not
+    // duplicate these rules in next.config.ts.
     if (pathname === "/musica" || pathname.startsWith("/musica/")) {
       const url = request.nextUrl.clone();
       url.pathname = pathname.slice("/musica".length) || "/";
@@ -41,7 +42,7 @@ export function proxy(request: NextRequest) {
     const firstSegment = segments[0]?.toLowerCase();
     if (
       segments.length > 0 &&
-      segments.length <= 2 &&
+      segments.length <= 3 &&
       firstSegment &&
       !firstSegment.includes(".") &&
       !STREAMING_RESERVED_PATHS.has(firstSegment)
