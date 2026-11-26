@@ -5,7 +5,6 @@ import { blogConfig } from "@/lib/blog/config";
 import { supabaseRest, supabaseStorage } from "@/lib/blog/supabase";
 import { plainText } from "@/lib/blog/sanitize";
 import { slugify } from "@/lib/blog/slug";
-import { getSiteHubBySlug } from "@/lib/site-cms/repository";
 import type { MusicAlbum, MusicArtist, MusicCatalog, MusicGenre, MusicTrack } from "@/lib/music/types";
 import { createR2UploadUrl, deleteR2Object, getR2PublicUrl, r2ObjectKeyFromPublicUrl } from "@/lib/music/r2";
 
@@ -23,7 +22,8 @@ export async function listMusicArtists(includeDrafts=false) { const q=includeDra
 export async function listMusicGenres(includeDrafts=false):Promise<MusicGenre[]> { const q=includeDrafts?"music_genres?select=*&order=name.asc":"music_genres?select=*&status=eq.published&order=name.asc"; return (await supabaseRest<GenreRow[]>(q,{allowMissingConfig:true})).map(mapGenre); }
 export async function getMusicGenreBySlug(slug:string) { const genres=await listMusicGenres(); const genre=genres.find(item=>item.slug===slug); if(!genre)return null; const catalog=await listMusicCatalog(); return {genre,artists:catalog.filter(item=>item.artist.genreId===genre.id)}; }
 export async function listMusicCatalog():Promise<MusicCatalog[]> {
- const hub=await getSiteHubBySlug("musica",true);if(!hub)return [];
+ // O catálogo público de música não pode depender do cadastro editorial do CMS.
+ // A publicação é controlada pelos status de artistas, álbuns e faixas.
  const artists=await listMusicArtists(); if(!artists.length)return [];
  const albums=(await supabaseRest<AlbumRow[]>(`music_albums?select=*,artist:music_artists(name,slug)&artist_id=in.(${artists.map(a=>a.id).join(",")})&status=eq.published&order=created_at.desc,title.asc`,{allowMissingConfig:true})).map(r=>{const artist=(r as AlbumRow & {artist?:{name:string;slug:string}}).artist;return mapAlbum({...r,artist_name:artist?.name,artist_slug:artist?.slug});});
  const tracks=albums.length?(await supabaseRest<TrackRow[]>(`music_tracks?select=*&album_id=in.(${albums.map(a=>a.id).join(",")})&status=eq.published&order=track_number.asc`,{allowMissingConfig:true})).map(mapTrack):[];
@@ -156,11 +156,6 @@ export async function listMusicAlbumsPage(page = 1, pageSize = 15): Promise<{
 }> {
   const safePage = Math.max(1, Math.floor(page) || 1);
   const safePageSize = Math.min(50, Math.max(1, Math.floor(pageSize) || 15));
-  const hub = await getSiteHubBySlug("musica", true);
-  if (!hub) {
-    return { albums: [], page: safePage, hasPrevious: safePage > 1, hasNext: false };
-  }
-
   const start = (safePage - 1) * safePageSize;
   const end = start + safePageSize;
   const rows = await supabaseRest<Array<AlbumRow & {
