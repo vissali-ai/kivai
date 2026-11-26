@@ -121,7 +121,7 @@ export async function saveMusicTrack(input:Record<string,unknown>) {
   const albums=await supabaseRest<Array<{slug:string;artist:{slug:string}|null}>>(`music_albums?select=slug,artist:music_artists!inner(slug)&id=eq.${enc(albumId)}&limit=1`);
   const album=albums[0];
   if(album?.artist?.slug){
-   const titleKey=title.toLowerCase().trim().replace(/\\s+/g," ");
+   const titleKey=title.toLowerCase().trim().replace(/\s+/g," ");
    const history=await supabaseRest<Array<{track_number:number;play_count:number}>>(
     `music_track_play_history?select=track_number,play_count&artist_slug=eq.${enc(album.artist.slug)}&album_slug=eq.${enc(album.slug)}&track_title_key=eq.${enc(titleKey)}&order=track_number.asc`,
    );
