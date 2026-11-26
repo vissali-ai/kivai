@@ -36,7 +36,6 @@ export default async function MusicReleasesPage({ searchParams }: PageProps) {
         <header className="mb-7 mt-5">
           <p className="text-xs font-semibold uppercase tracking-[.18em] text-primary">Catálogo completo</p>
           <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Todos os álbuns</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Confira os álbuns publicados, começando pelos lançamentos mais recentes.</p>
         </header>
 
         {listing.albums.length ? (
