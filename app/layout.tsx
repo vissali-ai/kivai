@@ -106,8 +106,9 @@ const baseMetadata: Metadata = {
 export async function generateMetadata(): Promise<Metadata> {
   const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
   const streaming = host === "streaming.kivai.com.br";
-  const icon = streaming ? "/logo.png" : "/favicon-main.svg";
-  return { ...baseMetadata, icons: { icon, shortcut: icon, apple: "/apple-touch-icon.png" } };
+  const icon = streaming ? "/logo.png" : "/logo-main.png";
+  const apple = streaming ? "/apple-touch-icon.png" : "/logo-main.png";
+  return { ...baseMetadata, icons: { icon, shortcut: icon, apple } };
 }
 
 export async function generateViewport(): Promise<Viewport> {

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ siz
   const dimension = Number(size);
   const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
   const streaming = host === "streaming.kivai.com.br";
-  const logoUrl = new URL(streaming ? "/logo.png" : "/logo-main.svg", request.url);
+  const logoUrl = new URL(streaming ? "/logo.png" : "/logo-main.png", request.url);
   const logoResponse = await fetch(logoUrl, { cache: "force-cache" });
   if (!logoResponse.ok || !(logoResponse.headers.get("content-type") ?? "").startsWith("image/")) {
     return new Response("Logo indisponível.", { status: 503 });
