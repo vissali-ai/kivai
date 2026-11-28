@@ -150,6 +150,7 @@ export default async function RootLayout({
                 "--cta-primary": "#6C2BD9",
                 "--cta-primary-hover": "#5521B0",
                 "--cta-primary-text": "#FFFFFF",
+                "--brand-detail-coral": "#FF5A36",
               } as React.CSSProperties)
         }
       >
