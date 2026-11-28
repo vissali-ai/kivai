@@ -419,5 +419,9 @@ body:not(.kivai-streaming-host) :is(button, a)[class~="bg-primary"]:hover {
 
 body:not(.kivai-streaming-host) :is(button, a, input, select, textarea, [role="button"]):focus-visible {
   --tw-ring-color: var(--brand-detail-coral);
+}
+
+body:not(.kivai-streaming-host) :is(button, a, input, select, textarea, [role="button"])[class*="focus-visible:"]:focus-visible {
+  --tw-ring-color: var(--brand-detail-coral);
   outline-color: var(--brand-detail-coral);
 }
