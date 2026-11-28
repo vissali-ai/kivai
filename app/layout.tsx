@@ -116,11 +116,13 @@ export async function generateViewport(): Promise<Viewport> {
   return { themeColor: host === "streaming.kivai.com.br" ? "#ECEFF3" : "#6C2BD9" };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  const isStreamingHost = host === "streaming.kivai.com.br";
   const shouldLoadAdsense =
     adsConfig.enabled &&
     adsConfig.provider === "adsense" &&
@@ -135,7 +137,22 @@ export default function RootLayout({
         "font-sans",
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <body
+        className={cn("min-h-full flex flex-col", isStreamingHost && "kivai-streaming-host")}
+        style={
+          isStreamingHost
+            ? undefined
+            : ({
+                "--primary": "#6C2BD9",
+                "--primary-foreground": "#FFFFFF",
+                "--ring": "#6C2BD9",
+                "--brand-primary": "#6C2BD9",
+                "--cta-primary": "#6C2BD9",
+                "--cta-primary-hover": "#5521B0",
+                "--cta-primary-text": "#FFFFFF",
+              } as React.CSSProperties)
+        }
+      >
         <StructuredData />
         <MobileFileSaveChooser />
 
