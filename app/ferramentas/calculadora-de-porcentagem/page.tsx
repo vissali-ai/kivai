@@ -3,22 +3,8 @@ import { getToolMetadataAsync } from "@/lib/seo";
 
 import CalculadoraDePorcentagemClient from "./calculadora-de-porcentagem-client";
 
-const SEO_DESCRIPTION =
-  "Calcule porcentagem online: X% de um valor, percentual entre valores, aumento, desconto, redução e valor original. Resultado na hora.";
-
 export async function generateMetadata() {
-  const metadata = await getToolMetadataAsync("calculadora-de-porcentagem");
-
-  return {
-    ...metadata,
-    description: SEO_DESCRIPTION,
-    openGraph: metadata.openGraph
-      ? { ...metadata.openGraph, description: SEO_DESCRIPTION }
-      : undefined,
-    twitter: metadata.twitter
-      ? { ...metadata.twitter, description: SEO_DESCRIPTION }
-      : undefined,
-  };
+  return getToolMetadataAsync("calculadora-de-porcentagem");
 }
 
 export default function CalculadoraDePorcentagemPage() {
