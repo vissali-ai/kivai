@@ -34,7 +34,7 @@ export function Footer() {
               aria-label="Kivai, página inicial"
             >
               <Image
-                src="/logo-main.svg"
+                src="/logo-main.png"
                 alt="Kivai"
                 width={28}
                 height={28}
