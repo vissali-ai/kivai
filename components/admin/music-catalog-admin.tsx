@@ -67,7 +67,6 @@ export function MusicCatalogAdmin() {
   const [fields, setFields] = useState<Record<string, string>>({ status: "draft" });
   const [busy, setBusy] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
-  const [confirm, setConfirm] = useState("");
   const [catalogSearch, setCatalogSearch] = useState("");
   const [batchAlbumId, setBatchAlbumId] = useState("");
   const [batchFiles, setBatchFiles] = useState<Array<{ file: File; title: string; duration: number }>>([]);
@@ -107,7 +106,6 @@ export function MusicCatalogAdmin() {
     setKind(type);
     setId(row?.id ?? "");
     setPendingDelete(null);
-    setConfirm("");
     if (!row) {
       setFields({ status: "draft", ...(type === "track" ? { trackNumber: String(data.tracks.length + 1) } : {}) });
       return;
@@ -224,14 +222,14 @@ export function MusicCatalogAdmin() {
   }
 
   async function remove() {
-    if (!pendingDelete || confirm !== "EXCLUIR DEFINITIVAMENTE") return;
+    if (!pendingDelete) return;
     setBusy(true);
     setMessage("Excluindo cadastro e mídias...");
     try {
       const response = await fetch("/api/admin/music", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: pendingDelete.kind, id: pendingDelete.id, confirm }),
+        body: JSON.stringify({ kind: pendingDelete.kind, id: pendingDelete.id }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Falha ao excluir.");
@@ -240,7 +238,6 @@ export function MusicCatalogAdmin() {
         setFields({ status: "draft" });
       }
       setPendingDelete(null);
-      setConfirm("");
       await refresh();
       setMessage(result.failedFiles
         ? `Cadastro excluído. ${result.removedFiles} arquivo(s) removido(s); ${result.failedFiles} arquivo(s) não foi possível remover do Storage.`
@@ -315,7 +312,7 @@ export function MusicCatalogAdmin() {
             })}{!albums.length&&<p className="text-xs text-muted-foreground">Este artista ainda não possui álbuns.</p>}</div>
           </details>;
         })}{!filteredArtists.length&&<p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Nenhum artista ou álbum encontrado.</p>}</div>
-        {pendingDelete && <div className="space-y-3 rounded-lg border border-destructive/40 p-4"><p className="text-sm font-semibold">Excluir definitivamente “{pendingDelete.label}”?</p><p className="text-sm">{pendingDelete.impact}</p><p className="text-xs text-muted-foreground">O cadastro e seus registros dependentes serão removidos, incluindo mídias Kivai vinculadas.</p><label className="block text-sm">Digite EXCLUIR DEFINITIVAMENTE<input value={confirm} onChange={event=>setConfirm(event.target.value)} className="mt-1 w-full rounded border border-border bg-background p-2"/></label><div className="flex gap-2"><Button type="button" variant="destructive" disabled={busy||confirm!=="EXCLUIR DEFINITIVAMENTE"} onClick={()=>void remove()}>Excluir permanentemente</Button><Button type="button" variant="outline" onClick={()=>{setPendingDelete(null);setConfirm("");}}>Cancelar</Button></div></div>}
+        {pendingDelete && <div className="space-y-3 rounded-lg border border-destructive/40 p-4"><p className="text-sm font-semibold">Excluir definitivamente “{pendingDelete.label}”?</p><p className="text-sm">{pendingDelete.impact}</p><p className="text-xs text-muted-foreground">O cadastro e seus registros dependentes serão removidos, incluindo mídias Kivai vinculadas.</p><div className="flex gap-2"><Button type="button" variant="destructive" disabled={busy} onClick={()=>void remove()}>Confirmar exclusão</Button><Button type="button" variant="outline" disabled={busy} onClick={()=>setPendingDelete(null)}>Cancelar</Button></div></div>}
       </section>
 
       <div className="space-y-4">
