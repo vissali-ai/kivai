@@ -19,7 +19,7 @@ export async function FeaturedToolsSection() {
   });
 
   return (
-    <section className="border-t border-[#D8DEE6] bg-[#ECEFF3] py-10 sm:py-12">
+    <section className="border-t border-border bg-background py-10 sm:py-12">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <HorizontalToolCarousel>
           {mostUsedTools.map((tool) => {
@@ -28,25 +28,25 @@ export async function FeaturedToolsSection() {
                 toolTitle={tool.name}
                 key={tool.slug}
                 href={getToolHref(tool.slug)}
-                className="group w-[min(78vw,272px)] shrink-0 snap-start rounded-xl border border-[#D8DEE6] bg-[#F9FAFC] p-4 transition-colors duration-150 hover:border-[#A8B1C3] hover:bg-white sm:w-[272px]"
+                className="group w-[min(78vw,272px)] shrink-0 snap-start rounded-xl border border-border bg-card p-4 transition-colors duration-150 hover:border-primary/40 hover:bg-white sm:w-[272px]"
               >
                 <div className="flex h-full min-h-[154px] flex-col">
                   <div className="flex items-start justify-between gap-2">
                     <ToolEditorialMark category={tool.category} slug={tool.slug} className="size-8 shrink-0" />
-                    <span className="shrink-0 rounded-full border border-[#DFE4EB] bg-[#F1F3F7] px-2 py-0.5 text-[10px] text-[#5C6878]">
+                    <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                       {tool.available ? tool.badge : "Em breve"}
                     </span>
                   </div>
 
-                  <h3 className="mt-4 text-[15px] font-semibold leading-5 tracking-tight text-[#202938]">
+                  <h3 className="mt-4 text-[15px] font-semibold leading-5 tracking-tight text-foreground">
                     {tool.name}
                   </h3>
 
-                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-[#566375]">
+                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
                     {tool.description}
                   </p>
 
-                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium text-[#5847AD]">
+                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium text-primary">
                     {tool.available ? "Explorar" : "Em breve"}
                     {tool.available && <ArrowRight aria-hidden="true" className="size-3.5" />}
                   </span>
