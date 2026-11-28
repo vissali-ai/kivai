@@ -399,4 +399,29 @@ body.kivai-streaming-host {
 
 
 /* Ações do site principal. O tema de streaming mantém os próprios tokens. */
-body:not(.kivai-streaming-host) :is(button, a, input, select, textarea, [role="button"]):focus-visible { --tw-ring-color: var(--brand-primary); }
+/* Acentos coral discretos em links, cartões e controles do domínio principal. */
+body:not(.kivai-streaming-host) a:not([data-slot="button"]):not(.group):not([class*="inline-flex"]):hover {
+  text-decoration-line: underline;
+  text-decoration-color: var(--brand-detail-coral);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+body:not(.kivai-streaming-host) a.group:hover {
+  border-color: color-mix(in srgb, var(--brand-detail-coral) 55%, var(--border));
+}
+
+body:not(.kivai-streaming-host) [data-slot="button"][data-variant="default"]:hover,
+body:not(.kivai-streaming-host) :is(button, a)[class~="bg-primary"]:hover {
+  outline: 1px solid var(--brand-detail-coral);
+  outline-offset: -1px;
+}
+
+body:not(.kivai-streaming-host) :is(button, a, input, select, textarea, [role="button"]):focus-visible {
+  --tw-ring-color: var(--brand-detail-coral);
+}
+
+body:not(.kivai-streaming-host) :is(button, a, input, select, textarea, [role="button"])[class*="focus-visible:"]:focus-visible {
+  --tw-ring-color: var(--brand-detail-coral);
+  outline-color: var(--brand-detail-coral);
+}
