@@ -3,94 +3,39 @@ import { ecommerceConsultingService } from "@/lib/business-services";
 import { getPageMetadata } from "@/lib/seo";
 
 export const metadata = getPageMetadata({
-  title: "Criação de E-commerce e Loja Virtual com Painel Administrativo",
+  title: "Criação de E-commerce e Loja Virtual",
   description:
-    "Criação de e-commerce sob medida com catálogo, variações, kits, estoque, checkout, pagamentos, frete, clientes, pedidos, campanhas, SEO, Analytics e painel administrativo.",
+    "Crie sua loja virtual com catálogo, estoque, pagamentos, frete, pedidos, campanhas e painel administrativo sob medida.",
   pathname: ecommerceConsultingService.pathname,
 });
 
 export default function ConsultoriaParaEcommercePage() {
   return (
     <>
-      <BusinessServicePage
-        config={ecommerceConsultingService}
-        hideExperience
-        hideProcess
-      />
-
+      <BusinessServicePage config={ecommerceConsultingService} hideExperience hideProcess />
       <section className="border-t border-border bg-background py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Experiência em projetos de e-commerce
-            </p>
-          </div>
-
+          <div className="mx-auto max-w-4xl text-center"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Experiência em projetos de e-commerce</p></div>
           <div className="relative mx-auto mt-10 max-w-5xl overflow-hidden">
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-background to-transparent sm:w-24" />
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-background to-transparent sm:w-24" />
-
             <div className="kivai-client-marquee flex w-max items-center gap-6 py-2">
               {[0, 1].map((group) => (
                 <div key={group} className="flex items-center gap-6" aria-hidden={group === 1}>
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
-                    <img
-                      src="/clients/sou-ofertas-online.svg"
-                      alt={group === 0 ? "Sou Ofertas Online" : ""}
-                      className="max-h-[5.5rem] max-w-[92%] object-contain"
-                    />
-                  </div>
-
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
-                    <img
-                      src="https://http2.mlstatic.com/D_NQ_NP_861528-MLA81184928992_122024-O.webp"
-                      alt={group === 0 ? "Panela de Ferro Mineira" : ""}
-                      className="max-h-[5.5rem] max-w-[92%] object-contain"
-                    />
-                  </div>
-
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
-                    <img
-                      src="/clients/at-shopping-transparent.png"
-                      alt={group === 0 ? "AT shopping" : ""}
-                      className="max-h-20 max-w-full object-contain"
-                    />
-                  </div>
-
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
-                    <img
-                      src="/clients/coimbra.webp"
-                      alt={group === 0 ? "Coimbra" : ""}
-                      className="max-h-20 max-w-full object-contain"
-                    />
-                  </div>
-
-                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60">
-                    <img
-                      src="/clients/droga-clara.webp"
-                      alt={group === 0 ? "Droga Clara" : ""}
-                      className="max-h-20 max-w-full object-contain"
-                    />
-                  </div>
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60"><img src="/clients/sou-ofertas-online.svg" alt={group === 0 ? "Sou Ofertas Online" : ""} className="max-h-[5.5rem] max-w-[92%] object-contain" /></div>
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60"><img src="https://http2.mlstatic.com/D_NQ_NP_861528-MLA81184928992_122024-O.webp" alt={group === 0 ? "Panela de Ferro Mineira" : ""} className="max-h-[5.5rem] max-w-[92%] object-contain" /></div>
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60"><img src="/clients/at-shopping-transparent.png" alt={group === 0 ? "AT shopping" : ""} className="max-h-20 max-w-full object-contain" /></div>
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60"><img src="/clients/coimbra.webp" alt={group === 0 ? "Coimbra" : ""} className="max-h-20 max-w-full object-contain" /></div>
+                  <div className="flex h-32 w-56 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-4 sm:w-60"><img src="/clients/droga-clara.webp" alt={group === 0 ? "Droga Clara" : ""} className="max-h-20 max-w-full object-contain" /></div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-
         <style>{`
-          @keyframes kivai-client-marquee {
-            from { transform: translateX(0); }
-            to { transform: translateX(calc(-50% - 0.75rem)); }
-          }
-          .kivai-client-marquee {
-            animation: kivai-client-marquee 18s linear infinite;
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .kivai-client-marquee {
-              animation: none;
-            }
-          }
+          @keyframes kivai-client-marquee { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 0.75rem)); } }
+          .kivai-client-marquee { animation: kivai-client-marquee 18s linear infinite; }
+          @media (prefers-reduced-motion: reduce) { .kivai-client-marquee { animation: none; } }
         `}</style>
       </section>
     </>
