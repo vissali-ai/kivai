@@ -6,7 +6,7 @@ import { plannedToolCategories } from "@/lib/planned-tool-categories";
 const categories = [...toolCategories, ...plannedToolCategories];
 
 // Cores suaves para identificar cada hub sem preencher os cards por completo.
-const categoryAccents = Array.from({ length: 10 }, () => ({ color: "#FF5A36", soft: "#FFF0EC" }));
+const categoryAccents = Array.from({ length: 10 }, () => ({ color: "#6C2BD9", soft: "#F3EEFC" }));
 
 export function ToolsSection() {
   return (
@@ -48,7 +48,7 @@ export function ToolsSection() {
                   <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
                     {category.description}
                   </p>
-                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium" style={{ color: "var(--cta-primary)" }}>
+                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium" style={{ color: "var(--brand-primary)" }}>
                     Explorar
                     <ArrowRight aria-hidden="true" className="size-3.5" />
                   </span>

@@ -44,7 +44,7 @@ export async function FeaturedToolsSection() {
                     {tool.description}
                   </p>
 
-                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium text-[var(--cta-primary)]">
+                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium text-primary">
                     {tool.available ? "Explorar" : "Em breve"}
                     {tool.available && <ArrowRight aria-hidden="true" className="size-3.5" />}
                   </span>

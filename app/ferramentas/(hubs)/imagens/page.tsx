@@ -27,7 +27,7 @@ export default function ImagensPage() {
   return (
     <section className="bg-background pb-12 pt-24 sm:pb-14 lg:pb-16">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 border-l-2 border-sky-500/70 pl-4">
+        <div className="mb-6 border-l-2 border-primary pl-4">
           <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary">
             <ArrowLeft className="size-4" />
             Voltar para o início
