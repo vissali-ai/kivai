@@ -7,31 +7,20 @@ import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 const categories = [...toolCategories, ...plannedToolCategories];
 
 // Cores suaves para identificar cada hub sem preencher os cards por completo.
-const categoryAccents = [
-  { color: "#585EAF", soft: "#EEEFFC" },
-  { color: "#A6535D", soft: "#FBEFF0" },
-  { color: "#157C82", soft: "#E9F5F5" },
-  { color: "#95632B", soft: "#FBF2E6" },
-  { color: "#8060A8", soft: "#F4EFFA" },
-  { color: "#356EAB", soft: "#ECF3FB" },
-  { color: "#2B7958", soft: "#EAF5EE" },
-  { color: "#9C5C40", soft: "#FAEFE9" },
-  { color: "#6A60A5", soft: "#F0EFF9" },
-  { color: "#447B83", soft: "#EDF6F6" },
-] as const;
+const categoryAccents = Array.from({ length: 10 }, () => ({ color: "#6C2BD9", soft: "#F3EEFC" }));
 
 export function ToolsSection() {
   return (
     <section
       id="ferramentas"
-      className="border-t border-[#D8DEE6] bg-[#ECEFF3] py-10 sm:py-12 lg:py-14"
+      className="border-t border-border bg-background py-10 sm:py-12 lg:py-14"
     >
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-[#202938]">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Explorar categorias
           </h2>
-          <p className="mt-2 text-sm text-[#566375]">
+          <p className="mt-2 text-sm text-muted-foreground">
             Encontre rapidamente a ferramenta ideal para cada necessidade.
           </p>
         </div>
@@ -45,20 +34,20 @@ export function ToolsSection() {
                 key={category.slug}
                 href={category.href}
                 style={{ borderLeftColor: accent.color }}
-                className="group relative min-w-0 rounded-xl border border-l-[3px] border-[#DAE0E8] bg-[#F9FAFC] p-4 transition-colors duration-150 hover:border-[#ADB7C7] hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5847AD]"
+                className="group relative min-w-0 rounded-xl border border-l-[3px] border-border bg-card p-4 transition-colors duration-150 hover:border-primary/40 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <div className="flex h-full min-h-[172px] flex-col">
                   <div className="flex items-start justify-between gap-2">
                     <ToolEditorialMark category={category.slug} className="size-8 shrink-0" />
-                    <span className="shrink-0 rounded-full border border-[#E0E5EC] bg-[#F1F3F7] px-2 py-0.5 text-[10px] text-[#647081]">
+                    <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                       Categoria
                     </span>
                   </div>
 
-                  <h3 className="mt-4 text-[15px] font-semibold leading-5 tracking-tight text-[#202938]">
+                  <h3 className="mt-4 text-[15px] font-semibold leading-5 tracking-tight text-foreground">
                     {category.name}
                   </h3>
-                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-[#566375]">
+                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
                     {category.description}
                   </p>
                   <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium" style={{ color: accent.color }}>
