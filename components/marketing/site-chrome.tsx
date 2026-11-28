@@ -5,7 +5,7 @@ const streamingBodyFont = Inter({ subsets: ["latin"], variable: "--font-streamin
 const streamingHeadingFont = Poppins({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-streaming-heading", display: "swap" });
 
 
-export function SiteChrome({ children, mainHeader, musicHeader, mainFooter }: {
+export function SiteChrome({ children, mainHeader, musicHeader, mainFooter, isStreamingHost }: {
   children: ReactNode;
   mainHeader: ReactNode;
   musicHeader: ReactNode;
