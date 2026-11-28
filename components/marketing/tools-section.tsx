@@ -2,12 +2,11 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { toolCategories } from "@/lib/tools";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
-import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 
 const categories = [...toolCategories, ...plannedToolCategories];
 
 // Cores suaves para identificar cada hub sem preencher os cards por completo.
-const categoryAccents = Array.from({ length: 10 }, () => ({ color: "#6C2BD9", soft: "#F3EEFC" }));
+const categoryAccents = Array.from({ length: 10 }, () => ({ color: "#FF5A36", soft: "#FFF0EC" }));
 
 export function ToolsSection() {
   return (
@@ -37,8 +36,7 @@ export function ToolsSection() {
                 className="group relative min-w-0 rounded-xl border border-l-[3px] border-border bg-card p-4 transition-colors duration-150 hover:border-primary/40 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <div className="flex h-full min-h-[172px] flex-col">
-                  <div className="flex items-start justify-between gap-2">
-                    <ToolEditorialMark category={category.slug} className="size-8 shrink-0" />
+                  <div className="flex justify-end">
                     <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                       Categoria
                     </span>
@@ -50,7 +48,7 @@ export function ToolsSection() {
                   <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
                     {category.description}
                   </p>
-                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium" style={{ color: accent.color }}>
+                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium" style={{ color: "var(--cta-primary)" }}>
                     Explorar
                     <ArrowRight aria-hidden="true" className="size-3.5" />
                   </span>
