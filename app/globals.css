@@ -399,8 +399,4 @@ body.kivai-streaming-host {
 
 
 /* Ações do site principal. O tema de streaming mantém os próprios tokens. */
-body:not(.kivai-streaming-host) [data-slot="button"][data-variant="default"] { background-color: var(--cta-primary); color: var(--cta-primary-text); }
-body:not(.kivai-streaming-host) [data-slot="button"][data-variant="default"]:hover { background-color: var(--cta-primary-hover); }
-body:not(.kivai-streaming-host) main :is(a, button)[class~="bg-primary"] { background-color: var(--cta-primary); color: var(--cta-primary-text); }
-body:not(.kivai-streaming-host) main :is(a, button)[class~="bg-primary"]:hover { background-color: var(--cta-primary-hover); }
 body:not(.kivai-streaming-host) :is(button, a, input, select, textarea, [role="button"]):focus-visible { --tw-ring-color: var(--brand-primary); }
