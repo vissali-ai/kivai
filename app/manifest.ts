@@ -16,8 +16,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#17151f",
-    theme_color: "#17151f",
+    background_color: isStreaming ? "#17151f" : "#F8F9FC",
+    theme_color: isStreaming ? "#17151f" : "#6C2BD9",
     icons: [
       { src: "/pwa-icon/192", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/pwa-icon/512", sizes: "512x512", type: "image/png", purpose: "any" },
