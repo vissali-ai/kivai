@@ -61,38 +61,49 @@
 :root {
   color-scheme: light;
   /* Tema cinza-claro suave em todas as áreas do Kivai. */
-  --background: #ECEFF3;
-  --foreground: #202938;
-  --card: #F9FAFC;
-  --card-foreground: #202938;
+  --background: #F8F9FC;
+  --foreground: #181A2A;
+  --card: #FFFFFF;
+  --card-foreground: #181A2A;
   --popover: #FFFFFF;
-  --popover-foreground: #202938;
-  --primary: #5847AD;
+  --popover-foreground: #181A2A;
+  --primary: #6C2BD9;
   --primary-foreground: #FFFFFF;
-  --secondary: #E4E9F1;
-  --secondary-foreground: #283347;
-  --muted: #E4E8EF;
-  --muted-foreground: #546174;
-  --accent: #EDE9F9;
-  --accent-foreground: #342965;
+  --secondary: #F3EEFC;
+  --secondary-foreground: #181A2A;
+  --muted: #F1F3F7;
+  --muted-foreground: #4A5568;
+  --accent: #F3EEFC;
+  --accent-foreground: #4D1CA6;
   --destructive: #B53643;
-  --border: #D5DCE7;
-  --input: #CFD7E3;
-  --ring: #5847AD;
-  --chart-1: #5847AD;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #6C2BD9;
+  --chart-1: #6C2BD9;
   --chart-2: #276C94;
   --chart-3: #88558D;
   --chart-4: #287D68;
   --chart-5: #986B37;
   --radius: 0.75rem;
-  --sidebar: #F9FAFC;
-  --sidebar-foreground: #202938;
-  --sidebar-primary: #5847AD;
+  --bg-primary: #F8F9FC;
+  --bg-surface: #FFFFFF;
+  --text-primary: #181A2A;
+  --text-secondary: #4A5568;
+  --border-subtle: #E2E8F0;
+  --brand-primary: #6C2BD9;
+  --brand-secondary: #00B4D8;
+  --cta-primary: #FF5A36;
+  --cta-primary-hover: #E04826;
+  --cta-primary-text: #FFFFFF;
+  --accent-reward: #FFB703;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #181A2A;
+  --sidebar-primary: #6C2BD9;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E4E9F1;
-  --sidebar-accent-foreground: #202938;
-  --sidebar-border: #D5DCE7;
-  --sidebar-ring: #5847AD;
+  --sidebar-accent: #F3EEFC;
+  --sidebar-accent-foreground: #181A2A;
+  --sidebar-border: #E2E8F0;
+  --sidebar-ring: #6C2BD9;
 }
 
 .dark {
@@ -138,21 +149,21 @@
    uma preferência/estilo de tema escuro seja aplicada externamente. */
 .kivai-auth-page {
   color-scheme: light;
-  --background: #ECEFF3;
-  --foreground: #202938;
-  --card: #F9FAFC;
-  --card-foreground: #202938;
+  --background: #F8F9FC;
+  --foreground: #181A2A;
+  --card: #FFFFFF;
+  --card-foreground: #181A2A;
   --popover: #FFFFFF;
-  --popover-foreground: #202938;
-  --primary: #5847AD;
+  --popover-foreground: #181A2A;
+  --primary: #6C2BD9;
   --primary-foreground: #FFFFFF;
-  --border: #D5DCE7;
-  --input: #CFD7E3;
-  --ring: #5847AD;
-  --muted: #E4E8EF;
-  --muted-foreground: #546174;
-  --secondary: #E4E9F1;
-  --secondary-foreground: #283347;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #6C2BD9;
+  --muted: #F1F3F7;
+  --muted-foreground: #4A5568;
+  --secondary: #F3EEFC;
+  --secondary-foreground: #181A2A;
   background-color: var(--background);
   color: var(--foreground);
 }
@@ -385,3 +396,11 @@ body.kivai-streaming-host {
     background: rgb(255 255 255 / 68%);
   }
 }
+
+
+/* Ações do site principal. O tema de streaming mantém os próprios tokens. */
+body:not(.kivai-streaming-host) [data-slot="button"][data-variant="default"] { background-color: var(--cta-primary); color: var(--cta-primary-text); }
+body:not(.kivai-streaming-host) [data-slot="button"][data-variant="default"]:hover { background-color: var(--cta-primary-hover); }
+body:not(.kivai-streaming-host) main :is(a, button)[class~="bg-primary"] { background-color: var(--cta-primary); color: var(--cta-primary-text); }
+body:not(.kivai-streaming-host) main :is(a, button)[class~="bg-primary"]:hover { background-color: var(--cta-primary-hover); }
+body:not(.kivai-streaming-host) :is(button, a, input, select, textarea, [role="button"]):focus-visible { --tw-ring-color: var(--brand-primary); }
