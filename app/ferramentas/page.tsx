@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 import { getPageMetadata, SITE_URL } from "@/lib/seo";
-import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 import { plannedToolCategories } from "@/lib/planned-tool-categories";
 import { getToolCategoryAccentClass } from "@/lib/tool-category-visuals";
 import {
@@ -77,8 +76,8 @@ export default async function FerramentasPage() {
                 href={category.href}
                 className={`group flex min-h-[180px] flex-col rounded-lg border border-l-2 border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/70 ${getToolCategoryAccentClass(category.slug)}`}
               >
-                <ToolEditorialMark category={category.slug} className="size-8 shrink-0" />
-                <h2 className="mt-3 text-base font-semibold">{category.name}</h2>
+                
+                <h2 className="text-base font-semibold">{category.name}</h2>
                 <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground">
                   {category.description}
                 </p>
@@ -119,7 +118,7 @@ export default async function FerramentasPage() {
                     <CheckCircle2 aria-hidden="true" className="size-4" />
                     Documentada
                   </div>
-                  <h3 className="mt-3 pr-10 text-sm font-semibold leading-5">{tool.name}</h3>
+                  <h3 className="mt-3 text-sm font-semibold leading-5">{tool.name}</h3>
                   <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
                   <span className="mt-auto inline-flex items-center gap-2 pt-3 text-xs font-medium text-foreground group-hover:text-primary">
                     Abrir ferramenta <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
