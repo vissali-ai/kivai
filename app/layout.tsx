@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { headers } from "next/headers";
 
 import "./globals.css";
 import "./mobile-file-inputs.css";
@@ -19,7 +20,7 @@ import StructuredData from "@/components/seo/structured-data";
 import { adsConfig } from "@/lib/ads/config";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   metadataBase: new URL("https://www.kivai.com.br"),
 
   title: {
@@ -94,12 +95,6 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
 
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
-
   category: "Technology",
   appleWebApp: { capable: true, title: "Kivai", statusBarStyle: "default" },
 
@@ -108,7 +103,17 @@ export const metadata: Metadata = {
     : {}),
 };
 
-export const viewport: Viewport = { themeColor: "#ECEFF3" };
+export async function generateMetadata(): Promise<Metadata> {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  const streaming = host === "streaming.kivai.com.br";
+  const icon = streaming ? "/logo.png" : "/favicon-main.svg";
+  return { ...baseMetadata, icons: { icon, shortcut: icon, apple: "/apple-touch-icon.png" } };
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
+  return { themeColor: host === "streaming.kivai.com.br" ? "#ECEFF3" : "#6C2BD9" };
+}
 
 export default function RootLayout({
   children,
