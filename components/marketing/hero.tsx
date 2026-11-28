@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[#ECEFF3] pt-16">
+    <section className="relative overflow-hidden bg-background pt-16">
       <div className="mx-auto flex max-w-7xl flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <h1 className="max-w-5xl text-[2.45rem] font-semibold leading-[1.04] tracking-[-0.045em] text-[#202938] min-[430px]:text-5xl sm:text-6xl lg:text-7xl lg:leading-[1.02]">
+        <h1 className="max-w-5xl text-[2.45rem] font-semibold leading-[1.04] tracking-[-0.045em] text-foreground min-[430px]:text-5xl sm:text-6xl lg:text-7xl lg:leading-[1.02]">
           Ferramentas e{" "}
-          <span className="text-[#5847AD]">
+          <span className="text-primary">
             soluções digitais
           </span>
         </h1>
 
-        <p className="mt-5 max-w-3xl text-[15px] leading-7 text-[#546174] sm:mt-6 sm:text-lg sm:leading-8">
+        <p className="mt-5 max-w-3xl text-[15px] leading-7 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8">
           Todas as ferramentas são gratuitas e funcionam sem cadastro. Entre se quiser salvar projetos ou usar recursos de IA com créditos.
         </p>
 
@@ -22,7 +22,7 @@ export function Hero() {
           <Button
             size="lg"
             asChild
-            className="group rounded-xl bg-[#5847AD] px-8 text-white hover:bg-[#483994]"
+            className="group rounded-xl bg-[var(--cta-primary)] px-8 text-white hover:bg-[var(--cta-primary-hover)]"
           >
             <Link href="#ferramentas">
               Explorar Ferramentas

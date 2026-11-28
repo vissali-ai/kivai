@@ -21,7 +21,7 @@ export function SiteChrome({ children, mainHeader, musicHeader, mainFooter }: {
     document.documentElement.classList.toggle("kivai-streaming-host", active);
     document.body.classList.toggle("kivai-streaming-host", active);
     const themeColor = document.querySelector('meta[name="theme-color"]');
-    if (themeColor) themeColor.setAttribute("content", active ? "#6B0F8C" : "#ECEFF3");
+    if (themeColor) themeColor.setAttribute("content", active ? "#6B0F8C" : "#6C2BD9");
     return () => {
       document.documentElement.classList.remove("kivai-streaming-host");
       document.body.classList.remove("kivai-streaming-host");

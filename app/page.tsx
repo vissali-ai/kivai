@@ -6,7 +6,7 @@ import { ManagedContentLinks } from "@/components/site-cms/managed-content-links
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#ECEFF3] text-[#202938]">
+    <main className="min-h-screen bg-background text-foreground">
       <Hero />
 
       <FeaturedToolsSection />
