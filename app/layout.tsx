@@ -113,7 +113,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export async function generateViewport(): Promise<Viewport> {
   const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase();
-  return { themeColor: host === "streaming.kivai.com.br" ? "#ECEFF3" : "#6C2BD9" };
+  return { themeColor: host === "streaming.kivai.com.br" ? "#6B0F8C" : "#6C2BD9" };
 }
 
 export default async function RootLayout({
@@ -135,6 +135,7 @@ export default async function RootLayout({
         "h-full",
         "antialiased",
         "font-sans",
+        isStreamingHost && "kivai-streaming-host",
       )}
     >
       <body
@@ -185,6 +186,7 @@ export default async function RootLayout({
         <CookieConsentProvider>
           <CardFavoritesProvider>
           <SiteChrome
+            isStreamingHost={isStreamingHost}
             mainHeader={<><AuthReturnTracker /><Navbar /></>}
             musicHeader={<MusicSiteHeader />}
             mainFooter={<><Footer /><WhatsappSupportButton /><ToolFavoriteControl /><InstallKivaiPrompt /></>}
