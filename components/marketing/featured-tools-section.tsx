@@ -3,7 +3,6 @@ import { HorizontalToolCarousel } from "@/components/marketing/horizontal-tool-c
 import { ArrowRight } from "lucide-react";
 import { getToolHref, tools } from "@/lib/tools";
 import { listPublishedFeaturedTools } from "@/lib/site-cms/repository";
-import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 
 export async function FeaturedToolsSection() {
   const mostUsedTools = (await listPublishedFeaturedTools()).map((content) => {
@@ -32,7 +31,6 @@ export async function FeaturedToolsSection() {
               >
                 <div className="flex h-full min-h-[154px] flex-col">
                   <div className="flex items-start justify-between gap-2">
-                    <ToolEditorialMark category={tool.category} slug={tool.slug} className="size-8 shrink-0" />
                     <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                       {tool.available ? tool.badge : "Em breve"}
                     </span>
@@ -46,7 +44,7 @@ export async function FeaturedToolsSection() {
                     {tool.description}
                   </p>
 
-                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium text-primary">
+                  <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-medium text-[var(--cta-primary)]">
                     {tool.available ? "Explorar" : "Em breve"}
                     {tool.available && <ArrowRight aria-hidden="true" className="size-3.5" />}
                   </span>

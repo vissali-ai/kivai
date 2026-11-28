@@ -9,7 +9,7 @@ export function Hero() {
       <div className="mx-auto flex max-w-7xl flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <h1 className="max-w-5xl text-[2.45rem] font-semibold leading-[1.04] tracking-[-0.045em] text-foreground min-[430px]:text-5xl sm:text-6xl lg:text-7xl lg:leading-[1.02]">
           Ferramentas e{" "}
-          <span className="text-primary">
+          <span className="text-[var(--cta-primary)]">
             soluções digitais
           </span>
         </h1>

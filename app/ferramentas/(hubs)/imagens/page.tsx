@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getToolHref, getToolsByCategory } from "@/lib/tools";
-import { ToolEditorialMark } from "@/components/marketing/tool-editorial-mark";
 
 const filters = ["Todos", "Capturar", "Otimizar", "Converter", "Editar"];
 const registeredTools = getToolsByCategory("imagens");
@@ -48,8 +47,8 @@ export default function ImagensPage() {
             return (
               <ToolCardLink favoritePlacement="title" toolTitle={tool.name} key={tool.slug} href={tool.href} prefetch={false} className="group relative overflow-hidden rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/70">
                 <div className="flex min-h-[152px] flex-col">
-                  <div className="flex items-start justify-between"><ToolEditorialMark category={tool.category} slug={tool.slug} /><span className="rounded-full border border-border bg-muted/70 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span></div>
-                  <h2 className="mt-3 pr-10 text-sm font-semibold leading-5">{tool.name}</h2>
+                  <div className="flex justify-end"><span className="rounded-full border border-border bg-muted/70 px-2 py-0.5 text-[10px] text-muted-foreground">{tool.badge}</span></div>
+                  <h2 className="mt-3 text-sm font-semibold leading-5">{tool.name}</h2>
                   <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{tool.description}</p>
                   <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs font-medium group-hover:text-primary">Explorar<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" /></div>
                 </div>
